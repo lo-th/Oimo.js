@@ -1,0 +1,100 @@
+body {
+	color: #606060;
+	font-family:Monospace;
+	font-size:11px;
+	margin: 0px;
+	overflow: hidden;
+	text-align:center;
+	background:#000000 url('../images/bg.jpg') no-repeat center center fixed; 
+    -webkit-background-size: 100% 100%;
+    -o-background-size: 100% 100%;
+    background-size: 100% 100%;
+}
+
+#titre {
+	position: absolute;
+	top: 10px;
+	font-size:16px;
+	height:30px;
+	width: 300px;
+	left: calc(50% - 512px);
+	text-align: left;
+}
+#info {
+	position: absolute;
+	top: 685px;
+	width: 1024px;
+	left: calc(50% - 512px);
+	text-align: left;
+}
+#debug {
+	position: absolute;
+	top: 50px;
+	width: 300px;
+	height: 400px;
+	left: calc(50% - 512px);
+	margin-left: 10px;
+	text-align: left;
+	pointer-events: none
+}
+#fps {
+	position: absolute;
+	text-align: right;
+	top: 685px;
+	width: 1024px;
+	left: calc(50% - 512px);
+	color: #505050;
+}
+#container {
+ 	width: 1024px;
+ 	height:640px;
+ 	left: calc(50% - 512px);
+ 	top:40px;
+ 	position: absolute;
+ 	display:block;
+ 	border:1px solid #333333;
+}
+#cursor {
+	pointer-events: none;
+	position: absolute;
+}
+#cursorDown {
+	position:absolute;
+	margin-left:-16px;
+	margin-top: -16px;
+	visibility:hidden;
+}
+#cursorUp {
+	position:absolute;
+	margin-left:-16px;
+	margin-top: -16px;
+	visibility:hidden;
+}
+#menu {
+    top: 5px;
+    width: 1024px;
+    left: calc(50% - 512px);
+    position: absolute;
+    display:block;
+    text-align: right;
+}
+button {
+	color: #888888;
+	border:1px solid #333333;
+    font-size: 9px;
+    height: 30px;
+    width: 80px;
+    margin: 0px 0px;
+    cursor: pointer;
+    background-color: #000;
+}
+a { color: #888888; text-decoration:none; cursor: pointer;}
+a:visited { color: #888888; text-decoration:none}
+.unselectable{
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+
+}

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Oimo.js dev</title>
+		<title>Oimo.js rev</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link rel="stylesheet" type="text/css" href="css/style.css" />
@@ -24,7 +24,7 @@
 			<button type="button" onclick="resetDemo()" id="bcontrol">RESET</button>
 			<button type="button" onclick="moveView()" id="bview">VIEW</button>
 		</div>
-		<div id="titre" class="unselectable">Oimo.js dev / <a href="index_rev.html" target="_self">rev</a></div>
+		<div id="titre" class="unselectable">Oimo.js rev / <a href="index.html" target="_self">dev</a></div>
 
 		<script type="text/javascript" src="js/three.min.js"></script>
 		<script type="text/javascript" src="js/Mirror.js"></script>
@@ -53,7 +53,7 @@
             var _output = document.getElementById("debug");
             var temp = 0;
 
-            var OimoWorker = new Worker('worker_oimo_dev.js');
+            var OimoWorker = new Worker('worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
 		    function init() {
@@ -75,6 +75,7 @@
 				    for(var i=0; i!==max; i++){
 			        	if( e.data.types[i] == 1) addSphere(e.data.sizes[i]);
 			        	else if( e.data.types[i] == 2) addCube(e.data.sizes[i]);
+			        	else if( e.data.types[i] == 3) addCylinder(e.data.sizes[i]);
 				    }
 				}
 
@@ -129,8 +130,8 @@
 	        	var info = "";
 	        	info += "Rigidbody: "+a[0]+"<br>";
 	        	info += "Contact: "+a[1]+"<br>";
-			    info += "Pair Check: "+a[2]+"<br>";
-			    info += "Contact Point: "+a[3]+"<br>";
+			    info += "Shapes: "+a[2]+"<br>";
+			    info += "Joints: "+a[3]+"<br>";
 			    info += "Island: " + a[4] +"<br><br>";
 			    
 			    info += "Broad-Phase Time: " + a[5] + "ms<br>";
