@@ -17,8 +17,10 @@ size and position x100 for three.js
 */
 var version = "10.DEV";
 // main class
-var World, RigidBody, BroadPhase, Shape, ShapeConfig, BoxShape, SphereShape
-var JointConfig, HingeJoint, WheelJoint, DistanceJoint, Vec3, Quat;
+var World, RigidBody, BroadPhase;
+var Shape, ShapeConfig, BoxShape, SphereShape;
+var JointConfig, HingeJoint, WheelJoint, DistanceJoint;
+var Vec3, Quat;
 
 // physics variable
 var scale = 100;
@@ -30,6 +32,7 @@ var iterations = 8;
 var info = "info test";
 var fps=0, time, time_prev=0, fpsint = 0;
 var timeint = 0;
+var ToRad = Math.PI / 180;
 
 var matrix;
 var sleeps;
@@ -162,6 +165,9 @@ function initDemo(){
     matrix = [];
 
     demo01();
+
+    matrix.length = 12*bodys.length;
+
     self.postMessage({tell:"INIT", types:types, sizes:sizes });
 }
 
@@ -181,7 +187,7 @@ function clearWorld(){
 function addRigid(obj){
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
-    var r = obj.rot || [0,0,0];
+    var r = obj.rot || [0,0,0,0];
     var move = obj.move || false;
     var sc = obj.sc || new ShapeConfig();
     var t, i; 
@@ -190,7 +196,7 @@ function addRigid(obj){
         case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
     }
-    var body = new RigidBody(p[0], p[1], p[2], 0, 0, 0, 0);
+    var body = new RigidBody(p[0], p[1], p[2], r[0]*ToRad, r[1], r[2], r[3]);
     body.addShape(shape);
     if(!move)body.setupMass(0x2);
     else{ 
@@ -200,4 +206,5 @@ function addRigid(obj){
         sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
     }
     world.addRigidBody(body);
+    return body;
 }

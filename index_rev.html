@@ -58,7 +58,7 @@
 
 		    function init() {
             	// init three.js engine
-            	initThree({ mouse:true, autoSize:true, n:Math.floor(Math.random()*4)});
+            	initThree({ mouse:true, autoSize:true, n:Math.floor(Math.random()*4), optimized:false});
 
         	    // start worker
         	    OimoWorker.postMessage({tell:"INITWORLD", dt:dt, iterations:8 });

@@ -20,19 +20,7 @@ var key = { front:false, back:false, left:false, right:false, jump:false, crouch
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 var cursor, cursorUp, cursorDown;
 
-var mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
-var mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
-var mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
-var mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
-var mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
-var mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
-
-mat01.name = "mat01";
-mat02.name = "mat02";
-mat03.name = "mat03";
-mat01sleep.name = "mat01sleep";
-mat02sleep.name = "mat02sleep";
-mat03sleep.name = "mat03sleep";
+var groundMat, mat01, mat02, mat03, mat01sleep, mat02sleep, mat03sleep;
 
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
@@ -41,23 +29,27 @@ var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 26 );
 var ToRad = Math.PI / 180;
 var content;
 
+var isOptimized;
+var antialias;
+
 //-----------------------------------------------------
 //  INIT VIEW
 //-----------------------------------------------------
 
 function initThree(option) {
 	if(!option)option = {};
+	isOptimized = option.optimized || false;
 	character = option.n || 1;
-	renderer = new THREE.WebGLRenderer({antialias:true});
-	renderer.setClearColor( 0x161616, 1 );
+	if(!isOptimized)antialias = true;
+	else antialias = false
+	
+	renderer = new THREE.WebGLRenderer({ antialias:antialias });
+	renderer.setClearColor( 0x303030, 1 );
 	renderer.physicallyBasedShading = true;
-	renderer.shadowMapEnabled = true;
-	renderer.shadowMapSoft = true;
 	renderer.gammaOutput = true;
 	renderer.gammaInput = true;
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.Fog( 0x161616 , 1000, 2000 );
 	
 	camera = new THREE.PerspectiveCamera( 60, 1, 1, 4000 );
 	scene.add(camera);
@@ -79,13 +71,20 @@ function initThree(option) {
 	if(option.mouse) customCursor();
 	if(option.autoSize){ window.addEventListener( 'resize', rz, false ); rz();}
 
-	initLights();
-
 	content = new THREE.Object3D();
 	scene.add(content);
 
+	if(!isOptimized){
+	    renderer.shadowMapEnabled = true;
+	    renderer.shadowMapSoft = true;
+		scene.fog = new THREE.Fog( 0x303030 , 1000, 2000 );
+		mirrorGround();
+		initLights();
+	}
+
+	initMaterial();
 	initObject();
-	mirrorGround();
+
 	onThreeChangeView(45,60,1000);
 
 	fpstxt = document.getElementById( "fps" );
@@ -96,7 +95,31 @@ function initThree(option) {
     startRender();
 
 }
-
+function initMaterial() {
+	if(!isOptimized){
+		groundMat =  new THREE.MeshPhongMaterial( { color: 0x303030, shininess:100, specular:0x303030} );
+		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
+		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
+		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
+		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
+		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
+		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
+	}else{
+		groundMat = new THREE.MeshBasicMaterial( { color: 0x303030} );
+		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
+		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
+		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
+		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
+		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
+		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
+	}
+	mat01.name = "mat01";
+	mat02.name = "mat02";
+	mat03.name = "mat03";
+	mat01sleep.name = "mat01sleep";
+	mat02sleep.name = "mat02sleep";
+	mat03sleep.name = "mat03sleep";
+}
 
 function customCursor() {
 	cursorUp = document.getElementById( 'cursorUp' );
@@ -236,7 +259,7 @@ function initLights() {
 
 function initObject() {
 	var geometry = new THREE.PlaneGeometry( 2000,2000 );
-	var plane = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0x303030, shininess:100, specular:0x303030} ) );
+	var plane = new THREE.Mesh( geometry, groundMat );
 	plane.rotation.x = (-90)*ToRad;
 	plane.position.y =-2
 	scene.add(plane);
@@ -322,7 +345,7 @@ function update() {
 	//delta = clock.getDelta();
 	//THREE.AnimationHandler.update( delta*0.5 );
 
-	groundMirror.renderWithMirror( verticalMirror );
+	if(!isOptimized) groundMirror.renderWithMirror( verticalMirror );
 	//verticalMirror.renderWithMirror( groundMirror );
 	//updatePlayerMove();
 
