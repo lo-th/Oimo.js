@@ -42,7 +42,7 @@ function initThree(option) {
 	character = option.n || 1;
 	if(!isOptimized)antialias = true;
 	else antialias = false
-	
+
 	renderer = new THREE.WebGLRenderer({ antialias:antialias });
 	renderer.setClearColor( 0x303030, 1 );
 	renderer.physicallyBasedShading = true;
@@ -84,6 +84,7 @@ function initThree(option) {
 
 	initMaterial();
 	initObject();
+	initSea3DMesh();
 
 	onThreeChangeView(45,60,1000);
 
@@ -168,6 +169,16 @@ function addCylinder(s) {
 	if(s==null) s = [25,50,25];//{x:25, y:50, z:25};
 	var mesh = new THREE.Mesh(geo03, mat03);
 	mesh.scale.set( s[0], s[1], s[2] );
+	mesh.position.y = -10000;
+	content.add( mesh );
+	mesh.receiveShadow = true;
+	mesh.castShadow = true;
+}
+
+function addDice(s) {
+	if(s==null) s = [50,50,50];
+	var mesh = new THREE.Mesh(meshs[0].geometry, mat03);
+	mesh.scale.set( s[0], s[1], -s[2] );
 	mesh.position.y = -10000;
 	content.add( mesh );
 	mesh.receiveShadow = true;
@@ -282,21 +293,29 @@ function initObject() {
 //-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
+var seaList = ['dice'];
+var seaN = 0;
 
-function initSea3DMesh() {
-	var loader = new THREE.SEA3D( false );
+function initSea3DMesh(){
+	var name = seaList[seaN];
+	var loader = new THREE.SEA3D(false);
+	
+
 	loader.onComplete = function( e ) {
-		for (i=0; i < loader.meshes.length; i++){
-			meshs[i] = loader.meshes[i];
-			if (meshs[i].name == "weapon0" || meshs[i].name == "weapon1" || meshs[i].name == "weapon2" || meshs[i].name == "weapon3") 
-				meshs[i].material = new THREE.MeshPhongMaterial( { color: 0x808080, shininess:100, specular:0xffffff });;
+		for (var i=0; i !== loader.meshes.length; i++){
+			meshs.push( loader.meshes[i] );
 		}
-	    addSea3DMesh();
-	};
-	loader.load( 'assets/model.sea' );
+		// load Next
+		seaN++;
+		//if(seaList[seaN]!=null)initSea3DMesh();
+		//else
+		mainAllObjectLoaded();
+	}
+
+	loader.load( 'models/'+name+'.sea' );
 }
 
-function addSea3DMesh() {
+/*function addSea3DMesh() {
 	players[0] = meshs[27+6];
 	players[0].scale.set( 10, 10, -10 );
     players[0].position.set(100, 45, -100);
@@ -313,7 +332,6 @@ function addSea3DMesh() {
 	currentPlay = 'idle';
 }
 
-
 function threeChangeAnimation(){
 	if (players.length>0){
 		if (currentPlay == "idle") {
@@ -324,7 +342,7 @@ function threeChangeAnimation(){
 		players[0].play(currentPlay);
 		players[1].play(currentPlay);
 	}
-}
+}*/
 
 //-----------------------------------------------------
 //  EVENT
@@ -605,7 +623,7 @@ function addSkyBox() {
 //  AUTO RESIZE
 //-----------------------------------------------------
 
-var divListe= ["container", "info", "fps", "titre", "menu", "debug"];
+var divListe= ["container", "info", "fps", "titre", "menu", "debug", "option"];
 var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:680, n:1}, {w:1280, h:768, n:2}]
 var size =  1;
 
@@ -626,10 +644,10 @@ function fullResize(n){
 	var div;
 	for(var i=0; i< divListe.length; ++i){
 		div = document.getElementById( divListe[i] );
-		if(i!=5 && i!=3)div.style.width = w+"px";
+		if(i!==5 && i!==3 && i!==6)div.style.width = w+"px";
 		div.style.left = "calc(50% - "+mw+"px)";
 		if(i==0)div.style.height = h+"px";
-		else if (i!==4 && i!==3 && i!==5)div.style.top = h+45+"px";
+		else if (i!==4 && i!==3 && i!==5 )div.style.top = h+45+"px";
 	}
 	resize(w,h);
 }

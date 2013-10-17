@@ -753,9 +753,15 @@ ctx.RawDeflate.inflate = zip_inflate;
 
 })(this);
 
-//	SEA3D Deflate
+/**
+ * 	SEA3D.js - SEA3D SDK ( Deflate )
+ * 	Copyright (C) 2013 Sunag Entertainment 
+ * 
+ * 	http://code.google.com/p/sea3d/
+ */
+ 
 SEA3D.File.DeflateUncompress = function(data) {	
 	return RawDeflate.inflate(data);
 }
 
-SEA3D.File.setDecompressionEngine("deflate", SEA3D.File.DeflateUncompress);
+SEA3D.File.setDecompressionEngine(1, "deflate", SEA3D.File.DeflateUncompress);

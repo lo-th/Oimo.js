@@ -560,7 +560,13 @@ LZMA.decompressFile = function(inStream, outStream){
   return true;
 };
 
-//	SEA3D LZMA
+/**
+ * 	SEA3D.js - SEA3D SDK ( LZMA )
+ * 	Copyright (C) 2013 Sunag Entertainment 
+ * 
+ * 	http://code.google.com/p/sea3d/
+ */
+ 
 SEA3D.File.LZMAUncompress = function(data) {	
 	var inStream = {
 		data:data,
@@ -583,4 +589,4 @@ SEA3D.File.LZMAUncompress = function(data) {
 	return new Uint8Array(outStream.data);
 }
 
-SEA3D.File.setDecompressionEngine("lzma", SEA3D.File.LZMAUncompress);
+SEA3D.File.setDecompressionEngine(2, "lzma", SEA3D.File.LZMAUncompress);

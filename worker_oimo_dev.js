@@ -39,7 +39,9 @@ var sleeps;
 var types;
 var sizes;
 var infos =[];
+
 var currentDemo = 0;
+var maxDemo = 3;
 //var isDemo = false;
 //var matrix = new Float32Array(N*12);
 
@@ -57,6 +59,14 @@ self.onmessage = function (e) {
 
     else if(phase === "CLEAR"){
         clearWorld();
+    }
+
+    else if(phase === "NEXT"){
+        initNextDemo();
+    }
+
+    else if(phase === "PREV"){
+        initPrevDemo();
     }
 }
 
@@ -157,6 +167,20 @@ function initWorld(){
     initDemo();
 }
 
+function initNextDemo(){
+    clearWorld();
+    currentDemo ++;
+    if(currentDemo == maxDemo)currentDemo=0;
+    initDemo();
+}
+
+function initPrevDemo(){
+    clearWorld();
+    currentDemo --;
+    if(currentDemo < 0)currentDemo=maxDemo-1;
+    initDemo();
+}
+
 function initDemo(){
 
     bodys = [];
@@ -164,19 +188,21 @@ function initDemo(){
     sizes = [];
     matrix = [];
 
-    demo01();
+    if(currentDemo==0)demo0();
+    else if(currentDemo==1)demo1();
+    else if(currentDemo==2)demo2();
+    
 
     matrix.length = 12*bodys.length;
-
+    
     self.postMessage({tell:"INIT", types:types, sizes:sizes });
 }
 
 function clearWorld(){
     if(world != null) world.clear();
-    bodys = [];
     sleeps = [];
-    types = [];
     infos = [];
+
     self.postMessage({tell:"CLEAR"});
 }
 
@@ -193,8 +219,9 @@ function addRigid(obj){
     var t, i; 
     var shape;
     switch(obj.type){
-        case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
+        case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
+        case "dice": shape=new BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0]*ToRad, r[1], r[2], r[3]);
     body.addShape(shape);
