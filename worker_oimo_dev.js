@@ -1,6 +1,6 @@
 importScripts('js/oimo/runtime_min.js');
-importScripts('js/oimo/oimo_dev.js');
-//importScripts('js/oimo/oimo_dev_min.js');
+//importScripts('js/oimo/oimo_dev.js');
+importScripts('js/oimo/oimo_dev_min.js');
 importScripts('js/oimo/demo.js');
 
 /*
