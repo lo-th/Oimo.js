@@ -10,6 +10,8 @@ It is a conversion of [OimoPhysics](https://github.com/saharan/OimoPhysics) crea
 
 Here are some demos
 
-[oimo dev worker test](http://lo-th.github.io/loth/oimo.js/index.html)
+[oimo.js dev worker test](http://lo-th.github.io/loth/oimo.js/index.html)
 
-[oimo rev worker test](http://lo-th.github.io/loth/oimo.js/index_rev.html)
+[oimo.js rev worker test](http://lo-th.github.io/loth/oimo.js/index_rev.html)
+
+more demo soon...
