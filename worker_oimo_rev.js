@@ -120,6 +120,8 @@ function worldInfo() {
     infos[9] = world.performance.totalTime;
     infos[10] = fpsint;
     infos[11] = timeint;
+    infos[12] = 0;
+    infos[13] = currentDemo;
 }
 
 function fpsUpdate(){
@@ -205,7 +207,7 @@ function initDemo(){
 
     matrix.length = 12*bodys.length;
     
-    self.postMessage({tell:"INIT", types:types, sizes:sizes });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 }
 
 function clearWorld(){

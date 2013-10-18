@@ -45,30 +45,23 @@
 		<script type="text/javascript" src="js/ViewBasic.js"></script>
 
 		<script type="text/javascript">
+		    var demoName = ["Basic shape", "Dice fall", "Pool", "Joint test"];
 		    var vSet = [ {h:90, v:70, d:600}, {h:0, v:60, d:1000}, {h:360, v:45, d:600}, {h:200, v:70, d:1500}, {h:0, v:10, d:1000}];
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
 		    var currentView = 0;
-		    var playerSelect = 1;
-
-		    //var m;
 		    var dt = 1/60;
-            var N = 60;
-            var maxBody;
-            var pos;
-            var sendTime = 0; // Time when we sent last message
-            var delay;
-           
-            var temp = 0;
-            var timeout;
+            var sendTime = 0, delay;
             var NEXT=0; PREV=0, G=-10;
-            var _output = document.getElementById("debug");
-            var garvity = document.getElementById("gravity");
+            var output, garvity;
 
             var OimoWorker = new Worker('worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
 		    function init() {
+		    	output = document.getElementById("debug");
+                garvity = document.getElementById("gravity");
+
             	// init three.js engine
             	initThree({ mouse:true, autoSize:true, n:Math.floor(Math.random()*4), optimized:false});
             }
@@ -84,7 +77,7 @@
 
     	    OimoWorker.onmessage = function(e) {
     	    	var phase = e.data.tell;
-    	    	
+
     	    	// create mesh
 	            if(phase === "INIT"){
 	            	var max = e.data.types.length;
@@ -93,6 +86,7 @@
 			        	else if( e.data.types[i] == 2) addCube(e.data.sizes[i]);
 			        	else if( e.data.types[i] == 4) addDice(e.data.sizes[i]);
 				    }
+				    if(e.data.demo === 3) addSnake();
 				    sendDataToWorker();
 				}
 
@@ -126,7 +120,10 @@
 				        } 
 		            }
 		            var t02 = Date.now();
-		            temp = t02-t01;
+		            e.data.infos[12] = t02-t01;
+
+		            //snake update
+		            if(e.data.infos[13] === 3) updateSnake();
 
 		            delay = (dt * 1000) - (Date.now()-sendTime);
 	    	   	    if(delay < 0)  delay = 0;
@@ -135,19 +132,11 @@
 
 					if(NEXT === 1){ NEXT=0; OimoWorker.postMessage({tell:"NEXT"}); }
 					else if (PREV === 1){ PREV=0; OimoWorker.postMessage({tell:"PREV"}); }
-					else { timeout = setTimeout(sendDataToWorker, delay); }
-
-
-	    	   	    
+					else { setTimeout(sendDataToWorker, delay); }
 	            }
 
 	            // clear three object
-				else if(phase === "CLEAR"){
-					//clearTimeout(timeout);
-					clearContent();
-				}
-
-    	   	    
+				else if(phase === "CLEAR") clearContent();
     	    }
 
             function sendDataToWorker(){
@@ -159,8 +148,12 @@
 	        function nextDemo(){ NEXT = 1; }
 	        function changeGravity(){ G = garvity.value; }
 
+	        //-----------------------------------------------------
+            //  OIMO INFO
+            //-----------------------------------------------------
+
 	        function displayInfo(a){
-	        	var info = "";
+	        	var info = "-- "+ demoName[a[13]]+" --<br><br>";
 	        	info += "Rigidbody: "+a[0]+"<br>";
 	        	info += "Contact: "+a[1]+"<br>";
 			    info += "Pair Check: "+a[2]+"<br>";
@@ -175,13 +168,9 @@
 
 			    info += "Fps: " + a[10] +"<br>";
 			    info += "Get pos: " + a[11] + "ms<br>";
-			    info += "Apply pos: "+ temp +"ms"
-	        	_output.innerHTML = info;
+			    info += "Apply pos: "+ a[12] +"ms"
+	        	output.innerHTML = info;
 	        }
-
-		    function resetDemo() {
-		    	OimoWorker.postMessage({tell:"CLEAR"});
-			}
 
 			function moveView() {
 				var n = currentView;

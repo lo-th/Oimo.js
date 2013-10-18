@@ -20,7 +20,7 @@ var key = { front:false, back:false, left:false, right:false, jump:false, crouch
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 var cursor, cursorUp, cursorDown;
 
-var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep;
+var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05;
 var materials = [];
 
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
@@ -123,6 +123,7 @@ function initMaterial() {
 		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
 		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
 		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:100, specular:0xffffff } );
+		mat05 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } ); 
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
@@ -133,6 +134,7 @@ function initMaterial() {
 		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
 		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
 		mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
+		mat05 = new THREE.MeshBasicMaterial( { color: 0x33ff99, skinning: true, transparent:true, opacity:0.5} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
@@ -219,6 +221,39 @@ function addDice(s) {
 	content.add( mesh );
 	mesh.receiveShadow = true;
 	mesh.castShadow = true;
+}
+
+function addSnake(s) {
+	if(s==null) s = [10,10,10];
+	//var mesh = getMeshByName('snake');
+	var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, mat05 );
+
+	mesh.material = mat05;
+	mesh.scale.set( s[0], s[1], -s[2] );
+	content.add( mesh );
+	mesh.receiveShadow = true;
+	mesh.castShadow = true;
+}
+
+
+function updateSnake() {
+	var mesh = content.children[10];
+	//mesh.bones[1].rotation.set(50*ToRad, 50*ToRad, 0);
+	var ref, pos, mtx, rot;
+	for (var i=0; i!== mesh.bones.length; i++){
+		ref = content.children[i];
+		rot  = ref.rotation;
+		mtx = ref.matrixWorld;
+		pos = ref.position;
+
+		mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
+        mesh.bones[i].rotation.set(rot.x, rot.y, -rot.z, -rot.w);
+        mesh.bones[i].rotation.z -= 90*ToRad;
+        mesh.bones[i].rotation.x -= 180*ToRad;
+
+		mesh.bones[i].matrixAutoUpdate = true;
+		mesh.bones[i].matrixWorldNeedsUpdate = true;
+	}
 }
 
 
@@ -329,7 +364,7 @@ function initObject() {
 //-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
-var seaList = ['dice', 'tube'];
+var seaList = ['dice', 'snake'];
 var seaN = 0;
 
 function initSea3DMesh(){

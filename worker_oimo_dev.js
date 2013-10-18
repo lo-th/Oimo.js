@@ -121,6 +121,8 @@ function worldInfo() {
     infos[9] = world.performance.totalTime;
     infos[10] = fpsint;
     infos[11] = timeint;
+    infos[12] = 0;
+    infos[13] = currentDemo;
 }
 
 function fpsUpdate(){
@@ -205,7 +207,7 @@ function initDemo(){
 
     matrix.length = 12*bodys.length;
     
-    self.postMessage({tell:"INIT", types:types, sizes:sizes });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 }
 
 function clearWorld(){
@@ -252,8 +254,8 @@ function addRigid(obj){
 
 function addJoint(obj){
     var jc = new JointConfig();
-    var ax1 = obj.ax1 || [1,1,1];
-    var ax2 = obj.ax2 || [1,1,1];
+    var ax1 = obj.ax1 || [0,0,0];
+    var ax2 = obj.ax2 || [0,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
     var minDistance = obj.minDistance || 0.01;

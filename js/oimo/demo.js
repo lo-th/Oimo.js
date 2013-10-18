@@ -1,7 +1,8 @@
-// basic demo
+//--------------------------------------------------
+//    BASIC SHAPE
+//--------------------------------------------------
 
 function demo0(n, t){
-
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
@@ -34,7 +35,9 @@ function demo0(n, t){
     }
 }
 
-// dice land
+//--------------------------------------------------
+//    DICE FALL
+//--------------------------------------------------
 
 function demo1(){
     var sc = new ShapeConfig();
@@ -51,22 +54,18 @@ function demo1(){
         sc.density = s*10;
         px = -1+Math.random()*2;
         pz = -1+Math.random()*2;
-        addRigid({type:"dice", size:[s,s,s], pos:[px,1.1*i,pz], sc:sc, move:true});
+        addRigid({type:"dice", size:[s,s,s], pos:[px,1+(1.1*i),pz], sc:sc, move:true});
     }
 }
 
-
-
-
-
-
-// billard 
-// 2.54m * 1.27m  h 0.76m
+//--------------------------------------------------
+//    POOL
+//--------------------------------------------------
+// billard  2.54m * 1.27m  h 0.76m
 // 16 billes  diametre 57.2mm pour 162g
 // r = 0.0286;
 
 function demo2(){
-    //currentDemo = 2;
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
@@ -85,12 +84,13 @@ function demo2(){
     }
 }
 
-//____________________________________
+//--------------------------------------------------
+//    JOINT TEST
+//--------------------------------------------------
 
 function demo3(){
-    //currentDemo = 2;
     var sc = new ShapeConfig();
-    sc.density = 2;
+    sc.density = 1;
     sc.friction = 0.5;
     sc.restitution = 0.5;
 
@@ -98,17 +98,19 @@ function demo3(){
     addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
 
     // add dynamique object
-    b0 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,0.5,0], sc:sc, move:true});
-    b1 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,1.51,0], sc:sc, move:true});
-    b2 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,2.52,0], sc:sc, move:true});
-    b3 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,3.53,0], sc:sc, move:true});
-    b4 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,4.54,0], sc:sc, move:true});
-    b5 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,5.55,0], sc:sc, move:true});
-    b6 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,6.56,0], sc:sc, move:true});
-    b7 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,7.57,0], sc:sc, move:true});
-    b8 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,8.58,0], sc:sc, move:true});
-    b9 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,9.59,0], sc:sc, move:true});
-    
+    var boneSize = [0.25,1,0.25];
+
+    b0 = addRigid({type:"box", size:boneSize, pos:[0,0.5,0], sc:sc, move:true});
+    b1 = addRigid({type:"box", size:boneSize, pos:[0,1.501,0], sc:sc, move:true});
+    b2 = addRigid({type:"box", size:boneSize, pos:[0,2.502,0], sc:sc, move:true});
+    b3 = addRigid({type:"box", size:boneSize, pos:[0,3.503,0], sc:sc, move:true});
+    b4 = addRigid({type:"box", size:boneSize, pos:[0,4.504,0], sc:sc, move:true});
+    b5 = addRigid({type:"box", size:boneSize, pos:[0,5.505,0], sc:sc, move:true});
+    b6 = addRigid({type:"box", size:boneSize, pos:[0,6.506,0], sc:sc, move:true});
+    b7 = addRigid({type:"box", size:boneSize, pos:[0,7.507,0], sc:sc, move:true});
+    b8 = addRigid({type:"box", size:boneSize, pos:[0,8.508,0], sc:sc, move:true});
+    b9 = addRigid({type:"box", size:boneSize, pos:[0,9.509,0], sc:sc, move:true});
+
     addJoint({body1:b0, body2:b1, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
     addJoint({body1:b1, body2:b2, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
     addJoint({body1:b2, body2:b3, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
