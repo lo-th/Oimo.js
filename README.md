@@ -7,7 +7,7 @@ It's a full conversion of [OimoPhysics](https://github.com/saharan/OimoPhysics) 
 I use [jangaroo](http://www.jangaroo.net/home/) tool for this conversion.
 
 
-Demos with three.js and worker:
+Demo with three.js and worker:
 
 [oimo.js dev](http://lo-th.github.io/Oimo.js/index.html)
 
