@@ -105,14 +105,13 @@ a:visited { color: #888888; text-decoration:none}
     -khtml-user-select: none;
     -webkit-user-select: none;
     -o-user-select: none;
-    user-select: none;
 }
 #option {
     font-size: 10px;
     height: 10px;
     color: #888888;
     margin: 0px;
-    width: 150px;
+    width: 200px;
     text-align: left;
     margin-top: 20px;
     position: absolute;

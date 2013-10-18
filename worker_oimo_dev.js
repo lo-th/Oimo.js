@@ -33,6 +33,8 @@ var info = "info test";
 var fps=0, time, time_prev=0, fpsint = 0;
 var timeint = 0;
 var ToRad = Math.PI / 180;
+var Gravity = -10;
+var newGravity = -10;
 
 var matrix;
 var sleeps;
@@ -54,6 +56,7 @@ self.onmessage = function (e) {
     }
 
     else if(phase === "UPDATE"){
+        newGravity = e.data.G;
         update();
     } 
 
@@ -71,6 +74,10 @@ self.onmessage = function (e) {
 }
 
 function update() {
+    if(Gravity!==newGravity){
+        Gravity = newGravity;
+        world.gravity = new Vec3(0, Gravity, 0);
+    } 
     world.step();
 
     var t01 = Date.now();
@@ -157,7 +164,7 @@ function initWorld(){
         
         world.numIterations = iterations;
         world.timeStep = dt;
-        world.gravity = new Vec3(0, -10, 0);
+        world.gravity = new Vec3(0, Gravity, 0);
     }
     //startOimoTest();
 

@@ -39,6 +39,8 @@ var sleeps;
 var types;
 var sizes;
 var infos =[];
+var Gravity = -10;
+var newGravity = -10;
 
 var currentDemo = 0;
 var maxDemo = 4;
@@ -54,6 +56,7 @@ self.onmessage = function (e) {
     }
 
     else if(phase === "UPDATE"){
+        newGravity = e.data.G;
         update();
     } 
 
@@ -71,6 +74,10 @@ self.onmessage = function (e) {
 }
 
 function update() {
+    if(Gravity!==newGravity){
+        Gravity = newGravity;
+        world.gravity = new Vec3(0, Gravity, 0);
+    } 
     world.step();
 
     var t01 = Date.now();
@@ -158,7 +165,7 @@ function initWorld(){
         world = new World();
         world.numIterations = iterations;
         world.timeStep = dt;
-        world.gravity = new Vec3(0, -10, 0);
+        world.gravity = new Vec3(0, Gravity, 0);
     }
     //startOimoTest();
 
