@@ -45,11 +45,13 @@ function demo1(){
     // ground
     addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
 
-    var body, px, pz;
-    for (var i=0; i!==30; ++i ){
-        px = -2+Math.random()*4;
-        pz = -2+Math.random()*4;
-        addRigid({type:"dice", size:[1,1,1], pos:[px,2+i,pz], sc:sc, move:true});
+    var body, px, pz, s;
+    for (var i=0; i!==40; ++i ){
+        s = 0.1+Math.random();
+        sc.density = s*10;
+        px = -1+Math.random()*2;
+        pz = -1+Math.random()*2;
+        addRigid({type:"dice", size:[s,s,s], pos:[px,1.1*i,pz], sc:sc, move:true});
     }
 }
 

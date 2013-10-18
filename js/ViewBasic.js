@@ -212,7 +212,7 @@ function addCylinder(s) {
 
 function addDice(s) {
 	if(s==null) s = [50,50,50];
-	var mesh = new THREE.Mesh(meshs[0].geometry, mat04);
+	var mesh = new THREE.Mesh(getMeshByName('dice').geometry, mat04);
 	mesh.scale.set( s[0], s[1], -s[2] );
 	mesh.position.y = -10000;
 	content.add( mesh );
@@ -328,7 +328,7 @@ function initObject() {
 //-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
-var seaList = ['dice'];
+var seaList = ['dice', 'tube'];
 var seaN = 0;
 
 function initSea3DMesh(){
@@ -347,6 +347,12 @@ function initSea3DMesh(){
 	}
 
 	loader.load( 'models/'+name+'.sea' );
+}
+
+function getMeshByName(name){
+	for (var i=0; i !== meshs.length; i++){
+		if(meshs[i].name === name) return meshs[i];
+	} 
 }
 
 /*function addSea3DMesh() {

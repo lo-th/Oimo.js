@@ -59,6 +59,7 @@
             var _output = document.getElementById("debug");
             var temp = 0;
             var timeout;
+            var NEXT=0; PREV=0;
 
             var OimoWorker = new Worker('worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
@@ -128,12 +129,17 @@
 
 					displayInfo(e.data.infos);
 
-	    	   	    timeout = setTimeout(sendDataToWorker, delay);
+					if(NEXT === 1){ NEXT=0; OimoWorker.postMessage({tell:"NEXT"}); }
+					else if (PREV === 1){ PREV=0; OimoWorker.postMessage({tell:"PREV"}); }
+					else { timeout = setTimeout(sendDataToWorker, delay); }
+
+
+	    	   	    
 	            }
 
 	            // clear three object
 				else if(phase === "CLEAR"){
-					clearTimeout(timeout);
+					//clearTimeout(timeout);
 					clearContent();
 				}
 
@@ -145,15 +151,8 @@
                 OimoWorker.postMessage({tell:"UPDATE"});
 	        }
 	        
-	        function prevDemo(){
-	        	clearTimeout(timeout);
-	        	OimoWorker.postMessage({tell:"PREV"});
-	        } 
-
-	        function nextDemo(){
-	        	clearTimeout(timeout);
-	        	OimoWorker.postMessage({tell:"NEXT"});
-	        }
+	        function prevDemo(){ PREV = 1; }
+	        function nextDemo(){ NEXT = 1; }
 
 	        function changeGravity(e){
 	        	garvity.value;
