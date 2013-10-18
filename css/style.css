@@ -54,7 +54,7 @@ body {
  	top:40px;
  	position: absolute;
  	display:block;
- 	border:1px solid #333333;
+ 	border:1px solid #303030;
 }
 #cursor {
 	pointer-events: none;

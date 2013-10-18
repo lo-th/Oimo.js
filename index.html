@@ -48,7 +48,6 @@
 
 		    var currentView = 0;
 		    var playerSelect = 1;
-		    var sizecube = 50;
 
 		    //var m;
 		    var dt = 1/60;
@@ -80,8 +79,7 @@
 
     	    OimoWorker.onmessage = function(e) {
     	    	var phase = e.data.tell;
-    	    	var t01 = Date.now();
-
+    	    	
     	    	// create mesh
 	            if(phase === "INIT"){
 	            	var max = e.data.types.length;
@@ -95,6 +93,7 @@
 
 				// update three object
     	    	else if( phase === "RUN"){
+    	    		var t01 = Date.now();
     	    		var max = e.data.sleeps.length;
     	    		var m = e.data.matrix;
         	    	var mtx, n, mesh;
@@ -124,7 +123,7 @@
 		            var t02 = Date.now();
 		            temp = t02-t01;
 
-		            delay = ((dt * 1000)) - (Date.now()-sendTime);
+		            delay = (dt * 1000) - (Date.now()-sendTime);
 	    	   	    if(delay < 0)  delay = 0;
 
 					displayInfo(e.data.infos);

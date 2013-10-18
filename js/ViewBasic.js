@@ -44,7 +44,7 @@ function initThree(option) {
 	else antialias = false
 
 	renderer = new THREE.WebGLRenderer({ antialias:antialias });
-	renderer.setClearColor( 0x303030, 1 );
+	renderer.setClearColor( 0x181818, 1 );
 	renderer.physicallyBasedShading = true;
 	renderer.gammaOutput = true;
 	renderer.gammaInput = true;
@@ -77,7 +77,7 @@ function initThree(option) {
 	if(!isOptimized){
 	    renderer.shadowMapEnabled = true;
 	    renderer.shadowMapSoft = true;
-		scene.fog = new THREE.Fog( 0x303030 , 1000, 2000 );
+		scene.fog = new THREE.Fog( 0x181818 , 1000, 2000 );
 		mirrorGround();
 		initLights();
 	}
