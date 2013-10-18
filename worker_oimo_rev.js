@@ -74,10 +74,6 @@ self.onmessage = function (e) {
 }
 
 function update() {
-    if(Gravity!==newGravity){
-        Gravity = newGravity;
-        world.gravity = new Vec3(0, Gravity, 0);
-    } 
     world.step();
 
     var t01 = Date.now();
@@ -97,6 +93,12 @@ function update() {
         }
     }
     var t02 = Date.now();
+
+    if(Gravity!==newGravity){
+        Gravity = newGravity;
+        world.gravity = new Vec3(0, Gravity, 0);
+        for ( var i = 0; i !== max ; ++i ) bodys[i].awake();
+    }
 
     timeint = t02-t01;
     fpsUpdate();
