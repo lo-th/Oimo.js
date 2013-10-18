@@ -41,7 +41,7 @@ var sizes;
 var infos =[];
 
 var currentDemo = 0;
-var maxDemo = 3;
+var maxDemo = 4;
 //var isDemo = false;
 //var matrix = new Float32Array(N*12);
 
@@ -191,7 +191,7 @@ function initDemo(){
     if(currentDemo==0)demo0();
     else if(currentDemo==1)demo1();
     else if(currentDemo==2)demo2();
-    
+    else if(currentDemo==3)demo3();
 
     matrix.length = 12*bodys.length;
     
@@ -216,8 +216,8 @@ function addRigid(obj){
     var r = obj.rot || [0,0,0,0];
     var move = obj.move || false;
     var sc = obj.sc || new ShapeConfig();
-    var t, i; 
-    var shape;
+    //var t, i; 
+    var shape, t;
     switch(obj.type){
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
         case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
@@ -234,4 +234,34 @@ function addRigid(obj){
     }
     world.addRigidBody(body);
     return body;
+}
+
+//--------------------------------------------------
+//    BASIC JOINT
+//--------------------------------------------------
+
+function addJoint(obj){
+    var jc = new JointConfig();
+    var ax1 = obj.ax1 || [1,1,1];
+    var ax2 = obj.ax2 || [1,1,1];
+    var pos1 = obj.pos1 || [0,0,0];
+    var pos2 = obj.pos2 || [0,0,0];
+    var minDistance = obj.minDistance || 0.01;
+    var maxDistance = obj.maxDistance || 0.1;
+    var type = obj.type || "distance";
+    jc.allowCollision=true;
+    jc.localAxis1.init(ax1[0], ax1[1], ax1[2]);
+    jc.localAxis2.init(ax2[0], ax2[1], ax2[2]);
+    jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
+    jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
+    jc.body1 = obj.body1;
+    jc.body2 = obj.body2;
+    var joint;
+    switch(type){
+        case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
+    }
+    
+    //joint.limitMotor.setSpring(2, 0.5); // soften the joint
+    world.addJoint(joint);
+    return joint;
 }

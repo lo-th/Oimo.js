@@ -21,6 +21,7 @@ var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleratio
 var cursor, cursorUp, cursorDown;
 
 var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep;
+var materials = [];
 
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 var geo02 = new THREE.SphereGeometry( 1, 22, 26 );

@@ -84,3 +84,38 @@ function demo2(){
         addRigid({type:"sphere", size:[0.286], pos:[px,2+i,pz], sc:sc, move:true});
     }
 }
+
+//____________________________________
+
+function demo3(){
+    //currentDemo = 2;
+    var sc = new ShapeConfig();
+    sc.density = 2;
+    sc.friction = 0.5;
+    sc.restitution = 0.5;
+
+    // ground
+    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+
+    // add dynamique object
+    b0 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,0.5,0], sc:sc, move:true});
+    b1 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,1.51,0], sc:sc, move:true});
+    b2 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,2.52,0], sc:sc, move:true});
+    b3 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,3.53,0], sc:sc, move:true});
+    b4 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,4.54,0], sc:sc, move:true});
+    b5 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,5.55,0], sc:sc, move:true});
+    b6 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,6.56,0], sc:sc, move:true});
+    b7 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,7.57,0], sc:sc, move:true});
+    b8 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,8.58,0], sc:sc, move:true});
+    b9 = addRigid({type:"box", size:[0.4,1,0.4], pos:[0,9.59,0], sc:sc, move:true});
+    
+    addJoint({body1:b0, body2:b1, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b1, body2:b2, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b2, body2:b3, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b3, body2:b4, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b4, body2:b5, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b5, body2:b6, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b6, body2:b7, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b7, body2:b8, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+    addJoint({body1:b8, body2:b9, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+}
