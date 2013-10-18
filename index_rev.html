@@ -30,9 +30,7 @@
 			Oimo.js rev / <a href="index.html" target="_self">dev</a>
 		</div>
 		<div id="option" class="unselectable">
-		<!--Speed: <input id="speed" type="range" name="points" min="0" max="10" value="2" step="0.1" /><br/>-->
 		GRAVITY<input id="position" type="range" min="0.1" max="2" value="1" step="0.01" onchange="changeGravity()" /><br/>
-		<!--Zoom <input id="factor" type="range" min="0.1" max="10" value="2" step="0.1" onchange="changelens()" />-->
 		</div>
 
 		<script type="text/javascript" src="js/three.min.js"></script>
@@ -75,6 +73,10 @@
         	    OimoWorker.postMessage({tell:"INITWORLD", dt:dt, iterations:8 });
             }
 
+            //-----------------------------------------------------
+            //  OIMO MESSAGE MAIN
+            //-----------------------------------------------------
+
     	    OimoWorker.onmessage = function(e) {
     	    	var phase = e.data.tell;
     	    	var t01 = Date.now();
@@ -110,10 +112,12 @@
 						    	if(mesh.material.name == "mat01sleep") mesh.material = mat01;
 					    		else if(mesh.material.name == "mat02sleep") mesh.material = mat02;
 					    		else if(mesh.material.name == "mat03sleep") mesh.material = mat03;
+					    		else if(mesh.material.name == "mat04sleep") mesh.material = mat04;
 						    } else {
 					    		if(mesh.material.name == "mat01"){ mesh.material = mat01sleep;}
 					    		else if(mesh.material.name == "mat02"){ mesh.material = mat02sleep;}
 					    		else if(mesh.material.name == "mat03"){ mesh.material = mat03sleep;}
+					    		else if(mesh.material.name == "mat04"){ mesh.material = mat04sleep;}
 					    	}
 				        } 
 		            }

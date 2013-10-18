@@ -20,7 +20,7 @@ var key = { front:false, back:false, left:false, right:false, jump:false, crouch
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 var cursor, cursorUp, cursorDown;
 
-var groundMat, mat01, mat02, mat03, mat01sleep, mat02sleep, mat03sleep;
+var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep;
 
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
@@ -94,32 +94,6 @@ function initThree(option) {
 
     //update();
     startRender();
-
-}
-function initMaterial() {
-	if(!isOptimized){
-		groundMat =  new THREE.MeshPhongMaterial( { color: 0x303030, shininess:100, specular:0x303030} );
-		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
-		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
-		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
-		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
-		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
-		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
-	}else{
-		groundMat = new THREE.MeshBasicMaterial( { color: 0x303030} );
-		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
-		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
-		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
-		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
-		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
-		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
-	}
-	mat01.name = "mat01";
-	mat02.name = "mat02";
-	mat03.name = "mat03";
-	mat01sleep.name = "mat01sleep";
-	mat02sleep.name = "mat02sleep";
-	mat03sleep.name = "mat03sleep";
 }
 
 function customCursor() {
@@ -130,13 +104,74 @@ function customCursor() {
 	container.addEventListener( 'mouseout', onMouseOut, false );
 }
 
-function controlPlayer(n) {
+/*function controlPlayer(n) {
 	currentPlayer = n;
+}*/
+
+//-----------------------------------------------------
+//  MATERIAL
+//-----------------------------------------------------
+var diceTexture, diceTextureSleep;
+
+function initMaterial() {
+	createDiceTexture(0);
+	createDiceTexture(1);
+	if(!isOptimized){
+		groundMat =  new THREE.MeshPhongMaterial( { color: 0x303030, shininess:100, specular:0x303030} );
+		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
+		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
+		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
+		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:100, specular:0xffffff } );
+		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
+		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
+		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
+		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:100, specular:0xffffff } );
+	}else{
+		groundMat = new THREE.MeshBasicMaterial( { color: 0x303030} );
+		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
+		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
+		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
+		mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
+		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
+		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
+		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
+		mat04sleep = new THREE.MeshBasicMaterial( { map: diceTextureSleep} );
+	}
+	mat01.name = "mat01";
+	mat02.name = "mat02";
+	mat03.name = "mat03";
+	mat04.name = "mat04";
+	mat01sleep.name = "mat01sleep";
+	mat02sleep.name = "mat02sleep";
+	mat03sleep.name = "mat03sleep";
+	mat04sleep.name = "mat04sleep";
+}
+
+function createDiceTexture(n) {
+	var canvas = document.createElement("canvas");
+	canvas.width = canvas.height = 256;
+	var ctx = canvas.getContext("2d");
+	ctx.fillStyle = "#EEEEEE";
+	ctx.fillRect(0, 0, 256, 256);
+	ctx.fillStyle = "#333333";
+	ctx.fillRect(230, 0, 26, 256);
+	ctx.fillStyle = "#ff3333";
+	ctx.fillRect(230, 230, 26, 26);
+	if(n==0){
+		diceTexture = new THREE.Texture(canvas);
+		diceTexture.needsUpdate = true;
+    }else {
+		ctx.fillStyle = 'rgba(0,0,0,0.4)';
+	    ctx.fillRect(0, 0, 256, 256);
+	    diceTextureSleep = new THREE.Texture(canvas);
+	    diceTextureSleep.needsUpdate = true;
+	}
 }
 
 //-----------------------------------------------------
 //  PHYSICS
 //-----------------------------------------------------
+
 function clearContent(){
 	var obj, i;
     for ( i = content.children.length - 1; i >= 0 ; i -- ) {
@@ -177,7 +212,7 @@ function addCylinder(s) {
 
 function addDice(s) {
 	if(s==null) s = [50,50,50];
-	var mesh = new THREE.Mesh(meshs[0].geometry, mat03);
+	var mesh = new THREE.Mesh(meshs[0].geometry, mat04);
 	mesh.scale.set( s[0], s[1], -s[2] );
 	mesh.position.y = -10000;
 	content.add( mesh );
@@ -307,9 +342,8 @@ function initSea3DMesh(){
 		}
 		// load Next
 		seaN++;
-		//if(seaList[seaN]!=null)initSea3DMesh();
-		//else
-		mainAllObjectLoaded();
+		if(seaList[seaN]!=null)initSea3DMesh();
+		else mainAllObjectLoaded();
 	}
 
 	loader.load( 'models/'+name+'.sea' );
@@ -394,7 +428,7 @@ function resize(x, y) {
 //  PLAYER MOVE
 //-----------------------------------------------------
 
-function updatePlayerMove() {
+/*function updatePlayerMove() {
 	var n = currentPlayer;
 	
 	if ( key.front ) controls.speed = clamp( controls.speed + delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
@@ -431,7 +465,7 @@ function updatePlayerMove() {
 		center.copy(players[n].position);
 	    moveCamera();
 	}
-}
+}*/
 
 //-----------------------------------------------------
 //  KEYBOARD
