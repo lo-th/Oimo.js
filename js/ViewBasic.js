@@ -28,6 +28,7 @@ var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
 var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 26 );
 
 var ToRad = Math.PI / 180;
+var ToDeg = 180 / Math.PI;
 var content;
 
 var isOptimized;
@@ -123,7 +124,7 @@ function initMaterial() {
 		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
 		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
 		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:100, specular:0xffffff } );
-		mat05 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } ); 
+		mat05 = new THREE.MeshPhongMaterial( { color: 0xe9c098, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.8 } ); 
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
@@ -134,7 +135,7 @@ function initMaterial() {
 		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
 		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
 		mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
-		mat05 = new THREE.MeshBasicMaterial( { color: 0x33ff99, skinning: true, transparent:true, opacity:0.5} );
+		mat05 = new THREE.MeshBasicMaterial( { color: 0xe9c098, skinning: true, transparent:true, opacity:0.8} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
@@ -239,18 +240,20 @@ function addSnake(s) {
 function updateSnake() {
 	var mesh = content.children[10];
 	//mesh.bones[1].rotation.set(50*ToRad, 50*ToRad, 0);
+	document.getElementById("info").innerHTML = Math.round(content.children[0].rotation.x*ToDeg)+"/"+Math.round(content.children[0].rotation.y*ToDeg)+"/"+Math.round(content.children[0].rotation.z*ToDeg);
 	var ref, pos, mtx, rot;
 	for (var i=0; i!== mesh.bones.length; i++){
 		ref = content.children[i];
 		rot  = ref.rotation;
 		mtx = ref.matrixWorld;
-		pos = ref.position;
+		pos = ref.matrixWorld.getPosition();//ref.position;
 
-		mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
-        mesh.bones[i].rotation.set(rot.x, rot.y, -rot.z, -rot.w);
-        mesh.bones[i].rotation.z -= 90*ToRad;
-        mesh.bones[i].rotation.x -= 180*ToRad;
+		//if(i==0)
+			mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
 
+         //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
+         mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
+         
 		mesh.bones[i].matrixAutoUpdate = true;
 		mesh.bones[i].matrixWorldNeedsUpdate = true;
 	}

@@ -94,22 +94,24 @@ function demo3(){
     sc.friction = 0.5;
     sc.restitution = 0.5;
 
+    var dy=0.3;
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    addRigid({type:"box", size:[20,10,20], pos:[0,-5+dy,0], sc:sc});
+    
 
     // add dynamique object
     var boneSize = [0.25,1,0.25];
 
-    b0 = addRigid({type:"box", size:boneSize, pos:[0,0.5,0], sc:sc, move:true});
-    b1 = addRigid({type:"box", size:boneSize, pos:[0,1.501,0], sc:sc, move:true});
-    b2 = addRigid({type:"box", size:boneSize, pos:[0,2.502,0], sc:sc, move:true});
-    b3 = addRigid({type:"box", size:boneSize, pos:[0,3.503,0], sc:sc, move:true});
-    b4 = addRigid({type:"box", size:boneSize, pos:[0,4.504,0], sc:sc, move:true});
-    b5 = addRigid({type:"box", size:boneSize, pos:[0,5.505,0], sc:sc, move:true});
-    b6 = addRigid({type:"box", size:boneSize, pos:[0,6.506,0], sc:sc, move:true});
-    b7 = addRigid({type:"box", size:boneSize, pos:[0,7.507,0], sc:sc, move:true});
-    b8 = addRigid({type:"box", size:boneSize, pos:[0,8.508,0], sc:sc, move:true});
-    b9 = addRigid({type:"box", size:boneSize, pos:[0,9.509,0], sc:sc, move:true});
+    b0 = addRigid({type:"box", size:boneSize, pos:[0,dy+0.501,0], sc:sc, move:true, rot:[0,0,1,0]});
+    b1 = addRigid({type:"box", size:boneSize, pos:[0,dy+1.502,0], sc:sc, move:true});
+    b2 = addRigid({type:"box", size:boneSize, pos:[0,dy+2.503,0], sc:sc, move:true});
+    b3 = addRigid({type:"box", size:boneSize, pos:[0,dy+3.504,0], sc:sc, move:true});
+    b4 = addRigid({type:"box", size:boneSize, pos:[0,dy+4.505,0], sc:sc, move:true});
+    b5 = addRigid({type:"box", size:boneSize, pos:[0,dy+5.506,0], sc:sc, move:true});
+    b6 = addRigid({type:"box", size:boneSize, pos:[0,dy+6.507,0], sc:sc, move:true});
+    b7 = addRigid({type:"box", size:boneSize, pos:[0,dy+7.508,0], sc:sc, move:true});
+    b8 = addRigid({type:"box", size:boneSize, pos:[0,dy+8.509,0], sc:sc, move:true});
+    b9 = addRigid({type:"box", size:boneSize, pos:[0,dy+9.510,0], sc:sc, move:true});
 
     addJoint({body1:b0, body2:b1, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
     addJoint({body1:b1, body2:b2, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
