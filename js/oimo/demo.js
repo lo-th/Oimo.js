@@ -47,9 +47,14 @@ function demo1(){
 
     // ground
     addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    // wall
+    addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
+    addRigid({type:"box", size:[20,10,1], pos:[0,5, 10], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
 
     var body, px, pz, s;
-    for (var i=0; i!==40; ++i ){
+    for (var i=0; i!==42; ++i ){
         s = 0.1+Math.random();
         sc.density = s*10;
         px = -1+Math.random()*2;
@@ -97,21 +102,28 @@ function demo3(){
     var dy=0.3;
     // ground
     addRigid({type:"box", size:[20,10,20], pos:[0,-5+dy,0], sc:sc});
-    
+    // wall
+    addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
+    addRigid({type:"box", size:[20,10,1], pos:[0,5, 10], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
 
+    sc.density = 10;
+    sc.friction = 0.1;
+    sc.restitution = 0.5;
     // add dynamique object
-    var boneSize = [0.25,1,0.25];
-
-    b0 = addRigid({type:"box", size:boneSize, pos:[0,dy+0.501,0], sc:sc, move:true, rot:[0,0,1,0]});
-    b1 = addRigid({type:"box", size:boneSize, pos:[0,dy+1.502,0], sc:sc, move:true});
-    b2 = addRigid({type:"box", size:boneSize, pos:[0,dy+2.503,0], sc:sc, move:true});
-    b3 = addRigid({type:"box", size:boneSize, pos:[0,dy+3.504,0], sc:sc, move:true});
-    b4 = addRigid({type:"box", size:boneSize, pos:[0,dy+4.505,0], sc:sc, move:true});
-    b5 = addRigid({type:"box", size:boneSize, pos:[0,dy+5.506,0], sc:sc, move:true});
-    b6 = addRigid({type:"box", size:boneSize, pos:[0,dy+6.507,0], sc:sc, move:true});
-    b7 = addRigid({type:"box", size:boneSize, pos:[0,dy+7.508,0], sc:sc, move:true});
-    b8 = addRigid({type:"box", size:boneSize, pos:[0,dy+8.509,0], sc:sc, move:true});
-    b9 = addRigid({type:"box", size:boneSize, pos:[0,dy+9.510,0], sc:sc, move:true});
+    var boneSize = [0.3,1,0.3];
+    dy+=1;
+    b0 = addRigid({type:"box", size:boneSize, pos:[0,dy+0.51,0], sc:sc, move:true, rot:[0,0,1,0]});
+    b1 = addRigid({type:"box", size:boneSize, pos:[0,dy+1.52,0], sc:sc, move:true});
+    b2 = addRigid({type:"box", size:boneSize, pos:[0,dy+2.53,0], sc:sc, move:true});
+    b3 = addRigid({type:"box", size:boneSize, pos:[0,dy+3.54,0], sc:sc, move:true});
+    b4 = addRigid({type:"box", size:boneSize, pos:[0,dy+4.55,0], sc:sc, move:true});
+    b5 = addRigid({type:"box", size:boneSize, pos:[0,dy+5.56,0], sc:sc, move:true});
+    b6 = addRigid({type:"box", size:boneSize, pos:[0,dy+6.57,0], sc:sc, move:true});
+    b7 = addRigid({type:"box", size:boneSize, pos:[0,dy+7.58,0], sc:sc, move:true});
+    b8 = addRigid({type:"box", size:boneSize, pos:[0,dy+8.59,0], sc:sc, move:true});
+    b9 = addRigid({type:"box", size:boneSize, pos:[0,dy+9.60,0], sc:sc, move:true});
 
     addJoint({body1:b0, body2:b1, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
     addJoint({body1:b1, body2:b2, pos1:[0,0.5,0], pos2:[0,-0.5,0] });

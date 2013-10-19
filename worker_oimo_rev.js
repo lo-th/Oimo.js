@@ -281,7 +281,7 @@ function addJoint(obj){
         case "hinge": joint = new HingeJoint(obj.body1, obj.body2, jc); break;
     }
     
-   // joint.limitMotor.setSpring(2, 0.5); // soften the joint
+    //joint.limitMotor.setSpring(1, 10); // soften the joint
     world.addJoint(joint);
     return joint;
 }

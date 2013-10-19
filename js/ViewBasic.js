@@ -106,9 +106,6 @@ function customCursor() {
 	container.addEventListener( 'mouseout', onMouseOut, false );
 }
 
-/*function controlPlayer(n) {
-	currentPlayer = n;
-}*/
 
 //-----------------------------------------------------
 //  MATERIAL
@@ -154,27 +151,6 @@ function initMaterial() {
 	mat03sleep.name = "mat03sleep";
 	mat04sleep.name = "mat04sleep";
 }
-
-/*function createDiceTexture(n) {
-	var canvas = document.createElement("canvas");
-	canvas.width = canvas.height = 256;
-	var ctx = canvas.getContext("2d");
-	ctx.fillStyle = "#EEEEEE";
-	ctx.fillRect(0, 0, 256, 256);
-	ctx.fillStyle = "#333333";
-	ctx.fillRect(230, 0, 26, 256);
-	ctx.fillStyle = "#ff3333";
-	ctx.fillRect(230, 230, 26, 26);
-	if(n==0){
-		diceTexture = new THREE.Texture(canvas);
-		diceTexture.needsUpdate = true;
-    }else {
-		ctx.fillStyle = 'rgba(0,0,0,0.4)';
-	    ctx.fillRect(0, 0, 256, 256);
-	    diceTextureSleep = new THREE.Texture(canvas);
-	    diceTextureSleep.needsUpdate = true;
-	}
-}*/
 
 //-----------------------------------------------------
 //  PHYSICS
@@ -249,10 +225,10 @@ function updateSnake() {
 		rot = ref.rotation;
 		pos = ref.matrixWorld.getPosition();//ref.position;
 
-			mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
+		mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
 
          //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
-         mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-270*ToRad);
+        mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-270*ToRad);
          
 		mesh.bones[i].matrixAutoUpdate = true;
 		mesh.bones[i].matrixWorldNeedsUpdate = true;

@@ -35,10 +35,16 @@ function createSnakeTexture() {
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
 	var grd=ctx.createLinearGradient(0,0,0,256);
-	grd.addColorStop(0,"#00D73C");
-	grd.addColorStop(1,"#006600");
+	grd.addColorStop(0,"#794947");
+	grd.addColorStop(0.3,"#9E624A");
+	grd.addColorStop(0.6,"#BD8F78");
+	grd.addColorStop(1,"#D3AE91");
 	ctx.fillStyle = grd;
 	ctx.fillRect(0, 0, 256, 256);
+	ctx.fillStyle ="#9E624A";
+	for(var i=0;i<42;++i){
+		ctx.fillRect(0, i*6, 256, 1);
+	}
 	//eye
 	grd=ctx.createRadialGradient(231,230,10,231,230,50);
 	grd.addColorStop(0,"white");

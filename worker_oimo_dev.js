@@ -260,6 +260,8 @@ function addJoint(obj){
     var pos2 = obj.pos2 || [0,0,0];
     var minDistance = obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
+    var lowerAngleLimit = 35*ToRad;//1
+    var upperAngleLimit = 35*ToRad;;//0
     var type = obj.type || "hinge";
     jc.allowCollision=true;
     jc.localAxis1.init(ax1[0], ax1[1], ax1[2]);
@@ -271,10 +273,10 @@ function addJoint(obj){
     var joint;
     switch(type){
         case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
-        case "hinge": joint = new HingeJoint(jc); break;
+        case "hinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
     }
     
-    //joint.limitMotor.setSpring(2, 0.5); // soften the joint
+    //joint.limitMotor.setSpring(100, 0.9); // soften the joint
     world.addJoint(joint);
     return joint;
 }
