@@ -239,16 +239,12 @@ function addSnake(s) {
 
 function updateSnake() {
 	var mesh = content.children[10];
-	//mesh.bones[1].rotation.set(50*ToRad, 50*ToRad, 0);
-	document.getElementById("info").innerHTML = Math.round(content.children[0].rotation.x*ToDeg)+"/"+Math.round(content.children[0].rotation.y*ToDeg)+"/"+Math.round(content.children[0].rotation.z*ToDeg);
 	var ref, pos, mtx, rot;
 	for (var i=0; i!== mesh.bones.length; i++){
 		ref = content.children[i];
-		rot  = ref.rotation;
-		mtx = ref.matrixWorld;
+		rot = ref.rotation;
 		pos = ref.matrixWorld.getPosition();//ref.position;
 
-		//if(i==0)
 			mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
 
          //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
