@@ -113,18 +113,22 @@ function customCursor() {
 //-----------------------------------------------------
 //  MATERIAL
 //-----------------------------------------------------
-var diceTexture, diceTextureSleep;
+
 
 function initMaterial() {
-	createDiceTexture(0);
-	createDiceTexture(1);
+	// from AutoTexture
+	var snakeTexture = createSnakeTexture();
+	var diceTexture = createDiceTexture(0);
+	var diceTextureSleep = createDiceTexture(1);
+	
+	
 	if(!isOptimized){
 		groundMat =  new THREE.MeshPhongMaterial( { color: 0x303030, shininess:100, specular:0x303030} );
 		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
 		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
 		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
 		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:100, specular:0xffffff } );
-		mat05 = new THREE.MeshPhongMaterial( { color: 0xe9c098, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.8 } ); 
+		mat05 = new THREE.MeshPhongMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
@@ -135,7 +139,7 @@ function initMaterial() {
 		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
 		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
 		mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
-		mat05 = new THREE.MeshBasicMaterial( { color: 0xe9c098, skinning: true, transparent:true, opacity:0.8} );
+		mat05 = new THREE.MeshBasicMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
@@ -151,7 +155,7 @@ function initMaterial() {
 	mat04sleep.name = "mat04sleep";
 }
 
-function createDiceTexture(n) {
+/*function createDiceTexture(n) {
 	var canvas = document.createElement("canvas");
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
@@ -170,7 +174,7 @@ function createDiceTexture(n) {
 	    diceTextureSleep = new THREE.Texture(canvas);
 	    diceTextureSleep.needsUpdate = true;
 	}
-}
+}*/
 
 //-----------------------------------------------------
 //  PHYSICS
