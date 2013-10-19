@@ -42,7 +42,7 @@ function createSnakeTexture() {
 	ctx.fillStyle = grd;
 	ctx.fillRect(0, 0, 256, 256);
 	ctx.fillStyle ="#9E624A";
-	for(var i=0;i<42;++i){
+	for(var i=0;i<38;++i){
 		ctx.fillRect(0, i*6, 256, 1);
 	}
 	//eye

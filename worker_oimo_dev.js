@@ -233,6 +233,7 @@ function addRigid(obj){
     switch(obj.type){
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
         case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
+        case "bone": shape=new BoxShape(sc, s[0], s[1], s[2]); t=10; break;
         case "dice": shape=new BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0]*ToRad, r[1], r[2], r[3]);
@@ -254,18 +255,18 @@ function addRigid(obj){
 
 function addJoint(obj){
     var jc = new JointConfig();
-    var ax1 = obj.ax1 || [1,0,1];
-    var ax2 = obj.ax2 || [1,0,1];
+    var axis1 = obj.axis1 || [1,0,0];
+    var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
     var minDistance = obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
-    var lowerAngleLimit = 35*ToRad;//1
-    var upperAngleLimit = 35*ToRad;;//0
+    var lowerAngleLimit = obj.lowerAngle || 1;
+    var upperAngleLimit = obj.upperAngle || 0;
     var type = obj.type || "hinge";
     jc.allowCollision=true;
-    jc.localAxis1.init(ax1[0], ax1[1], ax1[2]);
-    jc.localAxis2.init(ax2[0], ax2[1], ax2[2]);
+    jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
+    jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
     jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
     jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
     jc.body1 = obj.body1;

@@ -20,8 +20,7 @@ var key = { front:false, back:false, left:false, right:false, jump:false, crouch
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 var cursor, cursorUp, cursorDown;
 
-var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05;
-var materials = [];
+
 
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
@@ -111,6 +110,8 @@ function customCursor() {
 //  MATERIAL
 //-----------------------------------------------------
 
+var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep;
+var materials = [];
 
 function initMaterial() {
 	// from AutoTexture
@@ -130,6 +131,9 @@ function initMaterial() {
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
 		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:100, specular:0xffffff } );
+
+		matBone = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.1 } ); 
+		matBonesleep = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.1 } );  
 	}else{
 		groundMat = new THREE.MeshBasicMaterial( { color: 0x303030} );
 		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
@@ -141,6 +145,9 @@ function initMaterial() {
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
 		mat04sleep = new THREE.MeshBasicMaterial( { map: diceTextureSleep} );
+
+		matBone = new THREE.MeshBasicMaterial( { color: 0xffff00, transparent:true, opacity:0.1 } ); 
+		matBonesleep = new THREE.MeshBasicMaterial( { color: 0xffffff, transparent:true, opacity:0.1 } ); 
 	}
 	mat01.name = "mat01";
 	mat02.name = "mat02";
@@ -150,11 +157,36 @@ function initMaterial() {
 	mat02sleep.name = "mat02sleep";
 	mat03sleep.name = "mat03sleep";
 	mat04sleep.name = "mat04sleep";
+	matBone.name = "bone";
+	matBonesleep.name = "bonesleep";
 }
 
 //-----------------------------------------------------
-//  PHYSICS
+//  PHYSICS OBJECT IN THREE
 //-----------------------------------------------------
+
+function createContentObjects(data){
+	var max = data.types.length;
+	var mesh;
+	var s;
+    for(var i=0; i!==max; i++){
+    	s = data.sizes[i] || [50,50,50];
+    	switch(data.types[i]){
+    		case 1: mesh=new THREE.Mesh(geo02, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+    		case 2: mesh=new THREE.Mesh(geo01, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
+    		case 3: mesh=new THREE.Mesh(geo03, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
+    		case 4: mesh=new THREE.Mesh(getMeshByName('dice').geometry, mat04); mesh.scale.set( s[0], s[1], -s[2] ); break; // dice
+    		case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
+    	}
+    	mesh.position.y = -10000;
+    	content.add( mesh );
+    	if(data.types[i]!==10){
+    		mesh.receiveShadow = true;
+    		mesh.castShadow = true;
+    	}
+    }
+    if(data.demo === 3) addSnake();
+}
 
 function clearContent(){
 	var obj, i;
@@ -164,51 +196,9 @@ function clearContent(){
 	}
 }
 
-function addCube(s) {
-	if(s==null) s = [50,50,50];//{x:50, y:50, z:50}; 
-	var mesh = new THREE.Mesh(geo01, mat01);
-	mesh.scale.set( s[0], s[1], s[2] );
-	mesh.position.y = -10000;
-	content.add( mesh );
-	mesh.receiveShadow = true;
-	mesh.castShadow = true;
-}
-
-function addSphere(s) {
-	if(s==null) s = [25,25,25];//{x:25, y:50, z:25};//r = 25;
-	var mesh = new THREE.Mesh(geo02, mat02);
-	mesh.scale.set( s[0], s[0], s[0] );
-	mesh.position.y = -10000;
-	content.add( mesh );
-	mesh.receiveShadow = true;
-	mesh.castShadow = true;
-}
-
-function addCylinder(s) {
-	if(s==null) s = [25,50,25];//{x:25, y:50, z:25};
-	var mesh = new THREE.Mesh(geo03, mat03);
-	mesh.scale.set( s[0], s[1], s[2] );
-	mesh.position.y = -10000;
-	content.add( mesh );
-	mesh.receiveShadow = true;
-	mesh.castShadow = true;
-}
-
-function addDice(s) {
-	if(s==null) s = [50,50,50];
-	var mesh = new THREE.Mesh(getMeshByName('dice').geometry, mat04);
-	mesh.scale.set( s[0], s[1], -s[2] );
-	mesh.position.y = -10000;
-	content.add( mesh );
-	mesh.receiveShadow = true;
-	mesh.castShadow = true;
-}
-
 function addSnake(s) {
 	if(s==null) s = [10,10,10];
-	//var mesh = getMeshByName('snake');
 	var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, mat05 );
-
 	mesh.material = mat05;
 	mesh.scale.set( s[0], s[1], -s[2] );
 	content.add( mesh );
@@ -223,12 +213,12 @@ function updateSnake() {
 	for (var i=0; i!== mesh.bones.length; i++){
 		ref = content.children[i];
 		rot = ref.rotation;
-		pos = ref.matrixWorld.getPosition();//ref.position;
+		pos = ref.position;
 
 		mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
 
-         //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
-        mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-270*ToRad);
+        mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
+        //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-270*ToRad);
          
 		mesh.bones[i].matrixAutoUpdate = true;
 		mesh.bones[i].matrixWorldNeedsUpdate = true;
@@ -675,7 +665,7 @@ function addSkyBox() {
 }
 
 //-----------------------------------------------------
-//  AUTO RESIZE
+//  DIV AUTO RESIZE
 //-----------------------------------------------------
 
 var divListe= ["container", "info", "fps", "titre", "menu", "debug", "option"];

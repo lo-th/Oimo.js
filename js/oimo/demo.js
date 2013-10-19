@@ -103,35 +103,42 @@ function demo3(){
     // ground
     addRigid({type:"box", size:[20,10,20], pos:[0,-5+dy,0], sc:sc});
     // wall
-    addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
-    addRigid({type:"box", size:[20,10,1], pos:[0,5, 10], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
+    addRigid({type:"box", size:[20,10,1], pos:[0,5+dy,-10], sc:sc});
+    addRigid({type:"box", size:[20,10,1], pos:[0,5+dy, 10], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[-10,5+dy,0], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[ 10,5+dy,0], sc:sc});
 
     sc.density = 10;
-    sc.friction = 0.1;
-    sc.restitution = 0.5;
+    sc.friction = 0.4;
+    sc.restitution = 0.4;
     // add dynamique object
-    var boneSize = [0.3,1,0.3];
     dy+=1;
-    b0 = addRigid({type:"box", size:boneSize, pos:[0,dy+0.51,0], sc:sc, move:true, rot:[0,0,1,0]});
-    b1 = addRigid({type:"box", size:boneSize, pos:[0,dy+1.52,0], sc:sc, move:true});
-    b2 = addRigid({type:"box", size:boneSize, pos:[0,dy+2.53,0], sc:sc, move:true});
-    b3 = addRigid({type:"box", size:boneSize, pos:[0,dy+3.54,0], sc:sc, move:true});
-    b4 = addRigid({type:"box", size:boneSize, pos:[0,dy+4.55,0], sc:sc, move:true});
-    b5 = addRigid({type:"box", size:boneSize, pos:[0,dy+5.56,0], sc:sc, move:true});
-    b6 = addRigid({type:"box", size:boneSize, pos:[0,dy+6.57,0], sc:sc, move:true});
-    b7 = addRigid({type:"box", size:boneSize, pos:[0,dy+7.58,0], sc:sc, move:true});
-    b8 = addRigid({type:"box", size:boneSize, pos:[0,dy+8.59,0], sc:sc, move:true});
-    b9 = addRigid({type:"box", size:boneSize, pos:[0,dy+9.60,0], sc:sc, move:true});
+    var i;
+    
+    // bones
+    var bone = [];
+    for ( i = 0; i!==10; ++i){
+        bone[i] = addRigid({type:"bone", size:[0.25,1,0.25], pos:[0,dy+0.5+(i*1.001),0], sc:sc, move:true, rot:[0,0,0,0]});
+    }
+    //joints
+    for ( i = 0; i!==9; ++i){
+        addJoint({body1:bone[i], body2:bone[i+1], pos1:[0,0.5,0], pos2:[0,-0.5,0], upperAngle:1, axis1:[1,0,1], axis2:[1,0,1] });
+    }
+}
 
-    addJoint({body1:b0, body2:b1, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b1, body2:b2, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b2, body2:b3, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b3, body2:b4, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b4, body2:b5, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b5, body2:b6, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b6, body2:b7, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b7, body2:b8, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
-    addJoint({body1:b8, body2:b9, pos1:[0,0.5,0], pos2:[0,-0.5,0] });
+//--------------------------------------------------
+//    TEMPLE
+//--------------------------------------------------
+
+function demo4(){
+    var sc = new ShapeConfig();
+    sc.density = 1;
+    sc.friction = 0.5;
+    sc.restitution = 0.5;
+
+
+
+
+
+
 }

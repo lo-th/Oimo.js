@@ -82,13 +82,7 @@
 
     	    	// create mesh
 	            if(phase === "INIT"){
-	            	var max = e.data.types.length;
-				    for(var i=0; i!==max; i++){
-			        	if( e.data.types[i] == 1) addSphere(e.data.sizes[i]);
-			        	else if( e.data.types[i] == 2) addCube(e.data.sizes[i]);
-			        	else if( e.data.types[i] == 4) addDice(e.data.sizes[i]);
-				    }
-				    if(e.data.demo === 3) addSnake();
+	            	createContentObjects(e.data);
 				    sendDataToWorker();
 				}
 
@@ -113,11 +107,13 @@
 					    		else if(mesh.material.name == "mat02sleep") mesh.material = mat02;
 					    		else if(mesh.material.name == "mat03sleep") mesh.material = mat03;
 					    		else if(mesh.material.name == "mat04sleep") mesh.material = mat04;
+					    		else if(mesh.material.name == "bonesleep") mesh.material = matBone;
 						    } else {
 					    		if(mesh.material.name == "mat01"){ mesh.material = mat01sleep;}
 					    		else if(mesh.material.name == "mat02"){ mesh.material = mat02sleep;}
 					    		else if(mesh.material.name == "mat03"){ mesh.material = mat03sleep;}
 					    		else if(mesh.material.name == "mat04"){ mesh.material = mat04sleep;}
+					    		else if(mesh.material.name == "bone"){ mesh.material = matBonesleep;}
 					    	}
 				        } 
 		            }
