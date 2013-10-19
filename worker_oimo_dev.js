@@ -254,13 +254,13 @@ function addRigid(obj){
 
 function addJoint(obj){
     var jc = new JointConfig();
-    var ax1 = obj.ax1 || [0,0,0];
-    var ax2 = obj.ax2 || [0,0,0];
+    var ax1 = obj.ax1 || [1,0,1];
+    var ax2 = obj.ax2 || [1,0,1];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
     var minDistance = obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
-    var type = obj.type || "distance";
+    var type = obj.type || "hinge";
     jc.allowCollision=true;
     jc.localAxis1.init(ax1[0], ax1[1], ax1[2]);
     jc.localAxis2.init(ax2[0], ax2[1], ax2[2]);
@@ -271,6 +271,7 @@ function addJoint(obj){
     var joint;
     switch(type){
         case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
+        case "hinge": joint = new HingeJoint(jc); break;
     }
     
     //joint.limitMotor.setSpring(2, 0.5); // soften the joint

@@ -248,7 +248,7 @@ function updateSnake() {
 			mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
 
          //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
-         mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
+         mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-270*ToRad);
          
 		mesh.bones[i].matrixAutoUpdate = true;
 		mesh.bones[i].matrixWorldNeedsUpdate = true;
