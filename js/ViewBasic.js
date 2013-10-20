@@ -265,6 +265,7 @@ function mirrorGround(){
 //-----------------------------------------------------
 //  LIGHT
 //-----------------------------------------------------
+var lightPos={horizontal: 180, vertical: 90, distance: 0, color:0xffffff};
 
 function initLights() {
 	lights[0] = new THREE.DirectionalLight( 0xffffff );
@@ -300,9 +301,33 @@ function initLights() {
 	lights[3] = new THREE.PointLight( 0x0000ff, 1, 800 );
 	scene.add( lights[3] );
 
-	lights[1].position.copy( Orbit(center , 0, 90, 400));
-	lights[2].position.copy( Orbit(center , -120, 90, 400));
-	lights[3].position.copy( Orbit(center , 120, 90, 400));
+	// visible light
+	geometry = new THREE.SphereGeometry( 10,12,12 );
+	var sphereA = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: 0xff0000, transparent:true, opacity:0.33} ) );
+	var sphereB = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: 0x00ff00, transparent:true, opacity:0.33} ) );
+	var sphereC = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: 0x0000ff, transparent:true, opacity:0.33} ) );
+	sphereA.material.blending = THREE[ "AdditiveBlending" ];
+	sphereB.material.blending = THREE[ "AdditiveBlending" ];
+	sphereC.material.blending = THREE[ "AdditiveBlending" ];
+
+	lights[1].add(sphereA);
+	lights[2].add(sphereB);
+	lights[3].add(sphereC);
+
+	lightsAnimation(0, 0, 180, 90, 0);
+
+	lightsAnimation(3, 3, 0, 90, 500);
+}
+
+function lightsAnimation(time, delay, h, v, d, c) {
+	TweenLite.to(lightPos, time, {horizontal: h, vertical: v, distance: d, onUpdate: moveLights, delay:delay });
+}
+
+function moveLights() {
+	//lights[1].color = lightPos.color;
+	lights[1].position.copy( Orbit(center , lightPos.horizontal, lightPos.vertical, lightPos.distance));
+	lights[2].position.copy( Orbit(center , lightPos.horizontal-120, lightPos.vertical, lightPos.distance));
+	lights[3].position.copy( Orbit(center , lightPos.horizontal+120, lightPos.vertical, lightPos.distance));
 }
 
 //-----------------------------------------------------
@@ -318,17 +343,6 @@ function initObject() {
 
 	plane.receiveShadow = true;
 	plane.castShadow = false;
-
-	geometry = new THREE.SphereGeometry( 10,12,12 );
-	var sphereA = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: 0xff0000} ) );
-	var sphereB = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: 0x00ff00} ) );
-	var sphereC = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: 0x0000ff} ) );
-	sphereA.position.copy( Orbit(center , 0, 90, 400));
-	sphereB.position.copy( Orbit(center , -120, 90, 400));
-	sphereC.position.copy( Orbit(center , 120, 90, 400));
-	scene.add(sphereA);
-	scene.add(sphereB);
-	scene.add(sphereC);
 }
 
 //-----------------------------------------------------
@@ -615,8 +629,10 @@ function clamp(a,b,c) { return Math.max(b,Math.min(c,a)); }
 
 function Orbit(origine, horizontal, vertical, distance) {
 	var p = new THREE.Vector3();
-	var phi = unwrapDegrees(vertical)*ToRad;
-	var theta = unwrapDegrees(horizontal)*ToRad;
+	var phi = vertical*ToRad;
+	var theta = horizontal*ToRad;
+	//var phi = unwrapDegrees(vertical)*ToRad;
+	//var theta = unwrapDegrees(horizontal)*ToRad;
 	p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
 	p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
 	p.y = (distance * Math.cos(phi)) + origine.y;
