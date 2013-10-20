@@ -9,13 +9,12 @@
 	</head>
 	<body>
 		<div id="container" class="unselectable"></div>
-		<div id="fps" class="unselectable"></div>
 		<div id="debug" class="unselectable"></div>
 		<div id="info" class="unselectable">
-			<a href="http://3dflashlo.wordpress.com/" target="_blank">Loth 2013</a>
-			- <a href="http://threejs.org" target="_blank">Three.js</a>
-			- <a href="https://code.google.com/p/sea3d/" target="_blank">Sea3d</a>
-			- <a href="https://github.com/saharan/OimoPhysics" target="_blank">Oimo physics</a>
+			<a href="http://3dflashlo.wordpress.com/" target="_blank" style="color:#4d4d4d">LOTH 2013</a>
+			| <a href="http://threejs.org" target="_blank" style="color:#4d4d4d">THREE.JS</a>
+			| <a href="https://code.google.com/p/sea3d/" target="_blank" style="color:#4d4d4d">SEA3D</a>
+			| <a href="https://github.com/saharan/OimoPhysics" target="_blank" style="color:#4d4d4d">OIMO.PHYSICS</a>
 		</div>
 		<div id="cursor" class="unselectable">
 			<img id="cursorUp" class="unselectable" src="images/cursor0.png">
@@ -28,11 +27,11 @@
 		</div>
 		<div id="titre" class="unselectable">
 			<img id="logo" class="unselectable" src="images/logo.png"/>
-			<a href="https://github.com/lo-th/Oimo.js" target="_blank"><b>Oimo.js</b></a> rev / <a href="index.html" target="_self">dev</a>
+			<a href="https://github.com/lo-th/Oimo.js" target="_blank"><b>Oimo.js</b></a><p style="font-size:12px; display:inline"> &nbsp;&nbsp;REV / <a href="index.html" target="_self">DEV</a></p>
 		</div>
 		<div id="option" class="unselectable">
 			<form oninput="amount.value=gravity.value">
-				Gravity <output name="amount" for="gravity">-10</output><input id="gravity" type="range" min="-10" max="10" value="-10" step="0.1" onchange="changeGravity()" /><br/>
+				GRAVITY <output name="amount" for="gravity">-10</output><input id="gravity" type="range" min="-10" max="10" value="-10" step="0.1" onchange="changeGravity()" /><br/>
 		    </form>
 		</div>
 
@@ -164,9 +163,10 @@
 			    info += "Updating Time: " + a[8] + "ms<br>";
 			    info += "Total Time: " + a[9] + "ms<br><br>";
 
-			    info += "Fps: " + a[10] +"<br>";
-			    info += "Get pos: " + a[11] + "ms<br>";
-			    info += "Apply pos: "+ a[12] +"ms"
+			    info += "Physics: " + a[10] +" fps<br>";
+			    info += "Render: " + fpstxt +" fps<br>";
+			    //info += "Get pos: " + a[11] + "ms<br>";
+			    //info += "Apply pos: "+ a[12] +"ms"
 	        	output.innerHTML = info;
 	        }
 

@@ -136,9 +136,16 @@ function demo4(){
     sc.friction = 0.5;
     sc.restitution = 0.5;
 
+}
 
+//--------------------------------------------------
+//    RAGDOLL
+//--------------------------------------------------
 
-
-
+function demo4(){
+    var sc = new ShapeConfig();
+    sc.density = 1;
+    sc.friction = 0.5;
+    sc.restitution = 0.5;
 
 }

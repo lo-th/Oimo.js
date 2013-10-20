@@ -1,10 +1,10 @@
-//var canvas = document.createElement("canvas");
+
+
 //-----------------------------------------------------
 //  DICE
 //-----------------------------------------------------
 
 function createDiceTexture(n) {
-	var diceTexture;
 	var canvas = document.createElement("canvas");
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
@@ -14,16 +14,14 @@ function createDiceTexture(n) {
 	ctx.fillRect(230, 0, 26, 256);
 	ctx.fillStyle = "#ff3333";
 	ctx.fillRect(230, 230, 26, 26);
-	if(n==0){
-		diceTexture = new THREE.Texture(canvas);
-		diceTexture.needsUpdate = true;
-    }else {
+	if(n!==0){
 		ctx.fillStyle = 'rgba(0,0,0,0.4)';
 	    ctx.fillRect(0, 0, 256, 256);
-	    diceTexture = new THREE.Texture(canvas);
-	    diceTexture.needsUpdate = true;
 	}
-	return diceTexture;
+	var tx = new THREE.Texture(canvas);
+	tx.needsUpdate = true;
+	//tx.anisotropy = renderer.getMaxAnisotropy();
+	return tx;
 }
 
 //-----------------------------------------------------
@@ -65,5 +63,7 @@ function createSnakeTexture() {
 
 	var tx = new THREE.Texture(canvas);
 	tx.needsUpdate = true;
+	//tx.anisotropy = renderer.getMaxAnisotropy();
+	//ctx.clearRect(0, 0, canvas.width, canvas.height);
 	return tx;
 }

@@ -1,17 +1,21 @@
-var container, renderer, scene, camera, renderLoop;
-
+/*   _     _   _     
+    | |___| |_| |__
+    | / _ \  _|    |
+    |_\___/\__|_||_|
+    http://3dflashlo.wordpress.com/
+*/
+var container, renderer, scene, camera, renderLoop, content;
 var camPos = {w: 100, h:100, horizontal: 40, vertical: 60, distance: 2000, automove: false};
 var mouse = {x: 0, y: 0, down: false, over:false, ox: 0, oy: 0, h: 0, v: 0};
 var center = new THREE.Vector3(0,150,0);
 
 var delta, clock = new THREE.Clock();
 var fpstxt, time, time_prev = 0, fps = 0;
-var phytxt='' ,time2, time_prev2 = 0, fps2 = 0;
-
+//var phytxt='' ,time2, time_prev2 = 0, fps2 = 0;
+//var output;
 var lights = [];
 var meshs = [];
 var players = [];
-var materials = [];
 
 var currentPlay;
 var character=0;
@@ -20,16 +24,8 @@ var key = { front:false, back:false, left:false, right:false, jump:false, crouch
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 var cursor, cursorUp, cursorDown;
 
-
-
-var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
-var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
-var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 26 );
-
 var ToRad = Math.PI / 180;
 var ToDeg = 180 / Math.PI;
-var content;
-
 var isOptimized;
 var antialias;
 
@@ -45,7 +41,7 @@ function initThree(option) {
 	else antialias = false
 
 	renderer = new THREE.WebGLRenderer({ antialias:antialias });
-	renderer.setClearColor( 0x181818, 1 );
+	renderer.setClearColor( 0x212121, 1 );
 	renderer.physicallyBasedShading = true;
 	renderer.gammaOutput = true;
 	renderer.gammaInput = true;
@@ -78,7 +74,7 @@ function initThree(option) {
 	if(!isOptimized){
 	    renderer.shadowMapEnabled = true;
 	    renderer.shadowMapSoft = true;
-		scene.fog = new THREE.Fog( 0x181818 , 1000, 2000 );
+		scene.fog = new THREE.Fog( 0x212121 , 1000, 2000 );
 		mirrorGround();
 		initLights();
 	}
@@ -89,9 +85,8 @@ function initThree(option) {
 
 	onThreeChangeView(45,60,1000);
 
-	fpstxt = document.getElementById( "fps" );
-
-	
+	//fpstxt = document.getElementById( "fps" );
+	//output = document.getElementById("debug");
 
     //update();
     startRender();
@@ -104,7 +99,6 @@ function customCursor() {
 	container.addEventListener( 'mouseover', onMouseOver, false );
 	container.addEventListener( 'mouseout', onMouseOut, false );
 }
-
 
 //-----------------------------------------------------
 //  MATERIAL
@@ -119,9 +113,8 @@ function initMaterial() {
 	var diceTexture = createDiceTexture(0);
 	var diceTextureSleep = createDiceTexture(1);
 	
-	
 	if(!isOptimized){
-		groundMat =  new THREE.MeshPhongMaterial( { color: 0x303030, shininess:100, specular:0x303030} );
+		groundMat =  new THREE.MeshPhongMaterial( { color: 0x404040, shininess:100, specular:0x303030} );
 		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
 		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
 		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
@@ -164,6 +157,10 @@ function initMaterial() {
 //-----------------------------------------------------
 //  PHYSICS OBJECT IN THREE
 //-----------------------------------------------------
+
+var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
+var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
+var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 26 );
 
 function createContentObjects(data){
 	var max = data.types.length;
@@ -235,7 +232,7 @@ var verticalMirror;
 
 function mirrorGround(){
 	var planeGeo = new THREE.PlaneGeometry( 2000, 2000 );
-	groundMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: camPos.w, textureHeight: camPos.h, color: 0x303030} );
+	groundMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: camPos.w, textureHeight: camPos.h, color: 0x191919} );
 	groundMirror.receiveShadow = false;
 	groundMirror.castShadow = false;
 
@@ -249,15 +246,19 @@ function mirrorGround(){
 	mirrorMesh.y = 0;
 	scene.add( mirrorMesh );
 
-	verticalMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: camPos.w, textureHeight: camPos.h, color:0x999999 } );
+	verticalMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: camPos.w, textureHeight: camPos.h, color:0x191919 } );
 				
-	var verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), verticalMirror.material );
+	var verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), verticalMirror.material );
 	verticalMirrorMesh.add( verticalMirror );
-	verticalMirrorMesh.position.y = 500;
-	verticalMirrorMesh.position.x = -500;
+	verticalMirrorMesh.position.y = 1000;
+	verticalMirrorMesh.position.x = -1000;
 	verticalMirrorMesh.rotation.y = (90)*ToRad;
 	scene.add( verticalMirrorMesh );
 
+	/*var blendings = [ "NoBlending", "NormalBlending", "AdditiveBlending", "SubtractiveBlending", "MultiplyBlending", "AdditiveAlphaBlending" ];
+	verticalMirrorMesh.material.transparent = true;
+	verticalMirrorMesh.material.blending = THREE[ "AdditiveBlending" ];
+*/
 	verticalMirrorMesh.visible = false;
 }
 
@@ -309,7 +310,7 @@ function initLights() {
 //-----------------------------------------------------
 
 function initObject() {
-	var geometry = new THREE.PlaneGeometry( 2000,2000 );
+	var geometry = new THREE.PlaneGeometry( 20000,20000 );
 	var plane = new THREE.Mesh( geometry, groundMat );
 	plane.rotation.x = (-90)*ToRad;
 	plane.position.y =-2
@@ -407,11 +408,11 @@ function update() {
 
 	//delta = clock.getDelta();
 	//THREE.AnimationHandler.update( delta*0.5 );
-
-	if(!isOptimized) groundMirror.renderWithMirror( verticalMirror );
-	//verticalMirror.renderWithMirror( groundMirror );
 	//updatePlayerMove();
 
+	if(!isOptimized){ groundMirror.renderWithMirror( verticalMirror );
+	//verticalMirror.renderWithMirror( groundMirror );
+	}
 	renderer.render( scene, camera );
 	fpsUpdate();
 }
@@ -421,7 +422,7 @@ function fpsUpdate() {
     time = Date.now();
     if (time - 1000 > time_prev) {
     	time_prev = time;
-    	fpstxt.innerHTML = phytxt + "fps: " + fps;
+    	fpstxt = fps;//.innerHTML = phytxt + "fps: " + fps;
     	fps = 0;
 	} 
     fps++;
@@ -525,7 +526,7 @@ function onMouseOver() {
 }
 
 function onMouseDown(e) {
-	//if(e.clientX > vsize.w+10) return;
+	if(e.clientY > (sizeListe[size].h+50)) return;
 	mouse.ox = e.clientX;
 	mouse.oy = e.clientY;
 	mouse.h = camPos.horizontal;
@@ -608,8 +609,6 @@ function onThreeChangeView(h, v, d) {
 //  MATH
 //-----------------------------------------------------
 
-
-
 function exponentialEaseOut( v ) { return v === 1 ? 1 : - Math.pow( 2, - 10 * v ) + 1; };
 
 function clamp(a,b,c) { return Math.max(b,Math.min(c,a)); }
@@ -667,9 +666,9 @@ function addSkyBox() {
 //-----------------------------------------------------
 //  DIV AUTO RESIZE
 //-----------------------------------------------------
-
-var divListe= ["container", "info", "fps", "titre", "menu", "debug", "option"];
-var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:680, n:1}, {w:1280, h:768, n:2}]
+//                  0          1       2      3       4        5       
+var divListe= ["container", "info", "titre", "menu", "debug", "option"];
+var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:640, n:1}, {w:1280, h:768, n:2}]
 var size =  1;
 
 function rz(){
@@ -689,10 +688,10 @@ function fullResize(n){
 	var div;
 	for(var i=0; i< divListe.length; ++i){
 		div = document.getElementById( divListe[i] );
-		if(i!==5 && i!==3 && i!==6)div.style.width = w+"px";
+		if(i!==2 && i!==4 && i!==5)div.style.width = w+"px";
 		div.style.left = "calc(50% - "+mw+"px)";
 		if(i==0)div.style.height = h+"px";
-		else if (i!==4 && i!==3 && i!==5 )div.style.top = h+45+"px";
+		else if (i==1 || i==5 )div.style.top = h+55+"px";
 	}
 	resize(w,h);
 }
