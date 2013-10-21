@@ -42,7 +42,7 @@ var sizes;
 var infos =new Float32Array(12);
 
 var currentDemo = 0;
-var maxDemo = 5;
+var maxDemo = 6;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -189,6 +189,7 @@ function initDemo(){
     else if(currentDemo==2)demo2();
     else if(currentDemo==3)demo3();
     else if(currentDemo==4)demo4();
+    else if(currentDemo==5)demo5();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
@@ -244,7 +245,8 @@ function addJoint(obj){
     var minDistance = obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
     var type = obj.type || "hinge";
-    jc.allowCollision=true;
+    var collision = obj.collision || false;
+    jc.allowCollision=collision;
     jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
     jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
     jc.localRelativeAnchorPosition1.init(pos1[0], pos1[1], pos1[2]);

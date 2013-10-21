@@ -25,6 +25,55 @@ function createDiceTexture(n) {
 }
 
 //-----------------------------------------------------
+//  WHEEL
+//-----------------------------------------------------
+
+function createWheelTexture(n) {
+	var canvas = document.createElement("canvas");
+	canvas.width = canvas.height = 256;
+	var ctx = canvas.getContext("2d");
+	
+	ctx.fillStyle = "#EEEEEE";
+	ctx.fillRect(0, 0, 256, 256);
+	var grd;
+	
+
+	grd=ctx.createLinearGradient(0,100,256,163);
+	grd.addColorStop(0,"#EEEEEE");
+	grd.addColorStop(0.2,"#AAAAAA");
+	grd.addColorStop(0.8,"#AAAAAA");
+	grd.addColorStop(1,"#EEEEEE");
+	ctx.fillStyle = grd;
+	ctx.fillRect(0, 100, 256, 163);
+
+    grd=ctx.createLinearGradient(0,163,256,256);
+	grd.addColorStop(0,"#222222");
+	grd.addColorStop(0.2,"#555555");
+	grd.addColorStop(0.8,"#555555");
+	grd.addColorStop(1,"#222222");
+	ctx.fillStyle = grd;
+	ctx.fillRect(0, 163, 256, 256);
+
+    /*ctx.beginPath();
+	ctx.arc(211,45,90,0,2*Math.PI);
+	//ctx.arc(231,178,3,0,2*Math.PI);
+	ctx.fillStyle = "#ff0101";
+	ctx.fill();*/
+
+	/*
+	ctx.fillStyle = "#ff3333";
+	ctx.fillRect(230, 230, 26, 26);
+	if(n!==0){
+		ctx.fillStyle = 'rgba(0,0,0,0.4)';
+	    ctx.fillRect(0, 0, 256, 256);
+	}*/
+	var tx = new THREE.Texture(canvas);
+	tx.needsUpdate = true;
+	//tx.anisotropy = renderer.getMaxAnisotropy();
+	return tx;
+}
+
+//-----------------------------------------------------
 //  SNAKE
 //-----------------------------------------------------
 

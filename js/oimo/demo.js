@@ -133,7 +133,7 @@ function demo3(){
     }
     //joints
     for ( i = 0; i!==9; ++i){
-        addJoint({body1:bone[i], body2:bone[i+1], pos1:[0,0.5,0], pos2:[0,-0.5,0], upperAngle:1, axis1:[1,0,1], axis2:[1,0,1] });
+        addJoint({body1:bone[i], body2:bone[i+1], pos1:[0,0.5,0], pos2:[0,-0.5,0], upperAngle:1, axis1:[1,0,1], axis2:[1,0,1], collision:true });
     }
 }
 
@@ -173,7 +173,7 @@ function demo4(){
 }
 
 //--------------------------------------------------
-//    RAGDOLL
+//    SPECIAL
 //--------------------------------------------------
 
 function demo5(){
@@ -181,6 +181,16 @@ function demo5(){
     sc.density = 1;
     sc.friction = 0.5;
     sc.restitution = 0.5;
+
+    // ground
+    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+
+    if(version=="10.DEV"){
+        var car = Car(0,2,0, world);
+        //car.update();
+    }else{
+        addRigid({type:"box", size:[0.5,0.5,0.5], pos:[0,0.25,0], sc:sc, move:true});
+    }
 
 }
 

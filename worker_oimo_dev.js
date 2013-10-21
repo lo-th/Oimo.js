@@ -14,6 +14,7 @@ size and position x100 for three.js
 importScripts('js/oimo/runtime_min.js');
 importScripts('js/oimo/oimo_dev_min.js');
 importScripts('js/oimo/demo.js');
+importScripts('js/oimo/car.js');
 
 // main class
 var version = "10.DEV";
@@ -42,7 +43,7 @@ var sizes;
 var infos = new Float32Array(12);
 //var infos =[]; infos.length=12;
 var currentDemo = 0;
-var maxDemo = 5;
+var maxDemo = 6;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -183,6 +184,7 @@ function initDemo(){
     else if(currentDemo==2)demo2();
     else if(currentDemo==3)demo3();
     else if(currentDemo==4)demo4();
+    else if(currentDemo==5)demo5();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
@@ -204,19 +206,29 @@ function addRigid(obj){
     var r = obj.rot || [0,0,0,0];
     var move = obj.move || false;
     var sc = obj.sc || new ShapeConfig();
+    //var alowSleeping  = obj.sleep || true; 
+    //var adjustPosition = obj.adjust || true;
+    var noSleep  = obj.noSleep || false; 
+    var noAdjust = obj.noAdjust || false;
     //var t, i; 
     var shape, t;
     switch(obj.type){
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
         case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
         case "bone": shape=new BoxShape(sc, s[0], s[1], s[2]); t=10; break;
+        case "cylinder": shape = new SphereShape(sc, s[0] ); t=3; break;// fake cylinder
         case "dice": shape=new BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
+        case "wheel": shape = new SphereShape(sc, s[0] ); t=5; break;// fake cylinder
+        case "wheelinv": shape = new SphereShape(sc, s[0] ); t=6; break;// fake cylinder
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0]*ToRad, r[1], r[2], r[3]);
+    if(noSleep)body.allowSleep = false;
+    else body.allowSleep = true;
     body.addShape(shape);
     if(!move)body.setupMass(0x2);
     else{ 
-        body.setupMass(0x1);
+        if(noAdjust)body.setupMass(0x1, false);
+        else body.setupMass(0x1, true);
         bodys.push(body);
         types.push(t);
         sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
@@ -240,7 +252,10 @@ function addJoint(obj){
     var lowerAngleLimit = obj.lowerAngle || 1;
     var upperAngleLimit = obj.upperAngle || 0;
     var type = obj.type || "hinge";
-    jc.allowCollision=true;
+    var limit = obj.limit || null;
+    var spring = obj.spring || null;
+    var collision = obj.collision || false;
+    jc.allowCollision=collision;
     jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
     jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
     jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
@@ -251,8 +266,14 @@ function addJoint(obj){
     switch(type){
         case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
         case "hinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
+        case "wheel": 
+            joint = new WheelJoint(jc);  
+            if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+            if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+        break;
     }
-    
+
+   
     //joint.limitMotor.setSpring(100, 0.9); // soften the joint
     world.addJoint(joint);
     return joint;

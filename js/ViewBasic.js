@@ -103,7 +103,7 @@ function customCursor() {
 //  MATERIAL
 //-----------------------------------------------------
 
-var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep;
+var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat6;
 var materials = [];
 
 function initMaterial() {
@@ -111,6 +111,7 @@ function initMaterial() {
 	var snakeTexture = createSnakeTexture();
 	var diceTexture = createDiceTexture(0);
 	var diceTextureSleep = createDiceTexture(1);
+	var wheelTexture = createWheelTexture(0);
 	
 	if(!isOptimized){
 		groundMat =  new THREE.MeshPhongMaterial( { color: 0x404040, shininess:100, specular:0x303030} );
@@ -119,6 +120,7 @@ function initMaterial() {
 		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
 		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:100, specular:0xffffff } );
 		mat05 = new THREE.MeshPhongMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
+		mat06 = new THREE.MeshPhongMaterial( { map: wheelTexture, shininess:100, specular:0xffffff } );
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
@@ -133,6 +135,7 @@ function initMaterial() {
 		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
 		mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
 		mat05 = new THREE.MeshBasicMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9} );
+		mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
@@ -171,7 +174,18 @@ function createContentObjects(data){
     		case 1: mesh=new THREE.Mesh(geo02, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
     		case 2: mesh=new THREE.Mesh(geo01, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
     		case 3: mesh=new THREE.Mesh(geo03, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
+
     		case 4: mesh=new THREE.Mesh(getMeshByName('dice').geometry, mat04); mesh.scale.set( s[0], s[1], -s[2] ); break; // dice
+    		case 5:
+    		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
+    		    //mesh.geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0.12,0,0 ) );
+    		    //mesh.geometry.verticesNeedUpdate =true;
+    		    mesh.scale.set( s[0]*2, s[1]*2, -s[2]*2 );
+    		break; // Wheel
+    		case 6:
+    		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
+    		    mesh.scale.set( -s[0]*2, s[1]*2, s[2]*2 );
+    		break; // Wheel inv
     		case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
     	}
     	mesh.position.y = -10000;
@@ -352,7 +366,7 @@ function initObject() {
 //-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
-var seaList = ['dice', 'snake'];
+var seaList = ['dice', 'snake', 'wheel'];
 var seaN = 0;
 
 function initSea3DMesh(){
