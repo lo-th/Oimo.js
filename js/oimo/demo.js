@@ -138,10 +138,45 @@ function demo3(){
 }
 
 //--------------------------------------------------
-//    TEMPLE
+//    BUILDING
 //--------------------------------------------------
 
 function demo4(){
+    var sc = new ShapeConfig();
+    sc.density = 1;
+    sc.friction = 0.4;
+    sc.restitution = 0.2;
+
+    // ground
+    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+
+    var width = 6;
+    var height = 8;
+    var depth = 6;
+    var w = 0.5;
+    var h = 0.5;
+    var d = 0.5;
+    var x, y, z;
+    for (var i = 0; i < width; i++) {
+        for (var j = 0; j < height; j++) {
+            for (var k = 0; k < depth; k++) {
+                x= (i - (width - 1) * 0.5) * w;
+                y= j * (h * 1.001) + h * 0.5;
+                z= (k - (depth - 1) * 0.5) * d;
+                addRigid({type:"box", size:[w,h,d], pos:[x,y,z], sc:sc, move:true});
+            }
+        }
+    }
+
+    sc.density = 5;
+    addRigid({type:"sphere", size:[0.5], pos:[0,300,0], sc:sc, move:true});
+}
+
+//--------------------------------------------------
+//    RAGDOLL
+//--------------------------------------------------
+
+function demo5(){
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
@@ -150,10 +185,10 @@ function demo4(){
 }
 
 //--------------------------------------------------
-//    RAGDOLL
+//    TEMPLE
 //--------------------------------------------------
 
-function demo4(){
+function demo6(){
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;

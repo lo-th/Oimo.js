@@ -88,7 +88,7 @@ function initThree(option) {
 	//output = document.getElementById("debug");
 
     //update();
-    startRender();
+    //startRender();
 }
 
 function customCursor() {
@@ -436,14 +436,14 @@ function update() {
 	fpsUpdate();
 }
 
+function viewRender() {
+	renderer.render( scene, camera );
+	fpsUpdate();
+}
 
 function fpsUpdate() {
     time = Date.now();
-    if (time - 1000 > time_prev) {
-    	time_prev = time;
-    	fpstxt = fps;//.innerHTML = phytxt + "fps: " + fps;
-    	fps = 0;
-	} 
+    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
     fps++;
 }
 

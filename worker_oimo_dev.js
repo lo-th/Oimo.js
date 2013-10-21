@@ -42,7 +42,7 @@ var sizes;
 var infos = new Float32Array(12);
 
 var currentDemo = 0;
-var maxDemo = 4;
+var maxDemo = 5;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -182,6 +182,7 @@ function initDemo(){
     else if(currentDemo==1)demo1();
     else if(currentDemo==2)demo2();
     else if(currentDemo==3)demo3();
+    else if(currentDemo==4)demo4();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
