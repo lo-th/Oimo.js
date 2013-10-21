@@ -38,7 +38,7 @@ function createWheelTexture(n) {
 	var grd;
 	
 
-	grd=ctx.createLinearGradient(0,100,256,163);
+	grd=ctx.createLinearGradient(0,100,0,163);
 	grd.addColorStop(0,"#EEEEEE");
 	grd.addColorStop(0.2,"#AAAAAA");
 	grd.addColorStop(0.8,"#AAAAAA");
@@ -46,7 +46,7 @@ function createWheelTexture(n) {
 	ctx.fillStyle = grd;
 	ctx.fillRect(0, 100, 256, 163);
 
-    grd=ctx.createLinearGradient(0,163,256,256);
+    grd=ctx.createLinearGradient(0,163,0,256);
 	grd.addColorStop(0,"#222222");
 	grd.addColorStop(0.2,"#555555");
 	grd.addColorStop(0.8,"#555555");
