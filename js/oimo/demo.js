@@ -4,6 +4,7 @@
     |_\___/\__|_||_|
     http://3dflashlo.wordpress.com/
 */
+var car = null;
 
 //--------------------------------------------------
 //    BASIC SHAPE
@@ -183,11 +184,11 @@ function demo5(){
     sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    addRigid({type:"box", size:[200,10,200], pos:[0,-5,0], sc:sc});
 
     if(version=="10.DEV"){
-        var car = Car(0,2,0, world);
-        //car.update();
+        car = new Car(0,2,0, world);
+        //car.move(0,4,0);
     }else{
         addRigid({type:"box", size:[0.5,0.5,0.5], pos:[0,0.25,0], sc:sc, move:true});
     }

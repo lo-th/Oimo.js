@@ -19,7 +19,6 @@ var players = [];
 var currentPlay;
 var character=0;
 var currentPlayer = 1;
-var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 var cursor, cursorUp, cursorDown;
 
@@ -473,17 +472,17 @@ function resize(x, y) {
 //  PLAYER MOVE
 //-----------------------------------------------------
 
-/*function updatePlayerMove() {
+function updatePlayerMove() {
 	var n = currentPlayer;
 	
-	if ( key.front ) controls.speed = clamp( controls.speed + delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
-	if ( key.back ) controls.speed = clamp( controls.speed - delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
-	if ( key.left ) controls.rotation += delta * controls.angularSpeed;
-	if ( key.right ) controls.rotation -= delta * controls.angularSpeed;
-	if ( key.right || key.left) controls.speed = clamp( controls.speed + 1 * delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
+	if ( key[0] ) controls.speed = clamp( controls.speed + delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
+	if ( key[1] ) controls.speed = clamp( controls.speed - delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
+	if ( key[2] ) controls.rotation += delta * controls.angularSpeed;
+	if ( key[3] ) controls.rotation -= delta * controls.angularSpeed;
+	if ( key[3] || key[2]) controls.speed = clamp( controls.speed + 1 * delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
 
 	// speed decay
-	if ( ! ( key.front || key.back) ) {
+	if ( ! ( key[0] || key[1]) ) {
 		if ( controls.speed > 0 ) {
 			var k = exponentialEaseOut( controls.speed / controls.maxSpeed );
 			controls.speed = clamp( controls.speed - k * delta * controls.acceleration, 0, controls.maxSpeed );
@@ -503,39 +502,47 @@ function resize(x, y) {
 		players[n].position.x += controls.vx;
 		players[n].position.z += controls.vz;
 		// animation
-		if (key.front){ if (players[n].currentAnimation.name == "idle") players[n].play("walk");}
-		else if (key.back){ if (players[n].currentAnimation.name == "idle") players[n].play("walk");}
+		if (key[0]){ if (players[n].currentAnimation.name == "idle") players[n].play("walk");}
+		else if (key[1]){ if (players[n].currentAnimation.name == "idle") players[n].play("walk");}
 		else{ if(players[n].currentAnimation.name == "walk") players[n].play("idle");}
 		// camera follow
 		center.copy(players[n].position);
 	    moveCamera();
 	}
-}*/
+}
 
 //-----------------------------------------------------
 //  KEYBOARD
 //-----------------------------------------------------
 
+var key = [0, 0, 0, 0, 0, 0, 0, 0];
+
 function onKeyDown ( event ) {
 	switch ( event.keyCode ) {
-	    case 38: case 87: case 90: key.front = true; break; // up, W, Z
-		case 40: case 83: key.back = true; break;           // down, S
-		case 37: case 65: case 81: key.left = true; break;  // left, A, Q
-		case 39: case 68: key.right = true; break;          // right, D
-		case 17: case 67: key.crouch = false; break;        // ctrl, c
-		case 32: key.jump = false; break;                   // space
+	    case 38: case 87: case 90: key[0]=1; break; // up, W, Z
+		case 40: case 83:          key[1]=1; break; // down, S
+		case 37: case 65: case 81: key[2]=1; break; // left, A, Q
+		case 39: case 68:          key[3]=1; break; // right, D
+		case 69:                   key[4]=1; break; // E
+		case 82:                   key[5]=1; break; // R
+		case 32:                   key[6]=1; break; // space
+		case 17: case 67:          key[7]=1; break; // ctrl, C
 	}
+	sendKey();
 }
 
 function onKeyUp ( event ) {
 	switch( event.keyCode ) {
-		case 38: case 87: case 90: key.front = false; break; // up, W, Z
-		case 40: case 83: key.back = false; break;           // down, S
-		case 37: case 65: case 81: key.left = false; break;  // left, A, Q
-		case 39: case 68: key.right = false; break;          // right, D
-		case 17: case 67: key.crouch = false; break;         // ctrl, c
-		case 32: key.jump = false; break;                    // space
+		case 38: case 87: case 90: key[0]=0; break; // up, W, Z
+		case 40: case 83:          key[1]=0; break; // down, S
+		case 37: case 65: case 81: key[2]=0; break; // left, A, Q
+		case 39: case 68:          key[3]=0; break; // right, D
+		case 69:                   key[4]=0; break; // E
+		case 82:                   key[5]=0; break; // R
+		case 32:                   key[6]=0; break; // space          
+		case 17: case 67:          key[7]=0; break; // ctrl, C
 	}
+	sendKey();
 }
 
 //-----------------------------------------------------

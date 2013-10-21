@@ -12,6 +12,8 @@ Car = function (x, y, z, world) {
 	this.joint4;
 	this.angle =0;
 
+	this.size = {w:0.5, d:1}
+
 	// create a body
 	var off = 0.4;
 	var rad = 0.3;
@@ -38,44 +40,54 @@ Car = function (x, y, z, world) {
 	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0] });
 	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0] });
 }
+
+Car.prototype.move =function (x,y,z) {
+	this.body.position = new Vec3(x,y,z);
+	this.wheel1.position = new Vec3(x-this.size.w,y,z-this.size.d);
+	this.wheel2.position = new Vec3(x+this.size.w,y,z-this.size.d);
+	this.wheel3.position = new Vec3(x-this.size.w,y,z+this.size.d);
+	this.wheel4.position = new Vec3(x+this.size.w,y,z+this.size.d);
+
+	this.update(0,0);
+}
+
+Car.prototype.update = function (accelSign, handleSign) {
+	var breaking = this.body.linearVelocity.dot(new Vec3(this.body.rotation.e02, this.body.rotation.e12, this.body.rotation.e22)) * accelSign > 0;
+	var ratio = 0;
+	var v = this.body.linearVelocity.length() * 3.6;
+	var maxSpeed = Math.PI * 2 / 60 * 1200; // 1200rpm
+	var minTorque = 4;
 	
-/*Car.prototype.update = function (accelSign, handleSign) {
-		var breaking = this.body.linearVelocity.dot(new Vec3(this.body.rotation.e02, this.body.rotation.e12, this.body.rotation.e22)) * accelSign > 0;
-		var ratio = 0;
-		var v = this.body.linearVelocity.length() * 3.6;
-		var maxSpeed = Math.PI * 2 / 60 * 1200; // 1200rpm
-		var minTorque = 4;
-		
-		if (breaking) minTorque *= 2;
-		
-		if (v < 10) ratio = 3;
-		else if (v < 30) ratio = 2;
-		else if (v < 70) ratio = 1.4;
-		else if (v < 100) ratio = 1.2;
-		else  ratio = 1;
-		
-		var speed = maxSpeed / ratio * accelSign;
-		var torque = minTorque * ratio * (accelSign * accelSign);
-		
-		var deg45 = Math.PI / 4;
-		this.angle += handleSign * 0.02;
-		this.angle *= 0.94;
-		this.angle = this.angle > deg45 ? deg45 : this.angle < -deg45 ? -deg45 : this.angle;
-		
-		this.joint1.rotationalLimitMotor2.setMotor(speed, torque);
-		this.joint2.rotationalLimitMotor2.setMotor(speed, torque);
-		this.joint3.rotationalLimitMotor2.setMotor(speed, torque);
-		this.joint4.rotationalLimitMotor2.setMotor(speed, torque);
-		this.joint1.rotationalLimitMotor1.setLimit(this.angle, this.angle);
-		this.joint2.rotationalLimitMotor1.setLimit(this.angle, this.angle);
-		
-		var axis = new Vec3(body.rotation.e01, body.rotation.e11, body.rotation.e21); // up axis
-		
-		this.correctRotation(this.wheel1);
-		this.correctRotation(this.wheel2);
-		this.correctRotation(this.wheel3);
-		this.correctRotation(this.wheel4);
-	}
+	if (breaking) minTorque *= 2;
+	
+	if (v < 10) ratio = 3;
+	else if (v < 30) ratio = 2;
+	else if (v < 70) ratio = 1.4;
+	else if (v < 100) ratio = 1.2;
+	else  ratio = 1;
+	
+	var speed = maxSpeed / ratio * accelSign;
+	var torque = minTorque * ratio * (accelSign * accelSign);
+	
+	var deg45 = Math.PI / 4;
+	this.angle += handleSign * 0.02;
+	this.angle *= 0.94;
+	this.angle = this.angle > deg45 ? deg45 : this.angle < -deg45 ? -deg45 : this.angle;
+	
+	this.joint1.rotationalLimitMotor2.setMotor(speed, torque);
+	this.joint2.rotationalLimitMotor2.setMotor(speed, torque);
+	this.joint3.rotationalLimitMotor2.setMotor(speed, torque);
+	this.joint4.rotationalLimitMotor2.setMotor(speed, torque);
+	this.joint1.rotationalLimitMotor1.setLimit(this.angle, this.angle);
+	this.joint2.rotationalLimitMotor1.setLimit(this.angle, this.angle);
+	
+	var axis = new Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21); // up axis
+	
+	this.correctRotation(this.wheel1);
+	this.correctRotation(this.wheel2);
+	this.correctRotation(this.wheel3);
+	this.correctRotation(this.wheel4);
+}
 	
 Car.prototype.correctRotation =	function (w) {
 	var axis1 = new Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21);
@@ -83,4 +95,4 @@ Car.prototype.correctRotation =	function (w) {
 	var axis3 = new Vec3().sub(axis2, axis1.scaleEqual(axis1.dot(axis2)));
 	w.orientation.mul(new Quat().arc(axis2, axis3.normalize(axis3)), w.orientation);
 	w.orientation.normalize(w.orientation);
-}*/
+}

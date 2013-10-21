@@ -126,6 +126,7 @@
 				else if(phase === "CLEAR") clearContent();
     	    }
 
+    	    function sendKey(){ OimoWorker.postMessage({tell:"KEY", key:key}); }
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
 	        function changeGravity(){ OimoWorker.postMessage({tell:"GRAVITY", G:garvity.value}); }

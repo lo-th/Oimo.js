@@ -58,6 +58,7 @@ self.onmessage = function (e) {
         initClass();
     }
     else if(phase === "UPDATE")update();
+    else if(phase === "KEY")userKey(e.data.key);
     else if(phase === "GRAVITY") newGravity = e.data.G;
     else if(phase === "NEXT") initNextDemo();
     else if(phase === "PREV") initPrevDemo();
@@ -100,6 +101,22 @@ function update() {
 
     delay = timerStep - (Date.now()-t01);
     timer = setTimeout(update, delay);
+}
+
+//--------------------------------------------------
+//   USER KEY
+//--------------------------------------------------
+
+function userKey(key) {
+    if(currentDemo === 5){
+        if(car !== null ){
+            car.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
+           //car.update((key[0] ? 1 : 0) + (key[1] ? -1 : 0), (key[2] ? -1 : 0) + (key[3] ? 1 : 0));
+            if(key[5]===1)car.move(0,2,0);
+        }
+        //if(car !== null) car.update((key[0]) + (-key[1]), (-key[2]) + (key[4]));
+    }
+
 }
 
 //--------------------------------------------------
@@ -224,7 +241,10 @@ function addRigid(obj){
     var body = new RigidBody(p[0], p[1], p[2], r[0]*ToRad, r[1], r[2], r[3]);
     if(noSleep)body.allowSleep = false;
     else body.allowSleep = true;
+
     body.addShape(shape);
+    //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
+
     if(!move)body.setupMass(0x2);
     else{ 
         if(noAdjust)body.setupMass(0x1, false);
@@ -268,8 +288,10 @@ function addJoint(obj){
         case "hinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
         case "wheel": 
             joint = new WheelJoint(jc);  
-            if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
-            if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+            if(limit !== null) 
+                joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+            if(spring !== null) 
+                joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
         break;
     }
 

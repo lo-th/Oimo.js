@@ -57,6 +57,7 @@ self.onmessage = function (e) {
         initClass();
     }
     else if(phase === "UPDATE")update();
+    else if(phase === "KEY")userKey(e.data.key);
     else if(phase === "GRAVITY") newGravity = e.data.G;
     else if(phase === "NEXT") initNextDemo();
     else if(phase === "PREV") initPrevDemo();
@@ -99,6 +100,15 @@ function update() {
 
     delay = timerStep - (Date.now()-t01);
     timer = setTimeout(update, delay);
+}
+
+
+//--------------------------------------------------
+//   USER KEY
+//--------------------------------------------------
+
+function userKey(k) {
+
 }
 
 //--------------------------------------------------
