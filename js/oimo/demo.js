@@ -1,3 +1,10 @@
+/*   _     _   _     
+    | |___| |_| |__
+    | / _ \  _|    |
+    |_\___/\__|_||_|
+    http://3dflashlo.wordpress.com/
+*/
+
 //--------------------------------------------------
 //    BASIC SHAPE
 //--------------------------------------------------
@@ -17,10 +24,10 @@ function demo0(n, t){
     addRigid({type:"box", size:[1,10,5], pos:[-2.5,5,0], sc:sc});
     addRigid({type:"box", size:[1,10,5], pos:[ 2.5,5,0], sc:sc});
 
-    // add 66 dynamique object
+    // add dynamique object
     var body, px, pz, t;
     var sx, sy, sz;
-    for (var i=0; i!==66; ++i ){
+    for (var i=0; i!==200; ++i ){
         if(version=="10.DEV")t = Math.floor(Math.random()*2)+1;
         else t = Math.floor(Math.random()*3)+1;
         px = -1+Math.random()*2;
@@ -49,12 +56,12 @@ function demo1(){
     addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
     // wall
     addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
-    addRigid({type:"box", size:[20,10,1], pos:[0,5, 10], sc:sc});
+    addRigid({type:"box", size:[20,10,1], pos:[0,5,10], sc:sc});
     addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
     addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
 
     var body, px, pz, s;
-    for (var i=0; i!==42; ++i ){
+    for (var i=0; i!==333; ++i ){
         s = 0.1+Math.random();
         sc.density = s*10;
         px = -1+Math.random()*2;
@@ -64,11 +71,8 @@ function demo1(){
 }
 
 //--------------------------------------------------
-//    POOL
+//    BALL POOL
 //--------------------------------------------------
-// billard  2.54m * 1.27m  h 0.76m
-// 16 billes  diametre 57.2mm pour 162g
-// r = 0.0286;
 
 function demo2(){
     var sc = new ShapeConfig();
@@ -77,12 +81,18 @@ function demo2(){
     sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[25.4,7.6,12.7], pos:[0,-3.8,0], sc:sc});
+    //addRigid({type:"box", size:[25.4,7.6,12.7], pos:[0,-3.8,0], sc:sc});
+    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    // wall
+    addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
+    addRigid({type:"box", size:[20,10,1], pos:[0,5,10], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
+    addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
 
     // add dynamique object
-    sc.density = 0.0162;
+    sc.density = 0.162;
     var body, px, pz, type = 1;
-    for (var i=0; i!==16; ++i ){
+    for (var i=0; i!==333; ++i ){
         px = -2+Math.random()*4;
         pz = -2+Math.random()*4;
         addRigid({type:"sphere", size:[0.286], pos:[px,2+i,pz], sc:sc, move:true});
@@ -111,6 +121,7 @@ function demo3(){
     sc.density = 10;
     sc.friction = 0.4;
     sc.restitution = 0.4;
+
     // add dynamique object
     dy+=1;
     var i;

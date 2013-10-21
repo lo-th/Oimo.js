@@ -1,83 +1,76 @@
-importScripts('js/oimo/runtime_min.js');
-//importScripts('js/oimo/oimo_dev.js');
-importScripts('js/oimo/oimo_dev_min.js');
-importScripts('js/oimo/demo.js');
-
 /*
 OimoPhysics alpha dev 10
 @author Saharan _ http://el-ement.com
 @link https://github.com/saharan/OimoPhysics
 ...
-Compact engine for three.js by Loth
+oimo.js worker for three.js 
+@author Loth _ http://3dflashlo.wordpress.com/
 
 OimoPhysics use international system units
 0.1 to 10 meters max for dynamique body
-
 size and position x100 for three.js
 */
-var version = "10.DEV";
+
+importScripts('js/oimo/runtime_min.js');
+importScripts('js/oimo/oimo_dev_min.js');
+importScripts('js/oimo/demo.js');
+
 // main class
+var version = "10.DEV";
 var World, RigidBody, BroadPhase;
 var Shape, ShapeConfig, BoxShape, SphereShape;
 var JointConfig, HingeJoint, WheelJoint, DistanceJoint;
 var Vec3, Quat;
 
 // physics variable
-var scale = 100;
 var world;
-var bodys;
-var N = 100;
 var dt = 1/60;
+var scale = 100;
 var iterations = 8;
-var info = "info test";
-var fps=0, time, time_prev=0, fpsint = 0;
-var timeint = 0;
-var ToRad = Math.PI / 180;
-var Gravity = -10;
-var newGravity = -10;
+var Gravity = -10, newGravity = -10;
 
+var timer, delay, timerStep;
+var fps=0, time, time_prev=0, fpsint = 0;
+var ToRad = Math.PI / 180;
+
+// array variable
+var bodys;
 var matrix;
 var sleeps;
 var types;
 var sizes;
-var infos =[];
+var infos = new Float32Array(12);
 
 var currentDemo = 0;
 var maxDemo = 4;
-//var isDemo = false;
-//var matrix = new Float32Array(N*12);
+
+//--------------------------------------------------
+//   WORKER MESSAGE
+//--------------------------------------------------
 
 self.onmessage = function (e) {
     var phase = e.data.tell;
     if(phase === "INITWORLD"){
         dt = e.data.dt;
         iterations = e.data.iterations;
+        newGravity = e.data.G;
         initClass();
     }
-
-    else if(phase === "UPDATE"){
-        newGravity = e.data.G;
-        update();
-    } 
-
-    else if(phase === "CLEAR"){
-        clearWorld();
-    }
-
-    else if(phase === "NEXT"){
-        initNextDemo();
-    }
-
-    else if(phase === "PREV"){
-        initPrevDemo();
-    }
+    else if(phase === "UPDATE")update();
+    else if(phase === "GRAVITY") newGravity = e.data.G;
+    else if(phase === "NEXT") initNextDemo();
+    else if(phase === "PREV") initPrevDemo();
 }
 
+//--------------------------------------------------
+//   WORLD UPDATE
+//--------------------------------------------------
+
 function update() {
-     
+    var t01 = Date.now();
+
     world.step();
 
-    var t01 = Date.now();
     var r, p, t, n;
     var max = bodys.length;
 
@@ -93,7 +86,6 @@ function update() {
             matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=p.z;
         }
     }
-    var t02 = Date.now();
 
     if(Gravity!==newGravity){
         Gravity = newGravity;
@@ -101,37 +93,17 @@ function update() {
         for ( var i = 0; i !== max ; ++i ) bodys[i].awake();
     }
 
-    timeint = t02-t01;
-    fpsUpdate();
     worldInfo();
 
     self.postMessage({tell:"RUN", infos: infos, matrix:matrix, sleeps:sleeps  })
+
+    delay = timerStep - (Date.now()-t01);
+    timer = setTimeout(update, delay);
 }
 
-function worldInfo() {
-    infos[0] = world.numRigidBodies;
-    infos[1] = world.numContacts;
-    infos[2] = world.broadPhase.numPairChecks;
-    infos[3] = world.numContactPoints;
-    infos[4] = world.numIslands;
-    infos[5] = world.performance.broadPhaseTime;
-    infos[6] = world.performance.narrowPhaseTime ;
-    infos[7] = world.performance.solvingTime;
-    infos[8] = world.performance.updatingTime;
-    infos[9] = world.performance.totalTime;
-    infos[10] = fpsint;
-    infos[11] = timeint;
-    infos[12] = 0;
-    infos[13] = currentDemo;
-}
-
-function fpsUpdate(){
-    time = Date.now();
-    if (time - 1000 > time_prev) {
-        time_prev = time; fpsint = fps; fps = 0;
-    } fps++;
-}
-
+//--------------------------------------------------
+//   OIMO WORLD INIT
+//--------------------------------------------------
 
 function initClass(){
     with(joo.classLoader) {
@@ -169,15 +141,22 @@ function initWorld(){
         
         world.numIterations = iterations;
         world.timeStep = dt;
+        timerStep = dt * 1000;
         world.gravity = new Vec3(0, Gravity, 0);
     }
-    //startOimoTest();
-
-    sleeps = [];
-    infos = [];
-
     initDemo();
 }
+
+function clearWorld(){
+    clearTimeout(timer);
+    if(world != null) world.clear();
+    // Clear three object
+    self.postMessage({tell:"CLEAR"});
+}
+
+//--------------------------------------------------
+//    DEMO INIT
+//--------------------------------------------------
 
 function initNextDemo(){
     clearWorld();
@@ -198,24 +177,17 @@ function initDemo(){
     bodys = [];
     types = [];
     sizes = [];
-    matrix = [];
 
     if(currentDemo==0)demo0();
     else if(currentDemo==1)demo1();
     else if(currentDemo==2)demo2();
     else if(currentDemo==3)demo3();
 
-    matrix.length = 12*bodys.length;
+    var N = bodys.length;
+    matrix = new Float32Array(N*12);
+    sleeps = new Float32Array(N);
     
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
-}
-
-function clearWorld(){
-    if(world != null) world.clear();
-    sleeps = [];
-    infos = [];
-
-    self.postMessage({tell:"CLEAR"});
 }
 
 //--------------------------------------------------
@@ -280,4 +252,29 @@ function addJoint(obj){
     //joint.limitMotor.setSpring(100, 0.9); // soften the joint
     world.addJoint(joint);
     return joint;
+}
+
+//--------------------------------------------------
+//   WORLD INFO
+//--------------------------------------------------
+
+function worldInfo() {
+
+    time = Date.now();
+    if (time - 1000 > time_prev) {
+        time_prev = time; fpsint = fps; fps = 0;
+    } fps++;
+
+    infos[0] = currentDemo;
+    infos[1] = world.numRigidBodies;
+    infos[2] = world.numContacts;
+    infos[3] = world.broadPhase.numPairChecks;
+    infos[4] = world.numContactPoints;
+    infos[5] = world.numIslands;
+    infos[6] = world.performance.broadPhaseTime;
+    infos[7] = world.performance.narrowPhaseTime ;
+    infos[8] = world.performance.solvingTime;
+    infos[9] = world.performance.updatingTime;
+    infos[10] = world.performance.totalTime;
+    infos[11] = fpsint;
 }

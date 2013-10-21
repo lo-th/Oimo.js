@@ -11,8 +11,7 @@ var center = new THREE.Vector3(0,150,0);
 
 var delta, clock = new THREE.Clock();
 var fpstxt, time, time_prev = 0, fps = 0;
-//var phytxt='' ,time2, time_prev2 = 0, fps2 = 0;
-//var output;
+
 var lights = [];
 var meshs = [];
 var players = [];
@@ -75,7 +74,7 @@ function initThree(option) {
 	    renderer.shadowMapEnabled = true;
 	    renderer.shadowMapSoft = true;
 		scene.fog = new THREE.Fog( 0x212121 , 1000, 2000 );
-		mirrorGround();
+		//mirrorGround();
 		initLights();
 	}
 
@@ -159,8 +158,8 @@ function initMaterial() {
 //-----------------------------------------------------
 
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
-var geo02 = new THREE.SphereGeometry( 1, 22, 26 );
-var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 26 );
+var geo02 = new THREE.SphereGeometry( 1, 16, 12 );
+var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
 
 function createContentObjects(data){
 	var max = data.types.length;
@@ -183,14 +182,19 @@ function createContentObjects(data){
     	}
     }
     if(data.demo === 3) addSnake();
+
+    lightsAnimation(2, 0.5, 0, 90, 500);
 }
 
 function clearContent(){
+
 	var obj, i;
     for ( i = content.children.length - 1; i >= 0 ; i -- ) {
 			obj = content.children[ i ];
 			content.remove(obj);
 	}
+
+	lightsAnimation(0.5, 0, 180, 90, 0);
 }
 
 function addSnake(s) {
@@ -265,11 +269,12 @@ function mirrorGround(){
 //-----------------------------------------------------
 //  LIGHT
 //-----------------------------------------------------
+
 var lightPos={horizontal: 180, vertical: 90, distance: 0, color:0xffffff};
 
 function initLights() {
 	lights[0] = new THREE.DirectionalLight( 0xffffff );
-	lights[0].intensity = 1;
+	lights[0].intensity = 0.6;
 	lights[0].castShadow = true;
 
 	lights[0].shadowCameraNear = 100;
@@ -315,8 +320,7 @@ function initLights() {
 	lights[3].add(sphereC);
 
 	lightsAnimation(0, 0, 180, 90, 0);
-
-	lightsAnimation(3, 3, 0, 90, 500);
+	//lightsAnimation(3, 3, 0, 90, 500);
 }
 
 function lightsAnimation(time, delay, h, v, d, c) {
@@ -424,7 +428,8 @@ function update() {
 	//THREE.AnimationHandler.update( delta*0.5 );
 	//updatePlayerMove();
 
-	if(!isOptimized){ groundMirror.renderWithMirror( verticalMirror );
+	if(!isOptimized){
+	// groundMirror.renderWithMirror( verticalMirror );
 	//verticalMirror.renderWithMirror( groundMirror );
 	}
 	renderer.render( scene, camera );

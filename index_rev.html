@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Oimo.js rev</title>
+		<title>Oimo.js REV</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link rel="shortcut icon" href="images/favicon.ico">
@@ -51,9 +51,6 @@
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
 		    var currentView = 0;
-		    var dt = 1/60;
-            var sendTime = 0, delay;
-            var NEXT=0; PREV=0, G=-10;
             var output, garvity;
 
             var OimoWorker = new Worker('worker_oimo_rev.js');
@@ -69,7 +66,7 @@
 
             function mainAllObjectLoaded(){
             	// start worker
-        	    OimoWorker.postMessage({tell:"INITWORLD", dt:dt, iterations:8 });
+        	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:garvity.value });
             }
 
             //-----------------------------------------------------
@@ -82,12 +79,11 @@
     	    	// create mesh
 	            if(phase === "INIT"){
 	            	createContentObjects(e.data);
-				    sendDataToWorker();
+	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
 
 				// update three object
     	    	else if( phase === "RUN"){
-    	    		var t01 = Date.now();
     	    		var max = e.data.sleeps.length;
     	    		var m = e.data.matrix;
         	    	var mtx, n, mesh;
@@ -116,57 +112,41 @@
 					    	}
 				        } 
 		            }
-		            var t02 = Date.now();
-		            e.data.infos[12] = t02-t01;
 
 		            //snake update
-		            if(e.data.infos[13] === 3) updateSnake();
-
-		            delay = (dt * 1000) - (Date.now()-sendTime);
-	    	   	    if(delay < 0)  delay = 0;
+		            if(e.data.infos[0] === 3) updateSnake();
 
 					displayInfo(e.data.infos);
-
-	    	   	    if(NEXT === 1){ NEXT=0; OimoWorker.postMessage({tell:"NEXT"}); }
-					else if (PREV === 1){ PREV=0; OimoWorker.postMessage({tell:"PREV"}); }
-					else { timeout = setTimeout(sendDataToWorker, delay); }
 	            }
 
 	            // clear three object
 				else if(phase === "CLEAR") clearContent();
     	    }
 
-            function sendDataToWorker(){
-	            sendTime = Date.now();
-                OimoWorker.postMessage({tell:"UPDATE", G:G});
-	        }
-
-	        function prevDemo(){ PREV = 1; }
-	        function nextDemo(){ NEXT = 1; }
-	        function changeGravity(){ G = garvity.value; }
+	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
+	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
+	        function changeGravity(){ OimoWorker.postMessage({tell:"GRAVITY", G:garvity.value}); }
 
 	        //-----------------------------------------------------
             //  OIMO INFO
             //-----------------------------------------------------
 
 	        function displayInfo(a){
-	        	var info = "-- "+ demoName[a[13]]+" --<br><br>";
-	        	info += "Rigidbody: "+a[0]+"<br>";
-	        	info += "Contact: "+a[1]+"<br>";
-			    info += "Shapes: "+a[2]+"<br>";
-			    info += "Joints: "+a[3]+"<br>";
-			    info += "Island: " + a[4] +"<br><br>";
+	        	var info = "-- "+ demoName[a[0]]+" --<br><br>";
+	        	info += "Rigidbody: "+a[1]+"<br>";
+	        	info += "Contact: "+a[2]+"<br>";
+			    info += "Shapes: "+a[3]+"<br>";
+			    info += "Joints: "+a[4]+"<br>";
+			    info += "Island: " + a[5] +"<br><br>";
 			    
-			    info += "Broad-Phase Time: " + a[5] + "ms<br>";
-			    info += "Narrow-Phase Time: " + a[6] + "ms<br>";
-			    info += "Solving Time: " + a[7] + "ms<br>";
-			    info += "Updating Time: " + a[8] + "ms<br>";
-			    info += "Total Time: " + a[9] + "ms<br><br>";
+			    info += "Broad-Phase Time: " + a[6] + "ms<br>";
+			    info += "Narrow-Phase Time: " + a[7] + "ms<br>";
+			    info += "Solving Time: " + a[8] + "ms<br>";
+			    info += "Updating Time: " + a[9] + "ms<br>";
+			    info += "Total Time: " + a[10] + "ms<br><br>";
 
-			    info += "Physics: " + a[10] +" fps<br>";
+			    info += "Physics: " + a[11] +" fps<br>";
 			    info += "Render: " + fpstxt +" fps<br>";
-			    //info += "Get pos: " + a[11] + "ms<br>";
-			    //info += "Apply pos: "+ a[12] +"ms"
 	        	output.innerHTML = info;
 	        }
 
