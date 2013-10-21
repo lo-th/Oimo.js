@@ -27,7 +27,7 @@ function demo0(n, t){
     // add dynamique object
     var body, px, pz, t;
     var sx, sy, sz;
-    for (var i=0; i!==200; ++i ){
+    for (var i=0; i!==100; ++i ){
         if(version=="10.DEV")t = Math.floor(Math.random()*2)+1;
         else t = Math.floor(Math.random()*3)+1;
         px = -1+Math.random()*2;
@@ -163,7 +163,7 @@ function demo4(){
                 x= (i - (width - 1) * 0.5) * w;
                 y= j * (h * 1.001) + h * 0.5;
                 z= (k - (depth - 1) * 0.5) * d;
-                addRigid({type:"box", size:[w,h,d], pos:[x,y,z], sc:sc, move:true});
+                addRigid({type:"box", size:[w-0.025,h,d-0.025], pos:[x,y,z], sc:sc, move:true});
             }
         }
     }

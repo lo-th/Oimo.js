@@ -40,7 +40,7 @@ var sleeps;
 var types;
 var sizes;
 var infos = new Float32Array(12);
-
+//var infos =[]; infos.length=12;
 var currentDemo = 0;
 var maxDemo = 5;
 
@@ -187,6 +187,9 @@ function initDemo(){
     var N = bodys.length;
     matrix = new Float32Array(N*12);
     sleeps = new Float32Array(N);
+
+    //matrix = []; matrix.length = N*12;
+    //sleeps = []; matrix.length = N;
     
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 }
