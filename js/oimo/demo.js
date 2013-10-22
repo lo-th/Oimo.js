@@ -139,7 +139,7 @@ function demo3(){
 }
 
 //--------------------------------------------------
-//    BUILDING
+//    SUPERMARKET 
 //--------------------------------------------------
 
 function demo4(){
@@ -187,10 +187,26 @@ function demo5(){
     addRigid({type:"box", size:[200,10,200], pos:[0,-5,0], sc:sc});
 
     if(version=="10.DEV"){
+        // Car simulator
         car = new Car(0,2,0, world);
-        //car.move(0,4,0);
     }else{
-        addRigid({type:"box", size:[0.5,0.5,0.5], pos:[0,0.25,0], sc:sc, move:true});
+        // Greek temple
+        var x= 0, z = 0;
+        var width = 8;
+        var depth= 6;
+
+        for(var i =0; i<8; i++){
+            for(var j =0; j<8; j++){
+                for(var k =0; k<8;k++){
+                    x = (i - (width - 1) * 0.5) * 4;
+                    z = (j - (depth - 1) * 0.5) * 4;
+                    if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true});
+                    else if(k!=7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.01*k),z], sc:sc, move:true});
+                    else addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.01*k),z], sc:sc, move:true});
+                }
+            }
+        }
+
     }
 
 }

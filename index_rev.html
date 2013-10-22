@@ -46,7 +46,7 @@
 		<script type="text/javascript" src="js/AutoTexture.js"></script>
 
 		<script type="text/javascript">
-		    var demoName = ["Basic shape", "Dice fall", "Pool", "Joint test", "Building", "column"];
+		    var demoName = ["Basic shape", "Dice fall", "Pool", "Joint test", "Supermarket", "Greek temple"];
 		    var vSet = [ {h:90, v:70, d:600}, {h:0, v:60, d:1000}, {h:360, v:45, d:600}, {h:200, v:70, d:1500}, {h:0, v:10, d:1000}];
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
@@ -102,12 +102,14 @@
 					    		else if(mesh.material.name == "mat02sleep") mesh.material = mat02;
 					    		else if(mesh.material.name == "mat03sleep") mesh.material = mat03;
 					    		else if(mesh.material.name == "mat04sleep") mesh.material = mat04;
+					    		else if(mesh.material.name == "mat07sleep") mesh.material = mat07;
 					    		else if(mesh.material.name == "bonesleep") mesh.material = matBone;
 						    } else {
 					    		if(mesh.material.name == "mat01"){ mesh.material = mat01sleep;}
 					    		else if(mesh.material.name == "mat02"){ mesh.material = mat02sleep;}
 					    		else if(mesh.material.name == "mat03"){ mesh.material = mat03sleep;}
 					    		else if(mesh.material.name == "mat04"){ mesh.material = mat04sleep;}
+					    		else if(mesh.material.name == "mat07"){ mesh.material = mat07sleep;}
 					    		else if(mesh.material.name == "bone"){ mesh.material = matBonesleep;}
 					    	}
 				        } 
