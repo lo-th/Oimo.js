@@ -5,7 +5,7 @@ body {
 	margin: 0px;
 	overflow: hidden;
 	text-align:center;
-	background:#191919 url('../images/bg.jpg') no-repeat center center fixed; 
+	background:#161616 url('../images/bg.jpg') no-repeat center center fixed; 
     -webkit-background-size: 100% 100%;
     -o-background-size: 100% 100%;
     background-size: 100% 100%;
@@ -17,7 +17,7 @@ body {
 	height:640px;
 	width:1024px;
 	text-align: left;
-	background:#222222;
+	background:#161616;
 	display:block;
 	border:1px solid #303030;
 	text-align:center;

@@ -84,9 +84,6 @@ function initThree(option) {
 
 	onThreeChangeView(45,60,1000);
 
-	//fpstxt = document.getElementById( "fps" );
-	//output = document.getElementById("debug");
-
     //update();
     //startRender();
 }
@@ -103,7 +100,7 @@ function customCursor() {
 //  MATERIAL
 //-----------------------------------------------------
 
-var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep;
+var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08;
 var materials = [];
 
 function initMaterial() {
@@ -122,14 +119,15 @@ function initMaterial() {
 		mat05 = new THREE.MeshPhongMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
 		mat06 = new THREE.MeshPhongMaterial( { map: wheelTexture, shininess:100, specular:0xffffff } );
 		mat07 = new THREE.MeshPhongMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
+		mat08 = new THREE.MeshPhongMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.1 } );
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
 		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:100, specular:0xffffff } );
 		mat07sleep = new THREE.MeshPhongMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
 
-		matBone = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.1 } ); 
-		matBonesleep = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.1 } );  
+		matBone = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
+		matBonesleep = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
 	}else{
 		groundMat = new THREE.MeshBasicMaterial( { color: 0x303030} );
 		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
@@ -139,6 +137,7 @@ function initMaterial() {
 		mat05 = new THREE.MeshBasicMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9} );
 		mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture} );
 		mat07 = new THREE.MeshBasicMaterial( { color: 0x7C7B77} );
+		mat08 = new THREE.MeshBasicMaterial( { color: 0xAEABA6, skinning: true, transparent:true, opacity:0.1} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
@@ -207,6 +206,7 @@ function createContentObjects(data){
     	}
     }
     if(data.demo === 3) addSnake();
+    if(data.demo === 6) addSila();
 
     lightsAnimation(2, 0.5, 0, 90, 500);
 }
@@ -249,6 +249,43 @@ function updateSnake() {
 		mesh.bones[i].matrixAutoUpdate = true;
 		mesh.bones[i].matrixWorldNeedsUpdate = true;
 	}
+}
+
+// for ragdoll test
+function addSila(s) {
+	if(s==null) s = [1,1,1];
+	var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, mat08 );
+	mesh.material = mat08;
+	mesh.scale.set( -s[0], s[1], s[2] );
+	mesh.position.y=90;
+	content.add( mesh );
+	mesh.receiveShadow = true;
+	mesh.castShadow = true;
+
+	var m;
+	var n = 3//mesh.bones.length;
+	var result;
+	for (var i=0; i!==n ; i++){
+		m =new THREE.Mesh(geo01, mat01);
+		content.add( m );
+        
+		m.position.x = mesh.bones[i].position.x;
+		m.position.y = mesh.bones[i].position.y + 90;
+		m.position.z = mesh.bones[i].position.z;
+	    m.rotation.x = mesh.bones[i].rotation.x;
+	    m.rotation.y = mesh.bones[i].rotation.y;
+	    m.rotation.z = mesh.bones[i].rotation.z ;
+	    m.scale.x = mesh.bones[i].scale.x*4;
+	    m.scale.y = mesh.bones[i].scale.y;
+	    m.scale.z = mesh.bones[i].scale.z;
+		//m.matrix = mesh.bones[i].matrix;
+
+		//m.position.y+=100;
+		m.matrixAutoUpdate = true;
+		m.matrixWorldNeedsUpdate = true;
+		result = "x:"+(m.position.x*0.01).toFixed(2)+ " y:"+(m.position.y*0.01).toFixed(2)+ " z:"+(m.position.z*0.01).toFixed(2)+" -|- x:"+Math.round(m.rotation.x*ToDeg)+ " y:"+Math.round(m.rotation.y*ToDeg)+ " z:"+Math.round(m.rotation.z*ToDeg);
+	}
+	document.getElementById("titre").innerHTML = result;
 }
 
 
@@ -377,7 +414,8 @@ function initObject() {
 //-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
-var seaList = ['dice', 'snake', 'wheel', 'column'];
+
+var seaList = ['dice', 'snake', 'wheel', 'column', 'sila'];
 var seaN = 0;
 
 function initSea3DMesh(){
@@ -407,35 +445,6 @@ function getMeshByName(name){
 		if(meshs[i].name === name) return meshs[i];
 	} 
 }
-
-/*function addSea3DMesh() {
-	players[0] = meshs[27+6];
-	players[0].scale.set( 10, 10, -10 );
-    players[0].position.set(100, 45, -100);
-	players[0].material = new THREE.MeshPhongMaterial( { color: 0x808080, shininess:100, specular:0xffffff, skinning:true });
-	players[0].play('idle');
-	scene.add(players[0]);
-
-	players[1] = meshs[27+character];
-	players[1].scale.set( 10, 10, -10 );
-	players[1].position.set(-100, 220, 0);
-	players[1].material = new THREE.MeshPhongMaterial( { color: 0x808080, shininess:100, specular:0xffffff, skinning:true });
-	players[1].play('idle');
-	scene.add(players[1]);
-	currentPlay = 'idle';
-}
-
-function threeChangeAnimation(){
-	if (players.length>0){
-		if (currentPlay == "idle") {
-			currentPlay = "walk";
-		} else {
-			currentPlay = "idle";
-		}
-		players[0].play(currentPlay);
-		players[1].play(currentPlay);
-	}
-}*/
 
 //-----------------------------------------------------
 //  EVENT

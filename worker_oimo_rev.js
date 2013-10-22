@@ -205,6 +205,7 @@ function initDemo(){
     else if(currentDemo==3)demo3();
     else if(currentDemo==4)demo4();
     else if(currentDemo==5)demo5();
+    else if(currentDemo==6)demo6();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
@@ -222,9 +223,15 @@ function addRigid(obj){
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
     var move = obj.move || false;
+    var rotation = obj.rotation || null;
     var sc = obj.sc || new ShapeConfig();
     var t; 
     var shape;
+
+    // rotation x y z in degre
+    if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
+    else r[0] = r[0]*ToRad;
+
     sc.position.init(p[0], p[1], p[2]);
     sc.rotation.init();
     switch(obj.type){
@@ -238,7 +245,7 @@ function addRigid(obj){
         case "columnBase": shape = new BoxShape(s[0], s[1], s[2], sc); t=8; break;
         case "columnTop": shape = new BoxShape(s[0], s[1], s[2], sc); t=9; break;
     }
-    var body = new RigidBody(r[0]*ToRad, r[1], r[2], r[3]);
+    var body = new RigidBody(r[0], r[1], r[2], r[3]);
     body.addShape(shape);
     if(!move)body.setupMass(0x1);
     else{ 
@@ -305,4 +312,36 @@ function worldInfo() {
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
     infos[11] = fpsint;
+}
+
+//--------------------------------------------------
+//   MATH
+//--------------------------------------------------
+
+function eulerToAxisAngle   ( x, y, z ){
+    // Assuming the angles are in radians.
+    var c1 = Math.cos(y*0.5);
+    var s1 = Math.sin(y*0.5);
+    var c2 = Math.cos(z*0.5);
+    var s2 = Math.sin(z*0.5);
+    var c3 = Math.cos(x*0.5);
+    var s3 = Math.sin(x*0.5);
+    var c1c2 = c1*c2;
+    var s1s2 = s1*s2;
+    var w =c1c2*c3 - s1s2*s3;
+    var x =c1c2*s3 + s1s2*c3;
+    var y =s1*c2*c3 + c1*s2*s3;
+    var z =c1*s2*c3 - s1*c2*s3;
+    var angle = 2 * Math.acos(w);
+    var norm = x*x+y*y+z*z;
+    if (norm < 0.001) {
+        x=1;
+        y=z=0;
+    } else {
+        norm = Math.sqrt(norm);
+        x /= norm;
+        y /= norm;
+        z /= norm;
+    }
+    return [angle, x, y, z];
 }

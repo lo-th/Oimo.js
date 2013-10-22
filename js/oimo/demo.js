@@ -144,8 +144,8 @@ function demo3(){
 function demo4(){
     var sc = new ShapeConfig();
     sc.density = 1;
-    sc.friction = 0.4;
-    sc.restitution = 0.2;
+    sc.friction = 0.5;
+    sc.restitution = 0;
 
     // ground
     addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
@@ -153,15 +153,15 @@ function demo4(){
     var width = 6;
     var height = 8;
     var depth = 6;
-    var w = 0.5;
-    var h = 0.5;
-    var d = 0.5;
+    var w = 0.75;
+    var h = 0.75;
+    var d = 0.75;
     var x, y, z;
     for (var i = 0; i < width; i++) {
         for (var j = 0; j < height; j++) {
             for (var k = 0; k < depth; k++) {
                 x= (i - (width - 1) * 0.5) * w;
-                y= j * (h * 1.001) + h * 0.5;
+                y= j * (h * 1.01) + h * 0.5;
                 z= (k - (depth - 1) * 0.5) * d;
                 addRigid({type:"box", size:[w-0.025,h,d-0.025], pos:[x,y,z], sc:sc, move:true});
             }
@@ -217,9 +217,14 @@ function demo5(){
 //--------------------------------------------------
 
 function demo6(){
+    world.gravity = new Vec3(0, 0, 0);
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
     sc.restitution = 0.5;
+
+    var root = addRigid({type:"bone", size:[0.02,0.04,0.02], pos:[0,0.9,0], sc:sc, move:true, rotation:[170,0,0]});
+    var leg01 = addRigid({type:"bone", size:[0.02,0.04,0.02], pos:[-0.11,0.9,0], sc:sc, move:true, rotation:[-178,0,0]});
+    var leg02 = addRigid({type:"bone", size:[0.02,0.04,0.02], pos:[-0.11,0.48,-0.02], sc:sc, move:true, rotation:[-178,0,0]});
 
 }

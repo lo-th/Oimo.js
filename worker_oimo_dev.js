@@ -209,6 +209,7 @@ function initDemo(){
     else if(currentDemo==3)demo3();
     else if(currentDemo==4)demo4();
     else if(currentDemo==5)demo5();
+    else if(currentDemo==6)demo6();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
@@ -228,13 +229,17 @@ function addRigid(obj){
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
+    var rotation = obj.rotation || null;
     var move = obj.move || false;
     var sc = obj.sc || new ShapeConfig();
-    //var alowSleeping  = obj.sleep || true; 
-    //var adjustPosition = obj.adjust || true;
     var noSleep  = obj.noSleep || false; 
     var noAdjust = obj.noAdjust || false;
-    //var t, i; 
+
+
+    // rotation x y z in degre to axis
+    if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
+    else r[0] = r[0]*ToRad;
+
     var shape, t;
     switch(obj.type){
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
@@ -245,7 +250,8 @@ function addRigid(obj){
         case "wheel": shape = new SphereShape(sc, s[0] ); t=5; break;// fake cylinder
         case "wheelinv": shape = new SphereShape(sc, s[0] ); t=6; break;// fake cylinder
     }
-    var body = new RigidBody(p[0], p[1], p[2], r[0]*ToRad, r[1], r[2], r[3]);
+    var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+    
     if(noSleep)body.allowSleep = false;
     else body.allowSleep = true;
 
@@ -263,6 +269,8 @@ function addRigid(obj){
     world.addRigidBody(body);
     return body;
 }
+
+
 
 //--------------------------------------------------
 //    BASIC JOINT
@@ -301,8 +309,6 @@ function addJoint(obj){
                 joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
         break;
     }
-
-   
     //joint.limitMotor.setSpring(100, 0.9); // soften the joint
     world.addJoint(joint);
     return joint;
@@ -331,4 +337,36 @@ function worldInfo() {
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
     infos[11] = fpsint;
+}
+
+//--------------------------------------------------
+//   MATH
+//--------------------------------------------------
+
+function eulerToAxisAngle   ( x, y, z ){
+    // Assuming the angles are in radians.
+    var c1 = Math.cos(y*0.5);
+    var s1 = Math.sin(y*0.5);
+    var c2 = Math.cos(z*0.5);
+    var s2 = Math.sin(z*0.5);
+    var c3 = Math.cos(x*0.5);
+    var s3 = Math.sin(x*0.5);
+    var c1c2 = c1*c2;
+    var s1s2 = s1*s2;
+    var w =c1c2*c3 - s1s2*s3;
+    var x =c1c2*s3 + s1s2*c3;
+    var y =s1*c2*c3 + c1*s2*s3;
+    var z =c1*s2*c3 - s1*c2*s3;
+    var angle = 2 * Math.acos(w);
+    var norm = x*x+y*y+z*z;
+    if (norm < 0.001) {
+        x=1;
+        y=z=0;
+    } else {
+        norm = Math.sqrt(norm);
+        x /= norm;
+        y /= norm;
+        z /= norm;
+    }
+    return [angle, x, y, z];
 }
