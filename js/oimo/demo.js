@@ -194,15 +194,18 @@ function demo5(){
         var x= 0, z = 0;
         var width = 8;
         var depth= 6;
+        var r, r2;
 
         for(var i =0; i<width; i++){
             for(var j =0; j<depth; j++){
                 for(var k =0; k<8;k++){
                     x = (i - (width - 1) * 0.5) * 4;
                     z = (j - (depth - 1) * 0.5) * 4;
-                    if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true});
-                    else if(k!=7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.0*k),z], sc:sc, move:true});
-                    else addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.0*k),z], sc:sc, move:true});
+                    r = (Math.floor((Math.random()*16))*22.5);// degre
+                    r2 = (Math.floor((Math.random()*4))*90);// degre
+                    if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true, rot:[r2,0,1,0]});
+                    else if(k!=7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.0*k),z], sc:sc, move:true, rot:[r,0,1,0]});
+                    else addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.0*k),z], sc:sc, move:true, rot:[r2,0,1,0]});
                 }
             }
         }
