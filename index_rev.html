@@ -34,6 +34,10 @@
 				GRAVITY <output name="amount" for="gravity">-10</output><input id="gravity" type="range" min="-10" max="10" value="-10" step="0.1" onchange="changeGravity()" /><br/>
 		    </form>
 		</div>
+		<div id="loader" class="unselectable">
+			<img id="loadIcon" class="unselectable" src="images/loader.gif"/><br/>
+			<div id="loadTxt" class="unselectable"></div>
+		</div>
 
 		<script type="text/javascript" src="js/three.min.js"></script>
 		<script type="text/javascript" src="js/Mirror.js"></script>
@@ -51,7 +55,7 @@
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
 		    var currentView = 0;
-            var output, garvity;
+            var output, garvity, loadInfo;;
 
             var OimoWorker = new Worker('worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
@@ -59,12 +63,17 @@
 		    function init() {
 		    	output = document.getElementById("debug");
                 garvity = document.getElementById("gravity");
+                loadInfo = document.getElementById("loadTxt");
 
             	// init three.js engine
             	initThree({ mouse:true, autoSize:true, n:Math.floor(Math.random()*4), optimized:false});
             }
 
             function mainAllObjectLoaded(){
+            	// hide loader
+            	loadInfo.style.visibility = "hidden";
+            	document.getElementById("loadIcon").style.visibility = "hidden"; 
+            	document.getElementById("loader").style.visibility = "hidden";
             	// start worker
         	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:garvity.value });
             }

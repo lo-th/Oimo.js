@@ -44,6 +44,9 @@ var infos = new Float32Array(12);
 //var infos =[]; infos.length=12;
 var currentDemo = 0;
 var maxDemo = 6;
+// Controle by key
+var car = null;
+var bubulle = null;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -111,10 +114,8 @@ function userKey(key) {
     if(currentDemo === 5){
         if(car !== null ){
             car.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
-           //car.update((key[0] ? 1 : 0) + (key[1] ? -1 : 0), (key[2] ? -1 : 0) + (key[3] ? 1 : 0));
             if(key[5]===1)car.move(0,2,0);
         }
-        //if(car !== null) car.update((key[0]) + (-key[1]), (-key[2]) + (key[4]));
     }
 
 }
@@ -168,8 +169,13 @@ function initWorld(){
 function clearWorld(){
     clearTimeout(timer);
     if(world != null) world.clear();
+    // Clear control object
+    if(car !== null ) car = null;
+    if(bubulle !== null ) bubulle = null;
     // Clear three object
     self.postMessage({tell:"CLEAR"});
+
+
 }
 
 //--------------------------------------------------
@@ -191,6 +197,7 @@ function initPrevDemo(){
 }
 
 function initDemo(){
+
 
     bodys = [];
     types = [];

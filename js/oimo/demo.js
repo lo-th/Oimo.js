@@ -4,7 +4,6 @@
     |_\___/\__|_||_|
     http://3dflashlo.wordpress.com/
 */
-var car = null;
 
 //--------------------------------------------------
 //    BASIC SHAPE

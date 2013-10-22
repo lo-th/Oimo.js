@@ -43,6 +43,9 @@ var infos =new Float32Array(12);
 
 var currentDemo = 0;
 var maxDemo = 6;
+// Controle by key
+var car = null;
+var bubulle = null;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -166,6 +169,8 @@ function clearWorld(){
     for (i = max - 1; i >= 0 ; i -- ) world.removeRigidBody(world.rigidBodies[i]);
     max = world.numJoints;
     for (i = max - 1; i >= 0 ; i -- ) world.removeJoint(world.joints[i]);
+    // Clear control object
+    if(bubulle !== null ) bubulle = null;
     // Clear three object
     self.postMessage({tell:"CLEAR"});
 }

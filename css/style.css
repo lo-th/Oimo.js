@@ -10,6 +10,30 @@ body {
     -o-background-size: 100% 100%;
     background-size: 100% 100%;
 }
+#loader {
+	position: absolute;
+	left: calc(50% - 512px);
+ 	top:50px;
+	height:640px;
+	width:1024px;
+	text-align: left;
+	background:#222222;
+	display:block;
+	border:1px solid #303030;
+	text-align:center;
+	
+}
+#loadIcon {
+	top:50%;position: absolute;
+	margin-left: -38px;
+	margin-top:-72px;
+}
+#loadTxt{
+	top:50%;
+	color: #f0efd1;
+	position: relative;
+	font-size:16px;
+}
 #logo {
 	top:0px;
 	margin-top: -6px;

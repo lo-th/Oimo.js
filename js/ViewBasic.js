@@ -25,6 +25,7 @@ var cursor, cursorUp, cursorDown;
 var ToRad = Math.PI / 180;
 var ToDeg = 180 / Math.PI;
 var isOptimized;
+var isLoading = true;
 var antialias;
 
 //-----------------------------------------------------
@@ -391,10 +392,14 @@ function initSea3DMesh(){
 		// load Next
 		seaN++;
 		if(seaList[seaN]!=null)initSea3DMesh();
-		else mainAllObjectLoaded();
+		else{
+			mainAllObjectLoaded();
+			isLoading = false;
+		} 
 	}
 
 	loader.load( 'models/'+name+'.sea' );
+	loadInfo.innerHTML = "Loading sea3d model : "+ name;
 }
 
 function getMeshByName(name){
@@ -719,8 +724,8 @@ function addSkyBox() {
 //-----------------------------------------------------
 //  DIV AUTO RESIZE
 //-----------------------------------------------------
-//                  0          1       2      3       4        5       
-var divListe= ["container", "info", "titre", "menu", "debug", "option"];
+//                  0          1       2      3       4        5           6
+var divListe= ["container", "info", "titre", "menu", "debug", "option", "loader"];
 var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:640, n:1}, {w:1280, h:768, n:2}]
 var size =  1;
 
@@ -744,6 +749,7 @@ function fullResize(n){
 		if(i!==2 && i!==4 && i!==5)div.style.width = w+"px";
 		div.style.left = "calc(50% - "+mw+"px)";
 		if(i==0)div.style.height = h+"px";
+		if(i==6 && isLoading)div.style.height = h+"px";
 		else if (i==1 || i==5 )div.style.top = h+55+"px";
 	}
 	resize(w,h);
