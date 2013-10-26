@@ -10,6 +10,7 @@
 //--------------------------------------------------
 
 function demo0(n, t){
+    world.gravity = new Vec3(0, -10, 0);
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
@@ -27,6 +28,9 @@ function demo0(n, t){
     // add dynamique object
     var body, px, pz, t;
     var sx, sy, sz;
+
+
+    //addRigid({type:"box", size:[5,1,2], pos:[px,30,pz], sc:sc, move:true, rotation:[90*ToRad, 0, 0*ToRad]});
     for (var i=0; i!==100; ++i ){
         if(version=="10.DEV")t = Math.floor(Math.random()*2)+1;
         else t = Math.floor(Math.random()*3)+1;
@@ -169,7 +173,9 @@ function demo4(){
     }
 
     sc.density = 5;
-    addRigid({type:"sphere", size:[0.5], pos:[0,300,0], sc:sc, move:true});
+    //addRigid({type:"sphere", size:[0.5], pos:[0,300,0], sc:sc, move:true});
+
+    ball = new Ball(5,1,0, world);
 }
 
 //--------------------------------------------------
@@ -177,6 +183,7 @@ function demo4(){
 //--------------------------------------------------
 
 function demo5(){
+    world.gravity = new Vec3(0, -10, 0);
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
@@ -191,8 +198,8 @@ function demo5(){
     }else{
         // Greek temple
         var x= 0, z = 0;
-        var width = 8;
-        var depth= 6;
+        var width = 6;
+        var depth= 4;
         var r, r2;
 
         for(var i =0; i<width; i++){
@@ -200,14 +207,17 @@ function demo5(){
                 for(var k =0; k<8;k++){
                     x = (i - (width - 1) * 0.5) * 4;
                     z = (j - (depth - 1) * 0.5) * 4;
-                    r = (Math.floor((Math.random()*16))*22.5);// degre
-                    r2 = (Math.floor((Math.random()*4))*90);// degre
-                    if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true, rot:[r2,0,1,0]});
-                    else if(k!=7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.0*k),z], sc:sc, move:true, rot:[r,0,1,0]});
-                    else addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.0*k),z], sc:sc, move:true, rot:[r2,0,1,0]});
+                    r = (Math.floor((Math.random()*16))*22.5)*ToRad;// rad
+                    r2 = (Math.floor((Math.random()*4))*90)*ToRad;// rad
+                    if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true, sleep:true, rotation:[0,r2,0]});
+                    else if(k<7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,r,0]});
+                    else if (k===7)addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,r2,0]});
+                    //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,0,0]});
                 }
             }
         }
+
+        ball = new Ball(0,1,0, world);
     }
 
 }
@@ -223,8 +233,66 @@ function demo6(){
     sc.friction = 0.5;
     sc.restitution = 0.5;
 
-    var root = addRigid({type:"bone", size:[0.02,0.04,0.02], pos:[0,0.9,0], sc:sc, move:true, rotation:[170,0,0]});
-    var leg01 = addRigid({type:"bone", size:[0.02,0.04,0.02], pos:[-0.11,0.9,0], sc:sc, move:true, rotation:[-178,0,0]});
-    var leg02 = addRigid({type:"bone", size:[0.02,0.04,0.02], pos:[-0.11,0.48,-0.02], sc:sc, move:true, rotation:[-178,0,0]});
+    var bones =[];
+    var joints =[];
+
+    for(var i=0; i!==bonesPosition.length; ++i){
+        bones[i] = addRigid({type:"bone", size:[0.04,0.02,0.02], pos:bonesPosition[i], sc:sc, move:true, rotation:bonesRotation[i]});
+    }
+
+    var d = getDistance3d(bonesPosition[0], bonesPosition[1]);
+    addJoint({type:"distance", body1:bones[0], body2:bones[1], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[0], bonesPosition[5]);
+    addJoint({type:"distance", body1:bones[0], body2:bones[5], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+
+    //leg Right
+    d = getDistance3d(bonesPosition[1], bonesPosition[2]);
+    addJoint({type:"distance", body1:bones[1], body2:bones[2], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[2], bonesPosition[3]);
+    addJoint({type:"distance", body1:bones[2], body2:bones[3], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[3], bonesPosition[4]);
+    addJoint({type:"distance", body1:bones[3], body2:bones[4], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+
+    //leg Left
+    d = getDistance3d(bonesPosition[5], bonesPosition[6]);
+    addJoint({type:"distance", body1:bones[5], body2:bones[6], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[6], bonesPosition[7]);
+    addJoint({type:"distance", body1:bones[6], body2:bones[7], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[7], bonesPosition[8]);
+    addJoint({type:"distance", body1:bones[7], body2:bones[8], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+
+    // spine
+    d = getDistance3d(bonesPosition[0], bonesPosition[9]);
+    addJoint({type:"distance", body1:bones[0], body2:bones[9], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[9], bonesPosition[10]);
+    addJoint({type:"distance", body1:bones[9], body2:bones[10], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[10], bonesPosition[11]);
+    addJoint({type:"distance", body1:bones[10], body2:bones[11], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[11], bonesPosition[12]);
+    addJoint({type:"distance", body1:bones[11], body2:bones[12], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[12], bonesPosition[13]);
+    addJoint({type:"distance", body1:bones[12], body2:bones[13], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[13], bonesPosition[14]);
+    addJoint({type:"distance", body1:bones[13], body2:bones[14], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+
+    // arm right
+    d = getDistance3d(bonesPosition[12], bonesPosition[19]);
+    addJoint({type:"distance", body1:bones[12], body2:bones[19], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[19], bonesPosition[20]);
+    addJoint({type:"distance", body1:bones[19], body2:bones[20], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[20], bonesPosition[21]);
+    addJoint({type:"distance", body1:bones[20], body2:bones[21], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[21], bonesPosition[22]);
+    addJoint({type:"distance", body1:bones[21], body2:bones[22], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+
+    // arm left
+    d = getDistance3d(bonesPosition[12], bonesPosition[15]);
+    addJoint({type:"distance", body1:bones[12], body2:bones[15], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[15], bonesPosition[16]);
+    addJoint({type:"distance", body1:bones[15], body2:bones[16], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[16], bonesPosition[17]);
+    addJoint({type:"distance", body1:bones[16], body2:bones[17], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
+    d = getDistance3d(bonesPosition[17], bonesPosition[18]);
+    addJoint({type:"distance", body1:bones[17], body2:bones[18], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
 
 }

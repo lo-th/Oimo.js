@@ -119,7 +119,7 @@ function initMaterial() {
 		mat05 = new THREE.MeshPhongMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
 		mat06 = new THREE.MeshPhongMaterial( { map: wheelTexture, shininess:100, specular:0xffffff } );
 		mat07 = new THREE.MeshPhongMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
-		mat08 = new THREE.MeshPhongMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.1 } );
+		mat08 = new THREE.MeshPhongMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } );
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
@@ -137,7 +137,7 @@ function initMaterial() {
 		mat05 = new THREE.MeshBasicMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9} );
 		mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture} );
 		mat07 = new THREE.MeshBasicMaterial( { color: 0x7C7B77} );
-		mat08 = new THREE.MeshBasicMaterial( { color: 0xAEABA6, skinning: true, transparent:true, opacity:0.1} );
+		mat08 = new THREE.MeshBasicMaterial( { color: 0xAEABA6, skinning: true, transparent:true, opacity:0.5} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
@@ -165,13 +165,16 @@ function initMaterial() {
 //  PHYSICS OBJECT IN THREE
 //-----------------------------------------------------
 
+var geo00 = new THREE.PlaneGeometry( 1, 1 );
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 var geo02 = new THREE.SphereGeometry( 1, 16, 12 );
 var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
 
 function createContentObjects(data){
+	var boneindex=0;
 	var max = data.types.length;
 	var mesh;
+	var meshFlag;
 	var s;
     for(var i=0; i!==max; i++){
     	s = data.sizes[i] || [50,50,50];
@@ -196,7 +199,16 @@ function createContentObjects(data){
     		case 8: mesh=new THREE.Mesh(getMeshByName('columnBase').geometry, mat07); mesh.scale.set( s[1], s[1], -s[1] ); break; // column base
     		case 9: mesh=new THREE.Mesh(getMeshByName('columnBase').geometry, mat07); mesh.scale.set( s[1], -s[1], s[1] ); break; // column top
 
-    		case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
+    		//case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
+    		case 10: 
+    		    var axe = new THREE.AxisHelper( s[0]*0.01 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
+    		    mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] );
+    		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
+    		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
+    		    mesh.add(meshFlag);
+    		    mesh.add(axe);
+    		    boneindex++;
+    		break; // bone
     	}
     	mesh.position.y = -10000;
     	content.add( mesh );
@@ -230,6 +242,21 @@ function addSnake(s) {
 	content.add( mesh );
 	mesh.receiveShadow = true;
 	mesh.castShadow = true;
+
+	/*var n = mesh.bones.length;
+	var e;
+	for (var i=0; i!==n ; i++){
+	  e = new THREE.AxisHelper( 10 )
+		content.add( e );
+
+		e.position.x = mesh.bones[i].position.x;
+		e.position.y = mesh.bones[i].position.y+90;
+		e.position.z = mesh.bones[i].position.z-30;
+
+		e.rotation.x = mesh.bones[i].rotation.x;
+		e.rotation.y = mesh.bones[i].rotation.y;
+		e.rotation.z = mesh.bones[i].rotation.z;
+	}*/
 }
 
 
@@ -256,36 +283,78 @@ function addSila(s) {
 	if(s==null) s = [1,1,1];
 	var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, mat08 );
 	mesh.material = mat08;
-	mesh.scale.set( -s[0], s[1], s[2] );
-	mesh.position.y=90;
+	mesh.scale.set( s[0], s[1], -s[2] );
+	//mesh.position.y=90;
 	content.add( mesh );
 	mesh.receiveShadow = true;
 	mesh.castShadow = true;
 
-	var m;
-	var n = 3//mesh.bones.length;
-	var result;
+	var n = mesh.bones.length;
+	var e;
 	for (var i=0; i!==n ; i++){
-		m =new THREE.Mesh(geo01, mat01);
-		content.add( m );
-        
-		m.position.x = mesh.bones[i].position.x;
-		m.position.y = mesh.bones[i].position.y + 90;
-		m.position.z = mesh.bones[i].position.z;
-	    m.rotation.x = mesh.bones[i].rotation.x;
-	    m.rotation.y = mesh.bones[i].rotation.y;
-	    m.rotation.z = mesh.bones[i].rotation.z ;
-	    m.scale.x = mesh.bones[i].scale.x*4;
-	    m.scale.y = mesh.bones[i].scale.y;
-	    m.scale.z = mesh.bones[i].scale.z;
-		//m.matrix = mesh.bones[i].matrix;
+	  e = new THREE.AxisHelper( 10 )
+		content.add( e );
+		var mtx = mesh.bones[i].matrix//matrixWorld;
 
-		//m.position.y+=100;
-		m.matrixAutoUpdate = true;
-		m.matrixWorldNeedsUpdate = true;
-		result = "x:"+(m.position.x*0.01).toFixed(2)+ " y:"+(m.position.y*0.01).toFixed(2)+ " z:"+(m.position.z*0.01).toFixed(2)+" -|- x:"+Math.round(m.rotation.x*ToDeg)+ " y:"+Math.round(m.rotation.y*ToDeg)+ " z:"+Math.round(m.rotation.z*ToDeg);
+		e.position.x = mesh.bones[i].position.x;
+		e.position.y = mesh.bones[i].position.y+90;
+		e.position.z = mesh.bones[i].position.z-30;
+
+		e.rotation.x = mesh.bones[i].rotation.x;
+		e.rotation.y = mesh.bones[i].rotation.y;
+		e.rotation.z = mesh.bones[i].rotation.z;
+
+		//e.rotation.setFromRotationMatrix( mtx );
 	}
-	document.getElementById("titre").innerHTML = result;
+}
+
+function updateSila() {
+	var mesh = content.children[23];
+	var ref, pos, mtx, rot;
+	for (var i=0; i!== mesh.bones.length; i++){
+		ref = content.children[i];
+		rot = ref.rotation;
+		pos = ref.position;
+
+		//mesh.bones[i].position.set(pos.x, pos.y, -pos.z);
+		mesh.bones[i].position.set( pos.x, pos.y, pos.z);
+	//	mesh.bones[i].rotation.set( rot.x, rot.y, rot.z);
+mesh.bones[i].rotation.set( rot.y, rot.x, rot.z);
+//mesh.bones[i].rotation.set( rot.z+180*ToRad, rot.x+180*ToRad, rot.y+180*ToRad);
+        //mesh.bones[i].rotation.set( -rot.x+0*ToRad, -rot.y-180*ToRad, -rot.z-180*ToRad);
+       // mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-90*ToRad);
+         
+		mesh.bones[i].matrixAutoUpdate = true;
+		mesh.bones[i].matrixWorldNeedsUpdate = true;
+	}
+}
+
+function getSqueletonStructure(name){
+	var mesh = new THREE.SkinnedMesh( getMeshByName(name).geometry, null );
+	mesh.scale.set( -1, 1, 1 );
+	//var set = null;
+	var pos = [];
+	var rot = [];
+
+	if(mesh.bones.length!==0){
+		var n = mesh.bones.length;
+		for (var i=0; i!==n ; i++){
+			//pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
+			//rot[i] = [mesh.bones[i].rotation.x, mesh.bones[i].rotation.y, mesh.bones[i].rotation.z];
+
+			pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
+			//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.x+0*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
+			rot[i] = [ mesh.bones[i].rotation.x-0*ToRad, mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.z+90*ToRad];
+			//rot[i] = [ -mesh.bones[i].rotation.x+180*ToRad, mesh.bones[i].rotation.y-180*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
+			//rot[i] = [ mesh.bones[i].rotation.y+90*ToRad, mesh.bones[i].rotation.z+180*ToRad, -mesh.bones[i].rotation.x+270*ToRad];
+			//rot[i] = [ -mesh.bones[i].rotation.x+90*ToRad, -mesh.bones[i].rotation.y+180*ToRad, -mesh.bones[i].rotation.z+90*ToRad];
+			//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, -mesh.bones[i].rotation.z+0*ToRad, -mesh.bones[i].rotation.x+0*ToRad];
+		//}
+		}
+		//set = [pos, rot];
+		OimoWorker.postMessage({tell:"BONESLIST", pos:pos, rot:rot });
+	}
+	//return set;
 }
 
 
@@ -293,7 +362,7 @@ function addSila(s) {
 //  MIRROR
 //-----------------------------------------------------
 
-var groundMirror;
+/*var groundMirror;
 var verticalMirror;
 
 function mirrorGround(){
@@ -321,12 +390,8 @@ function mirrorGround(){
 	verticalMirrorMesh.rotation.y = (90)*ToRad;
 	scene.add( verticalMirrorMesh );
 
-	/*var blendings = [ "NoBlending", "NormalBlending", "AdditiveBlending", "SubtractiveBlending", "MultiplyBlending", "AdditiveAlphaBlending" ];
-	verticalMirrorMesh.material.transparent = true;
-	verticalMirrorMesh.material.blending = THREE[ "AdditiveBlending" ];
-*/
 	verticalMirrorMesh.visible = false;
-}
+}*/
 
 //-----------------------------------------------------
 //  LIGHT
@@ -353,8 +418,6 @@ function initLights() {
 	lights[0].shadowCameraRight = lightSize;
 	lights[0].shadowCameraTop = lightSize;
 	lights[0].shadowCameraBottom = -lightSize;
-
-	//sunLight.shadowCameraVisible = true;
 
 	lights[0].position.copy( Orbit(center , 35, 45, 1000));
 	lights[0].lookAt(center);
@@ -670,6 +733,11 @@ function onThreeChangeView(h, v, d) {
 	camPos.automove = true;
 }
 
+function Follow(x,y,z){
+	center =  new THREE.Vector3(x,y,z);
+	moveCamera();
+}
+
 //-----------------------------------------------------
 //  MATH
 //-----------------------------------------------------
@@ -705,7 +773,7 @@ function getDistance (x1, y1, x2, y2) {
 //  SKY BOX
 //-----------------------------------------------------
 
-var skyCube;
+/*var skyCube;
 
 function addSkyBox() {
 	var r = "textures/cube/sky5/";
@@ -728,14 +796,14 @@ function addSkyBox() {
 
 	var sky = new THREE.Mesh( new THREE.CubeGeometry( FAR, FAR, FAR ), material );
 	scene.add( sky );
-}
+}*/
 
 //-----------------------------------------------------
 //  DIV AUTO RESIZE
 //-----------------------------------------------------
 //                  0          1       2      3       4        5           6
 var divListe= ["container", "info", "titre", "menu", "debug", "option", "loader"];
-var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:640, n:1}, {w:1280, h:768, n:2}]
+var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:640, n:1}, {w:1280, h:768, n:2}];
 var size =  1;
 
 function rz(){

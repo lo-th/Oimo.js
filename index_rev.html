@@ -124,8 +124,9 @@
 				        } 
 		            }
 
-		            //snake update
+		            //squeleton update
 		            if(e.data.infos[0] === 3) updateSnake();
+		            if(e.data.infos[0] === 6) updateSila();
 
 					displayInfo(e.data.infos);
 
@@ -135,6 +136,8 @@
 
 	            // clear three object
 				else if(phase === "CLEAR") clearContent();
+				// get ragdoll info
+				else if(phase === "GETBONES") getSqueletonStructure(e.data.name);
     	    }
 
     	    function sendKey(){ OimoWorker.postMessage({tell:"KEY", key:key}); }

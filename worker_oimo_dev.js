@@ -15,6 +15,7 @@ importScripts('js/oimo/runtime_min.js');
 importScripts('js/oimo/oimo_dev_min.js');
 importScripts('js/oimo/demo.js');
 importScripts('js/oimo/car.js');
+importScripts('js/oimo/ball.js');
 
 // main class
 var version = "10.DEV";
@@ -46,7 +47,7 @@ var currentDemo = 0;
 var maxDemo = 6;
 // Controle by key
 var car = null;
-var bubulle = null;
+var ball = null;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -60,11 +61,12 @@ self.onmessage = function (e) {
         newGravity = e.data.G;
         initClass();
     }
-    else if(phase === "UPDATE")update();
-    else if(phase === "KEY")userKey(e.data.key);
+    else if(phase === "UPDATE") update();
+    else if(phase === "KEY") userKey(e.data.key);
     else if(phase === "GRAVITY") newGravity = e.data.G;
     else if(phase === "NEXT") initNextDemo();
     else if(phase === "PREV") initPrevDemo();
+    else if(phase === "BONESLIST"){ bonesPosition = e.data.pos; bonesRotation = e.data.rot;}
 }
 
 //--------------------------------------------------
@@ -107,17 +109,27 @@ function update() {
 }
 
 //--------------------------------------------------
+//   GET BONES STUCTURE
+//--------------------------------------------------
+var bonesPosition;
+var bonesRotation;
+
+function getBones(name) {
+    self.postMessage({tell:"GETBONES", name:name })
+}
+
+//--------------------------------------------------
 //   USER KEY
 //--------------------------------------------------
 
 function userKey(key) {
-    if(currentDemo === 5){
-        if(car !== null ){
-            car.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
-            if(key[5]===1)car.move(0,2,0);
-        }
+    if(car !== null ){
+        car.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
+        if(key[5]===1)car.move(0,2,0);
     }
-
+    if(ball !== null ){
+        ball.update(key[0], key[1], key[2], key[3], 0, 0);
+    }
 }
 
 //--------------------------------------------------
@@ -163,19 +175,21 @@ function initWorld(){
         timerStep = dt * 1000;
         world.gravity = new Vec3(0, Gravity, 0);
     }
+
+    // get ragdoll info
+    //getBones('sila');
+
     initDemo();
 }
-
+   
 function clearWorld(){
     clearTimeout(timer);
     if(world != null) world.clear();
     // Clear control object
     if(car !== null ) car = null;
-    if(bubulle !== null ) bubulle = null;
+    if(ball !== null ) ball = null;
     // Clear three object
     self.postMessage({tell:"CLEAR"});
-
-
 }
 
 //--------------------------------------------------
@@ -197,8 +211,6 @@ function initPrevDemo(){
 }
 
 function initDemo(){
-
-
     bodys = [];
     types = [];
     sizes = [];
@@ -237,7 +249,9 @@ function addRigid(obj){
 
 
     // rotation x y z in degre to axis
-    if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
+    //if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
+    // rotation x y z in radian
+    if(rotation !== null ) r = eulerToAxisAngle(rotation[0], rotation[1], rotation[2]);
     else r[0] = r[0]*ToRad;
 
     var shape, t;
@@ -252,8 +266,7 @@ function addRigid(obj){
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
-    if(noSleep)body.allowSleep = false;
-    else body.allowSleep = true;
+    
 
     body.addShape(shape);
     //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
@@ -264,7 +277,9 @@ function addRigid(obj){
         else body.setupMass(0x1, true);
         bodys.push(body);
         types.push(t);
-        sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
+        sizes.push([s[0]*scale, s[1]*scale, s[2]*scale])
+        if(noSleep)body.allowSleep = false;
+        else body.allowSleep = true;
     }
     world.addRigidBody(body);
     return body;
@@ -282,7 +297,7 @@ function addJoint(obj){
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
-    var minDistance = obj.minDistance || 0.01;
+    var minDistance =0.01// obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
     var lowerAngleLimit = obj.lowerAngle || 1;
     var upperAngleLimit = obj.upperAngle || 0;
@@ -369,4 +384,11 @@ function eulerToAxisAngle   ( x, y, z ){
         z /= norm;
     }
     return [angle, x, y, z];
+}
+
+function getDistance3d (p1, p2) {
+    var xd = p2[0]-p1[0];
+    var yd = p2[1]-p1[1];
+    var zd = p2[2]-p1[2];
+    return Math.sqrt(xd*xd + yd*yd + zd*zd);
 }

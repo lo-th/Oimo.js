@@ -6,8 +6,44 @@
  */
 
 //
-//	Morpher
+//	Mesh
 //
+ 
+// Local Animation
+THREE.Object3D.prototype.UPDATEMATRIXWORLD = THREE.Mesh.prototype.updateMatrixWorld;
+THREE.Object3D.prototype.updateMatrixWorld = function(force) {
+	if (this.animateMatrix && (this.matrixWorldNeedsUpdate || force)) {
+		this.UPDATEMATRIXWORLD(force);
+		
+		this.animateMatrix.compose( this.animatePosition, this.animateQuaternion, this.animateScale );
+		this.matrixWorld.multiplyMatrices( this.matrixWorld, this.animateMatrix );
+	}
+	else this.UPDATEMATRIXWORLD(force);
+}
+
+THREE.Object3D.prototype.setAnimateMatrix = function(val) {
+	if (this.getAnimateMatrix() == val) return;
+	
+	if (val) {
+		this.animateMatrix = new THREE.Matrix4();
+		
+		this.animatePosition = new THREE.Vector3();		
+		this.animateQuaternion = new THREE.Quaternion();
+		this.animateScale = new THREE.Vector3(1,1,1);
+	} else {
+		delete this.animateMatrix;
+		
+		delete this.animatePosition;
+		delete this.animateQuaternion;
+		delete this.animateScale;		
+	}	
+	
+	this.matrixWorldNeedsUpdate = true;
+}
+ 
+THREE.Object3D.prototype.getAnimateMatrix = function() {
+	return this.animateMatrix != null;
+}
  
 THREE.Mesh.prototype.setWeightByName = function(name, val) {
 	this.morphTargetInfluences[ this.geometry.morphTargets[name] ] = val;
@@ -16,7 +52,23 @@ THREE.Mesh.prototype.setWeightByName = function(name, val) {
 THREE.Mesh.prototype.getWeightByName = function(name) {
 	return this.morphTargetInfluences[ this.geometry.morphTargets[name] ];
 }
- 
+
+THREE.Mesh.prototype.DISPOSE = THREE.Mesh.prototype.dispose;
+THREE.Mesh.prototype.dispose = function () {	
+	if (this.animation) this.animation.dispose();
+	this.DISPOSE();
+}
+
+THREE.Mesh.prototype.CLONE = THREE.Mesh.prototype.clone;
+THREE.Mesh.prototype.clone = function ( object ) {
+	var obj = this.CLONE( object );
+	
+	if (obj.animation)
+		obj.animation = this.animation.clone( obj );
+	
+	return obj;
+}
+
 //
 //	Skinning
 //
@@ -64,16 +116,16 @@ THREE.SkinnedMesh.prototype.addAnimations = function(animations) {
 	}
 }
 
-THREE.SkinnedMesh.prototype.__dispose = THREE.SkinnedMesh.prototype.dispose;
+THREE.SkinnedMesh.prototype.DISPOSE = THREE.SkinnedMesh.prototype.dispose;
 THREE.SkinnedMesh.prototype.dispose = function () {	
 	this.stop();
 	this.animations = null;	
-	this.__dispose();
+	this.DISPOSE();
 }
 
-THREE.SkinnedMesh.prototype.__clone = THREE.SkinnedMesh.prototype.clone;
+THREE.SkinnedMesh.prototype.CLONE = THREE.SkinnedMesh.prototype.clone;
 THREE.SkinnedMesh.prototype.clone = function ( object ) {
-	var obj = this.__clone( object );
+	var obj = this.CLONE( object );
 	
 	obj.animations = [];
 	
@@ -110,6 +162,7 @@ THREE.SEA3D = function(standard) {
 	this.invertZ = standard != undefined ? !standard : true;	
 	this.invertCamera = standard != undefined ? standard : false;	
 	this.matrixAutoUpdate = true;	
+	this.autoPlay = true;
 	this.objects = {};	
 }
 
@@ -126,11 +179,12 @@ THREE.SEA3D.prototype = {
 //	Config
 //
 
-THREE.SEA3D.prototype.setShadowMap = function(light) {
+THREE.SEA3D.prototype.setShadowMap = function(light, opacity) {
 	light.shadowMapWidth = 
 	light.shadowMapHeight = 2048;
 	
 	light.castShadow = true;
+	light.shadowDarkness = opacity;
 }
 
 //
@@ -265,6 +319,155 @@ THREE.SEA3D.prototype.bufferToTexture = function(raw) {
 	return "data:image/png;base64," + window.btoa(binary);
 }
 
+THREE.SEA3D.prototype.applyDefaultAnimation = function(sea, ANIMATOR_CLASS) {
+	var obj = sea.tag;
+	
+	for(var i in sea.animations) {
+		var anm = sea.animations[i];			
+		
+		switch(anm.tag.type) {
+			case SEA3D.Animation.prototype.type:
+				obj.animation = new ANIMATOR_CLASS(obj, anm.tag.tag);
+				obj.animation.setRelative( anm.relative );
+		
+				if (this.autoPlay) obj.animation.play( obj.animation.getStateNameByIndex(0) );
+				
+				return obj.animation;
+				break;
+		}
+	}	
+}
+
+//
+//	Animation
+//
+
+THREE.SEA3D.prototype.readAnimation = function(sea) {
+	var anmSet = new SEA3D.AnimationSet();
+	
+	for(var i in sea.sequence) {
+		var seq = sea.sequence[i],		
+			node = new SEA3D.AnimationNode(seq.name, sea.frameRate, seq.count, seq.repeat, seq.intrpl);
+		
+		for(var j in sea.dataList) {				
+			var anmData = sea.dataList[j];						
+			node.addData( new SEA3D.AnimationData(anmData.kind, anmData.type, anmData.data, seq.start * anmData.blockSize) );
+		}
+		
+		anmSet.addAnimation( node );
+	}
+	
+	this.animationSets = this.animationSets || [];
+	this.animationSets.push(this.objects[sea.name + '.#anm'] = sea.tag = anmSet);
+}
+
+//
+//	Object3D Animator
+//
+
+THREE.SEA3D.Object3DAnimator = function(object3d, animationSet) {
+	SEA3D.AnimationHandler.call( this, animationSet );	
+	this.object3d = object3d;	
+}
+
+THREE.SEA3D.Object3DAnimator.prototype = Object.create( SEA3D.AnimationHandler.prototype );
+
+THREE.SEA3D.Object3DAnimator.prototype.setRelative = function(val) {
+	this.object3d.setAnimateMatrix( this.relative = val );	
+}
+
+THREE.SEA3D.Object3DAnimator.prototype.updateAnimationFrame = function(frame, kind) {
+	if (this.relative) {
+		switch(kind) {
+			case SEA3D.Animation.POSITION:	
+				var v = frame.toVector();
+				this.object3d.animatePosition.set(v.x, v.y, v.z);	
+				break;
+				
+			case SEA3D.Animation.ROTATION:			
+				var v = frame.toVector();				
+				this.object3d.animateQuaternion.set(v.x, v.y, v.z, v.w);
+				break;	
+				
+			case SEA3D.Animation.SCALE:	
+				var v = frame.toVector();		
+				this.object3d.animateScale.set(v.x, v.y, v.z);
+				break;
+		}
+		
+		this.object3d.matrixWorldNeedsUpdate = true;
+	} else {
+		switch(kind) {
+			case SEA3D.Animation.POSITION:	
+				var v = frame.toVector();
+				this.object3d.position.set(v.x, v.y, v.z);				
+				break;
+				
+			case SEA3D.Animation.ROTATION:		
+				var v = frame.toVector();				
+				this.object3d.quaternion.set(v.x, v.y, v.z, v.w);
+				break;	
+				
+			case SEA3D.Animation.SCALE:	
+				var v = frame.toVector();
+				this.object3d.scale.set(v.x, v.y, v.z);
+				break;
+		}
+	}
+}
+
+//
+//	Camera Animator
+//
+
+THREE.SEA3D.CameraAnimator = function(object3d, animationSet) {
+	THREE.SEA3D.Object3DAnimator.call( this, object3d, animationSet );	
+}
+
+THREE.SEA3D.CameraAnimator.prototype = Object.create( THREE.SEA3D.Object3DAnimator.prototype );
+
+THREE.SEA3D.CameraAnimator.prototype.updateAnimationFrame = function(frame, kind) {
+	switch(kind) {
+		case SEA3D.Animation.FOV:	
+			this.object3d.fov = frame.getX();
+			break;	
+	
+		default:	
+			this.$updateAnimationFrame(frame, kind);
+			break;
+	}
+}
+
+THREE.SEA3D.CameraAnimator.prototype.$updateAnimationFrame = THREE.SEA3D.Object3DAnimator.prototype.updateAnimationFrame;
+
+//
+//	Light Animator
+//
+
+THREE.SEA3D.LightAnimator = function(object3d, animationSet) {
+	THREE.SEA3D.Object3DAnimator.call( this, object3d, animationSet );	
+}
+
+THREE.SEA3D.LightAnimator.prototype = Object.create( THREE.SEA3D.Object3DAnimator.prototype );
+
+THREE.SEA3D.LightAnimator.prototype.updateAnimationFrame = function(frame, kind) {
+	switch(kind) {
+		case SEA3D.Animation.COLOR:	
+			this.object3d.color.setHex( frame.getX() );			
+			break;	
+			
+		case SEA3D.Animation.MULTIPLIER:		
+			this.object3d.intensity = frame.getX();
+			break;
+			
+		default:			
+			this.$updateAnimationFrame(frame, kind);
+			break;
+	}
+}
+
+THREE.SEA3D.LightAnimator.prototype.$updateAnimationFrame = THREE.SEA3D.Object3DAnimator.prototype.updateAnimationFrame;
+
 //
 //	Geometry
 //
@@ -393,12 +596,12 @@ THREE.SEA3D.prototype.readMesh = function(sea) {
 		var mod = sea.modifiers[i];
 		
 		switch(mod.type)
-		{
+		{				
 			case SEA3D.Skeleton.prototype.type:
 				skeleton = mod;
 				geo.bones = skeleton.tag;	
 				break;
-			
+		
 			case SEA3D.Morph.prototype.type:
 				morpher = mod;
 				morpherNormals = sea.geometry.normal != null;
@@ -450,7 +653,7 @@ THREE.SEA3D.prototype.readMesh = function(sea) {
 		
 		if (skeletonAnimation) {
 			mesh.addAnimations( geo.animations );
-			mesh.play( mesh.animations[0].name );
+			if (this.autoPlay) mesh.play( mesh.animations[0].name );
 		}
 	} else {
 		mesh = new THREE.Mesh( geo, mat );
@@ -467,6 +670,7 @@ THREE.SEA3D.prototype.readMesh = function(sea) {
 	this.updateMatrix(mesh, sea);				
 	
 	this.addSceneObject( sea );
+	this.applyDefaultAnimation( sea, THREE.SEA3D.Object3DAnimator );
 }
 
 //
@@ -619,6 +823,7 @@ THREE.SEA3D.prototype.materialTechnique =
 THREE.SEA3D.prototype.readMaterial = function(sea) {	
 	var mat = new THREE.MeshPhongMaterial();
 	mat.name = sea.name;
+	
 	mat.side = sea.bothSides ? THREE.DoubleSide : THREE.FrontSide;
 	mat.shading = sea.smooth ? THREE.SmoothShading : THREE.FlatShading;
 	
@@ -657,12 +862,13 @@ THREE.SEA3D.prototype.readPointLight = function(sea) {
 	else light.position.set(sea.position.x, sea.position.y, sea.position.z);
 	
 	if (sea.shadow)		
-		this.setShadowMap(light);		
+		this.setShadowMap(light, sea.shadow.opacity);		
 	
 	this.lights = this.lights || [];
 	this.lights.push( this.objects["lht/" + sea.name] = sea.tag = light );
 	
-	this.addSceneObject( sea );			
+	this.addSceneObject( sea );	
+	this.applyDefaultAnimation( sea, THREE.SEA3D.LightAnimator );	
 }
 
 //
@@ -676,12 +882,13 @@ THREE.SEA3D.prototype.readDirectionalLight = function(sea) {
 	this.updateMatrix(light, sea);
 	
 	if (sea.shadow)		
-		this.setShadowMap(light);		
+		this.setShadowMap(light, sea.shadow.opacity);			
 	
 	this.lights = this.lights || [];
 	this.lights.push( this.objects["lht/" + sea.name] = sea.tag = light );
 	
 	this.addSceneObject( sea );	
+	this.applyDefaultAnimation( sea, THREE.SEA3D.LightAnimator );
 }
 
 //
@@ -689,7 +896,7 @@ THREE.SEA3D.prototype.readDirectionalLight = function(sea) {
 //
 
 THREE.SEA3D.prototype.readCamera = function(sea) {	
-	var camera = new THREE.PerspectiveCamera( sea.fov );
+	var camera = new THREE.PerspectiveCamera( sea.fov );	
 	camera.name = sea.name;
 	
 	this.updateMatrix(camera, sea);
@@ -701,6 +908,7 @@ THREE.SEA3D.prototype.readCamera = function(sea) {
 	this.cameras.push( this.objects["cam/" + sea.name] = sea.tag = camera );
 	
 	this.addSceneObject( sea );	
+	this.applyDefaultAnimation( sea, THREE.SEA3D.CameraAnimator );
 }
 
 //
@@ -931,6 +1139,7 @@ THREE.SEA3D.prototype.load = function( url ) {
 	this.file.typeRead[SEA3D.SkeletonLocal.prototype.type] = this.readSkeletonLocal;	
 	this.file.typeRead[SEA3D.JointObject.prototype.type] = this.readJointObject;
 	this.file.typeRead[SEA3D.CubeMap.prototype.type] = this.readCubeMap;
+	this.file.typeRead[SEA3D.Animation.prototype.type] = this.readAnimation;
 	
 	//	UNIVERSAL
 	this.file.typeRead[SEA3D.JPEG.prototype.type] = this.readImage;		

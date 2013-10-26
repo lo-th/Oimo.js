@@ -14,6 +14,7 @@ size and position x100 for three.js
 importScripts('js/oimo/runtime_min.js');
 importScripts('js/oimo/oimo_rev_min.js');
 importScripts('js/oimo/demo.js');
+importScripts('js/oimo/ball.js');
 
 // main class
 var version = "10.REV";
@@ -41,11 +42,11 @@ var types;
 var sizes;
 var infos =new Float32Array(12);
 
-var currentDemo = 0;
+var currentDemo = 0//0;
 var maxDemo = 6;
 // Controle by key
 var car = null;
-var bubulle = null;
+var ball = null;
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -64,6 +65,7 @@ self.onmessage = function (e) {
     else if(phase === "GRAVITY") newGravity = e.data.G;
     else if(phase === "NEXT") initNextDemo();
     else if(phase === "PREV") initPrevDemo();
+    else if(phase === "BONESLIST"){ bonesPosition = e.data.pos; bonesRotation = e.data.rot;}
 }
 
 //--------------------------------------------------
@@ -105,12 +107,24 @@ function update() {
     timer = setTimeout(update, delay);
 }
 
+//--------------------------------------------------
+//   GET BONES STUCTURE
+//--------------------------------------------------
+var bonesPosition;
+var bonesRotation;
+
+function getBones(name) {
+    self.postMessage({tell:"GETBONES", name:name })
+}
 
 //--------------------------------------------------
 //   USER KEY
 //--------------------------------------------------
 
-function userKey(k) {
+function userKey(key) {
+    if(ball !== null ){
+        ball.update(key[0], key[1], key[2], key[3], 0, 0);
+    }
 
 }
 
@@ -159,6 +173,9 @@ function initWorld(){
         world.gravity = new Vec3(0, Gravity, 0);
     }
 
+    // get ragdoll info
+    //getBones('sila');
+
     initDemo();
 }
 
@@ -170,7 +187,7 @@ function clearWorld(){
     max = world.numJoints;
     for (i = max - 1; i >= 0 ; i -- ) world.removeJoint(world.joints[i]);
     // Clear control object
-    if(bubulle !== null ) bubulle = null;
+    if(ball !== null ) ball = null;
     // Clear three object
     self.postMessage({tell:"CLEAR"});
 }
@@ -227,9 +244,11 @@ function addRigid(obj){
     var sc = obj.sc || new ShapeConfig();
     var t; 
     var shape;
+    //var sleeping = obj.sleep || false;
+    var noSleep  = obj.noSleep || false; 
 
-    // rotation x y z in degre
-    if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
+    // rotation x y z in radian
+    if(rotation !== null ) r = eulerToAxisAngle(rotation[0], rotation[1], rotation[2]);
     else r[0] = r[0]*ToRad;
 
     sc.position.init(p[0], p[1], p[2]);
@@ -253,6 +272,11 @@ function addRigid(obj){
         bodys.push(body);
         types.push(t);
         sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
+        //body.sleeping = sleeping;
+        //if(sleeping)body.sleep();
+        if(noSleep)body.allowSleep = false;
+        else body.allowSleep = true;
+        
     }
     world.addRigidBody(body);
     return body;
@@ -344,4 +368,11 @@ function eulerToAxisAngle   ( x, y, z ){
         z /= norm;
     }
     return [angle, x, y, z];
+}
+
+function getDistance3d (p1, p2) {
+    var xd = p2[0]-p1[0];
+    var yd = p2[1]-p1[1];
+    var zd = p2[2]-p1[2];
+    return Math.sqrt(xd*xd + yd*yd + zd*zd);
 }

@@ -11,9 +11,9 @@ function createDiceTexture(n) {
 	ctx.fillStyle = "#EEEEEE";
 	ctx.fillRect(0, 0, 256, 256);
 	ctx.fillStyle = "#333333";
-	ctx.fillRect(230, 0, 26, 256);
+	ctx.fillRect(174, 0, 82, 256);
 	ctx.fillStyle = "#ff3333";
-	ctx.fillRect(230, 230, 26, 26);
+	ctx.fillRect(174, 206, 82, 50);
 	if(n!==0){
 		ctx.fillStyle = 'rgba(0,0,0,0.4)';
 	    ctx.fillRect(0, 0, 256, 256);
@@ -114,5 +114,35 @@ function createSnakeTexture() {
 	tx.needsUpdate = true;
 	//tx.anisotropy = renderer.getMaxAnisotropy();
 	//ctx.clearRect(0, 0, canvas.width, canvas.height);
+	return tx;
+}
+
+//-----------------------------------------------------
+//  BONES FLAG
+//-----------------------------------------------------
+
+function bonesFlag(text) {
+	var canvas = document.createElement("canvas");
+
+	canvas.width = 64; canvas.height = 64;
+
+	ctx = canvas.getContext("2d");
+	ctx.font = 'bold '+30+'pt Monospace';
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+
+	/*var gradient=ctx.createLinearGradient(0,0,0,canvas.height);
+	gradient.addColorStop("0","white");
+	gradient.addColorStop("1.0","yellow");
+
+	ctx.strokeStyle = gradient;
+	ctx.lineWidth=3;
+	ctx.strokeText(text, canvas.width / 2, canvas.height / 2);*/
+	ctx.fillStyle = "#AAAAAA";
+	ctx.fillText(text, canvas.width*0.5, canvas.height*0.5);
+
+	var tx = new THREE.Texture(canvas);
+	tx.needsUpdate = true;
+
 	return tx;
 }
