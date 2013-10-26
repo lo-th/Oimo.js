@@ -192,34 +192,34 @@ function demo5(){
     // ground
     addRigid({type:"box", size:[200,10,200], pos:[0,-5,0], sc:sc});
 
+    // Greek temple
+    var x = 0, z = 0;
+    var width = 6;
+    var depth= 4;
+    var r1, r2;
+
+    for(var i =0; i<width; i++){
+        for(var j =0; j<depth; j++){
+            for(var k =0; k<8;k++){
+                x = (i - (width - 1) * 0.5) * 4;
+                z = (j - (depth - 1) * 0.5) * 4;
+                r1 = (Math.floor((Math.random()*16))*22.5)*ToRad;// rad
+                r2 = (Math.floor((Math.random()*4))*90)*ToRad;// rad
+                if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true, rotation:[0,r2,0]});
+                else if(k<7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1*k),z], sc:sc, move:true, rotation:[0,r1,0]});
+                else if (k===7)addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1*k),z], sc:sc, move:true, rotation:[0,r2,0]});
+                //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,0,0]});
+            }
+        }
+    }
+
     if(version=="10.DEV"){
         // Car simulator
         car = new Car(0,2,0, world);
     }else{
-        // Greek temple
-        var x= 0, z = 0;
-        var width = 6;
-        var depth= 4;
-        var r, r2;
-
-        for(var i =0; i<width; i++){
-            for(var j =0; j<depth; j++){
-                for(var k =0; k<8;k++){
-                    x = (i - (width - 1) * 0.5) * 4;
-                    z = (j - (depth - 1) * 0.5) * 4;
-                    r = (Math.floor((Math.random()*16))*22.5)*ToRad;// rad
-                    r2 = (Math.floor((Math.random()*4))*90)*ToRad;// rad
-                    if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true, sleep:true, rotation:[0,r2,0]});
-                    else if(k<7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,r,0]});
-                    else if (k===7)addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,r2,0]});
-                    //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,0,0]});
-                }
-            }
-        }
-
+        // ball controler
         ball = new Ball(0,1,0, world);
     }
-
 }
 
 //--------------------------------------------------

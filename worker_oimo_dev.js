@@ -263,6 +263,10 @@ function addRigid(obj){
         case "dice": shape=new BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
         case "wheel": shape = new SphereShape(sc, s[0] ); t=5; break;// fake cylinder
         case "wheelinv": shape = new SphereShape(sc, s[0] ); t=6; break;// fake cylinder
+
+        case "column": shape = new BoxShape(sc, s[0]*2, s[1], s[2]*2); t=7; break;// fake cylinder
+        case "columnBase": shape = new BoxShape(sc, s[0], s[1], s[2]); t=8; break;
+        case "columnTop": shape = new BoxShape(sc, s[0], s[1], s[2]); t=9; break;
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
