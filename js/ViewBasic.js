@@ -85,7 +85,7 @@ function initThree(option) {
 	onThreeChangeView(45,60,1000);
 
     //update();
-    //startRender();
+    startRender();
 }
 
 function customCursor() {
