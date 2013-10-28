@@ -94,7 +94,9 @@ function demo2(){
     addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
 
     // add dynamique object
-    sc.density = 1;//0.162;
+    sc.density = 1.62;//0.162;
+    sc.friction = 0.3;
+    sc.restitution = 0.6;
     var body, px, pz, type = 1;
     for (var i=0; i!==666; ++i ){
         px = -2+Math.random()*4;

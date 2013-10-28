@@ -131,21 +131,43 @@ function eightBall(n) {
 	canvas.width = 256; canvas.height = 128;
 	ctx = canvas.getContext("2d");
 
-	if(n===0)ctx.fillStyle = "#111111";
-	else ctx.fillStyle = "#999999";
+	ctx.fillStyle = "#ffffff";
+	//else ctx.fillStyle = "#999999";
 	ctx.fillRect(0, 0, 256, 128);
-	
-	ctx.font = 'bold '+30+'pt Monospace';
-	ctx.textAlign = "center";
-	ctx.textBaseline = "middle";
-	ctx.fillStyle = "#AAAAAA";
-	ctx.fillText("8", canvas.width*0.5*0.5, canvas.height*0.5);
 
-	ctx.beginPath();
-	ctx.arc(64,64,25,0,2*Math.PI);
-	ctx.lineWidth=5;
+	if(n===1 || n===9) ctx.fillStyle = "#EDCC42";
+	if(n===2 || n===10) ctx.fillStyle = "#CA2230";
+	if(n===3 || n===11) ctx.fillStyle = "#304067";
+	if(n===4 || n===12) ctx.fillStyle = "#68305B";
+	if(n===5 || n===13) ctx.fillStyle = "#DD7A34";
+	if(n===6 || n===14) ctx.fillStyle = "#2B6A49";
+	if(n===7 || n===15) ctx.fillStyle = "#AE252F";
+	if(n===8) ctx.fillStyle = "#111111";
+
+
+    // line or full
+    if (n<9) ctx.fillRect(0,0,256,128);
+    else ctx.fillRect(0,32,256,64)
+
+    // number
+	if(n!==0){
+		ctx.beginPath();
+		ctx.arc(64,64,20,0,2*Math.PI);
+		ctx.fillStyle = "#ffffff";
+		ctx.fill();
+
+
+		ctx.font = 20+'pt Arial';
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+		ctx.fillStyle = "#111111";
+		ctx.fillText(n, canvas.width*0.5*0.5, canvas.height*0.5);
+	}
+
+	
+	/*ctx.lineWidth=5;
 	ctx.strokeStyle = "#AAAAAA";
-	ctx.stroke();
+	ctx.stroke();*/
 
 	var tx = new THREE.Texture(canvas);
 	tx.anisotropy = MaxAnistropy;
