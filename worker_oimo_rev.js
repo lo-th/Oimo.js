@@ -92,19 +92,19 @@ function update() {
             p = bodys[i].position;
             n = 12*i;
 
-            matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
+            /*matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
             matrix[n+4]=r.e10*1000; matrix[n+5]=r.e11*1000; matrix[n+6]=r.e12*1000; matrix[n+7]=p.y*1000;
-            matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;
+            matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;*/
             /*
             r = new Mat33();
             r.scale(bodys[i].rotation, 1000)
             p = new Vec3();
             p.scale(bodys[i].position, 1000);
-            n = 12*i;
+            n = 12*i;*/
             matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=p.x;
             matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=p.y;
             matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=p.z;
-            */
+            
         }
     }
 
@@ -245,8 +245,8 @@ function startDemo(){
     else if(currentDemo==6)demo6();
 
     var N = bodys.length;
-    //matrix = new Float32Array(N*12);
-    matrix = new Int32Array(N*12);
+    matrix = new Float32Array(N*12);
+    //matrix = new Int32Array(N*12);
     //sleeps = new Float32Array(N);
     sleeps = new Uint8Array(N);
     

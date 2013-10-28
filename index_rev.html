@@ -104,9 +104,9 @@
             	    		mesh = content.children[i];
             	    		if( e.data.sleeps[i]==0){
             	    			n = 12*i;
-	            	    		//mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3]*100, m[n+4], m[n+5], m[n+6], m[n+7]*100, m[n+8], m[n+9], m[n+10], m[n+11]*100, 0, 0, 0, 1);
+	            	    		mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3]*100, m[n+4], m[n+5], m[n+6], m[n+7]*100, m[n+8], m[n+9], m[n+10], m[n+11]*100, 0, 0, 0, 1);
 	            	    		//mtx.multiplyScalar(0.001);
-	            	    		mtx = new THREE.Matrix4(m[n+0]*0.001, m[n+1]*0.001, m[n+2]*0.001, m[n+3]*0.1, m[n+4]*0.001, m[n+5]*0.001, m[n+6]*0.001, m[n+7]*0.1, m[n+8]*0.001, m[n+9]*0.001, m[n+10]*0.001, m[n+11]*0.1, 0, 0, 0, 1);
+	            	    		//mtx = new THREE.Matrix4(m[n+0]*0.001, m[n+1]*0.001, m[n+2]*0.001, m[n+3]*0.1, m[n+4]*0.001, m[n+5]*0.001, m[n+6]*0.001, m[n+7]*0.1, m[n+8]*0.001, m[n+9]*0.001, m[n+10]*0.001, m[n+11]*0.1, 0, 0, 0, 1);
 						        mesh.position.getPositionFromMatrix( mtx );
 						    	mesh.rotation.setFromRotationMatrix( mtx );
 

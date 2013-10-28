@@ -93,21 +93,21 @@ function update() {
             p = bodys[i].position;
             n = 12*i;
 
-            matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
+           /* matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
             matrix[n+4]=r.e10*1000; matrix[n+5]=r.e11*1000; matrix[n+6]=r.e12*1000; matrix[n+7]=p.y*1000;
             matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;
+            */
             
-            /*
-            r = new Mat33();
+            /*r = new Mat33();
             r.scale(bodys[i].rotation, 1000)
             p = new Vec3();
             p.scale(bodys[i].position, 1000);
-
-            n = 12*i;
+            */
+            //n = 12*i;
             matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=p.x;
             matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=p.y;
             matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=p.z;
-            */
+            
         }
     }
 
@@ -247,10 +247,10 @@ function startDemo(){
     else if(currentDemo==6)demo6();
 
     var N = bodys.length;
-    //matrix = new Float32Array(N*12);
+    matrix = new Float32Array(N*12);
     //sleeps = new Float32Array(N);
     sleeps = new Uint8Array(N);
-    matrix = new Int32Array(N*12);
+    //matrix = new Int32Array(N*12);
     //matrix = new Int32Array(new ArrayBuffer(N*12));
     
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
@@ -278,6 +278,7 @@ function addRigid(obj){
     else r[0] = r[0]*ToRad;
 
     var shape, t;
+    var shape2 = null;
     switch(obj.type){
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
         case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
@@ -287,7 +288,7 @@ function addRigid(obj){
         case "wheel": shape = new SphereShape(sc, s[0] ); t=5; break;// fake cylinder
         case "wheelinv": shape = new SphereShape(sc, s[0] ); t=6; break;// fake cylinder
 
-        case "column": shape = new BoxShape(sc, s[0]*2, s[1], s[2]*2); t=7; break;// fake cylinder
+        case "column": shape = new BoxShape(sc, s[0]*2, s[1], s[2]*2);  t=7; break;// fake cylinder
         case "columnBase": shape = new BoxShape(sc, s[0], s[1], s[2]); t=8; break;
         case "columnTop": shape = new BoxShape(sc, s[0], s[1], s[2]); t=9; break;
         case "nball": shape = new SphereShape(sc, s[0]); t=11; break;
@@ -297,6 +298,7 @@ function addRigid(obj){
     
 
     body.addShape(shape);
+    if(shape2!=null)body.addShape(shape2);
     //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
 
     if(!move)body.setupMass(0x2);

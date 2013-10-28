@@ -184,8 +184,14 @@ var geo02 = new THREE.SphereGeometry( 1, 16, 12 );
 var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
 var geo04 = new THREE.SphereGeometry( 1, 30, 20 );
 
+var geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
+var geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
+var geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
+var geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
 var geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
 var diceBuffer;
+var colomnBuffer;
+var colomnBaseBuffer;
 
 function createContentObjects(data){
 	var boneindex=0;
@@ -196,9 +202,9 @@ function createContentObjects(data){
     for(var i=0; i!==max; i++){
     	s = data.sizes[i] || [50,50,50];
     	switch(data.types[i]){
-    		case 1: mesh=new THREE.Mesh(geo02, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
-    		case 2: mesh=new THREE.Mesh(geo01, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
-    		case 3: mesh=new THREE.Mesh(geo03, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
+    		case 1: mesh=new THREE.Mesh(geo02b, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+    		case 2: mesh=new THREE.Mesh(geo01b, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
+    		case 3: mesh=new THREE.Mesh(geo03b, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
 
     		case 4: mesh=new THREE.Mesh(diceBuffer, mat04); mesh.scale.set( s[0], s[1], -s[2] ); break; // dice
     		case 5:
@@ -212,9 +218,9 @@ function createContentObjects(data){
     		    mesh.scale.set( -s[0]*2, s[1]*2, s[2]*2 );
     		break; // Wheel inv
 
-    		case 7: mesh=new THREE.Mesh(getMeshByName('column').geometry, mat07); mesh.scale.set( s[1], s[1], -s[1] ); break; // column
-    		case 8: mesh=new THREE.Mesh(getMeshByName('columnBase').geometry, mat07); mesh.scale.set( s[1], s[1], -s[1] ); break; // column base
-    		case 9: mesh=new THREE.Mesh(getMeshByName('columnBase').geometry, mat07); mesh.scale.set( s[1], -s[1], s[1] ); break; // column top
+    		case 7: mesh=new THREE.Mesh(colomnBuffer, mat07); mesh.scale.set( s[1], s[1], -s[1] ); break; // column
+    		case 8: mesh=new THREE.Mesh(colomnBaseBuffer, mat07); mesh.scale.set( s[1], s[1], -s[1] ); break; // column base
+    		case 9: mesh=new THREE.Mesh(colomnBaseBuffer, mat07); mesh.scale.set( s[1], -s[1], s[1] ); break; // column top
 
     		//case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
     		case 10: 
@@ -510,6 +516,8 @@ function initSea3DMesh(){
 		if(seaList[seaN]!=null)initSea3DMesh();
 		else{
 			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getMeshByName('dice').geometry);
+			colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getMeshByName('column').geometry);
+			colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getMeshByName('columnBase').geometry);
 			
 			mainAllObjectLoaded();
 			isLoading = false;
