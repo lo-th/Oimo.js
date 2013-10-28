@@ -22,7 +22,7 @@ var version = "10.DEV";
 var World, RigidBody, BroadPhase;
 var Shape, ShapeConfig, BoxShape, SphereShape;
 var JointConfig, HingeJoint, WheelJoint, DistanceJoint;
-var Vec3, Quat;
+var Vec3, Quat, Mat33;
 
 // physics variable
 var world;
@@ -66,7 +66,11 @@ self.onmessage = function (e) {
     else if(phase === "GRAVITY") newGravity = e.data.G;
     else if(phase === "NEXT") initNextDemo();
     else if(phase === "PREV") initPrevDemo();
-    else if(phase === "BONESLIST"){ bonesPosition = e.data.pos; bonesRotation = e.data.rot;}
+    else if(phase === "BONESLIST"){ 
+        bonesPosition = e.data.pos; 
+        bonesRotation = e.data.rot;
+        startDemo();
+    }
 }
 
 //--------------------------------------------------
@@ -88,9 +92,22 @@ function update() {
             r = bodys[i].rotation;
             p = bodys[i].position;
             n = 12*i;
+
+            matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
+            matrix[n+4]=r.e10*1000; matrix[n+5]=r.e11*1000; matrix[n+6]=r.e12*1000; matrix[n+7]=p.y*1000;
+            matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;
+            
+            /*
+            r = new Mat33();
+            r.scale(bodys[i].rotation, 1000)
+            p = new Vec3();
+            p.scale(bodys[i].position, 1000);
+
+            n = 12*i;
             matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=p.x;
             matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=p.y;
             matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=p.z;
+            */
         }
     }
 
@@ -114,7 +131,7 @@ function update() {
 var bonesPosition;
 var bonesRotation;
 
-function getBones(name) {
+function getBonesInfo(name) {
     self.postMessage({tell:"GETBONES", name:name })
 }
 
@@ -156,6 +173,7 @@ function initClass(){
             // Math
             Vec3 = com.elementdev.oimo.math.Vec3;
             Quat = com.elementdev.oimo.math.Quat;
+            Mat33 = com.elementdev.oimo.math.Mat33;
 
             initWorld();
         }});
@@ -176,10 +194,7 @@ function initWorld(){
         world.gravity = new Vec3(0, Gravity, 0);
     }
 
-    // get ragdoll info
-    //getBones('sila');
-
-    initDemo();
+    lookIfNeedInfo();
 }
    
 function clearWorld(){
@@ -200,17 +215,25 @@ function initNextDemo(){
     clearWorld();
     currentDemo ++;
     if(currentDemo == maxDemo)currentDemo=0;
-    initDemo();
+    lookIfNeedInfo();
 }
 
 function initPrevDemo(){
     clearWorld();
     currentDemo --;
     if(currentDemo < 0)currentDemo=maxDemo-1;
-    initDemo();
+    lookIfNeedInfo();
 }
 
-function initDemo(){
+function lookIfNeedInfo(){
+    if(currentDemo==6){
+        getBonesInfo('sila');
+    } else {
+        startDemo();
+    }
+}
+
+function startDemo(){
     bodys = [];
     types = [];
     sizes = [];
@@ -224,11 +247,11 @@ function initDemo(){
     else if(currentDemo==6)demo6();
 
     var N = bodys.length;
-    matrix = new Float32Array(N*12);
-    sleeps = new Float32Array(N);
-
-    //matrix = []; matrix.length = N*12;
-    //sleeps = []; matrix.length = N;
+    //matrix = new Float32Array(N*12);
+    //sleeps = new Float32Array(N);
+    sleeps = new Uint8Array(N);
+    matrix = new Int32Array(N*12);
+    //matrix = new Int32Array(new ArrayBuffer(N*12));
     
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 }
@@ -288,8 +311,6 @@ function addRigid(obj){
     world.addRigidBody(body);
     return body;
 }
-
-
 
 //--------------------------------------------------
 //    BASIC JOINT

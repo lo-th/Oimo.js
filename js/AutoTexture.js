@@ -1,5 +1,4 @@
 
-
 //-----------------------------------------------------
 //  DICE
 //-----------------------------------------------------
@@ -19,8 +18,8 @@ function createDiceTexture(n) {
 	    ctx.fillRect(0, 0, 256, 256);
 	}
 	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = MaxAnistropy;
 	tx.needsUpdate = true;
-	//tx.anisotropy = renderer.getMaxAnisotropy();
 	return tx;
 }
 
@@ -37,7 +36,6 @@ function createWheelTexture(n) {
 	ctx.fillRect(0, 0, 256, 256);
 	var grd;
 	
-
 	grd=ctx.createLinearGradient(0,100,0,163);
 	grd.addColorStop(0,"#EEEEEE");
 	grd.addColorStop(0.2,"#AAAAAA");
@@ -54,22 +52,9 @@ function createWheelTexture(n) {
 	ctx.fillStyle = grd;
 	ctx.fillRect(0, 163, 256, 256);
 
-    /*ctx.beginPath();
-	ctx.arc(211,45,90,0,2*Math.PI);
-	//ctx.arc(231,178,3,0,2*Math.PI);
-	ctx.fillStyle = "#ff0101";
-	ctx.fill();*/
-
-	/*
-	ctx.fillStyle = "#ff3333";
-	ctx.fillRect(230, 230, 26, 26);
-	if(n!==0){
-		ctx.fillStyle = 'rgba(0,0,0,0.4)';
-	    ctx.fillRect(0, 0, 256, 256);
-	}*/
 	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = MaxAnistropy;
 	tx.needsUpdate = true;
-	//tx.anisotropy = renderer.getMaxAnisotropy();
 	return tx;
 }
 
@@ -111,9 +96,8 @@ function createSnakeTexture() {
 	ctx.fill();
 
 	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = MaxAnistropy;
 	tx.needsUpdate = true;
-	//tx.anisotropy = renderer.getMaxAnisotropy();
-	//ctx.clearRect(0, 0, canvas.width, canvas.height);
 	return tx;
 }
 
@@ -123,26 +107,16 @@ function createSnakeTexture() {
 
 function bonesFlag(text) {
 	var canvas = document.createElement("canvas");
-
 	canvas.width = 64; canvas.height = 64;
-
 	ctx = canvas.getContext("2d");
 	ctx.font = 'bold '+30+'pt Monospace';
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
-
-	/*var gradient=ctx.createLinearGradient(0,0,0,canvas.height);
-	gradient.addColorStop("0","white");
-	gradient.addColorStop("1.0","yellow");
-
-	ctx.strokeStyle = gradient;
-	ctx.lineWidth=3;
-	ctx.strokeText(text, canvas.width / 2, canvas.height / 2);*/
 	ctx.fillStyle = "#AAAAAA";
 	ctx.fillText(text, canvas.width*0.5, canvas.height*0.5);
 
 	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = MaxAnistropy;
 	tx.needsUpdate = true;
-
 	return tx;
 }

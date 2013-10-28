@@ -27,6 +27,7 @@ var ToDeg = 180 / Math.PI;
 var isOptimized;
 var isLoading = true;
 var antialias;
+var MaxAnistropy;
 
 //-----------------------------------------------------
 //  INIT VIEW
@@ -44,6 +45,7 @@ function initThree(option) {
 	renderer.physicallyBasedShading = true;
 	renderer.gammaOutput = true;
 	renderer.gammaInput = true;
+	MaxAnistropy = renderer.getMaxAnisotropy();
 
 	scene = new THREE.Scene();
 	
@@ -201,7 +203,7 @@ function createContentObjects(data){
 
     		//case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
     		case 10: 
-    		    var axe = new THREE.AxisHelper( s[0]*0.01 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
+    		    var axe = new THREE.AxisHelper( 5 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
     		    mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] );
     		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
     		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
@@ -283,7 +285,7 @@ function addSila(s) {
 	if(s==null) s = [1,1,1];
 	var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, mat08 );
 	mesh.material = mat08;
-	mesh.scale.set( s[0], s[1], -s[2] );
+	mesh.scale.set( s[0], s[1], s[2] );
 	//mesh.position.y=90;
 	content.add( mesh );
 	mesh.receiveShadow = true;
@@ -331,8 +333,7 @@ mesh.bones[i].rotation.set( rot.y, rot.x, rot.z);
 
 function getSqueletonStructure(name){
 	var mesh = new THREE.SkinnedMesh( getMeshByName(name).geometry, null );
-	mesh.scale.set( -1, 1, 1 );
-	//var set = null;
+	mesh.scale.set( 1, 1, 1 );
 	var pos = [];
 	var rot = [];
 
@@ -344,17 +345,15 @@ function getSqueletonStructure(name){
 
 			pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
 			//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.x+0*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
-			rot[i] = [ mesh.bones[i].rotation.x-0*ToRad, mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.z+90*ToRad];
+			rot[i] = [ mesh.bones[i].rotation.x-0*ToRad, mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.z+0*ToRad];
 			//rot[i] = [ -mesh.bones[i].rotation.x+180*ToRad, mesh.bones[i].rotation.y-180*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
 			//rot[i] = [ mesh.bones[i].rotation.y+90*ToRad, mesh.bones[i].rotation.z+180*ToRad, -mesh.bones[i].rotation.x+270*ToRad];
 			//rot[i] = [ -mesh.bones[i].rotation.x+90*ToRad, -mesh.bones[i].rotation.y+180*ToRad, -mesh.bones[i].rotation.z+90*ToRad];
 			//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, -mesh.bones[i].rotation.z+0*ToRad, -mesh.bones[i].rotation.x+0*ToRad];
 		//}
 		}
-		//set = [pos, rot];
 		OimoWorker.postMessage({tell:"BONESLIST", pos:pos, rot:rot });
 	}
-	//return set;
 }
 
 

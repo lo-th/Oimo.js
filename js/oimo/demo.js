@@ -82,7 +82,7 @@ function demo2(){
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
-    sc.restitution = 0.5;
+    sc.restitution = 0.3;
 
     // ground
     //addRigid({type:"box", size:[25.4,7.6,12.7], pos:[0,-3.8,0], sc:sc});
@@ -94,12 +94,12 @@ function demo2(){
     addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
 
     // add dynamique object
-    sc.density = 0.162;
+    sc.density = 1;//0.162;
     var body, px, pz, type = 1;
-    for (var i=0; i!==333; ++i ){
+    for (var i=0; i!==666; ++i ){
         px = -2+Math.random()*4;
         pz = -2+Math.random()*4;
-        addRigid({type:"sphere", size:[0.286], pos:[px,2+i,pz], sc:sc, move:true});
+        addRigid({type:"sphere", size:[0.286], pos:[px,1+(i*0.3),pz], sc:sc, move:true});
     }
 }
 
