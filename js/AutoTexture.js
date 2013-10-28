@@ -109,11 +109,43 @@ function bonesFlag(text) {
 	var canvas = document.createElement("canvas");
 	canvas.width = 64; canvas.height = 64;
 	ctx = canvas.getContext("2d");
+
 	ctx.font = 'bold '+30+'pt Monospace';
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 	ctx.fillStyle = "#AAAAAA";
 	ctx.fillText(text, canvas.width*0.5, canvas.height*0.5);
+
+	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = MaxAnistropy;
+	tx.needsUpdate = true;
+	return tx;
+}
+
+//-----------------------------------------------------
+//  8 BALL
+//-----------------------------------------------------
+
+function eightBall(n) {
+	var canvas = document.createElement("canvas");
+	canvas.width = 256; canvas.height = 128;
+	ctx = canvas.getContext("2d");
+
+	if(n===0)ctx.fillStyle = "#111111";
+	else ctx.fillStyle = "#999999";
+	ctx.fillRect(0, 0, 256, 128);
+	
+	ctx.font = 'bold '+30+'pt Monospace';
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	ctx.fillStyle = "#AAAAAA";
+	ctx.fillText("8", canvas.width*0.5*0.5, canvas.height*0.5);
+
+	ctx.beginPath();
+	ctx.arc(64,64,25,0,2*Math.PI);
+	ctx.lineWidth=5;
+	ctx.strokeStyle = "#AAAAAA";
+	ctx.stroke();
 
 	var tx = new THREE.Texture(canvas);
 	tx.anisotropy = MaxAnistropy;

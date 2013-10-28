@@ -285,6 +285,7 @@ function addRigid(obj){
         case "column": shape = new CylinderShape(s[0], s[1], sc); t=7; break;
         case "columnBase": shape = new BoxShape(s[0], s[1], s[2], sc); t=8; break;
         case "columnTop": shape = new BoxShape(s[0], s[1], s[2], sc); t=9; break;
+        case "nball": shape = new SphereShape(s[0], sc); t=11; break;
     }
     var body = new RigidBody(r[0], r[1], r[2], r[3]);
     body.addShape(shape);

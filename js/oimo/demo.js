@@ -99,7 +99,7 @@ function demo2(){
     for (var i=0; i!==666; ++i ){
         px = -2+Math.random()*4;
         pz = -2+Math.random()*4;
-        addRigid({type:"sphere", size:[0.286], pos:[px,1+(i*0.3),pz], sc:sc, move:true});
+        addRigid({type:"nball", size:[0.286], pos:[px,1+(i*0.3),pz], sc:sc, move:true});
     }
 }
 
