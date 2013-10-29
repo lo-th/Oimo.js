@@ -248,12 +248,10 @@ function createContentObjects(data){
     		m2.material = matGyro;
     		m2.children[0].material = matGyro;
     		m2.children[0].children[0].material = matGyro;
-    		//debugInfo(mesh.children[0].name)
     		m2.children[0].children[0].children[0].material = matGyro;
-    		//mesh.children[0].children[0].children[0].material = matGyro;
-    		m2.scale.set( s[0], s[0], -s[0] ); 
-    		
+    		m2.scale.set( s[0], s[0], -s[0] );
     		break; // gyro
+    		case 13: mesh = new THREE.Mesh(getMeshByName('carBody').geometry, mat02); mesh.scale.set( 100, 100, -100 );break; // carBody
     	}
     	mesh.position.y = -10000;
     	content.add( mesh );

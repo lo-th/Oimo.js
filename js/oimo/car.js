@@ -12,19 +12,20 @@ Car = function (x, y, z, world) {
 	this.joint4;
 	this.angle =0;
 
-	this.size = {w:0.5, d:1}
+	this.size = {w:0.5, d:1, h:0.4}
 
 	// create a body
-	var off = 0.4;
+	//var off = 0.4;
 	var rad = 0.3;
+	var h = 0.4;
 	var w = 0.5;
 	var d = 1;
 
 	var sc = new ShapeConfig();
-	sc.relativePosition.init(0, off, 0);
+	sc.relativePosition.init(0, (h*0.5)+rad, 0);
 	sc.density = 10;
 	
-	this.body = addRigid({type:"box", size:[w * 2, 0.4, d * 2], pos:[x, y, z], sc:sc, move:true, noSleep:true, noAdjust:true});
+	this.body = addRigid({type:"carBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:[x, y, z], sc:sc, move:true, noSleep:true, noAdjust:true});
 
 	// create wheels
 	sc.friction = 4;

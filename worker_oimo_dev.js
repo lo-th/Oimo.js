@@ -304,6 +304,7 @@ function addRigid(obj){
         case "columnTop": shape = new BoxShape(sc, s[0], s[1], s[2]); t=9; break;
         case "nball": shape = new SphereShape(sc, s[0]); t=11; break;
         case "gyro": shape = new SphereShape(sc, s[0]); t=12; break;
+        case "carBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=13; break;
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
