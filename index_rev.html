@@ -134,11 +134,13 @@
 		            if(demo === 6) updateSila();
 		            //Follow object 
 		            if(demo === 4 || demo === 5){
-		            	m=content.children[max-1];
-		            	cameraFollow(m.position);
-		            	m.children[0].rotation.y = -m.rotation.y; //axe01
-		                m.children[0].children[0].rotation.x = -m.rotation.x; //axe02
-		            	m.children[0].children[0].children[0].rotation.z = -m.rotation.z; //axe03
+		            	var m00=content.children[max-1];
+		            	var m01=content.children[max];
+		            	m01.position.copy(m00.position);
+		            	cameraFollow(m00.position);
+		                m01.children[0].rotation.y= m00.rotation.z; //axe01
+		                m01.children[0].children[0].rotation.x = m00.rotation.y; //axe02
+		            	m01.children[0].children[0].children[0].rotation.y = m00.rotation.x; //axe03
 		            }
 		            //if(demo === 5) cameraFollow(content.children[max-4].position);
 

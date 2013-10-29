@@ -119,7 +119,7 @@ function initMaterial() {
 	var diceTexture = new createDiceTexture(0);
 	var diceTextureSleep = new createDiceTexture(1);
 	var wheelTexture = new createWheelTexture(0);
-	var gyroTexture = new createGyroTexture();
+	var gyroTexture = THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );//new createGyroTexture();
 
 
 	if(!isOptimized){
@@ -205,6 +205,7 @@ function createContentObjects(data){
 	var boneindex=0;
 	var max = data.types.length;
 	var mesh;
+	var m2 = null;
 	var meshFlag;
 	var s;
     for(var i=0; i!==max; i++){
@@ -242,16 +243,21 @@ function createContentObjects(data){
     		break; // bone
     		case 11: mesh=new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
 
-    		case 12: mesh = getMeshByName('gyro');
-    		mesh.material = matGyro;
-    		mesh.children[0].material = matGyro;
-    		mesh.children[0].children[0].material = matGyro;
-    		mesh.children[0].children[0].children[0].material = matGyro;
-    		mesh.scale.set( s[0], s[0], -s[0] ); 
+    		case 12: mesh = new THREE.Mesh(geo02b, mat02);
+    		m2 = getMeshByName('gyro');
+    		m2.material = matGyro;
+    		m2.children[0].material = matGyro;
+    		m2.children[0].children[0].material = matGyro;
+    		//debugInfo(mesh.children[0].name)
+    		m2.children[0].children[0].children[0].material = matGyro;
+    		//mesh.children[0].children[0].children[0].material = matGyro;
+    		m2.scale.set( s[0], s[0], -s[0] ); 
+    		
     		break; // gyro
     	}
     	mesh.position.y = -10000;
     	content.add( mesh );
+    	if(m2!==null)content.add( m2 );
     	if(data.types[i]!==10){
     		mesh.receiveShadow = true;
     		mesh.castShadow = true;
