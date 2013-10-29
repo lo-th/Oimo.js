@@ -75,7 +75,7 @@ function demo1(){
 }
 
 //--------------------------------------------------
-//    BALL POOL
+//    MAD POOL
 //--------------------------------------------------
 
 function demo2(){
@@ -85,17 +85,16 @@ function demo2(){
     sc.restitution = 0.3;
 
     // ground
-    //addRigid({type:"box", size:[25.4,7.6,12.7], pos:[0,-3.8,0], sc:sc});
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    addRigid({type:"box", size:[25.4,10,12.7], pos:[0,-5,0], sc:sc});
     // wall
-    addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
-    addRigid({type:"box", size:[20,10,1], pos:[0,5,10], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
+    addRigid({type:"box", size:[25.4,5,1], pos:[0,2.5,-6.85], sc:sc});
+    addRigid({type:"box", size:[25.4,5,1], pos:[0,2.5,6.85], sc:sc});
+    addRigid({type:"box", size:[1,5,12.7], pos:[-13.2,2.5,0], sc:sc});
+    addRigid({type:"box", size:[1,5,12.7], pos:[ 13.2,2.5,0], sc:sc});
 
     // add dynamique object
     sc.density = 1.62;//0.162;
-    sc.friction = 0.3;
+    sc.friction = 0.6;
     sc.restitution = 0.6;
     var body, px, pz, type = 1;
     for (var i=0; i!==666; ++i ){
@@ -151,13 +150,13 @@ function demo4(){
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
-    sc.restitution = 0;
+    sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    addRigid({type:"box", size:[40,4,40], pos:[0,-2,0], sc:sc});
 
     var width = 6;
-    var height = 8;
+    var height = 6;
     var depth = 6;
     var w = 0.75;
     var h = 0.75;
@@ -167,7 +166,7 @@ function demo4(){
         for (var j = 0; j < height; j++) {
             for (var k = 0; k < depth; k++) {
                 x= (i - (width - 1) * 0.5) * w;
-                y= j * (h * 1.01) + h * 0.5;
+                y= j * (h * 1) + h * 0.5;
                 z= (k - (depth - 1) * 0.5) * d;
                 addRigid({type:"box", size:[w-0.025,h,d-0.025], pos:[x,y,z], sc:sc, move:true});
             }

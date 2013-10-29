@@ -7,16 +7,25 @@ function createDiceTexture(n) {
 	var canvas = document.createElement("canvas");
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
-	ctx.fillStyle = "#EEEEEE";
-	ctx.fillRect(0, 0, 256, 256);
-	ctx.fillStyle = "#333333";
-	ctx.fillRect(174, 0, 82, 256);
-	ctx.fillStyle = "#ff3333";
-	ctx.fillRect(174, 206, 82, 50);
-	if(n!==0){
+	if(n===0){
+		ctx.fillStyle = "#FDF8E4";
+		ctx.fillRect(0, 0, 256, 256);
+		ctx.fillStyle = "#191919";
+		ctx.fillRect(174, 0, 82, 256);
+		ctx.fillStyle = "#ff1919";
+		ctx.fillRect(174, 206, 82, 50);
+	} else{
+		ctx.fillStyle = "#191919";
+		ctx.fillRect(0, 0, 256, 256);
+		ctx.fillStyle = "#FDF8E4";
+		ctx.fillRect(174, 0, 82, 256);
+		ctx.fillStyle = "#FDFDE4";
+		ctx.fillRect(174, 206, 82, 50);
+	}
+	/*if(n!==0){
 		ctx.fillStyle = 'rgba(0,0,0,0.4)';
 	    ctx.fillRect(0, 0, 256, 256);
-	}
+	}*/
 	var tx = new THREE.Texture(canvas);
 	tx.anisotropy = MaxAnistropy;
 	tx.needsUpdate = true;
@@ -131,8 +140,7 @@ function eightBall(n) {
 	canvas.width = 256; canvas.height = 128;
 	ctx = canvas.getContext("2d");
 
-	ctx.fillStyle = "#ffffff";
-	//else ctx.fillStyle = "#999999";
+	ctx.fillStyle = "#FDF8E4";
 	ctx.fillRect(0, 0, 256, 128);
 
 	if(n===1 || n===9) ctx.fillStyle = "#EDCC42";
@@ -144,7 +152,6 @@ function eightBall(n) {
 	if(n===7 || n===15) ctx.fillStyle = "#AE252F";
 	if(n===8) ctx.fillStyle = "#111111";
 
-
     // line or full
     if (n<9) ctx.fillRect(0,0,256,128);
     else ctx.fillRect(0,32,256,64)
@@ -153,7 +160,7 @@ function eightBall(n) {
 	if(n!==0){
 		ctx.beginPath();
 		ctx.arc(64,64,20,0,2*Math.PI);
-		ctx.fillStyle = "#ffffff";
+		ctx.fillStyle = "#FDF8E4";
 		ctx.fill();
 
 
@@ -163,11 +170,6 @@ function eightBall(n) {
 		ctx.fillStyle = "#111111";
 		ctx.fillText(n, canvas.width*0.5*0.5, canvas.height*0.5);
 	}
-
-	
-	/*ctx.lineWidth=5;
-	ctx.strokeStyle = "#AAAAAA";
-	ctx.stroke();*/
 
 	var tx = new THREE.Texture(canvas);
 	tx.anisotropy = MaxAnistropy;

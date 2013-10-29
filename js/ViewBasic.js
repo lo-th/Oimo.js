@@ -114,7 +114,7 @@ function initMaterial() {
 	var wheelTexture = new createWheelTexture(0);
 
 	if(!isOptimized){
-		groundMat =  new THREE.MeshPhongMaterial( { color: 0x404040, shininess:100, specular:0x303030} );
+		groundMat =  new THREE.MeshPhongMaterial( { color: 0x185E77, shininess:20, specular:0x303030} );
 		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
 		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
 		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
@@ -137,7 +137,7 @@ function initMaterial() {
 			poolMaterial[i] = new THREE.MeshPhongMaterial( { map: new eightBall(i), shininess:100, specular:0xffffff } );
 		}
 	}else{
-		groundMat = new THREE.MeshBasicMaterial( { color: 0x303030} );
+		groundMat = new THREE.MeshBasicMaterial( { color: 0x185E77} );
 		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
 		mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
 		mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
