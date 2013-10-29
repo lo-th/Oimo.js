@@ -16,6 +16,7 @@ var lights = [];
 var meshs = [];
 var players = [];
 
+
 var currentPlay;
 var character=0;
 var currentPlayer = 1;
@@ -96,13 +97,19 @@ function customCursor() {
 	cursor = document.getElementById( 'cursor' );
 	container.addEventListener( 'mouseover', onMouseOver, false );
 	container.addEventListener( 'mouseout', onMouseOut, false );
+
+
+}
+
+function debugInfo(s){
+	 document.getElementById( 'titre' ).innerHTML = s;
 }
 
 //-----------------------------------------------------
 //  MATERIAL
 //-----------------------------------------------------
 
-var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08; 
+var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro; 
 var materials = [];
 var poolMaterial = [];
 
@@ -112,6 +119,8 @@ function initMaterial() {
 	var diceTexture = new createDiceTexture(0);
 	var diceTextureSleep = new createDiceTexture(1);
 	var wheelTexture = new createWheelTexture(0);
+	var gyroTexture = new createGyroTexture();
+
 
 	if(!isOptimized){
 		groundMat =  new THREE.MeshPhongMaterial( { color: 0x185E77, shininess:20, specular:0x303030} );
@@ -123,13 +132,12 @@ function initMaterial() {
 		mat06 = new THREE.MeshPhongMaterial( { map: wheelTexture, shininess:100, specular:0xffffff } );
 		mat07 = new THREE.MeshPhongMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
 		mat08 = new THREE.MeshPhongMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } );
-		//mat09 = new THREE.MeshPhongMaterial( { map: eightBall01, shininess:100, specular:0xffffff } );
 		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
 		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:100, specular:0xffffff } );
 		mat07sleep = new THREE.MeshPhongMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
-		//mat09sleep = new THREE.MeshPhongMaterial( { map: eightBall02, shininess:100, specular:0xffffff } );
+		matGyro = new THREE.MeshPhongMaterial( { map: gyroTexture, shininess:100, specular:0xffffff } );
 
 		matBone = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
 		matBonesleep = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
@@ -146,13 +154,12 @@ function initMaterial() {
 		mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture} );
 		mat07 = new THREE.MeshBasicMaterial( { color: 0x7C7B77} );
 		mat08 = new THREE.MeshBasicMaterial( { color: 0xAEABA6, skinning: true, transparent:true, opacity:0.5} );
-		//mat09 = new THREE.MeshBasicMaterial( { map: eightBall01} );
 		mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
 		mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
 		mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
 		mat04sleep = new THREE.MeshBasicMaterial( { map: diceTextureSleep} );
 		mat07sleep = new THREE.MeshBasicMaterial( { color: 0xAEABA6} );
-		//mat09sleep = new THREE.MeshBasicMaterial( { map: eightBall02} );
+		matGyro = new THREE.MeshBasicMaterial( { map: gyroTexture} );
 
 		matBone = new THREE.MeshBasicMaterial( { color: 0xffff00, transparent:true, opacity:0.1 } ); 
 		matBonesleep = new THREE.MeshBasicMaterial( { color: 0xffffff, transparent:true, opacity:0.1 } ); 
@@ -234,6 +241,14 @@ function createContentObjects(data){
     		    boneindex++;
     		break; // bone
     		case 11: mesh=new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+
+    		case 12: mesh = getMeshByName('gyro');
+    		mesh.material = matGyro;
+    		mesh.children[0].material = matGyro;
+    		mesh.children[0].children[0].material = matGyro;
+    		mesh.children[0].children[0].children[0].material = matGyro;
+    		mesh.scale.set( s[0], s[0], -s[0] ); 
+    		break; // gyro
     	}
     	mesh.position.y = -10000;
     	content.add( mesh );
@@ -246,6 +261,8 @@ function createContentObjects(data){
     if(data.demo === 6) addSila();
 
     lightsAnimation(2, 0.5, 0, 90, 500);
+    center = new THREE.Vector3(0,150,0);
+    moveCamera();
 }
 
 function clearContent(){
@@ -500,7 +517,7 @@ function initObject() {
 //  SEA3D IMPORT
 //-----------------------------------------------------
 
-var seaList = ['dice', 'snake', 'wheel', 'column', 'sila'];
+var seaList = ['dice', 'snake', 'wheel', 'column', 'sila', 'gyro'];
 var seaN = 0;
 
 function initSea3DMesh(){
@@ -662,6 +679,7 @@ function onKeyUp ( event ) {
 //-----------------------------------------------------
 //  MOUSE
 //-----------------------------------------------------
+
 function onMouseOut() {
 	if(cursor){
 	    document.body.style.cursor = 'auto';
@@ -744,10 +762,12 @@ function onMouseWheel(e) {
 //-----------------------------------------------------
 //  CAMERA
 //-----------------------------------------------------
+var cam = [0,0];
 
 function moveCamera() {
-	camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
+	camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 	camera.lookAt(center);
+	sendCameraOrientation();
 }
 
 function endMove() {
@@ -759,8 +779,8 @@ function onThreeChangeView(h, v, d) {
 	camPos.automove = true;
 }
 
-function Follow(x,y,z){
-	center =  new THREE.Vector3(x,y,z);
+function cameraFollow(vec){
+	center.copy(vec);
 	moveCamera();
 }
 
@@ -772,12 +792,16 @@ function exponentialEaseOut( v ) { return v === 1 ? 1 : - Math.pow( 2, - 10 * v 
 
 function clamp(a,b,c) { return Math.max(b,Math.min(c,a)); }
 
-function Orbit(origine, horizontal, vertical, distance) {
+function Orbit(origine, horizontal, vertical, distance, isCamera) {
 	var p = new THREE.Vector3();
 	//var phi = vertical*ToRad;
 	//var theta = horizontal*ToRad;
 	var phi = unwrapDegrees(vertical)*ToRad;
 	var theta = unwrapDegrees(horizontal)*ToRad;
+	if(isCamera!==null){
+		cam[0] = phi;
+		cam[1] = theta;
+	}
 	p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
 	p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
 	p.y = (distance * Math.cos(phi)) + origine.y;

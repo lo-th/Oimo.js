@@ -33,6 +33,31 @@ function createDiceTexture(n) {
 }
 
 //-----------------------------------------------------
+//  GYRO
+//-----------------------------------------------------
+
+function createGyroTexture() {
+	var canvas = document.createElement("canvas");
+	canvas.width = canvas.height = 512;
+	var ctx = canvas.getContext("2d");
+	
+	ctx.fillStyle = "#808080";
+	ctx.fillRect(0, 0, 512, 512);
+	ctx.fillStyle = "#A17E02";
+	ctx.fillRect(0, 486, 512, 26);
+	ctx.fillRect(279, 0, 233, 87);
+	ctx.beginPath();
+	ctx.arc(140,281,78,0,2*Math.PI);
+	ctx.arc(372,281,78,0,2*Math.PI);
+	ctx.fill();
+	
+	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = MaxAnistropy;
+	tx.needsUpdate = true;
+	return tx;
+}
+
+//-----------------------------------------------------
 //  WHEEL
 //-----------------------------------------------------
 

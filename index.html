@@ -95,6 +95,8 @@
 
 				// update three object
     	    	else if( phase === "RUN"){
+    	    		var demo = e.data.infos[0];
+
     	    		var max = e.data.sleeps.length;
     	    		var m = e.data.matrix;
         	    	var mtx, n, mesh;
@@ -127,9 +129,19 @@
 				        } 
 		            }
 
-		            //snake update
-		            if(e.data.infos[0] === 3) updateSnake();
-		            if(e.data.infos[0] === 6) updateSila();
+		            //skin update
+		            if(demo === 3) updateSnake();
+		            if(demo === 6) updateSila();
+		            //Follow object 
+		            if(demo === 4){
+		            	m=content.children[max-1];
+		            	cameraFollow(m.position);
+		            	m.children[0].rotation.y = -m.rotation.y; //axe01
+		                m.children[0].children[0].rotation.x = -m.rotation.x; //axe02
+		            	m.children[0].children[0].children[0].rotation.z = -m.rotation.z; //axe03
+		            }
+		            if(demo === 5) cameraFollow(content.children[max-5].position);
+
 
 					displayInfo(e.data.infos);
 
@@ -142,7 +154,9 @@
 				else if(phase === "GETBONES") getSqueletonStructure(e.data.name);
     	    }
 
+
 	        function sendKey(){ OimoWorker.postMessage({tell:"KEY", key:key}); }
+	        function sendCameraOrientation(){ OimoWorker.postMessage({tell:"CAMERA", cam:cam}); }
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
 	        function changeGravity(){ OimoWorker.postMessage({tell:"GRAVITY", G:garvity.value}); }

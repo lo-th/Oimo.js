@@ -61,12 +61,13 @@ self.onmessage = function (e) {
         newGravity = e.data.G;
         initClass();
     }
-    else if(phase === "UPDATE") update();
-    else if(phase === "KEY") userKey(e.data.key);
-    else if(phase === "GRAVITY") newGravity = e.data.G;
-    else if(phase === "NEXT") initNextDemo();
-    else if(phase === "PREV") initPrevDemo();
-    else if(phase === "BONESLIST"){ 
+    if(phase === "UPDATE") update();
+    if(phase === "KEY") userKey(e.data.key);
+    if(phase === "CAMERA") userCamera(e.data.cam);
+    if(phase === "GRAVITY") newGravity = e.data.G;
+    if(phase === "NEXT") initNextDemo();
+    if(phase === "PREV") initPrevDemo();
+    if(phase === "BONESLIST"){ 
         bonesPosition = e.data.pos; 
         bonesRotation = e.data.rot;
         startDemo();
@@ -136,6 +137,16 @@ function getBonesInfo(name) {
 }
 
 //--------------------------------------------------
+//   USER CAMERA
+//--------------------------------------------------
+
+function userCamera(cam) {
+    if(ball !== null ){
+        ball.Phi(cam[1]);
+    }
+}
+
+//--------------------------------------------------
 //   USER KEY
 //--------------------------------------------------
 
@@ -145,7 +156,7 @@ function userKey(key) {
         if(key[5]===1)car.move(0,2,0);
     }
     if(ball !== null ){
-        ball.update(key[0], key[1], key[2], key[3], 0, 0);
+        ball.update(key[0], key[1], key[2], key[3]);
     }
 }
 
@@ -292,6 +303,7 @@ function addRigid(obj){
         case "columnBase": shape = new BoxShape(sc, s[0], s[1], s[2]); t=8; break;
         case "columnTop": shape = new BoxShape(sc, s[0], s[1], s[2]); t=9; break;
         case "nball": shape = new SphereShape(sc, s[0]); t=11; break;
+        case "gyro": shape = new SphereShape(sc, s[0]); t=12; break;
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     

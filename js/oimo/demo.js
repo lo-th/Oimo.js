@@ -153,7 +153,7 @@ function demo4(){
     sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[40,4,40], pos:[0,-2,0], sc:sc});
+    addRigid({type:"box", size:[100,4,100], pos:[0,-2,0], sc:sc});
 
     var width = 6;
     var height = 6;
@@ -191,7 +191,7 @@ function demo5(){
     sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[200,10,200], pos:[0,-5,0], sc:sc});
+    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
 
     // Greek temple
     var x = 0, z = 0;

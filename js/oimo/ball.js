@@ -5,8 +5,13 @@ Ball = function (x, y, z, world) {
 	sc.density = 10;
 	sc.friction = 2;
 	this.speed = 0.2;
+	this.phi = 0;
 	
-	this.body = addRigid({type:"sphere", size:[1], pos:[x, y, z], sc:sc, move:true, noSleep:true});
+	this.body = addRigid({type:"gyro", size:[1], pos:[x, y, z], sc:sc, move:true, noSleep:true});
+}
+
+Ball.prototype.Phi =function (v) {
+	this.phi = v;
 }
 
 Ball.prototype.move =function (x,y,z) {
@@ -14,22 +19,22 @@ Ball.prototype.move =function (x,y,z) {
 	this.update(0,0);
 }
 
-Ball.prototype.update = function (up, down, left, right, pi, theta) {
+Ball.prototype.update = function (up, down, left, right) {
 	if (up === 1) {
-		this.body.linearVelocity.x -= Math.cos(pi) * this.speed;
-		this.body.linearVelocity.z -= Math.sin(pi) * this.speed;
+		this.body.linearVelocity.x -= Math.cos(this.phi) * this.speed;
+		this.body.linearVelocity.z -= Math.sin(this.phi) * this.speed;
 	}
 	if (down === 1) {
-		this.body.linearVelocity.x += Math.cos(pi) * this.speed;
-		this.body.linearVelocity.z += Math.sin(pi) * this.speed;
+		this.body.linearVelocity.x += Math.cos(this.phi) * this.speed;
+		this.body.linearVelocity.z += Math.sin(this.phi) * this.speed;
 	}
 	if (left ===1) {
-		this.body.linearVelocity.x -= Math.cos(pi - Math.PI * 0.5) * this.speed;
-		this.body.linearVelocity.z -= Math.sin(pi - Math.PI * 0.5) * this.speed;
+		this.body.linearVelocity.x -= Math.cos(this.phi - Math.PI * 0.5) * this.speed;
+		this.body.linearVelocity.z -= Math.sin(this.phi - Math.PI * 0.5) * this.speed;
 	}
 	if (right ===1) {
-		this.body.linearVelocity.x -= Math.cos(pi + Math.PI * 0.5) * this.speed;
-		this.body.linearVelocity.z -= Math.sin(pi + Math.PI * 0.5) * this.speed;
+		this.body.linearVelocity.x -= Math.cos(this.phi + Math.PI * 0.5) * this.speed;
+		this.body.linearVelocity.z -= Math.sin(this.phi + Math.PI * 0.5) * this.speed;
 	}
 	if (up === 0 && down === 0 && left === 0 && right === 0) {
 		/*this.body.angularVelocity.x = 0;
