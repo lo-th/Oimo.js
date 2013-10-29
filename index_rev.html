@@ -133,14 +133,14 @@
 		            if(demo === 3) updateSnake();
 		            if(demo === 6) updateSila();
 		            //Follow object 
-		            if(demo === 4){
+		            if(demo === 4 || demo === 5){
 		            	m=content.children[max-1];
 		            	cameraFollow(m.position);
 		            	m.children[0].rotation.y = -m.rotation.y; //axe01
 		                m.children[0].children[0].rotation.x = -m.rotation.x; //axe02
 		            	m.children[0].children[0].children[0].rotation.z = -m.rotation.z; //axe03
 		            }
-		            if(demo === 5) cameraFollow(content.children[max-4].position);
+		            //if(demo === 5) cameraFollow(content.children[max-4].position);
 
 					displayInfo(e.data.infos);
 
