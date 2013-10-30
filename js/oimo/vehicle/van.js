@@ -1,4 +1,5 @@
-/* Copyright (c) 2012-2013 EL-EMENT saharan */
+
+// ape piaggio
 
 Van = function (x, y, z, world) {
 	this.body;
