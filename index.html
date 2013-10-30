@@ -51,7 +51,7 @@
 		<script type="text/javascript" src="js/AutoTexture.js"></script>
 
 		<script type="text/javascript">
-		    var demoName = ["Basic shape", "Dice fall", "Mad Pool", "Joint test", "Supermarket", "Car simulator --- Use keyboard", "RagDoll"];
+		    var demoName = ["Basic shape", "Dice fall", "Mad Pool", "Joint test", "Supermarket", "Car simulator --- Use keyboard", "RagDoll", "Van"];
 		    var vSet = [ {h:90, v:70, d:600}, {h:0, v:60, d:1000}, {h:360, v:45, d:600}, {h:200, v:70, d:1500}, {h:0, v:10, d:1000}];
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
@@ -143,7 +143,20 @@
 		                m01.children[0].children[0].rotation.x = m00.rotation.y; //axe02
 		            	m01.children[0].children[0].children[0].rotation.y = m00.rotation.x; //axe03
 		            }
-		            if(demo === 5) cameraFollow(content.children[max-5].position);
+		            if(demo === 5){
+		            	cameraFollow(content.children[max-5].position);
+		            	//cameraFollow(content.children[max-4].position);
+		            }
+		            if(demo === 7){
+		            	var m00=content.children[max-1];
+		            	var m01=content.children[max];
+		            	
+		            	m01.position.x=m00.position.x;
+		            	m01.position.y=m00.position.y-36;
+		            	m01.position.z=m00.position.z;
+		            	m01.rotation.copy(m00.rotation);
+		            	cameraFollow(m00.position);
+		            }
 
 
 					displayInfo(e.data.infos);

@@ -13,9 +13,11 @@ size and position x100 for three.js
 
 importScripts('js/oimo/runtime_min.js');
 importScripts('js/oimo/oimo_dev_min.js');
-importScripts('js/oimo/demo.js');
-importScripts('js/oimo/car.js');
-importScripts('js/oimo/ball.js');
+importScripts('js/oimo/demos.js');
+
+importScripts('js/oimo/vehicle/car.js');
+importScripts('js/oimo/vehicle/van.js');
+importScripts('js/oimo/vehicle/ball.js');
 
 // main class
 var version = "10.DEV";
@@ -44,9 +46,10 @@ var sizes;
 var infos = new Float32Array(12);
 //var infos =[]; infos.length=12;
 var currentDemo = 0;
-var maxDemo = 6;
-// Controle by key
+var maxDemo = 8;
+// vehicle by key
 var car = null;
+var van = null;
 var ball = null;
 
 //--------------------------------------------------
@@ -151,6 +154,10 @@ function userCamera(cam) {
 //--------------------------------------------------
 
 function userKey(key) {
+    if(van !== null ){
+        van.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
+        if(key[5]===1)van.move(0,2,0);
+    }
     if(car !== null ){
         car.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
         if(key[5]===1)car.move(0,2,0);
@@ -256,6 +263,7 @@ function startDemo(){
     else if(currentDemo==4)demo4();
     else if(currentDemo==5)demo5();
     else if(currentDemo==6)demo6();
+    else if(currentDemo==7)demo7();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
@@ -305,6 +313,9 @@ function addRigid(obj){
         case "nball": shape = new SphereShape(sc, s[0]); t=11; break;
         case "gyro": shape = new SphereShape(sc, s[0]); t=12; break;
         case "carBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=13; break;
+
+        case "vanBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=14; break;
+        case "vanwheel": shape = new SphereShape(sc, s[0] ); t=15; break;// fake cylinder
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     

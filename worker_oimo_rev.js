@@ -13,8 +13,9 @@ size and position x100 for three.js
 
 importScripts('js/oimo/runtime_min.js');
 importScripts('js/oimo/oimo_rev_min.js');
-importScripts('js/oimo/demo.js');
-importScripts('js/oimo/ball.js');
+importScripts('js/oimo/demos.js');
+
+importScripts('js/oimo/vehicle/ball.js');
 
 // main class
 var version = "10.REV";

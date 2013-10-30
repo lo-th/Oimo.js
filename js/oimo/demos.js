@@ -221,6 +221,7 @@ function demo5(){
     if(version=="10.DEV"){
         // Car simulator
         car = new Car(0,2,0, world);
+        
     }else{
         // ball controler
         ball = new Ball(0,1,0, world);
@@ -232,12 +233,18 @@ function demo5(){
 //--------------------------------------------------
 
 function demo6(){
-    world.gravity = new Vec3(0, 0, 0);
+    
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
     sc.restitution = 0.5;
 
+    // ground
+    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
+
+    
+    world.gravity = new Vec3(0, 0, 0);
+    // test ragdoll stucture
     var bones =[];
     var joints =[];
 
@@ -300,4 +307,25 @@ function demo6(){
     d = getDistance3d(bonesPosition[17], bonesPosition[18]);
     addJoint({type:"distance", body1:bones[17], body2:bones[18], pos1:[0,0,0], pos2:[0,0,0], upperAngle:1, axis1:[0,0,0], axis2:[1,0,1], collision:false, minDistance:d, maxDistance:d });
 
+}
+
+
+
+//--------------------------------------------------
+//    VAN
+//--------------------------------------------------
+
+function demo7(){
+    var sc = new ShapeConfig();
+    sc.density = 1;
+    sc.friction = 0.5;
+    sc.restitution = 0.5;
+
+    // ground
+    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
+
+    if(version=="10.DEV"){
+        // test new vehicle
+        van = new Van(0,2,0,world);
+    }
 }

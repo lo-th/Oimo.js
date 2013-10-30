@@ -206,6 +206,7 @@ function createContentObjects(data){
 	var max = data.types.length;
 	var mesh;
 	var m2 = null;
+	var m3 = null;
 	var meshFlag;
 	var s;
     for(var i=0; i!==max; i++){
@@ -252,10 +253,27 @@ function createContentObjects(data){
     		m2.scale.set( s[0], s[0], -s[0] );
     		break; // gyro
     		case 13: mesh = new THREE.Mesh(getMeshByName('carBody').geometry, mat02); mesh.scale.set( 100, 100, -100 );break; // carBody
+
+    		case 14: 
+    		    mesh=new THREE.Mesh(geo01b, mat01); 
+    		   // mesh.scale.set( s[0], s[1], s[2] );
+    		    m2 = getMeshByName('vanBody');// new THREE.Mesh(getMeshByName('vanBody').geometry, mat02); 
+    		    m2.material = mat02;
+    		    m2.children[0].material = mat02;
+    		    m2.children[1].material = mat02;
+    		    m2.children[2].material = mat02;
+    		    m2.scale.set( -3, 3, 3 );
+    		   // m2.position.y = -10;
+    		break; // carBody
+    		case 15:
+    		    mesh=new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);
+    		    mesh.scale.set( 3,3,-3 );
+    		break
     	}
     	mesh.position.y = -10000;
     	content.add( mesh );
     	if(m2!==null)content.add( m2 );
+    	//if(m3!==null)content.add( m3 );
     	if(data.types[i]!==10){
     		mesh.receiveShadow = true;
     		mesh.castShadow = true;
@@ -521,7 +539,7 @@ function initObject() {
 //  SEA3D IMPORT
 //-----------------------------------------------------
 
-var seaList = ['dice', 'snake', 'wheel', 'column', 'sila', 'gyro'];
+var seaList = ['dice', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van'];
 var seaN = 0;
 
 function initSea3DMesh(){
