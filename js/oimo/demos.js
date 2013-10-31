@@ -316,6 +316,8 @@ function demo6(){
 //--------------------------------------------------
 
 function demo7(){
+     world.gravity = new Vec3(0, -10, 0);
+     
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
