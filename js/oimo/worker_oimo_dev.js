@@ -10,19 +10,21 @@ OimoPhysics use international system units
 0.1 to 10 meters max for dynamique body
 size and position x100 for three.js
 */
+//'use strict';
+importScripts('runtime_min.js');
+importScripts('oimo_dev_min.js');
+importScripts('demos.js');
 
-importScripts('js/oimo/runtime_min.js');
-importScripts('js/oimo/oimo_rev_min.js');
-importScripts('js/oimo/demos.js');
-
-importScripts('js/oimo/vehicle/ball.js');
+importScripts('vehicle/car.js');
+importScripts('vehicle/van.js');
+importScripts('vehicle/ball.js');
 
 // main class
-var version = "10.REV";
-var World, RigidBody, BruteForceBroadPhase, SweepAndPruneBroadPhase;
-var Shape, ShapeConfig, BoxShape, SphereShape, CylinderShape;
-var Joint, JointConfig, HingeJoint, Hinge2Joint, BallJoint, DistanceJoint;
-var Vec3, Quat, Mat33, Mat44;
+var version = "10.DEV";
+var World, RigidBody, BroadPhase;
+var Shape, ShapeConfig, BoxShape, SphereShape;
+var JointConfig, HingeJoint, WheelJoint, DistanceJoint;
+var Vec3, Quat, Mat33;
 
 // physics variable
 var world;
@@ -41,12 +43,13 @@ var matrix;
 var sleeps;
 var types;
 var sizes;
-var infos =new Float32Array(12);
-
-var currentDemo = 0//0;
-var maxDemo = 7;
-// Controle by key
+var infos = new Float32Array(12);
+//var infos =[]; infos.length=12;
+var currentDemo = 0;
+var maxDemo = 8;
+// vehicle by key
 var car = null;
+var van = null;
 var ball = null;
 
 //--------------------------------------------------
@@ -61,8 +64,8 @@ self.onmessage = function (e) {
         newGravity = e.data.G;
         initClass();
     }
-    if(phase === "UPDATE")update();
-    if(phase === "KEY")userKey(e.data.key);
+    if(phase === "UPDATE") update();
+    if(phase === "KEY") userKey(e.data.key);
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
     if(phase === "NEXT") initNextDemo();
@@ -94,15 +97,17 @@ function update() {
             p = bodys[i].position;
             n = 12*i;
 
-            /*matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
+           /* matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
             matrix[n+4]=r.e10*1000; matrix[n+5]=r.e11*1000; matrix[n+6]=r.e12*1000; matrix[n+7]=p.y*1000;
-            matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;*/
-            /*
-            r = new Mat33();
+            matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;
+            */
+            
+            /*r = new Mat33();
             r.scale(bodys[i].rotation, 1000)
             p = new Vec3();
             p.scale(bodys[i].position, 1000);
-            n = 12*i;*/
+            */
+            //n = 12*i;
             matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=p.x;
             matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=p.y;
             matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=p.z;
@@ -131,8 +136,6 @@ var bonesPosition;
 var bonesRotation;
 
 function getBonesInfo(name) {
-    bonesPosition = [];
-    bonesRotation = [];
     self.postMessage({tell:"GETBONES", name:name })
 }
 
@@ -151,6 +154,14 @@ function userCamera(cam) {
 //--------------------------------------------------
 
 function userKey(key) {
+    if(van !== null ){
+        van.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
+        if(key[5]===1)van.move(0,2,0);
+    }
+    if(car !== null ){
+        car.update((key[0]===1 ? 1 : 0) + (key[1]===1 ? -1 : 0), (key[2]===1 ? -1 : 0) + (key[3]===1 ? 1 : 0));
+        if(key[5]===1)car.move(0,2,0);
+    }
     if(ball !== null ){
         ball.update(key[0], key[1], key[2], key[3]);
     }
@@ -162,30 +173,25 @@ function userKey(key) {
 
 function initClass(){
     with(joo.classLoader) {
-        import_("com.element.oimo.physics.OimoPhysics");
+        import_("com.elementdev.oimo.physics.OimoPhysics");
         complete(function(imports){with(imports){
-            World = com.element.oimo.physics.dynamics.World;
-            RigidBody = com.element.oimo.physics.dynamics.RigidBody;
-            BruteForceBroadPhase = com.element.oimo.physics.collision.broad.BruteForceBroadPhase;
-            SweepAndPruneBroadPhase = com.element.oimo.physics.collision.broad.SweepAndPruneBroadPhase;
+            World = com.elementdev.oimo.physics.dynamics.World;
+            RigidBody = com.elementdev.oimo.physics.dynamics.RigidBody;
+            BroadPhase = com.elementdev.oimo.physics.collision.broadphase.BroadPhase;
             // Shape
-            Shape = com.element.oimo.physics.collision.shape.Shape;
-            ShapeConfig = com.element.oimo.physics.collision.shape.ShapeConfig;
-            BoxShape = com.element.oimo.physics.collision.shape.BoxShape;
-            SphereShape = com.element.oimo.physics.collision.shape.SphereShape;
-            CylinderShape = com.element.oimo.physics.collision.shape.CylinderShape;
+            Shape = com.elementdev.oimo.physics.collision.shape.Shape;
+            ShapeConfig = com.elementdev.oimo.physics.collision.shape.ShapeConfig;
+            BoxShape = com.elementdev.oimo.physics.collision.shape.BoxShape;
+            SphereShape = com.elementdev.oimo.physics.collision.shape.SphereShape;
             // Joint
-            Joint = com.element.oimo.physics.constraint.joint.Joint;
-            JointConfig = com.element.oimo.physics.constraint.joint.JointConfig;
-            HingeJoint = com.element.oimo.physics.constraint.joint.HingeJoint;
-            Hinge2Joint = com.element.oimo.physics.constraint.joint.Hinge2Joint;
-            BallJoint = com.element.oimo.physics.constraint.joint.BallJoint;
-            DistanceJoint = com.element.oimo.physics.constraint.joint.DistanceJoint;
+            JointConfig = com.elementdev.oimo.physics.constraint.joint.JointConfig;
+            HingeJoint = com.elementdev.oimo.physics.constraint.joint.HingeJoint;
+            WheelJoint = com.elementdev.oimo.physics.constraint.joint.WheelJoint;
+            DistanceJoint = com.elementdev.oimo.physics.constraint.joint.DistanceJoint;
             // Math
-            Vec3 = com.element.oimo.math.Vec3;
-            Quat = com.element.oimo.math.Quat;
-            Mat33 = com.element.oimo.math.Mat33;
-            Mat44 = com.element.oimo.math.Mat44;
+            Vec3 = com.elementdev.oimo.math.Vec3;
+            Quat = com.elementdev.oimo.math.Quat;
+            Mat33 = com.elementdev.oimo.math.Mat33;
 
             initWorld();
         }});
@@ -195,6 +201,11 @@ function initClass(){
 function initWorld(){
     if(world==null){
         world = new World();
+
+        //world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
+        //world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
+        //world.broadphase = BroadPhase.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
+        
         world.numIterations = iterations;
         world.timeStep = dt;
         timerStep = dt * 1000;
@@ -203,15 +214,12 @@ function initWorld(){
 
     lookIfNeedInfo();
 }
-
+   
 function clearWorld(){
     clearTimeout(timer);
-    var i;
-    var max = world.numRigidBodies;
-    for (i = max - 1; i >= 0 ; i -- ) world.removeRigidBody(world.rigidBodies[i]);
-    max = world.numJoints;
-    for (i = max - 1; i >= 0 ; i -- ) world.removeJoint(world.joints[i]);
+    if(world != null) world.clear();
     // Clear control object
+    if(car !== null ) car = null;
     if(ball !== null ) ball = null;
     // Clear three object
     self.postMessage({tell:"CLEAR"});
@@ -255,12 +263,14 @@ function startDemo(){
     else if(currentDemo==4)demo4();
     else if(currentDemo==5)demo5();
     else if(currentDemo==6)demo6();
+    else if(currentDemo==7)demo7();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
-    //matrix = new Int32Array(N*12);
     //sleeps = new Float32Array(N);
     sleeps = new Uint8Array(N);
+    //matrix = new Int32Array(N*12);
+    //matrix = new Int32Array(new ArrayBuffer(N*12));
     
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 }
@@ -273,46 +283,57 @@ function addRigid(obj){
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
-    var move = obj.move || false;
     var rotation = obj.rotation || null;
+    var move = obj.move || false;
     var sc = obj.sc || new ShapeConfig();
-    var t; 
-    var shape;
-    //var sleeping = obj.sleep || false;
     var noSleep  = obj.noSleep || false; 
+    var noAdjust = obj.noAdjust || false;
 
+
+    // rotation x y z in degre to axis
+    //if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
     // rotation x y z in radian
     if(rotation !== null ) r = eulerToAxisAngle(rotation[0], rotation[1], rotation[2]);
     else r[0] = r[0]*ToRad;
 
-    sc.position.init(p[0], p[1], p[2]);
-    sc.rotation.init();
+    var shape, t;
+    var shape2 = null;
     switch(obj.type){
-        case "sphere": shape=new SphereShape(s[0], sc); t=1; break;
-        case "box": shape=new BoxShape(s[0], s[1], s[2], sc); t=2; break;
-        case "bone": shape=new BoxShape(s[0], s[1], s[2], sc); t=10; break;
-        case "cylinder": shape=new CylinderShape(s[0], s[1], sc); t=3; break;
-        case "dice": shape=new BoxShape(s[0], s[1], s[2], sc); t=4; break;
+        case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
+        case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
+        case "bone": shape=new BoxShape(sc, s[0], s[1], s[2]); t=10; break;
+        case "cylinder": shape = new SphereShape(sc, s[0] ); t=3; break;// fake cylinder
+        case "dice": shape=new BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
+        case "wheel": shape = new SphereShape(sc, s[0] ); t=5; break;// fake cylinder
+        case "wheelinv": shape = new SphereShape(sc, s[0] ); t=6; break;// fake cylinder
 
-        case "column": shape = new CylinderShape(s[0], s[1], sc); t=7; break;
-        case "columnBase": shape = new BoxShape(s[0], s[1], s[2], sc); t=8; break;
-        case "columnTop": shape = new BoxShape(s[0], s[1], s[2], sc); t=9; break;
-        case "nball": shape = new SphereShape(s[0], sc); t=11; break;
-        case "gyro": shape = new SphereShape(s[0], sc); t=12; break;
+        case "column": shape = new BoxShape(sc, s[0]*2, s[1], s[2]*2);  t=7; break;// fake cylinder
+        case "columnBase": shape = new BoxShape(sc, s[0], s[1], s[2]); t=8; break;
+        case "columnTop": shape = new BoxShape(sc, s[0], s[1], s[2]); t=9; break;
+        case "nball": shape = new SphereShape(sc, s[0]); t=11; break;
+        case "gyro": shape = new SphereShape(sc, s[0]); t=12; break;
+        case "carBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=13; break;
+
+        case "vanBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=14; break;
+        case "vanwheel": shape = new SphereShape(sc, s[0] ); t=15; break;// fake cylinder
     }
-    var body = new RigidBody(r[0], r[1], r[2], r[3]);
+    var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+    
+    
+
     body.addShape(shape);
-    if(!move)body.setupMass(0x1);
+    if(shape2!=null)body.addShape(shape2);
+    //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
+
+    if(!move)body.setupMass(0x2);
     else{ 
-        body.setupMass(0x0);
+        if(noAdjust)body.setupMass(0x1, false);
+        else body.setupMass(0x1, true);
         bodys.push(body);
         types.push(t);
-        sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
-        //body.sleeping = sleeping;
-        //if(sleeping)body.sleep();
+        sizes.push([s[0]*scale, s[1]*scale, s[2]*scale])
         if(noSleep)body.allowSleep = false;
         else body.allowSleep = true;
-        
     }
     world.addRigidBody(body);
     return body;
@@ -328,23 +349,34 @@ function addJoint(obj){
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
-    var minDistance = obj.minDistance || 0.01;
+    var minDistance =0.01// obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
+    var lowerAngleLimit = obj.lowerAngle || 1;
+    var upperAngleLimit = obj.upperAngle || 0;
     var type = obj.type || "hinge";
+    var limit = obj.limit || null;
+    var spring = obj.spring || null;
     var collision = obj.collision || false;
     jc.allowCollision=collision;
     jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
     jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
-    jc.localRelativeAnchorPosition1.init(pos1[0], pos1[1], pos1[2]);
-    jc.localRelativeAnchorPosition2.init(pos2[0], pos2[1], pos2[2]);
-
+    jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
+    jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
+    jc.body1 = obj.body1;
+    jc.body2 = obj.body2;
     var joint;
     switch(type){
-        case "distance": joint = new DistanceJoint(obj.body1, obj.body2, maxDistance,jc); break;
-        case "hinge": joint = new HingeJoint(obj.body1, obj.body2, jc); break;
+        case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
+        case "hinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
+        case "wheel": 
+            joint = new WheelJoint(jc);  
+            if(limit !== null) 
+                joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+            if(spring !== null) 
+                joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+        break;
     }
-    
-    //joint.limitMotor.setSpring(1, 10); // soften the joint
+    //joint.limitMotor.setSpring(100, 0.9); // soften the joint
     world.addJoint(joint);
     return joint;
 }
@@ -363,8 +395,8 @@ function worldInfo() {
     infos[0] = currentDemo;
     infos[1] = world.numRigidBodies;
     infos[2] = world.numContacts;
-    infos[3] = world.numShapes;
-    infos[4] = world.numJoints;
+    infos[3] = world.broadPhase.numPairChecks;
+    infos[4] = world.numContactPoints;
     infos[5] = world.numIslands;
     infos[6] = world.performance.broadPhaseTime;
     infos[7] = world.performance.narrowPhaseTime ;

@@ -608,13 +608,10 @@ function scaleGeometry(geometry, scale) {
 		vertex.y *= s;
 		vertex.z *= -s;
 	}
-	
 	geometry.computeFaceNormals();
 	geometry.computeCentroids();
 	geometry.computeVertexNormals();
 	geometry.verticesNeedUpdate = true;
-	//geometry.verticesNeedUpdate = false;
-	
 }
 
 //-----------------------------------------------------

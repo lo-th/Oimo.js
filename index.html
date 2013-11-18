@@ -58,7 +58,7 @@
 		    var currentView = 0;
             var output, garvity, loadInfo;
 
-            var OimoWorker = new Worker('worker_oimo_dev.js');
+            var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
 		    function init() {
