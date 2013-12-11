@@ -217,104 +217,33 @@ var Ambience = function () {
 
     var loadSphere = function ( materials, PY, S){
     	var posY = PY  || -1000 ;
-			var s = S || 1 ;
-		//	var n = N || 2;
-    	//var posY = PY  || -1000 ;
-		//var s = S || 1 ;
-    	//materials = mats;
-    	/*
+		var s = S || 1 ;
+	    if(scene3d == null)scene3d = new THREE.Scene();
 
-    	var textureHDR = texture;
-		textureHDR.minFilter = THREE.LinearFilter;
-		textureHDR.magFilter = THREE.NearestFilter;
-        
-        envMaterialHdr = new THREE.ShaderMaterial( {
-			uniforms: THREE.HdrShader.uniforms,
-			vertexShader: THREE.HdrShader.vertexShader,
-			fragmentShader: THREE.HdrShader.fragmentShader,
-			side:THREE.BackSide
+		//var geo = seaLoader.meshes[0].geometry;
+		cubeCamera = new THREE.CubeCamera( 0.1, s*1.2, 256 );
+		cubeCamera.position.set(0,posY,0);
+		cubeCamera.lookAt( new THREE.Vector3(0,posY,5));
+		scene3d.add( cubeCamera );
 
-		})
+		envMaterial = new THREE.MeshBasicMaterial({ map:texture });
 
-		envMaterialHdr.uniforms.tDiffuse.value = textureHDR;
-		envMaterialHdr.uniforms.exposure.value = imageConfig.exposure;
-		envMaterialHdr.uniforms.brightMax.value = imageConfig.brightMax;
-
-		envMaterial = new THREE.MeshBasicMaterial( { map:texture} );//, depthWrite: false
-
-
-
-		envSphere = new THREE.Mesh( new THREE.SphereGeometry( s, 60, 40 ),  envMaterial);
+		//envSphere = new THREE.Mesh(geo, envMaterial);
+		envSphere = new THREE.Mesh( new THREE.SphereGeometry( 1, 32, 16  ),  envMaterial);
 		envSphere.castShadow = false;
 		envSphere.receiveShadow = false;
-		//envSphere.scale.set(s,-s,s);
-
-		cubeCamera = new THREE.CubeCamera( 0.1, s*1.2, 256 );
-
+		envSphere.scale.set(-s,s,s);
 		envSphere.position.set(0,posY,0);
-		cubeCamera = new THREE.CubeCamera( 0.1, s*1.2, 256 );
-		//cubeCamera.scale.set(1,1,1);
-		cubeCamera.position.set(0,posY,0);
-
-
-
-
 
 		scene3d.add( envSphere );
-		scene3d.add( cubeCamera );*/
+		updateCamera();
 
-		/*for(var i=0;i!==materials.length; i++){
-				materials[i].envMap = cubeCamera.renderTarget;
-				materials[i].combine = THREE.MixOperation;
-				materials[i].reflectivity = 0.6;
-			}*/
-
-		//var seaLoader = new THREE.SEA3D( false );
-		//seaLoader.onComplete = function( e ) {}
-		    if(scene3d == null)scene3d = new THREE.Scene();
-
-			//var geo = seaLoader.meshes[0].geometry;
-			cubeCamera = new THREE.CubeCamera( 0.1, s*1.2, 256 );
-			cubeCamera.position.set(0,posY,0);
-			cubeCamera.lookAt( new THREE.Vector3(0,posY,5));
-			scene3d.add( cubeCamera );
-
-			envMaterial = new THREE.MeshBasicMaterial({ map:texture });
-
-			//envSphere = new THREE.Mesh(geo, envMaterial);
-			envSphere = new THREE.Mesh( new THREE.SphereGeometry( 1, 32, 16  ),  envMaterial);
-			envSphere.castShadow = false;
-			envSphere.receiveShadow = false;
-			envSphere.scale.set(-s,s,s);
-			envSphere.position.set(0,posY,0);
-			
-			//cubeCamera.scale.set(1,1,1);
-			
-			
-			//cubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
-			//cubeCamera.updateCubeMap( render3d, scene3d );
-
-
-			scene3d.add( envSphere );
-			updateCamera();
-
-			
-
-			for(var i=0;i!==materials.length; i++){
-				materials[i].envMap = cubeCamera.renderTarget;
-				materials[i].combine = THREE.MixOperation;
-				//materials[i].combine = THREE.MultiplyOperation;
-				materials[i].reflectivity = 0.5;
-			}
-
-			//materialAnim.envMap = cubeCamera.renderTarget;
-			//materialTrans.envMap = cubeCamera.renderTarget;
-			//sc=SC
-
-			
-		//}
-		
-		//seaLoader.load( "models/sphere"+n+".sea" );
+		for(var i=0;i!==materials.length; i++){
+			materials[i].envMap = cubeCamera.renderTarget;
+			materials[i].combine = THREE.MixOperation;
+			//materials[i].combine = THREE.MultiplyOperation;
+			materials[i].reflectivity = 0.5;
+		}
 	}
 
 	var applyMaterial = function () {
@@ -356,20 +285,18 @@ var Ambience = function () {
 	//--------------------------------------
 
 	var locations = [
-	    { lat: 45.1800489, lng: 5.79112699999996, name:'Gieres'},//Gieres
-	    { lat: 45.18938690965607, lng: 5.787280082440702, name:'Gieres' },//Gieres 2
-	    { lat: 41.413416092316275, lng: 2.1531126527786455, name:'port' },//port
-	    { lat: 35.69143938066447, lng: 139.695139627539, name:'resto' },//resto
-	    { lat: 41.413416092316275, lng: 2.1531126527786455, name:'resto1' },//australie
-		{ lat: 51.50700703827454, lng: -0.12791916931155356, name:'resto2' },
+	    { lat: 41.413416092316275, lng: 2.1531126527786455, name:'pos 0' },//port
+	    { lat: 35.69143938066447, lng: 139.695139627539, name:'pos 1' },//resto
+	    { lat: 41.413416092316275, lng: 2.1531126527786455, name:'pos 2' },//australie
+		{ lat: 51.50700703827454, lng: -0.12791916931155356, name:'pos 3' },
 		{ lat: 32.6144404, lng: -108.9852017, name:'resto3' },
-		{ lat: 39.36382677360614, lng: 8.431220278759724, name:'resto4' },
-		{ lat: 28.240385123352873, lng: -16.629988706884774, name:'resto6' },
-		{ lat: 50.09072314148827, lng: 14.393133454556278, name:'resto7' },
-		{ lat: 41.413416092316275, lng: 2.1531126527786455, name:'resto8' },
-		{ lat: 35.69143938066447, lng: 139.695139627539, name:'resto9' },
-		{ lat: 35.67120372775569, lng: 139.77167914398797, name:'resto10' },
-		{ lat: 54.552083679428065, lng: -3.297380963134742 , name:'resto11'}
+		{ lat: 39.36382677360614, lng: 8.431220278759724, name:'pos 4' },
+		{ lat: 28.240385123352873, lng: -16.629988706884774, name:'pos 5' },
+		{ lat: 50.09072314148827, lng: 14.393133454556278, name:'pos 6' },
+		{ lat: 41.413416092316275, lng: 2.1531126527786455, name:'pos 7' },
+		{ lat: 35.69143938066447, lng: 139.695139627539, name:'pos 8' },
+		{ lat: 35.67120372775569, lng: 139.77167914398797, name:'pos 9' },
+		{ lat: 54.552083679428065, lng: -3.297380963134742 , name:'pos 10'}
 	];
 
 	var currentPosition = Math.floor( Math.random() * locations.length );
