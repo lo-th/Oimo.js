@@ -142,7 +142,7 @@ function createSnakeTexture() {
 function bonesFlag(text) {
 	var canvas = document.createElement("canvas");
 	canvas.width = 64; canvas.height = 64;
-	ctx = canvas.getContext("2d");
+	var ctx = canvas.getContext("2d");
 
 	ctx.font = 'bold '+30+'pt Monospace';
 	ctx.textAlign = "center";
