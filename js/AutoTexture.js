@@ -1,4 +1,4 @@
-
+'use strict';
 //-----------------------------------------------------
 //  DICE
 //-----------------------------------------------------
@@ -163,7 +163,7 @@ function bonesFlag(text) {
 function eightBall(n) {
 	var canvas = document.createElement("canvas");
 	canvas.width = 256; canvas.height = 128;
-	ctx = canvas.getContext("2d");
+	var ctx = canvas.getContext("2d");
 
 	ctx.fillStyle = "#FDF8E4";
 	ctx.fillRect(0, 0, 256, 128);

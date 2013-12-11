@@ -4,7 +4,8 @@
     |_\___/\__|_||_|
     http://3dflashlo.wordpress.com/
 */
-var container, renderer, scene, camera, renderLoop, content;
+'use strict';
+var container, renderer, scene, sceneBG, camera, cameraBG, renderLoop, content;
 var camPos = {w: 100, h:100, horizontal: 40, vertical: 60, distance: 2000, automove: false};
 var vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
 var mouse = {x: 0, y: 0, down:false, over:false, ox: 0, oy: 0, h: 0, v: 0, mx:0, my:0};
@@ -35,45 +36,57 @@ var projector = new THREE.Projector();
 var directionVector = new THREE.Vector3();
 var marker;
 
+var isBuffered = true;
+
 //-----------------------------------------------------
 //  INIT VIEW
 //-----------------------------------------------------
 
 function initThree(option) {
-	if(!option)option = {};
+	if(!option) option = {};
 	isOptimized = option.optimized || false;
-	character = option.n || 1;
 	if(!isOptimized)antialias = true;
 	else antialias = false
 
-	renderer = new THREE.WebGLRenderer({ antialias:antialias });
-	renderer.setClearColor( 0x212121, 1 );
+	renderer = new THREE.WebGLRenderer({ antialias:antialias, alpha: false });
+	//renderer.setClearColor( 0x161616, 1 );
+	//renderer.autoClearColor = false;
 	renderer.physicallyBasedShading = true;
 	renderer.gammaOutput = true;
 	renderer.gammaInput = true;
+	renderer.autoClear = false;
+
 	MaxAnistropy = renderer.getMaxAnisotropy();
 
 	scene = new THREE.Scene();
+	sceneBG = new THREE.Scene();
 	
 	camera = new THREE.PerspectiveCamera( 60, 1, 1, 4000 );
+	cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 6000 );
+	
 	scene.add(camera);
+	sceneBG.add(cameraBG);
+
 	moveCamera();
 
 	container = document.getElementById( "container" );
-	resize( container.clientWidth, container.clientHeight);
+	container.style.position = "absolute";
+	//resize( container.clientWidth, container.clientHeight);
 	container.appendChild( renderer.domElement );
 
-	document.addEventListener( 'mousemove', onMouseMove, false );
-	document.addEventListener( 'touchmove', onTouchMove, false );
-	document.addEventListener( 'mousedown', onMouseDown, false );
-	document.addEventListener( 'mouseup', onMouseUp, false );
-	document.addEventListener( 'mousewheel', onMouseWheel, false );
-	document.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
+	container.addEventListener( 'mousemove', onMouseMove, false );
+	container.addEventListener( 'touchmove', onTouchMove, false );
+	container.addEventListener( 'mousedown', onMouseDown, false );
+	container.addEventListener( 'mouseup', onMouseUp, false );
+	container.addEventListener( 'mousewheel', onMouseWheel, false );
+	container.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
 	document.addEventListener( 'keydown', onKeyDown, false );
 	document.addEventListener( 'keyup', onKeyUp, false );
 
 	if(option.mouse) customCursor();
-	if(option.autoSize){ window.addEventListener( 'resize', rz, false ); rz();}
+	//else {cursor = document.getElementById( 'cursor' );}
+	if(option.autoSize){ defaultIfResize(); window.addEventListener( 'resize', rz, false ); rz();}
+	else{ window.addEventListener( 'resize', rz2, false ); rz2(); };
 
 	// containe all object from simulation
 	content = new THREE.Object3D();
@@ -85,8 +98,9 @@ function initThree(option) {
 
 	if(!isOptimized){
 	    renderer.shadowMapEnabled = true;
-	    renderer.shadowMapSoft = true;
-		scene.fog = new THREE.Fog( 0x212121 , 1000, 2000 );
+	    renderer.shadowMapType = THREE.PCFSoftShadowMap;
+	    //renderer.shadowMapSoft = true;
+		//scene.fog = new THREE.Fog( 0x212121 , 1000, 2000 );
 		//mirrorGround();
 		initLights();
 	}
@@ -95,10 +109,10 @@ function initThree(option) {
 	initObject();
 	initSea3DMesh();
 
-	onThreeChangeView(45,60,1000);
+	//onThreeChangeView(45,60,1000);
 
     //update();
-    startRender();
+    //startRender();
 }
 
 function customCursor() {
@@ -107,8 +121,6 @@ function customCursor() {
 	cursor = document.getElementById( 'cursor' );
 	container.addEventListener( 'mouseover', onMouseOver, false );
 	container.addEventListener( 'mouseout', onMouseOut, false );
-
-
 }
 
 function debugInfo(s){
@@ -122,39 +134,86 @@ function debugInfo(s){
 var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro; 
 var materials = [];
 var poolMaterial = [];
+//var baseMaterialm baseMaterial2;
+var envTexture;
+var sphereMaterial;
+var renderNoise=.04,nRenderNoise=.04;
+
+function setNoise(n){
+	//baseMaterial.uniforms.noise.value=baseMaterial2.uniforms.noise.value=
+	sphereMaterial.uniforms.noise.value=n;
+}
 
 function initMaterial() {
+	envTexture = Ambience.getTexture();
+
+	// SHADER
+
+	sphereMaterial=new THREE.ShaderMaterial({
+		uniforms:THREE.SpShader.uniforms,
+		vertexShader:THREE.SpShader.vertexShader,
+		fragmentShader:THREE.SpShader.fragmentShader,
+		side:THREE.BackSide,
+		depthWrite: false
+	});
+	sphereMaterial.uniforms.resolution.value.set(camPos.w,camPos.h);
+
+	/*baseMaterial=new THREE.ShaderMaterial({
+		uniforms: THREE.SphereShader.uniforms,
+		vertexShader: THREE.SphereShader.vertexShader,
+		fragmentShader: THREE.SphereShader.fragmentShader,
+		wrapping:THREE.ClampToEdgeWrapping,
+		shading:THREE.SmoothShading
+	});
+	baseMaterial.uniforms.tMatCap.value = envTexture;
+	baseMaterial.uniforms.tMatCap.value.wrapS=baseMaterial.uniforms.tMatCap.value.wrapT=THREE.ClampToEdgeWrapping;
+	//baseMaterial.uniforms.tNormal.value.wrapS=baseMaterial.uniforms.tNormal.value.wrapT=THREE.RepeatWrapping;
+
+	baseMaterial2=new THREE.ShaderMaterial({
+		uniforms: THREE.SphereShader.uniforms,
+		vertexShader: THREE.SphereShader.vertexShader,
+		fragmentShader: THREE.SphereShader.fragmentShader,
+		wrapping:THREE.ClampToEdgeWrapping,
+		shading:THREE.SmoothShading
+	});
+	baseMaterial2.uniforms.tMatCap.value = envTexture;
+	baseMaterial2.uniforms.tMatCap.value.wrapS=baseMaterial2.uniforms.tMatCap.value.wrapT=THREE.ClampToEdgeWrapping;
+	//baseMaterial.uniforms.tNormal.value.wrapS=baseMaterial.uniforms.tNormal.value.wrapT=THREE.RepeatWrapping;
+	baseMaterial2.uniforms.useRim.value = 10/100;
+	baseMaterial2.uniforms.rimPower.value = 1/20;
+	*/
+
 	// from AutoTexture
 	var snakeTexture = createSnakeTexture();
 	var diceTexture = new createDiceTexture(0);
 	var diceTextureSleep = new createDiceTexture(1);
 	var wheelTexture = new createWheelTexture(0);
-	var gyroTexture = THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );//new createGyroTexture();
-	//MeshLambertMaterial
-
+	var gyroTexture = THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
 
 	if(!isOptimized){
-		groundMat =  new THREE.MeshPhongMaterial( { color: 0x185E77, shininess:20, specular:0x303030} );
-		mat01 = new THREE.MeshPhongMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
-		mat02 = new THREE.MeshPhongMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
-		mat03 = new THREE.MeshPhongMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
-		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:100, specular:0xffffff } );
+		groundMat =  new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
+		mat01 = new THREE.MeshLambertMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
+		mat02 = new THREE.MeshLambertMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
+		mat03 = new THREE.MeshLambertMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
+		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:10, specular:0xffffff } );
 		mat05 = new THREE.MeshPhongMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
-		mat06 = new THREE.MeshPhongMaterial( { map: wheelTexture, shininess:100, specular:0xffffff } );
+		mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture } );
 		mat07 = new THREE.MeshPhongMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
 		mat08 = new THREE.MeshPhongMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } );
-		mat01sleep = new THREE.MeshPhongMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
-		mat02sleep = new THREE.MeshPhongMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
-		mat03sleep = new THREE.MeshPhongMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
-		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:100, specular:0xffffff } );
-		mat07sleep = new THREE.MeshPhongMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
+		mat01sleep = new THREE.MeshLambertMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
+		mat02sleep = new THREE.MeshLambertMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
+		mat03sleep = new THREE.MeshLambertMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
+		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:10, specular:0xffffff } );
+		mat07sleep = new THREE.MeshBasicMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
 		matGyro = new THREE.MeshPhongMaterial( { map: gyroTexture, shininess:100, specular:0xffffff } );
 
 		matBone = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
 		matBonesleep = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
 		for(var i=0;i!==16;i++){
-			poolMaterial[i] = new THREE.MeshPhongMaterial( { map: new eightBall(i), shininess:100, specular:0xffffff } );
+			poolMaterial[i] = new THREE.MeshPhongMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff } );
 		}
+
+		//MeshLambertMaterial
 	}else{
 		groundMat = new THREE.MeshBasicMaterial( { color: 0x185E77} );
 		mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
@@ -191,6 +250,13 @@ function initMaterial() {
 	mat07sleep.name = "mat07sleep";
 	matBone.name = "bone";
 	matBonesleep.name = "bonesleep";
+
+	// define Ambiante Colors
+	var array1=[mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, mat06, mat08, matGyro];
+	var array2 = array1.concat(poolMaterial)
+	//Ambience.begin(scene, [mat01, mat02, mat03,mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep], 2);
+	Ambience.begin(renderer, scene, array2, 500,100);
+	//Ambience.update((-camPos.horizontal)*ToRad, (-camPos.vertical-90)*ToRad, renderer, scene);
 }
 
 //-----------------------------------------------------
@@ -199,9 +265,9 @@ function initMaterial() {
 
 var geo00 = new THREE.PlaneGeometry( 1, 1 );
 var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
-var geo02 = new THREE.SphereGeometry( 1, 16, 12 );
+var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
 var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
-var geo04 = new THREE.SphereGeometry( 1, 30, 20 );
+var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
 
 var geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
 var geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
@@ -214,6 +280,7 @@ var colomnBaseBuffer;
 var colomnTopBuffer;
 
 function createContentObjects(data){
+	//resetBgObject();
 	var boneindex=0;
 	var max = data.types.length;
 	var mesh;
@@ -231,13 +298,13 @@ function createContentObjects(data){
     		case 4: mesh=new THREE.Mesh(diceBuffer, mat04); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
     		case 5:
     		    mesh=new THREE.Mesh(getSeaGeometry('wheel'), mat06);
-    		    mesh.scale.set( s[0]*2, s[1]*2,- s[2]*2 );
+    		    mesh.scale.set( s[0]*2, s[1]*2, s[2]*2 );
     		    //mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
     		    //mesh.scale.set( s[0]*2, s[1]*2, -s[2]*2 );
     		break; // Wheel
     		case 6:
     		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
-    		    mesh.scale.set( -s[0]*2, s[1]*2, s[2]*2 );
+    		    mesh.scale.set( -s[0]*2, s[1]*2, -s[2]*2 );
     		break; // Wheel inv
 
     		case 7: mesh=new THREE.Mesh(colomnBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column
@@ -262,26 +329,30 @@ function createContentObjects(data){
     		m2.children[0].material = matGyro;
     		m2.children[0].children[0].material = matGyro;
     		m2.children[0].children[0].children[0].material = matGyro;
-    		m2.scale.set( s[0], s[0], -s[0] );
+    		m2.scale.set( s[0], s[0], s[0] );
     		break; // gyro
     		case 13: 
-    		    mesh = new THREE.Mesh(getSeaGeometry('carBody'), mat02); 
+    		    mesh = new THREE.Mesh(getMeshByName('carBody').geometry, mat02); 
     		    mesh.scale.set( 100, 100, 100 );break; // carBody
 
     		case 14: 
     		    mesh=new THREE.Mesh(geo01b, mat01); 
     		    mesh.visible = false;
     		   // mesh.scale.set( s[0], s[1], s[2] );
-    		    m2 = getMeshByName('vanBody');// new THREE.Mesh(getMeshByName('vanBody').geometry, mat02); 
+    		    m2 = getMeshByName('vanBody');//new THREE.Mesh(getMeshByName('vanBody').geometry, mat02);  //getSeaGeometry(name, scale, axe);
     		    m2.material = mat02;
     		    m2.children[0].material = mat02;
     		    m2.children[1].material = mat02;
     		    m2.children[2].material = mat02;
-    		    m2.scale.set( -3, 3, 3 );
+    		   // scaleGeometry(m2.geometry,3,'x');
+    		    m2.scale.set( 3, 3, 3 );
     		break; // carBody
     		case 15:
-    		    mesh=new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);
-    		    mesh.scale.set( 3,3,-3 );
+    		    mesh=new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);//getMeshByName('vanWheel', 3, 'x');//
+    		    //mesh.material = mat03;
+    		    //scaleGeometry(mesh.geometry,1,'x');
+
+    		    mesh.scale.set( 3,3, 3 );
     		break
     	}
     	mesh.position.y = -10000;
@@ -296,9 +367,12 @@ function createContentObjects(data){
     if(data.demo === 3) addSnake();
     if(data.demo === 6) addSila();
 
-    lightsAnimation(2, 0.5, 0, 90, 500);
-    center = new THREE.Vector3(0,150,0);
-    moveCamera();
+   //lightsAnimation(2, 0.5, 0, 90, 500);
+    //center = new THREE.Vector3(0,150,0);
+
+   // moveCamera();
+    cameraFollow(new THREE.Vector3(0,150,0));
+
 }
 
 
@@ -310,7 +384,7 @@ function clearContent(){
 			content.remove(obj);
 	}
 
-	lightsAnimation(0.5, 0, 180, 90, 0);
+	//lightsAnimation(0.5, 0, 180, 90, 0);
 }
 
 function addSnake(s) {
@@ -433,42 +507,6 @@ function getSqueletonStructure(name){
 	}
 }
 
-
-//-----------------------------------------------------
-//  MIRROR
-//-----------------------------------------------------
-
-/*var groundMirror;
-var verticalMirror;
-
-function mirrorGround(){
-	var planeGeo = new THREE.PlaneGeometry( 2000, 2000 );
-	groundMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: camPos.w, textureHeight: camPos.h, color: 0x191919} );
-	groundMirror.receiveShadow = false;
-	groundMirror.castShadow = false;
-
-    var blendings = [ "NoBlending", "NormalBlending", "AdditiveBlending", "SubtractiveBlending", "MultiplyBlending", "AdditiveAlphaBlending" ];
-	groundMirror.material.transparent = true;
-	groundMirror.material.blending = THREE[ "AdditiveBlending" ];
-
-	var mirrorMesh = new THREE.Mesh( planeGeo, groundMirror.material );
-	mirrorMesh.add( groundMirror );
-	mirrorMesh.rotateX( - Math.PI / 2 );
-	mirrorMesh.y = 0;
-	scene.add( mirrorMesh );
-
-	verticalMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: camPos.w, textureHeight: camPos.h, color:0x191919 } );
-				
-	var verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), verticalMirror.material );
-	verticalMirrorMesh.add( verticalMirror );
-	verticalMirrorMesh.position.y = 1000;
-	verticalMirrorMesh.position.x = -1000;
-	verticalMirrorMesh.rotation.y = (90)*ToRad;
-	scene.add( verticalMirrorMesh );
-
-	verticalMirrorMesh.visible = false;
-}*/
-
 //-----------------------------------------------------
 //  LIGHT
 //-----------------------------------------------------
@@ -476,19 +514,38 @@ function mirrorGround(){
 var lightPos={horizontal: 180, vertical: 90, distance: 0, color:0xffffff};
 
 function initLights() {
+	//var ambient = new THREE.AmbientLight( 0xFFFFFF);
+	//scene.add( ambient );
+
 	lights[0] = new THREE.DirectionalLight( 0xffffff );
-	lights[0].intensity = 0.6;
+	/*lights[0] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI/2, 1 );
+	lights[0].position.set( 0, 1500, 1000 );
+	lights[0].target.position.set( 0, 0, 0 );
+	lights[0].shadowCameraNear = 700;
+				lights[0].shadowCameraFar = 4000;
+				lights[0].shadowCameraFov = 50;
+
+				
+
+				//light.shadowCameraVisible = true;
+
+				lights[0].shadowBias = 0.0001;
+				lights[0].shadowDarkness = 0.5;
+
+				lights[0].shadowMapWidth = 1024;
+				lights[0].shadowMapHeight = 1024;*/
+	lights[0].intensity = 1.3;
 	lights[0].castShadow = true;
 
-	lights[0].shadowCameraNear = 100;
+	lights[0].shadowCameraNear = 500;
 	lights[0].shadowCameraFar = 2000;
 	
-	lights[0].shadowMapBias = 0.01;
-	lights[0].shadowMapDarkness = 0.7;
+	lights[0].shadowMapBias = 0.0001;
+	lights[0].shadowMapDarkness = 0.5;
 	lights[0].shadowMapWidth = 1024;
 	lights[0].shadowMapHeight = 1024;
 
-	var lightSize = 1000;
+	var lightSize = 2000;
 
 	lights[0].shadowCameraLeft = -lightSize;
 	lights[0].shadowCameraRight = lightSize;
@@ -496,13 +553,16 @@ function initLights() {
 	lights[0].shadowCameraBottom = -lightSize;
 
 	lights[0].position.copy( Orbit(center , 35, 45, 1000));
-	lights[0].lookAt(center);
+	lights[0].target.position.copy(center);
+	//lights[0].lookAt(center);
 
 	scene.add(lights[0]);
 
-	lights[1] = new THREE.PointLight( 0xff0000, 1, 800 );
+	lights[1] = new THREE.PointLight( 0x303030, 2 );
+	//lights[1].position.set( 200, -500, 500 );
+	lights[1].position.copy( Orbit(center , -35, -45, 1000));
 	scene.add( lights[1] );
-	lights[2] = new THREE.PointLight( 0x00ff00, 1, 800 );
+	/*lights[2] = new THREE.PointLight( 0x00ff00, 1, 800 );
 	scene.add( lights[2] );
 	lights[3] = new THREE.PointLight( 0x0000ff, 1, 800 );
 	scene.add( lights[3] );
@@ -520,93 +580,139 @@ function initLights() {
 	lights[2].add(sphereB);
 	lights[3].add(sphereC);
 
-	lightsAnimation(0, 0, 180, 90, 0);
+	lightsAnimation(0, 0, 180, 90, 0);*/
 	//lightsAnimation(3, 3, 0, 90, 500);
 }
 
 function lightsAnimation(time, delay, h, v, d, c) {
-	TweenLite.to(lightPos, time, {horizontal: h, vertical: v, distance: d, onUpdate: moveLights, delay:delay });
+	//TweenLite.to(lightPos, time, {horizontal: h, vertical: v, distance: d, onUpdate: moveLights, delay:delay });
 }
 
-function moveLights() {
-	//lights[1].color = lightPos.color;
+function moveLights(vect) {
+	lights[0].position.copy( Orbit(center , 35, 45, 1000));
+	lights[0].target.position.copy(center);
+	lights[1].position.copy( Orbit(center , 35, 45, -1000));
+
+	/*
 	lights[1].position.copy( Orbit(center , lightPos.horizontal, lightPos.vertical, lightPos.distance));
 	lights[2].position.copy( Orbit(center , lightPos.horizontal-120, lightPos.vertical, lightPos.distance));
 	lights[3].position.copy( Orbit(center , lightPos.horizontal+120, lightPos.vertical, lightPos.distance));
+	*/
 }
 
 //-----------------------------------------------------
-//  OBJECT
+//  BG OBJECT
 //-----------------------------------------------------
+var planeBG, sphereBG;
 
 function initObject() {
-	var geometry = new THREE.PlaneGeometry( 20000,20000 );
-	var plane = new THREE.Mesh( geometry, groundMat );
-	plane.rotation.x = (-90)*ToRad;
-	plane.position.y =-2
-	scene.add(plane);
+	// ground
+	planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMat );
+	planeBG.rotation.x = (-90)*ToRad;
+	//planeBG.position.y =-2
+	scene.add(planeBG);
+	planeBG.receiveShadow = true;
+	planeBG.castShadow = false;
 
-	plane.receiveShadow = true;
-	plane.castShadow = false;
+	// bg Sphere
+	sphereBG=new THREE.Mesh(new THREE.IcosahedronGeometry(2000,1),sphereMaterial);
+	sceneBG.add(sphereBG);
+	sphereBG.receiveShadow = false;
+	sphereBG.castShadow = false;
+}
+
+function resetBgObject(){
+	planeBG.position.set(0, 0, 0);
+	sphereBG.position.set(0, 0, 0);
 }
 
 //-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
 
-var seaList = ['dice', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van'];
+var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van'];
 var seaN = 0;
 
 function initSea3DMesh(){
 	var name = seaList[seaN];
-	var loader = new THREE.SEA3D(false);
+	var SeaLoader = new THREE.SEA3D(true);
 	
-
-	loader.onComplete = function( e ) {
-		for (var i=0; i !== loader.meshes.length; i++){
-			meshs.push( loader.meshes[i] );
+	SeaLoader.onComplete = function( e ) {
+		for (var i=0; i !== SeaLoader.meshes.length; i++){
+			if(SeaLoader.meshes[i].name ==="carBody"){scaleGeometry(SeaLoader.meshes[i].geometry)}
+			if(SeaLoader.meshes[i].name ==="wheel"){scaleGeometry(SeaLoader.meshes[i].geometry)}
+			if(SeaLoader.meshes[i].name ==="vanWheel")scaleGeometry(SeaLoader.meshes[i].geometry);
+			if(SeaLoader.meshes[i].name ==="vanBody"){
+				scaleGeometry(SeaLoader.meshes[i].geometry, 1, 'x');
+				scaleGeometry(SeaLoader.meshes[i].children[0].geometry, 1, 'z');
+    		    scaleGeometry(SeaLoader.meshes[i].children[1].geometry, 1, 'z');
+    		    scaleGeometry(SeaLoader.meshes[i].children[2].geometry, 1, 'x');
+			}
+			if(SeaLoader.meshes[i].name ==="gyro"){
+				scaleGeometry(SeaLoader.meshes[i].geometry, 1, 'x');
+				scaleGeometry(SeaLoader.meshes[i].children[0].geometry, 1, 'z');
+    		    scaleGeometry(SeaLoader.meshes[i].children[0].children[0].geometry, 1, 'z');
+    		    scaleGeometry(SeaLoader.meshes[i].children[0].children[0].children[0].geometry, 1, 'x');
+			}
+			meshs.push( SeaLoader.meshes[i] );
 		}
 		// load Next
 		seaN++;
 		if(seaList[seaN]!=null)initSea3DMesh();
 		else{
 			// buffer geometry
-			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
-			colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
-			colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
-			colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
-		
-			
-			
+			if(isBuffered){
+				diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
+				colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
+				colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
+				colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
+		    } else {
+		    	diceBuffer = getSeaGeometry('dice');//THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
+				colomnBuffer = getSeaGeometry('column');
+				colomnBaseBuffer = getSeaGeometry('columnBase');
+				colomnTopBuffer = getSeaGeometry('columnTop');
+		    }
 			mainAllObjectLoaded();
 			isLoading = false;
+
+			onThreeChangeView(45,60,1000);
+			update();
 		} 
 	}
 
-	loader.load( 'models/'+name+'.sea' );
+	SeaLoader.load( 'models/'+name+'.sea' );
 	loadInfo.innerHTML = "Loading sea3d model : "+ name;
 }
 
-function getSeaGeometry(name, scale){
+function getSeaGeometry(name, scale, axe){
+	var a = axe || "z";
 	var s = scale || 1;
 	var g = getMeshByName(name).geometry;
-	scaleGeometry(g, s);
+	scaleGeometry(g, s, a);
 	return g;
 }
 
 function getMeshByName(name){
+	//var s = scale || -1;
 	for (var i=0; i !== meshs.length; i++){
-		if(meshs[i].name === name) return meshs[i];
+		if(meshs[i].name === name){
+			//if(s!==-1)scaleGeometry(meshs[i].geometry, scale, axe);
+			return meshs[i];
+		} 
 	} 
 }
 
-function scaleGeometry(geometry, scale) {
-	var s = 1 || scale;
+function scaleGeometry(geometry, scale, Axe) {
+	var s = 1;//scale || 1;
+	var axe = Axe || 'z' 
 	for( var i = 0; i < geometry.vertices.length; i++) {
 		var vertex	= geometry.vertices[i];
-		vertex.x *= s;
-		vertex.y *= s;
-		vertex.z *= -s;
+		if(axe==='x')vertex.x *= -s;
+		else vertex.x *= s;
+		if(axe==='y')vertex.y *= -s;
+		else vertex.y *= s;
+		if(axe==='z')vertex.z *= -s;
+		else vertex.z *= s;
 	}
 	geometry.computeFaceNormals();
 	geometry.computeCentroids();
@@ -619,8 +725,7 @@ function scaleGeometry(geometry, scale) {
 //-----------------------------------------------------
 
 function startRender() {
-	requestAnimationFrame( update );
-    //if(!renderLoop) renderLoop = setInterval( function () { requestAnimationFrame( update ); }, 1000 / 60 );
+    if(!renderLoop) renderLoop = setInterval( function () { requestAnimationFrame( update ); }, 1000 / 60 );
 }
 
 function stopRender() {
@@ -630,7 +735,13 @@ function stopRender() {
 function update() {
 	//var delta = clock.getDelta();
 
-	requestAnimationFrame( update );
+	requestAnimationFrame( update, renderer.domElement );
+	stats.begin();
+
+
+	
+	renderNoise+=(nRenderNoise-renderNoise)*.2;
+	setNoise(renderNoise);
 
 	//render(delta);
 
@@ -644,8 +755,14 @@ function update() {
 	// groundMirror.renderWithMirror( verticalMirror );
 	//verticalMirror.renderWithMirror( groundMirror );
 	}*/
+	//renderer.clear();
+	renderer.render( sceneBG, cameraBG );
 	renderer.render( scene, camera );
-	fpsUpdate();
+	
+	//Ambience.update((-camPos.horizontal-180)*ToRad, (camPos.vertical-135)*ToRad);
+
+	stats.end();
+	//fpsUpdate();
 }
 
 function viewRender() {
@@ -659,20 +776,13 @@ function fpsUpdate() {
     fps++;
 }
 
-function resize(x, y) {
-	
-	camPos.w = x;
-	camPos.h = y;
-	camera.aspect = x/y;
-	camera.updateProjectionMatrix();
-	renderer.setSize( x, y );
-}
+
 
 //-----------------------------------------------------
 //  PLAYER MOVE
 //-----------------------------------------------------
 
-function updatePlayerMove() {
+/*function updatePlayerMove() {
 	var n = currentPlayer;
 	
 	if ( key[0] ) controls.speed = clamp( controls.speed + delta * controls.acceleration, -controls.maxSpeed, controls.maxSpeed );
@@ -709,7 +819,7 @@ function updatePlayerMove() {
 		center.copy(players[n].position);
 	    moveCamera();
 	}
-}
+}*/
 
 //-----------------------------------------------------
 //  KEYBOARD
@@ -750,7 +860,6 @@ function onKeyUp ( event ) {
 //-----------------------------------------------------
 
 function rayTest(sh) {
-
 	if ( content.children.length ) {
 		var vector = new THREE.Vector3( mouse.mx, mouse.my, 1 );
 		projector.unprojectVector( vector, camera );
@@ -788,22 +897,29 @@ function onMouseOver() {
 }
 
 function onMouseDown(e) {
-	if(e.clientY > (sizeListe[size].h+50)) return;
+	if(vue_size!==-1){if(e.clientY > (sizeListe[vue_size].h+50)) return;}
 	mouse.ox = e.clientX;
 	mouse.oy = e.clientY;
 	mouse.h = camPos.horizontal;
 	mouse.v = camPos.vertical;
 
 	
-	var decalx = (vsize.x - sizeListe[size].w)*0.5;
-	var decaly = (vsize.y - sizeListe[size].h)*0.5;
+	//var decalx = (vsize.x - sizeListe[vue_size].w)*0.5;
+	//var decaly = (vsize.y - sizeListe[vue_size].h)*0.5;
 
     mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
 	//mouse.my = - ( e.clientY / (vsize.y+50) ) * 2 + 1;
 
 	//
 	//mouse.mx = ( e.clientX / sizeListe[size].w ) * 2 - 1;
-	mouse.my = - ( e.clientY / (sizeListe[size].h+100) ) * 2 + 1;
+	if(vue_size!==-1){
+		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
+		mouse.my = - ( e.clientY / (sizeListe[vue_size].h+100) ) * 2 + 1;
+	}
+	else {
+		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
+		mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
+	}
 
 	//mouse.mx = ( (e.clientX-decalx) / (sizeListe[size].w) ) * 2 - 1;
 	//mouse.my = - ( (e.clientY) / (sizeListe[size].h+decaly) ) * 2 + 1;
@@ -821,6 +937,7 @@ function onMouseDown(e) {
 
 function onMouseUp(e) {
 	mouse.down = false;
+	document.body.style.cursor = 'auto';
 	if(cursor && mouse.over){
 		cursorUp.style.visibility = 'visible';
 		cursorDown.style.visibility = 'hidden';
@@ -832,8 +949,9 @@ function onMouseMove(e) {
 	if(cursor && mouse.over){
 	    cursor.style.left = e.clientX+"px";
 	    cursor.style.top = e.clientY+"px";
-    }
+    } 
 	if (mouse.down && !camPos.automove ) {
+		document.body.style.cursor = 'move';
 		mouse.x = e.clientX;
 		mouse.y = e.clientY;
 		camPos.horizontal = ((mouse.x - mouse.ox) * 0.3) + mouse.h;
@@ -850,21 +968,31 @@ function onTouchMove(e) {
 	    cursor.style.top = e.touches[touchId].clientY+"px";
     }
     if (mouse.down && !camPos.automove ) {
+    	document.body.style.cursor = 'move';
 		mouse.x = e.touches[touchId].clientX;
 		mouse.y =  e.touches[touchId].clientY;
-		camPos.horizontal = ((mouse.x - mouse.ox) * 0.3) + mouse.h;
+		camPos.horizontal = (-(mouse.x - mouse.ox) * 0.3) + mouse.h;
 		camPos.vertical = (-(mouse.y - mouse.oy) * 0.3) + mouse.v;
 		moveCamera();
     }
 }
 
-function onMouseWheel(e) {
+/*function onMouseWheel(e) {
 	var delta = 0;
 	var m;
 	if ( e.wheelDelta ){ delta = e.wheelDelta; m=true}
 	else if ( e.detail ) { delta = - e.detail; m=false}
 	if(m)camPos.distance-=delta;
 	else camPos.distance-=delta*10;
+	moveCamera();
+}*/
+
+function onMouseWheel(e) {
+	var delta = 0;
+	if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
+	else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
+	else if(e.detail){delta=-e.detail*1.0;}
+	camPos.distance-=(delta*10);
 	moveCamera();
 }
 
@@ -876,6 +1004,10 @@ var cam = [0,0];
 function moveCamera() {
 	camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 	camera.lookAt(center);
+
+	cameraBG.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
+	cameraBG.lookAt(center);
+
 	sendCameraOrientation();
 }
 
@@ -890,8 +1022,13 @@ function onThreeChangeView(h, v, d) {
 
 function cameraFollow(vec){
 	center.copy(vec);
+	planeBG.position.set(vec.x, 0, vec.z);
+	sphereBG.position.copy(vec);
+	moveLights();
 	moveCamera();
 }
+
+
 
 //-----------------------------------------------------
 //  MATH
@@ -958,12 +1095,36 @@ function addSkyBox() {
 }*/
 
 //-----------------------------------------------------
-//  DIV AUTO RESIZE
+//  RESIZE
 //-----------------------------------------------------
-//                  0          1       2      3       4        5           6
+//                 0          1       2      3       4        5           6
 var divListe= ["container", "info", "titre", "menu", "debug", "option", "loader"];
 var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:640, n:1}, {w:1280, h:768, n:2}];
-var size =  1;
+var vue_size =  -1;
+
+function resize(w, h) {
+	vsize = { x:w, y:h, z:w/h };
+	camPos.w = w;
+	camPos.h = h;
+	
+	camera.aspect = w/h;
+	camera.updateProjectionMatrix();
+	cameraBG.aspect = w/h;
+	cameraBG.updateProjectionMatrix();
+	renderer.setSize( w, h );
+	if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(w,h);
+}
+
+function rz2(){
+	var w = window.innerWidth;
+	var h = window.innerHeight;
+	resize(w,h);
+}
+
+function defaultIfResize(){
+	container.style.top = "50px";
+	container.style.border = "1px solid #303030";
+}
 
 function rz(){
 	var w = window.innerWidth;
@@ -975,8 +1136,8 @@ function rz(){
 }
 
 function fullResize(n){
-	if(n == size) return;
-	size = n
+	if(n === vue_size) return;
+	vue_size = n;
 	var w = sizeListe[n].w;
 	var mw = sizeListe[n].w*0.5;
 	var h = sizeListe[n].h;

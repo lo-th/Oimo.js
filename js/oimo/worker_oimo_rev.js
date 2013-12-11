@@ -10,7 +10,7 @@ OimoPhysics use international system units
 0.1 to 10 meters max for dynamique body
 size and position x100 for three.js
 */
-
+'use strict';
 importScripts('runtime_min.js');
 importScripts('oimo_rev_min.js');
 importScripts('demos.js');
@@ -32,7 +32,7 @@ var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
 var timer, delay, timerStep;
-var fps=0, time, time_prev=0, fpsint = 0;
+//var fps=0, time, time_prev=0, fpsint = 0;
 var ToRad = Math.PI / 180;
 
 // array variable
@@ -49,8 +49,10 @@ var maxDemo = 7;
 var car = null;
 var ball = null;
 
+var isTimout = false;
+
 //--------------------------------------------------
-//   WORKER MESSAGE
+//   WORKER MAIN MESSAGE
 //--------------------------------------------------
 
 self.onmessage = function (e) {
@@ -61,7 +63,7 @@ self.onmessage = function (e) {
         newGravity = e.data.G;
         initClass();
     }
-    if(phase === "UPDATE")update();
+    if(phase === "UPDATE"){if(isTimout) update(); else timer = setInterval(update, timerStep);}
     if(phase === "KEY")userKey(e.data.key);
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
@@ -78,15 +80,25 @@ self.onmessage = function (e) {
 //   WORLD UPDATE
 //--------------------------------------------------
 
-function update() {
+var update = function(){
+    self.postMessage({tell:"BEGIN"});
     var t01 = Date.now();
 
     world.step();
 
     var r, p, t, n;
-    var max = bodys.length;
+    var i = bodys.length;
+    var wakeup = false;
 
-    for ( var i = 0; i !== max ; ++i ) {
+    if(Gravity!==newGravity){
+        Gravity = newGravity;
+        world.gravity = new Vec3(0, Gravity, 0);
+        wakeup = true;
+    }
+
+    //for ( var i = 0; i !== max ; ++i ) {
+    while (i--) {
+        if( wakeup ) bodys[i].awake();
         if( bodys[i].sleeping) sleeps[i] = 1;
         else{ 
             sleeps[i] = 0;
@@ -94,34 +106,26 @@ function update() {
             p = bodys[i].position;
             n = 12*i;
 
-            /*matrix[n+0]=r.e00*1000; matrix[n+1]=r.e01*1000; matrix[n+2]=r.e02*1000; matrix[n+3]=p.x*1000;
-            matrix[n+4]=r.e10*1000; matrix[n+5]=r.e11*1000; matrix[n+6]=r.e12*1000; matrix[n+7]=p.y*1000;
-            matrix[n+8]=r.e20*1000; matrix[n+9]=r.e21*1000; matrix[n+10]=r.e22*1000; matrix[n+11]=p.z*1000;*/
-            /*
-            r = new Mat33();
-            r.scale(bodys[i].rotation, 1000)
-            p = new Vec3();
-            p.scale(bodys[i].position, 1000);
-            n = 12*i;*/
-            matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=p.x;
-            matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=p.y;
-            matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=p.z;
-            
+            matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=(p.x*100).toFixed(2);
+            matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=(p.y*100).toFixed(2);
+            matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=(p.z*100).toFixed(2);
         }
     }
 
-    if(Gravity!==newGravity){
+    /*if(Gravity!==newGravity){
         Gravity = newGravity;
         world.gravity = new Vec3(0, Gravity, 0);
         for ( var i = 0; i !== max ; ++i ) bodys[i].awake();
-    }
+    }*/
 
     worldInfo();
 
-    self.postMessage({tell:"RUN", infos: infos, matrix:matrix, sleeps:sleeps  })
+    self.postMessage({tell:"RUN", infos: infos, matrix:matrix, sleeps:sleeps  });
 
-    delay = timerStep - (Date.now()-t01);
-    timer = setTimeout(update, delay);
+    if(isTimout){
+        delay = timerStep - (Date.now()-t01);
+        timer = setTimeout(update, delay);
+    }
 }
 
 //--------------------------------------------------
@@ -130,7 +134,7 @@ function update() {
 var bonesPosition;
 var bonesRotation;
 
-function getBonesInfo(name) {
+var getBonesInfo = function (name) {
     bonesPosition = [];
     bonesRotation = [];
     self.postMessage({tell:"GETBONES", name:name })
@@ -140,7 +144,7 @@ function getBonesInfo(name) {
 //   USER CAMERA
 //--------------------------------------------------
 
-function userCamera(cam) {
+var userCamera = function (cam) {
     if(ball !== null ){
         ball.Phi(cam[1]);
     }
@@ -150,49 +154,47 @@ function userCamera(cam) {
 //   USER KEY
 //--------------------------------------------------
 
-function userKey(key) {
+var userKey = function (key) {
     if(ball !== null ){
         ball.update(key[0], key[1], key[2], key[3]);
     }
 }
 
 //--------------------------------------------------
-//   OIMO WORLD INIT
+//   OIMO WORLD init/creat/clear
 //--------------------------------------------------
 
-function initClass(){
-    with(joo.classLoader) {
-        import_("com.element.oimo.physics.OimoPhysics");
-        complete(function(imports){with(imports){
-            World = com.element.oimo.physics.dynamics.World;
-            RigidBody = com.element.oimo.physics.dynamics.RigidBody;
-            BruteForceBroadPhase = com.element.oimo.physics.collision.broad.BruteForceBroadPhase;
-            SweepAndPruneBroadPhase = com.element.oimo.physics.collision.broad.SweepAndPruneBroadPhase;
-            // Shape
-            Shape = com.element.oimo.physics.collision.shape.Shape;
-            ShapeConfig = com.element.oimo.physics.collision.shape.ShapeConfig;
-            BoxShape = com.element.oimo.physics.collision.shape.BoxShape;
-            SphereShape = com.element.oimo.physics.collision.shape.SphereShape;
-            CylinderShape = com.element.oimo.physics.collision.shape.CylinderShape;
-            // Joint
-            Joint = com.element.oimo.physics.constraint.joint.Joint;
-            JointConfig = com.element.oimo.physics.constraint.joint.JointConfig;
-            HingeJoint = com.element.oimo.physics.constraint.joint.HingeJoint;
-            Hinge2Joint = com.element.oimo.physics.constraint.joint.Hinge2Joint;
-            BallJoint = com.element.oimo.physics.constraint.joint.BallJoint;
-            DistanceJoint = com.element.oimo.physics.constraint.joint.DistanceJoint;
-            // Math
-            Vec3 = com.element.oimo.math.Vec3;
-            Quat = com.element.oimo.math.Quat;
-            Mat33 = com.element.oimo.math.Mat33;
-            Mat44 = com.element.oimo.math.Mat44;
+var initClass = function (){
+    joo.classLoader.import_("com.element.oimo.physics.OimoPhysics");
+    joo.classLoader.complete(function(imports){
+        World = com.element.oimo.physics.dynamics.World;
+        RigidBody = com.element.oimo.physics.dynamics.RigidBody;
+        BruteForceBroadPhase = com.element.oimo.physics.collision.broad.BruteForceBroadPhase;
+        SweepAndPruneBroadPhase = com.element.oimo.physics.collision.broad.SweepAndPruneBroadPhase;
+        // Shape
+        Shape = com.element.oimo.physics.collision.shape.Shape;
+        ShapeConfig = com.element.oimo.physics.collision.shape.ShapeConfig;
+        BoxShape = com.element.oimo.physics.collision.shape.BoxShape;
+        SphereShape = com.element.oimo.physics.collision.shape.SphereShape;
+        CylinderShape = com.element.oimo.physics.collision.shape.CylinderShape;
+        // Joint
+        Joint = com.element.oimo.physics.constraint.joint.Joint;
+        JointConfig = com.element.oimo.physics.constraint.joint.JointConfig;
+        HingeJoint = com.element.oimo.physics.constraint.joint.HingeJoint;
+        Hinge2Joint = com.element.oimo.physics.constraint.joint.Hinge2Joint;
+        BallJoint = com.element.oimo.physics.constraint.joint.BallJoint;
+        DistanceJoint = com.element.oimo.physics.constraint.joint.DistanceJoint;
+        // Math
+        Vec3 = com.element.oimo.math.Vec3;
+        Quat = com.element.oimo.math.Quat;
+        Mat33 = com.element.oimo.math.Mat33;
+        Mat44 = com.element.oimo.math.Mat44;
 
-            initWorld();
-        }});
-    }
+        createWorld();
+    });
 }
 
-function initWorld(){
+var createWorld = function (){
     if(world==null){
         world = new World();
         world.numIterations = iterations;
@@ -200,12 +202,12 @@ function initWorld(){
         timerStep = dt * 1000;
         world.gravity = new Vec3(0, Gravity, 0);
     }
-
     lookIfNeedInfo();
 }
 
-function clearWorld(){
-    clearTimeout(timer);
+var clearWorld = function (){
+    if(isTimout)clearTimeout(timer);
+    else clearInterval(timer);
     var i;
     var max = world.numRigidBodies;
     for (i = max - 1; i >= 0 ; i -- ) world.removeRigidBody(world.rigidBodies[i]);
@@ -221,21 +223,21 @@ function clearWorld(){
 //    DEMO INIT
 //--------------------------------------------------
 
-function initNextDemo(){
+var initNextDemo = function (){
     clearWorld();
     currentDemo ++;
     if(currentDemo == maxDemo)currentDemo=0;
     lookIfNeedInfo();
 }
 
-function initPrevDemo(){
+var initPrevDemo = function (){
     clearWorld();
     currentDemo --;
     if(currentDemo < 0)currentDemo=maxDemo-1;
     lookIfNeedInfo();
 }
 
-function lookIfNeedInfo(){
+var lookIfNeedInfo = function (){
     if(currentDemo==6){
         getBonesInfo('sila');
     } else {
@@ -243,7 +245,7 @@ function lookIfNeedInfo(){
     }
 }
 
-function startDemo(){
+var startDemo = function (){
     bodys = [];
     types = [];
     sizes = [];
@@ -269,7 +271,7 @@ function startDemo(){
 //    BASIC OBJECT
 //--------------------------------------------------
 
-function addRigid(obj){
+var addRigid = function (obj){
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
@@ -322,7 +324,7 @@ function addRigid(obj){
 //    BASIC JOINT
 //--------------------------------------------------
 
-function addJoint(obj){
+var addJoint = function (obj){
     var jc = new JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];
@@ -353,12 +355,12 @@ function addJoint(obj){
 //   WORLD INFO
 //--------------------------------------------------
 
-function worldInfo() {
+var worldInfo = function () {
 
-    time = Date.now();
+    /*time = Date.now();
     if (time - 1000 > time_prev) {
         time_prev = time; fpsint = fps; fps = 0;
-    } fps++;
+    } fps++;*/
 
     infos[0] = currentDemo;
     infos[1] = world.numRigidBodies;
@@ -371,20 +373,20 @@ function worldInfo() {
     infos[8] = world.performance.solvingTime;
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
-    infos[11] = fpsint;
+   // infos[11] = fpsint;
 }
 
 //--------------------------------------------------
 //   MATH
 //--------------------------------------------------
 
-function eulerToAxisAngle   ( x, y, z ){
+var eulerToAxisAngle = function( x, y, z ){
     // Assuming the angles are in radians.
-    var c1 = Math.cos(y*0.5);
+    var c1 = Math.cos(y*0.5);//heading
     var s1 = Math.sin(y*0.5);
-    var c2 = Math.cos(z*0.5);
+    var c2 = Math.cos(z*0.5);//altitude
     var s2 = Math.sin(z*0.5);
-    var c3 = Math.cos(x*0.5);
+    var c3 = Math.cos(x*0.5);//bank
     var s3 = Math.sin(x*0.5);
     var c1c2 = c1*c2;
     var s1s2 = s1*s2;
@@ -406,7 +408,26 @@ function eulerToAxisAngle   ( x, y, z ){
     return [angle, x, y, z];
 }
 
-function getDistance3d (p1, p2) {
+var matrixToEuler = function(mtx){
+    var x, y, z;
+    // Assuming the angles are in radians.
+    if (mtx.e10 > 0.998) { // singularity at north pole
+        y = Math.atan2(mtx.e02,mtx.e22);
+        z = Math.PI/2;
+        x = 0;
+    } else if (mtx.e10 < -0.998) { // singularity at south pole
+        y = Math.atan2(mtx.e02,mtx.e22);
+        z = -Math.PI/2;
+        x = 0;
+    } else {
+        y = Math.atan2(-mtx.e20,mtx.e00);
+        x = Math.atan2(-mtx.e12,mtx.e11);
+        z = Math.asin(mtx.e10);
+    }
+    return [x, y, z];
+}
+
+var getDistance3d = function(p1, p2) {
     var xd = p2[0]-p1[0];
     var yd = p2[1]-p1[1];
     var zd = p2[2]-p1[2];

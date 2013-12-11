@@ -93,11 +93,11 @@ function demo2(){
     addRigid({type:"box", size:[1,5,12.7], pos:[ 13.2,2.5,0], sc:sc});
 
     // add dynamique object
-    sc.density = 1.62;//0.162;
+    sc.density = 1;//1.62;//0.162;
     sc.friction = 0.6;
     sc.restitution = 0.6;
     var body, px, pz, type = 1;
-    for (var i=0; i!==666; ++i ){
+    for (var i=0; i!==333; ++i ){
         px = -2+Math.random()*4;
         pz = -2+Math.random()*4;
         addRigid({type:"nball", size:[0.286], pos:[px,1+(i*0.3),pz], sc:sc, move:true});

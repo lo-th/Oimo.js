@@ -276,9 +276,11 @@ THREE.SEA3D.prototype.scaleColor = function(color, scale) {
 }
 
 THREE.SEA3D.prototype.applyMatrix = function(obj3d, mtx, invZ) {
-	obj3d.position.getPositionFromMatrix( mtx );
+	//obj3d.position.getPositionFromMatrix( mtx );
+	obj3d.position.setFromMatrixPosition( mtx );
 	obj3d.rotation.setFromRotationMatrix( mtx );	
-	obj3d.scale.getScaleFromMatrix( mtx );	
+	obj3d.scale.setFromMatrixScale( mtx );	
+	//obj3d.scale.getScaleFromMatrix( mtx );	
 	
 	if (invZ) {
 		obj3d.position.z = -obj3d.position.z;
@@ -939,7 +941,8 @@ THREE.SEA3D.prototype.readSkeleton = function(sea) {
 			mtx.multiplyMatrices( mtx_inv, mtx );	
 		}
 		
-		pos.getPositionFromMatrix( mtx );
+		//pos.getPositionFromMatrix( mtx );
+		pos.setFromMatrixPosition( mtx );
 		quat.setFromRotationMatrix( mtx );				
 				
 		bones[i] = {

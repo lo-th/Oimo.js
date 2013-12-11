@@ -27,12 +27,7 @@
 		</div>
 		<div id="titre" class="unselectable">
 			<img id="logo" class="unselectable" src="images/logo.png"/>
-			<a href="https://github.com/lo-th/Oimo.js" target="_blank"><b>Oimo.js</b></a><p style="font-size:12px; display:inline"> &nbsp;&nbsp;DEV / <a href="index_rev.html" target="_self">REV</a></p>
-		</div>
-		<div id="option" class="unselectable">
-			<form oninput="amount.value=gravity.value">
-				GRAVITY <output name="amount" for="gravity">-10</output><input id="gravity" type="range" min="-10" max="10" value="-10" step="0.1" onchange="changeGravity()" /><br/>
-		    </form>
+			<a href="https://github.com/lo-th/Oimo.js" target="_blank"><b>Oimo.js</b></a><p style="font-size:12px; display:inline"> &nbsp;&nbsp;<b>DEV</b> / <a href="index_rev.html" target="_self">REV</a></p>
 		</div>
 		<div id="loader" class="unselectable">
 			<img id="loadIcon" class="unselectable" src="images/loader.gif"/><br/>
@@ -41,7 +36,6 @@
 
 		<script type="text/javascript" src="js/three.min.js"></script>
 		<script type="text/javascript" src="js/BufferGeometryUtils.js"></script>
-		<script type="text/javascript" src="js/Mirror.js"></script>
 		<script type="text/javascript" src="js/tweenLite.min.js"></script>
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3D.js"></script>
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3DLoader.js"></script>
@@ -49,6 +43,18 @@
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3DLZMA.js"></script>
 		<script type="text/javascript" src="js/ViewBasic.js"></script>
 		<script type="text/javascript" src="js/AutoTexture.js"></script>
+		<script type="text/javascript" src="js/Detector.js"></script>
+
+		<script src="js/loth/Ambience.js"></script>
+		<script src="js/loth/AmbienceMapList.js"></script>
+		<script src="js/loth/Stats_loth.js"></script>
+		<script src="js/loth/Gravity_loth.js"></script>
+
+		<script src="js/materialShader/SphereShader.js"></script>
+		<script src="js/materialShader/SpShader.js"></script>
+		<script src='js/materialShader/HdrShader.js'></script>
+		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="js/GSVPano.min.js"></script>
 
 		<script type="text/javascript">
 		    var demoName = ["Basic shape", "Dice fall", "Mad Pool", "Joint test", "Supermarket", "Car simulator --- Use keyboard", "RagDoll", "Van"];
@@ -58,26 +64,50 @@
 		    var currentView = 0;
             var output, garvity, loadInfo;
 
+            var stats,stats2;
+        	var Ambience;
+        	var Gravity;
+
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
+        	//window.onload = init;
+
+        	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+        	init();
+
 		    function init() {
+		    	stats = new Stats_loth();
+				document.body.appendChild( stats.domElement );
+
+				stats2 = new Stats_loth();
+				document.body.appendChild( stats2.domElement );
+				stats2.domElement.style.bottom = '60px';
+				stats2.rename('OIMO');
+
+				Ambience = new Ambience();
+				document.body.appendChild( Ambience.domElement );
+
+				Gravity = new Gravity_loth();
+				document.body.appendChild( Gravity.domElement );
+				Gravity.setup(-10, changeGravity);
+
 		    	output = document.getElementById("debug");
                 garvity = document.getElementById("gravity");
                 loadInfo = document.getElementById("loadTxt");
 
             	// init three.js engine
-            	initThree({ mouse:true, autoSize:true, n:Math.floor(Math.random()*4), optimized:false});
+            	initThree({ });
             }
 
             function mainAllObjectLoaded(){
             	// hide loader
-            	loadInfo.style.visibility = "hidden";
-            	document.getElementById("loadIcon").style.visibility = "hidden"; 
+            	//loadInfo.style.visibility = "hidden";
+            	//document.getElementById("loadIcon").style.visibility = "hidden"; 
             	document.getElementById("loader").style.visibility = "hidden";
 
             	// start worker
-        	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:garvity.value });
+        	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:-10 });
             }
 
             //-----------------------------------------------------
@@ -93,25 +123,29 @@
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
 
-				// update three object
-    	    	else if( phase === "RUN"){
-    	    		var demo = e.data.infos[0];
+				// stats update
+				if(phase === "BEGIN"){stats2.begin();}
 
+				// update three object
+    	    	if( phase === "RUN"){
+    	    		//stats2.end();
+    	    		
+    	    		var demo = e.data.infos[0];
+    	    		//var i=0;
     	    		var max = e.data.sleeps.length;
+    	    		var i=e.data.sleeps.length;//0;
     	    		var m = e.data.matrix;
         	    	var mtx, n, mesh;
 
         	    	// Update rendering meshes
-        	    	for(var i=0; i!==max; i++){
+        	    	//for(i=0; i!==max; i++){
+        	    	while (i--) {
         	    		if( content.children[i] ){
             	    		mesh = content.children[i];
-            	    		if( e.data.sleeps[i]==0){
+            	    		if( e.data.sleeps[i]===0){
             	    			n = 12*i;
-	            	    		mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3]*100, m[n+4], m[n+5], m[n+6], m[n+7]*100, m[n+8], m[n+9], m[n+10], m[n+11]*100, 0, 0, 0, 1);
-	            	    		//mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3], m[n+4], m[n+5], m[n+6], m[n+7], m[n+8], m[n+9], m[n+10], m[n+11], 0, 0, 0, 1);
-	            	    		//mtx.multiplyScalar(0.001);
-	            	    		//mtx = new THREE.Matrix4(m[n+0]*0.001, m[n+1]*0.001, m[n+2]*0.001, m[n+3]*0.1, m[n+4]*0.001, m[n+5]*0.001, m[n+6]*0.001, m[n+7]*0.1, m[n+8]*0.001, m[n+9]*0.001, m[n+10]*0.001, m[n+11]*0.1, 0, 0, 0, 1);
-	            	    		mesh.position.getPositionFromMatrix( mtx );
+	            	    		mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3], m[n+4], m[n+5], m[n+6], m[n+7], m[n+8], m[n+9], m[n+10], m[n+11], 0, 0, 0, 1);
+	            	    		mesh.position.setFromMatrixPosition( mtx )
 						    	mesh.rotation.setFromRotationMatrix( mtx );
 
 						    	if(mesh.material.name == "mat01sleep") mesh.material = mat01;
@@ -160,45 +194,52 @@
 
 
 					displayInfo(e.data.infos);
-
-					//setTimeout(viewRender, 0);
+					stats2.end();
 	            }
 
 	            // clear three object
-				else if(phase === "CLEAR") clearContent();
+				if(phase === "CLEAR") clearContent();
 				// get ragdoll info
-				else if(phase === "GETBONES") getSqueletonStructure(e.data.name);
+				if(phase === "GETBONES") getSqueletonStructure(e.data.name);
     	    }
 
+    	    //-----------------------------------------------------
+            //  OIMO MESSAGE FUNCTION
+            //-----------------------------------------------------
 
 	        function sendKey(){ OimoWorker.postMessage({tell:"KEY", key:key}); }
 	        function sendCameraOrientation(){ OimoWorker.postMessage({tell:"CAMERA", cam:cam}); }
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
-	        function changeGravity(){ OimoWorker.postMessage({tell:"GRAVITY", G:garvity.value}); }
+	        function changeGravity(G){ OimoWorker.postMessage({tell:"GRAVITY", G:G}); }
 
 	        //-----------------------------------------------------
             //  OIMO INFO
             //-----------------------------------------------------
 
 	        function displayInfo(a){
-	        	var info = "-- "+ demoName[a[0]]+" --<br><br>";
-	        	info += "Rigidbody: "+a[1]+"<br>";
-	        	info += "Contact: "+a[2]+"<br>";
-			    info += "Pair Check: "+a[3]+"<br>";
-			    info += "Contact Point: "+a[4]+"<br>";
-			    info += "Island: " + a[5] +"<br><br>";
-			    
-			    info += "Broad-Phase Time: " + a[6] + "ms<br>";
-			    info += "Narrow-Phase Time: " + a[7] + "ms<br>";
-			    info += "Solving Time: " + a[8] + "ms<br>";
-			    info += "Updating Time: " + a[9] + "ms<br>";
-			    info += "Total Time: " + a[10] + "ms<br><br>";
+			    var info =[ 
+			        "-- "+ demoName[a[0]]+" --<br><br>",
+	        	    "Rigidbody: "+a[1]+"<br>",
+	        	    "Contact: "+a[2]+"<br>",
+	        	    "Pair Check: "+a[3]+"<br>",
+	        	    "Contact Point: "+a[4]+"<br>",
+	        	    "Island: " + a[5] +"<br><br>",
+	        	    "Broad-Phase Time: " + a[6] + "ms<br>",
+	        	    "Narrow-Phase Time: " + a[7] + "ms<br>",
+	        	    "Solving Time: " + a[8] + "ms<br>",
+	        	    "Updating Time: " + a[9] + "ms<br>",
+	        	    "Total Time: " + a[10] + "ms<br>",
+	        	    //"Physics: " + a[11] +" fps<br>",
+	        	    //"Render: " + fpstxt +" fps<br>"
+			    ].join("\n");
 
-			    info += "Physics: " + a[11] +" fps<br>";
-			    info += "Render: " + fpstxt +" fps<br>";
 	        	output.innerHTML = info;
 	        }
+
+	        //-----------------------------------------------------
+            //  CAMERA AUTOMOVE
+            //-----------------------------------------------------
 
 			function moveView() {
 				var n = currentView;
@@ -208,7 +249,6 @@
 				if(currentView == vSet.length)currentView = 0;
 			}
 
-		    window.onload = init;
 		</script>
 	</body>
 </html>
