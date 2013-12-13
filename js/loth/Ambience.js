@@ -173,7 +173,7 @@ var Ambience = function () {
 	    	bigMapInterface.style.display = 'block';
 	    	bigMapInterface.style.visibility = 'visible';
 
-	    	initializeMap();
+	    	if(!isMapApiLoaded)loadGoogleMapsAPI();
 	    	if(geoMap){
 	    		envMaterial.map = geoMap;
 	    		updateCamera();
@@ -284,6 +284,13 @@ var Ambience = function () {
 	//  GOOGLE PANORAMA INIT
 	//--------------------------------------
 
+	function loadGoogleMapsAPI () {
+	    var script = document.createElement("script");
+	    script.type = "text/javascript";
+	    script.src = "http://maps.google.com/maps/api/js?sensor=false&callback=initializeMap";
+	    document.body.appendChild(script);
+	}
+
 	var locations = [
 	    { lat: 41.413416092316275, lng: 2.1531126527786455, name:'pos 0' },//port
 	    { lat: 35.69143938066447, lng: 139.695139627539, name:'pos 1' },//resto
@@ -300,7 +307,6 @@ var Ambience = function () {
 	];
 
 	var currentPosition = Math.floor( Math.random() * locations.length );
-	
 	var zoom;
 	var geocoder;
 	var error;
@@ -314,18 +320,17 @@ var Ambience = function () {
 	var map = null;
 	var mapCanvas;
 	var geoMap;
+	var isMapApiLoaded = false;
 
 	var nextLocation = function () {
 		currentPosition ++;
 		if(currentPosition === locations.length) currentPosition = 0;
-		//initializeMap();
 		setGeoPosition();
 	}
 
 	var prevLocation = function () {
 		currentPosition --;
 		if(currentPosition < 0) currentPosition = locations.length -1;
-		//initializeMap();
 		setGeoPosition();
 	}
 
@@ -395,36 +400,23 @@ var Ambience = function () {
 		map.panTo(myLatlng);
 	}
 
-
-
-
-	var initializeMap = function () {
+window.initializeMap = function () {
+		isMapApiLoaded = true;
 
 		if(GEOloader) return;
 
 		GEOloader = new GSVPANO.PanoLoader();
 
 		//var pos;
-		if( window.location.hash ) {
+		/*if( window.location.hash ) {
 			parts = window.location.hash.substr( 1 ).split( ',' );
 			pos = { lat: parts[ 0 ], lng: parts[ 1 ] };
-		} else {
-			pos = locations[ currentPosition ];//pos = locations[ Math.floor( Math.random() * locations.length ) ];
-		}
+		} else {*/
+			pos = locations[ currentPosition ];
+		//}
 		pos = locations[ currentPosition ];
 		bcenter.textContent = pos.name;
 		var myLatlng = new google.maps.LatLng( pos.lat, pos.lng );
-			
-		/*var links = document.querySelectorAll( 'a[rel=external]' );
-		for( var j = 0; j < links.length; j++ ) {
-			var a = links[ j ];
-			a.addEventListener( 'click', function( e ) {
-				//window.open( this.href, '_blank' );
-				e.preventDefault();
-			}, false );
-		}*/
-		
-//14
 		var myOptions = { zoom: 18, center: myLatlng, mapTypeId: google.maps.MapTypeId.HYBRID, streetViewControl: false, mapTypeControl:false, zoomControl: false, panControl: false, overviewMapControl:false};
 
 		//if(map==null){
