@@ -4,6 +4,7 @@
 		<title>Oimo.js REV</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<link rel="shortcut icon" href="images/favicon.ico">
 		<link rel="stylesheet" type="text/css" href="css/style.css" />
 	</head>
@@ -15,10 +16,6 @@
 			| <a href="http://threejs.org" target="_blank" style="color:#4d4d4d">THREE.JS</a>
 			| <a href="https://code.google.com/p/sea3d/" target="_blank" style="color:#4d4d4d">SEA3D</a>
 			| <a href="https://github.com/saharan/OimoPhysics" target="_blank" style="color:#4d4d4d">OIMO.PHYSICS</a>
-		</div>
-		<div id="cursor" class="unselectable">
-			<img id="cursorUp" class="unselectable" src="images/cursor0.png">
-			<img id="cursorDown" class="unselectable" src="images/cursor01.png">
 		</div>
 		<div id="menu" class="unselectable">
 			<button type="button" onclick="prevDemo()" id="bcontrol">PREV DEMO</button>
@@ -54,6 +51,8 @@
 		<script type="text/javascript" src="js/materialShader/SphereShader.js"></script>
 		<script type="text/javascript" src="js/materialShader/SpShader.js"></script>
 		<script type="text/javascript" src='js/materialShader/HdrShader.js'></script>
+
+		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 
 		<script type="text/javascript">
 		    var demoName = ["Basic shape", "Dice fall", "Mad Pool", "Joint test", "Supermarket", "Greek temple", "RagDoll"];
@@ -197,7 +196,7 @@
             //-----------------------------------------------------
 
     	    function sendKey(){ OimoWorker.postMessage({tell:"KEY", key:key}); }
-    	    function sendCameraOrientation(){ OimoWorker.postMessage({tell:"CAMERA", cam:cam}); }
+    	    function sendCameraOrientation(phi, theta){ OimoWorker.postMessage({tell:"CAMERA", cam:[phi, theta]}); }
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
 	        function changeGravity(G){ OimoWorker.postMessage({tell:"GRAVITY", G:G}); }

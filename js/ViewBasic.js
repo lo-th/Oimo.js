@@ -6,15 +6,15 @@
 */
 'use strict';
 var container, renderer, scene, sceneBG, camera, cameraBG, renderLoop, content;
-var camPos = {w: 100, h:100, horizontal: 40, vertical: 60, distance: 2000, automove: false};
+var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false };
 var vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
-var mouse = {x: 0, y: 0, down:false, over:false, ox: 0, oy: 0, h: 0, v: 0, mx:0, my:0};
+var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
 var center = new THREE.Vector3(0,150,0);
 
 var delta, clock = new THREE.Clock();
 var fpstxt, time, time_prev = 0, fps = 0;
 
-var lights = [];
+
 var meshs = [];
 var players = [];
 
@@ -22,10 +22,8 @@ var currentPlay;
 var character=0;
 var currentPlayer = 1;
 var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
-var cursor, cursorUp, cursorDown;
 
-var ToRad = Math.PI / 180;
-var ToDeg = 180 / Math.PI;
+
 var isOptimized;
 var isLoading = true;
 var antialias;
@@ -37,16 +35,21 @@ var directionVector = new THREE.Vector3();
 var marker;
 
 var isBuffered = true;
+var PATH = 'http://lo-th.github.io/Oimo.js/';
 
 //-----------------------------------------------------
 //  INIT VIEW
 //-----------------------------------------------------
 
-function initThree(option) {
+var initThree = function (option) {
+
 	if(!option) option = {};
 	isOptimized = option.optimized || false;
-	if(!isOptimized)antialias = true;
-	else antialias = false
+	if(!isOptimized) antialias = true;
+	else antialias = false;
+
+	// for my local test on windows 
+	if(browserName==="Firefox" || browserName==="Chrome") PATH = '';
 
 	renderer = new THREE.WebGLRenderer({ antialias:antialias, alpha: false });
 	//renderer.setClearColor( 0x161616, 1 );
@@ -71,22 +74,26 @@ function initThree(option) {
 
 	container = document.getElementById( "container" );
 	container.style.position = "absolute";
-	//resize( container.clientWidth, container.clientHeight);
 	container.appendChild( renderer.domElement );
 
 	container.addEventListener( 'mousemove', onMouseMove, false );
-	container.addEventListener( 'touchmove', onTouchMove, false );
 	container.addEventListener( 'mousedown', onMouseDown, false );
+	container.addEventListener( 'mouseout', onMouseUp, false );
 	container.addEventListener( 'mouseup', onMouseUp, false );
+
+	container.addEventListener( 'touchmove', onTouchMove, false );
+	container.addEventListener( 'touchstart', onTouchStart, false);
+	container.addEventListener( 'touchcancel', onMouseUp, false);
+	container.addEventListener( 'touchend', onMouseUp, false);
+
 	container.addEventListener( 'mousewheel', onMouseWheel, false );
 	container.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
+
 	document.addEventListener( 'keydown', onKeyDown, false );
 	document.addEventListener( 'keyup', onKeyUp, false );
 
-	if(option.mouse) customCursor();
-	//else {cursor = document.getElementById( 'cursor' );}
-	if(option.autoSize){ defaultIfResize(); window.addEventListener( 'resize', rz, false ); rz();}
-	else{ window.addEventListener( 'resize', rz2, false ); rz2(); };
+	window.addEventListener( 'resize', viewResize, false ); 
+	viewResize();
 
 	// containe all object from simulation
 	content = new THREE.Object3D();
@@ -115,17 +122,9 @@ function initThree(option) {
     //startRender();
 }
 
-function customCursor() {
-	cursorUp = document.getElementById( 'cursorUp' );
-	cursorDown = document.getElementById( 'cursorDown' );
-	cursor = document.getElementById( 'cursor' );
-	container.addEventListener( 'mouseover', onMouseOver, false );
-	container.addEventListener( 'mouseout', onMouseOut, false );
-}
-
-function debugInfo(s){
+/*function debugInfo(s){
 	 document.getElementById( 'titre' ).innerHTML = s;
-}
+}*/
 
 //-----------------------------------------------------
 //  MATERIAL
@@ -139,12 +138,12 @@ var envTexture;
 var sphereMaterial;
 var renderNoise=.04,nRenderNoise=.04;
 
-function setNoise(n){
+var setNoise = function (n){
 	//baseMaterial.uniforms.noise.value=baseMaterial2.uniforms.noise.value=
 	sphereMaterial.uniforms.noise.value=n;
 }
 
-function initMaterial() {
+var initMaterial = function () {
 	envTexture = Ambience.getTexture();
 
 	// SHADER
@@ -156,7 +155,7 @@ function initMaterial() {
 		side:THREE.BackSide,
 		depthWrite: false
 	});
-	sphereMaterial.uniforms.resolution.value.set(camPos.w,camPos.h);
+	sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
 
 	/*baseMaterial=new THREE.ShaderMaterial({
 		uniforms: THREE.SphereShader.uniforms,
@@ -188,7 +187,7 @@ function initMaterial() {
 	var diceTexture = new createDiceTexture(0);
 	var diceTextureSleep = new createDiceTexture(1);
 	var wheelTexture = new createWheelTexture(0);
-	var gyroTexture = THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
+	var gyroTexture = new createGyroTexture();//THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
 
 	if(!isOptimized){
 		groundMat =  new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
@@ -263,7 +262,7 @@ function initMaterial() {
 //  PHYSICS OBJECT IN THREE
 //-----------------------------------------------------
 
-function createContentObjects(data){
+var createContentObjects = function (data){
 	//resetBgObject();
 	var boneindex=0;
 	var max = data.types.length;
@@ -297,13 +296,13 @@ function createContentObjects(data){
 
     		//case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
     		case 10: 
-    		    var axe = new THREE.AxisHelper( 5 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
+    		    //var axe = new THREE.AxisHelper( 5 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
     		    //mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] );
     		    mesh = new THREE.Object3D();
     		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
     		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
     		    mesh.add(meshFlag);
-    		    mesh.add(axe);
+    		    //mesh.add(axe);
     		    boneindex++;
     		break; // bone
     		case 11: mesh = new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
@@ -361,7 +360,7 @@ function createContentObjects(data){
 }
 
 
-function clearContent(){
+var clearContent = function (){
 
 	var obj, i;
     for ( i = content.children.length - 1; i >= 0 ; i -- ) {
@@ -372,7 +371,7 @@ function clearContent(){
 	//lightsAnimation(0.5, 0, 180, 90, 0);
 }
 
-function addSnake(s) {
+var addSnake = function (s) {
 	if(s==null) s = [10,10,10];
 	var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, mat05 );
 	mesh.material = mat05;
@@ -398,7 +397,7 @@ function addSnake(s) {
 }
 
 
-function updateSnake() {
+var updateSnake = function () {
 	var mesh = content.children[10];
 	var ref, pos, mtx, rot;
 	for (var i=0; i!== mesh.bones.length; i++){
@@ -417,7 +416,7 @@ function updateSnake() {
 }
 
 // for ragdoll test
-function addSila(s) {
+var addSila = function (s) {
 	if(s==null) s = [1,1,1];
 	var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, mat08 );
 	mesh.material = mat08;
@@ -446,7 +445,7 @@ function addSila(s) {
 	}
 }
 
-function updateSila() {
+var updateSila = function () {
 	var mesh = content.children[23];
 	var ref, pos, mtx, rot;
 	for (var i=0; i!== mesh.bones.length; i++){
@@ -467,7 +466,7 @@ mesh.bones[i].rotation.set( rot.y, rot.x, rot.z);
 	}
 }
 
-function getSqueletonStructure(name){
+var getSqueletonStructure = function (name){
 	var mesh = new THREE.SkinnedMesh( getMeshByName(name).geometry, null );
 	mesh.scale.set( 1, 1, 1 );
 	var pos = [];
@@ -496,9 +495,9 @@ function getSqueletonStructure(name){
 //  LIGHT
 //-----------------------------------------------------
 
-var lightPos={horizontal: 180, vertical: 90, distance: 0, color:0xffffff};
+var lights = [];
 
-function initLights() {
+var initLights = function () {
 	//var ambient = new THREE.AmbientLight( 0xFFFFFF);
 	//scene.add( ambient );
 
@@ -569,20 +568,10 @@ function initLights() {
 	//lightsAnimation(3, 3, 0, 90, 500);
 }
 
-function lightsAnimation(time, delay, h, v, d, c) {
-	//TweenLite.to(lightPos, time, {horizontal: h, vertical: v, distance: d, onUpdate: moveLights, delay:delay });
-}
-
-function moveLights(vect) {
+var moveLights = function (vect) {
 	lights[0].position.copy( Orbit(center , 35, 45, 1000));
 	lights[0].target.position.copy(center);
 	//lights[1].position.copy( Orbit(center , 35, 45, -1000));
-
-	/*
-	lights[1].position.copy( Orbit(center , lightPos.horizontal, lightPos.vertical, lightPos.distance));
-	lights[2].position.copy( Orbit(center , lightPos.horizontal-120, lightPos.vertical, lightPos.distance));
-	lights[3].position.copy( Orbit(center , lightPos.horizontal+120, lightPos.vertical, lightPos.distance));
-	*/
 }
 
 //-----------------------------------------------------
@@ -590,7 +579,7 @@ function moveLights(vect) {
 //-----------------------------------------------------
 var planeBG, sphereBG;
 
-function initObject() {
+var initObject = function () {
 	// ground
 	planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMat );
 	planeBG.rotation.x = (-90)*ToRad;
@@ -606,7 +595,12 @@ function initObject() {
 	sphereBG.castShadow = false;
 }
 
-function resetBgObject(){
+var moveBgObject = function (){
+	planeBG.position.set(center.x, 0, center.z);
+	sphereBG.position.copy(center);
+}
+
+var resetBgObject = function (){
 	planeBG.position.set(0, 0, 0);
 	sphereBG.position.set(0, 0, 0);
 }
@@ -689,7 +683,7 @@ var initSea3DMesh = function (){
 		} 
 	}
 
-	SeaLoader.load( 'models/'+name+'.sea' );
+	SeaLoader.load( PATH+'models/'+name+'.sea' );
 	loadInfo.innerHTML = "Loading sea3d model : "+ name;
 }
 
@@ -733,15 +727,15 @@ var scaleGeometry = function (geometry, scale, Axe) {
 //  EVENT
 //-----------------------------------------------------
 
-function startRender() {
+var startRender = function () {
     if(!renderLoop) renderLoop = setInterval( function () { requestAnimationFrame( update ); }, 1000 / 60 );
 }
 
-function stopRender() {
+var stopRender = function () {
 	if(renderLoop) {clearInterval(renderLoop); renderLoop = null;}
 }
 
-function update() {
+var update = function () {
 	//var delta = clock.getDelta();
 
 	requestAnimationFrame( update, renderer.domElement );
@@ -774,12 +768,12 @@ function update() {
 	//fpsUpdate();
 }
 
-function viewRender() {
+var viewRender = function () {
 	renderer.render( scene, camera );
 	fpsUpdate();
 }
 
-function fpsUpdate() {
+var fpsUpdate = function () {
     time = Date.now();
     if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
     fps++;
@@ -836,7 +830,7 @@ function fpsUpdate() {
 
 var key = [0, 0, 0, 0, 0, 0, 0, 0];
 
-function onKeyDown ( event ) {
+var onKeyDown = function  ( event ) {
 	switch ( event.keyCode ) {
 	    case 38: case 87: case 90: key[0]=1; break; // up, W, Z
 		case 40: case 83:          key[1]=1; break; // down, S
@@ -850,7 +844,7 @@ function onKeyDown ( event ) {
 	sendKey();
 }
 
-function onKeyUp ( event ) {
+var onKeyUp = function  ( event ) {
 	switch( event.keyCode ) {
 		case 38: case 87: case 90: key[0]=0; break; // up, W, Z
 		case 40: case 83:          key[1]=0; break; // down, S
@@ -868,7 +862,7 @@ function onKeyUp ( event ) {
 //  MOUSE COLLISION DETECTION
 //-----------------------------------------------------
 
-function rayTest(sh) {
+var rayTest = function (sh) {
 	if ( content.children.length ) {
 		var vector = new THREE.Vector3( mouse.mx, mouse.my, 1 );
 		projector.unprojectVector( vector, camera );
@@ -888,115 +882,39 @@ function rayTest(sh) {
 //  MOUSE
 //-----------------------------------------------------
 
-function onMouseOut() {
-	if(cursor){
-	    document.body.style.cursor = 'auto';
-	    cursorUp.style.visibility = 'hidden';
-	    cursorDown.style.visibility = 'hidden';
-	    mouse.over = false;
-	}
-}
-
-function onMouseOver() {
-	if(cursor){
-		document.body.style.cursor = 'none';
-    	cursorUp.style.visibility = 'visible';
-    	mouse.over = true;
-    }
-}
-
-function onMouseDown(e) {
-	if(vue_size!==-1){if(e.clientY > (sizeListe[vue_size].h+50)) return;}
+var onMouseDown = function (e) {
+	e.preventDefault();
 	mouse.ox = e.clientX;
 	mouse.oy = e.clientY;
 	mouse.h = camPos.horizontal;
 	mouse.v = camPos.vertical;
-
-	
-	//var decalx = (vsize.x - sizeListe[vue_size].w)*0.5;
-	//var decaly = (vsize.y - sizeListe[vue_size].h)*0.5;
-
-    mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
-	//mouse.my = - ( e.clientY / (vsize.y+50) ) * 2 + 1;
-
-	//
-	//mouse.mx = ( e.clientX / sizeListe[size].w ) * 2 - 1;
-	if(vue_size!==-1){
-		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
-		mouse.my = - ( e.clientY / (sizeListe[vue_size].h+100) ) * 2 + 1;
-	}
-	else {
-		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
-		mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
-	}
-
-	//mouse.mx = ( (e.clientX-decalx) / (sizeListe[size].w) ) * 2 - 1;
-	//mouse.my = - ( (e.clientY) / (sizeListe[size].h+decaly) ) * 2 + 1;
-
-
+	mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
+	mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
 	mouse.down = true;
-
 	rayTest(false);
-
-	if(cursor && mouse.over){
-		cursorUp.style.visibility = 'hidden';
-		cursorDown.style.visibility = 'visible';
-	}
 }
 
-function onMouseUp(e) {
+var onMouseUp = function (e) {
 	mouse.down = false;
 	document.body.style.cursor = 'auto';
-	if(cursor && mouse.over){
-		cursorUp.style.visibility = 'visible';
-		cursorDown.style.visibility = 'hidden';
-	}
 }
 
-function onMouseMove(e) {
+var onMouseMove = function (e) {
 	e.preventDefault();
-	if(cursor && mouse.over){
-	    cursor.style.left = e.clientX+"px";
-	    cursor.style.top = e.clientY+"px";
-    } 
 	if (mouse.down && !camPos.automove ) {
-		document.body.style.cursor = 'move';
-		mouse.x = e.clientX;
-		mouse.y = e.clientY;
-		camPos.horizontal = ((mouse.x - mouse.ox) * 0.3) + mouse.h;
-		camPos.vertical = (-(mouse.y - mouse.oy) * 0.3) + mouse.v;
-		moveCamera();
+		if (mouse.moving) {
+			document.body.style.cursor = 'move';
+			camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
+			camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
+			moveCamera();
+		} else {
+			mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
+	    	mouse.my = -( e.clientY / vsize.y ) * 2 + 1;
+		}
 	}
 }
 
-function onTouchMove(e) { 
-	e.preventDefault();
-	var touchId = e.changedTouches[0].identifier;
-	if(cursor){
-	    cursor.style.left = e.touches[touchId].clientX+"px";
-	    cursor.style.top = e.touches[touchId].clientY+"px";
-    }
-    if (mouse.down && !camPos.automove ) {
-    	document.body.style.cursor = 'move';
-		mouse.x = e.touches[touchId].clientX;
-		mouse.y =  e.touches[touchId].clientY;
-		camPos.horizontal = (-(mouse.x - mouse.ox) * 0.3) + mouse.h;
-		camPos.vertical = (-(mouse.y - mouse.oy) * 0.3) + mouse.v;
-		moveCamera();
-    }
-}
-
-/*function onMouseWheel(e) {
-	var delta = 0;
-	var m;
-	if ( e.wheelDelta ){ delta = e.wheelDelta; m=true}
-	else if ( e.detail ) { delta = - e.detail; m=false}
-	if(m)camPos.distance-=delta;
-	else camPos.distance-=delta*10;
-	moveCamera();
-}*/
-
-function onMouseWheel(e) {
+var onMouseWheel = function (e) {
 	var delta = 0;
 	if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
 	else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
@@ -1006,158 +924,110 @@ function onMouseWheel(e) {
 }
 
 //-----------------------------------------------------
+//  TOUCH MOBIL
+//-----------------------------------------------------
+
+var onTouchStart = function (e) { 
+	e.preventDefault();
+	var t=event.touches[0];
+	mouse.ox = t.clientX;
+	mouse.oy = t.clientY;
+	mouse.h = camPos.horizontal;
+	mouse.v = camPos.vertical;
+	mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
+	mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
+	mouse.down = true;
+}
+
+var onTouchMove = function (e) { 
+	e.preventDefault();
+	var t=event.touches[0];
+    if (mouse.down && !camPos.automove ) {
+	    if (mouse.moving) {
+			document.body.style.cursor = 'move';
+			camPos.horizontal = ((t.clientX - mouse.ox) * 0.3) + mouse.h;
+			camPos.vertical = (-(t.clientY - mouse.oy) * 0.3) + mouse.v;
+			moveCamera();
+		} else {
+			mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
+	    	mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
+		}
+    }
+}
+
+//-----------------------------------------------------
 //  CAMERA
 //-----------------------------------------------------
-var cam = [0,0];
 
-function moveCamera() {
+var moveCamera = function () {
 	camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 	camera.lookAt(center);
 
-	cameraBG.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
+	cameraBG.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
 	cameraBG.lookAt(center);
-
-	sendCameraOrientation();
 }
 
-function endMove() {
+var endMove = function () {
 	camPos.automove = false;
 }
 
-function onThreeChangeView(h, v, d) {
+var onThreeChangeView = function (h, v, d) {
 	TweenLite.to(camPos, 3, {horizontal: h, vertical: v, distance: d, onUpdate: moveCamera, onComplete: endMove });
 	camPos.automove = true;
 }
 
-function cameraFollow(vec){
+var cameraFollow = function (vec) {
 	center.copy(vec);
-	planeBG.position.set(vec.x, 0, vec.z);
-	sphereBG.position.copy(vec);
+	
 	moveLights();
 	moveCamera();
+	moveBgObject();
 }
 
+//-----------------------------------------------------
+//  RESIZE
+//-----------------------------------------------------
 
+var viewResize = function () {
+	vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
+	camera.aspect = vsize.z;
+	camera.updateProjectionMatrix();
+	cameraBG.aspect = vsize.z;
+	cameraBG.updateProjectionMatrix();
+	renderer.setSize( vsize.x, vsize.y );
+	if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
+}
 
 //-----------------------------------------------------
 //  MATH
 //-----------------------------------------------------
 
-function exponentialEaseOut( v ) { return v === 1 ? 1 : - Math.pow( 2, - 10 * v ) + 1; };
+var ToRad = Math.PI / 180;
+var ToDeg = 180 / Math.PI;
 
-function clamp(a,b,c) { return Math.max(b,Math.min(c,a)); }
+var exponentialEaseOut = function ( v ) { return v === 1 ? 1 : - Math.pow( 2, - 10 * v ) + 1; };
 
-function Orbit(origine, horizontal, vertical, distance, isCamera) {
+var clamp = function (a,b,c) { return Math.max(b,Math.min(c,a)); }
+
+var Orbit = function (origine, horizontal, vertical, distance, MainCamera) {
+	var mainCamera = MainCamera || false;
 	var p = new THREE.Vector3();
-	//var phi = vertical*ToRad;
-	//var theta = horizontal*ToRad;
 	var phi = unwrapDegrees(vertical)*ToRad;
 	var theta = unwrapDegrees(horizontal)*ToRad;
-	if(isCamera!==null){
-		cam[0] = phi;
-		cam[1] = theta;
-	}
+	if(mainCamera) sendCameraOrientation(phi, theta);
 	p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
 	p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
 	p.y = (distance * Math.cos(phi)) + origine.y;
 	return p;
 }
 
-function unwrapDegrees(r) {
+var unwrapDegrees = function (r) {
 	r = r % 360;
 	if (r > 180) r -= 360;
 	if (r < -180) r += 360;
 	return r;
 }
 
-function getDistance (x1, y1, x2, y2) {
+var getDistance = function  (x1, y1, x2, y2) {
 	return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-}
-
-//-----------------------------------------------------
-//  SKY BOX
-//-----------------------------------------------------
-
-/*var skyCube;
-
-function addSkyBox() {
-	var r = "textures/cube/sky5/";
-	var urls = [ r + "posx.jpg", r + "negx.jpg",
-				 r + "posy.jpg", r + "negy.jpg",
-				 r + "posz.jpg", r + "negz.jpg" ];
-
-	skyCube = THREE.ImageUtils.loadTextureCube( urls );
-	skyCube.format = THREE.RGBFormat;
-	var shader = THREE.ShaderLib[ "cube" ];
-	shader.uniforms[ "tCube" ].value = skyCube;
-
-	var material = new THREE.ShaderMaterial( {
-	fragmentShader: shader.fragmentShader,
-	vertexShader: shader.vertexShader,
-	uniforms: shader.uniforms,
-	depthWrite: false,
-	side: THREE.BackSide
-	} );
-
-	var sky = new THREE.Mesh( new THREE.CubeGeometry( FAR, FAR, FAR ), material );
-	scene.add( sky );
-}*/
-
-//-----------------------------------------------------
-//  RESIZE
-//-----------------------------------------------------
-//                 0          1       2      3       4        5           6
-var divListe= ["container", "info", "titre", "menu", "debug", "option", "loader"];
-var sizeListe = [{w:640, h:480, n:0}, {w:1024, h:640, n:1}, {w:1280, h:768, n:2}];
-var vue_size =  -1;
-
-function resize(w, h) {
-	vsize = { x:w, y:h, z:w/h };
-	camPos.w = w;
-	camPos.h = h;
-	
-	camera.aspect = w/h;
-	camera.updateProjectionMatrix();
-	cameraBG.aspect = w/h;
-	cameraBG.updateProjectionMatrix();
-	renderer.setSize( w, h );
-	if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(w,h);
-}
-
-function rz2(){
-	var w = window.innerWidth;
-	var h = window.innerHeight;
-	resize(w,h);
-}
-
-function defaultIfResize(){
-	container.style.top = "50px";
-	container.style.border = "1px solid #303030";
-}
-
-function rz(){
-	var w = window.innerWidth;
-	var h = window.innerHeight;
-	vsize = { x:w, y:h, z:w/h };
-	if(w < 1024 || h < 680 ) fullResize(0);
-	else if(w > 1300 && h>830 ) fullResize(2);
-	else fullResize(1);
-}
-
-function fullResize(n){
-	if(n === vue_size) return;
-	vue_size = n;
-	var w = sizeListe[n].w;
-	var mw = sizeListe[n].w*0.5;
-	var h = sizeListe[n].h;
-	var div;
-	for(var i=0; i< divListe.length; ++i){
-		div = document.getElementById( divListe[i] );
-		if(i!==2 && i!==4 && i!==5)div.style.width = w+"px";
-		div.style.left = "calc(50% - "+mw+"px)";
-		if(i==0)div.style.height = h+"px";
-		if(i==6 && isLoading)div.style.height = h+"px";
-		else if (i==1 || i==5 )div.style.top = h+55+"px";
-	}
-	resize(w,h);
 }
