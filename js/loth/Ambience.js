@@ -4,7 +4,8 @@
 'use strict';
 var Ambience = function () {
 	var render3d, scene3d = null;
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; '
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; -user-select: none;'
+	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text; -user-select: text;'
 	var mini = true;
 	var type = "color";
 
@@ -72,6 +73,10 @@ var Ambience = function () {
 	bigColor.style.cssText = ' width:256px;height:64px; position:relative;margin:2px 0px; display:none; visibility:hidden';
 	aMini.appendChild( bigColor );
 
+	var bigOption = document.createElement( 'div' );
+	bigOption.style.cssText = ' width:256px;height:64px; position:relative;margin:2px 0px; display:none; visibility:hidden';
+	aMini.appendChild( bigOption );
+
 	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); openPannel() }, false );
 	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") prev(); else prevLocation(); }, false );
 	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") next(); else nextLocation(); }, false );
@@ -99,6 +104,9 @@ var Ambience = function () {
 
 	    		bigGradian.style.display = 'block';
 	    		bigGradian.style.visibility = 'visible';
+
+	    		bigOption.style.display = 'block';
+	    		bigOption.style.visibility = 'visible';
 
 	    		if(currentColor!==-1){
 	    			bigColor.style.display = 'block';
@@ -130,6 +138,10 @@ var Ambience = function () {
 
 	    		bigColor.style.display = 'none';
 	    		bigColor.style.visibility = 'hidden';
+
+	    		bigOption.style.display = 'none';
+	    		bigOption.style.visibility = 'hidden';
+
     	    } else {
     	    	bigMapGoogle.style.display = 'none';
 	    		bigMapGoogle.style.visibility = 'hidden';
@@ -169,6 +181,9 @@ var Ambience = function () {
     		bigColor.style.display = 'none';
     		bigColor.style.visibility = 'hidden';
 
+    		bigOption.style.display = 'none';
+	    	bigOption.style.visibility = 'hidden';
+
     		bigMapGoogle.style.display = 'block';
 	    	bigMapGoogle.style.visibility = 'visible';
 
@@ -199,6 +214,9 @@ var Ambience = function () {
 
 	    	bigGradian.style.display = 'block';
 	    	bigGradian.style.visibility = 'visible';
+
+	    	bigOption.style.display = 'block';
+	    	bigOption.style.visibility = 'visible';
 
 	    	//applyMaterial();
 	    	envMaterial.map = texture;
@@ -620,14 +638,20 @@ var Ambience = function () {
 
 	var initInterface = function (){
 		finalPresetButton = document.createElement( 'div' );
-		finalPresetButton.style.cssText = buttonStyle+'width:80px';
-		finalPresetButton.textContent = "Display settng";
+		finalPresetButton.style.cssText = buttonStyle+'width:200px';
+		finalPresetButton.textContent = "Display setting";
 		finalPreset = document.createElement( 'div' );
-		finalPresetButton.style.cssText = 'font-size:9px; position:relative; padding:10px 10px; display:block; width:256px; height:0px; border-radius: 10px; border:1px solid #010101; background-color: #111; text-align:left; visibility:hidden;';
+		finalPreset.style.cssText =  textselect + 'font-size:9px; position:absolute; padding:10px 10px; width:230px; height:300px; top:-350px; left: 260px; border-radius: 10px; border:1px solid #010101; background-color: #111; text-align:left; display:none; visibility:hidden';
+
+		finalPresetButton.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
+		finalPresetButton.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
+		
+		bigOption.appendChild(finalPresetButton);
+		bigOption.appendChild(finalPreset);
 
 		finalPresetButton.addEventListener('click',function(e){
-			if(isShowfinalPreset){isShowfinalPreset = false;  finalPreset.classList.remove('active');}
-			else {isShowfinalPreset=true; finalPreset.classList.add('active'); traceCurrent();}
+			if(isShowfinalPreset){isShowfinalPreset = false;  finalPreset.style.display = "none"; finalPreset.style.visibility = "hidden";}
+			else {isShowfinalPreset=true; finalPreset.style.display = "block"; finalPreset.style.visibility = "visible"; finalPreset.style.height = "360px"; traceCurrent();}
 		});
 
 		mh[0]= document.createElement( 'div' );//document.getElementById('mh0');

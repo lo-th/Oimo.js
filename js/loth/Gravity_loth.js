@@ -12,9 +12,11 @@ var Gravity_loth = function () {
 	var fps = 0, fpsMin = Infinity, fpsMax = 0;
 	var frames = 0, mode = 0;
 
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; -user-select: none;'
+
 	var container = document.createElement( 'div' );
 	container.id = 'gravity';
-	container.style.cssText = 'position:absolute; bottom:110px; right:20px; color:rgba(1,1,1,0.8)';
+	container.style.cssText = unselect + 'position:absolute; bottom:110px; right:20px; color:rgba(1,1,1,0.8)';
 
 	var loDiv = document.createElement( 'div' );
 	loDiv.id = 'lo';

@@ -195,24 +195,24 @@ function initMaterial() {
 		mat01 = new THREE.MeshLambertMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
 		mat02 = new THREE.MeshLambertMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
 		mat03 = new THREE.MeshLambertMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
-		mat04 = new THREE.MeshPhongMaterial( { map: diceTexture, shininess:10, specular:0xffffff } );
-		mat05 = new THREE.MeshPhongMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
-		mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture } );
-		mat07 = new THREE.MeshPhongMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
-		mat08 = new THREE.MeshPhongMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } );
+		mat04 = new THREE.MeshLambertMaterial( { map: diceTexture, shininess:10, specular:0xffffff } );
+		mat05 = new THREE.MeshLambertMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
+		mat06 = new THREE.MeshLambertMaterial( { map: wheelTexture } );
+		mat07 = new THREE.MeshLambertMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
+		mat08 = new THREE.MeshLambertMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } );
 		mat01sleep = new THREE.MeshLambertMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
 		mat02sleep = new THREE.MeshLambertMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
 		mat03sleep = new THREE.MeshLambertMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
-		mat04sleep = new THREE.MeshPhongMaterial( { map: diceTextureSleep, shininess:10, specular:0xffffff } );
-		mat07sleep = new THREE.MeshBasicMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
-		matGyro = new THREE.MeshPhongMaterial( { map: gyroTexture, shininess:100, specular:0xffffff } );
+		mat04sleep = new THREE.MeshLambertMaterial( { map: diceTextureSleep, shininess:10, specular:0xffffff } );
+		mat07sleep = new THREE.MeshLambertMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
+		matGyro = new THREE.MeshLambertMaterial( { map: gyroTexture, shininess:100, specular:0xffffff } );
 
-		matBone = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
-		matBonesleep = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
+		matBone = new THREE.MeshBasicMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
+		matBonesleep = new THREE.MeshBasicMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
 		for(var i=0;i!==16;i++){
-			poolMaterial[i] = new THREE.MeshPhongMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff } );
+			poolMaterial[i] = new THREE.MeshLambertMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff } );
 		}
-
+        //MeshPhongMaterial
 		//MeshLambertMaterial
 	}else{
 		groundMat = new THREE.MeshBasicMaterial( { color: 0x185E77} );
@@ -252,7 +252,7 @@ function initMaterial() {
 	matBonesleep.name = "bonesleep";
 
 	// define Ambiante Colors
-	var array1=[mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, mat06, mat08, matGyro];
+	var array1=[mat01, mat02, mat03, mat04, mat07, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat07sleep, mat05, mat06, mat08, matGyro];
 	var array2 = array1.concat(poolMaterial)
 	//Ambience.begin(scene, [mat01, mat02, mat03,mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep], 2);
 	Ambience.begin(renderer, scene, array2, 500,100);
@@ -262,22 +262,6 @@ function initMaterial() {
 //-----------------------------------------------------
 //  PHYSICS OBJECT IN THREE
 //-----------------------------------------------------
-
-var geo00 = new THREE.PlaneGeometry( 1, 1 );
-var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
-var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
-var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
-var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
-
-var geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
-var geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
-var geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
-var geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
-var geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
-var diceBuffer;
-var colomnBuffer;
-var colomnBaseBuffer;
-var colomnTopBuffer;
 
 function createContentObjects(data){
 	//resetBgObject();
@@ -314,16 +298,17 @@ function createContentObjects(data){
     		//case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
     		case 10: 
     		    var axe = new THREE.AxisHelper( 5 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
-    		    mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] );
+    		    //mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] );
+    		    mesh = new THREE.Object3D();
     		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
     		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
     		    mesh.add(meshFlag);
     		    mesh.add(axe);
     		    boneindex++;
     		break; // bone
-    		case 11: mesh=new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+    		case 11: mesh = new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
 
-    		case 12: mesh = new THREE.Mesh(geo02b, mat02);
+    		case 12: mesh = new THREE.Object3D();//new THREE.Mesh(geo02b, mat02);
     		m2 = getMeshByName('gyro');
     		m2.material = matGyro;
     		m2.children[0].material = matGyro;
@@ -336,8 +321,8 @@ function createContentObjects(data){
     		    mesh.scale.set( 100, 100, 100 );break; // carBody
 
     		case 14: 
-    		    mesh=new THREE.Mesh(geo01b, mat01); 
-    		    mesh.visible = false;
+    		    mesh = new THREE.Object3D();//new THREE.Mesh(geo01b, mat01); 
+    		    //mesh.visible = false;
     		   // mesh.scale.set( s[0], s[1], s[2] );
     		    m2 = getMeshByName('vanBody');//new THREE.Mesh(getMeshByName('vanBody').geometry, mat02);  //getSeaGeometry(name, scale, axe);
     		    m2.material = mat02;
@@ -348,7 +333,7 @@ function createContentObjects(data){
     		    m2.scale.set( 3, 3, 3 );
     		break; // carBody
     		case 15:
-    		    mesh=new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);//getMeshByName('vanWheel', 3, 'x');//
+    		    mesh = new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);//getMeshByName('vanWheel', 3, 'x');//
     		    //mesh.material = mat03;
     		    //scaleGeometry(mesh.geometry,1,'x');
 
@@ -558,10 +543,10 @@ function initLights() {
 
 	scene.add(lights[0]);
 
-	lights[1] = new THREE.PointLight( 0x303030, 2 );
+	/*lights[1] = new THREE.PointLight( 0x303030, 2 );
 	//lights[1].position.set( 200, -500, 500 );
 	lights[1].position.copy( Orbit(center , -35, -45, 1000));
-	scene.add( lights[1] );
+	scene.add( lights[1] );*/
 	/*lights[2] = new THREE.PointLight( 0x00ff00, 1, 800 );
 	scene.add( lights[2] );
 	lights[3] = new THREE.PointLight( 0x0000ff, 1, 800 );
@@ -591,7 +576,7 @@ function lightsAnimation(time, delay, h, v, d, c) {
 function moveLights(vect) {
 	lights[0].position.copy( Orbit(center , 35, 45, 1000));
 	lights[0].target.position.copy(center);
-	lights[1].position.copy( Orbit(center , 35, 45, -1000));
+	//lights[1].position.copy( Orbit(center , 35, 45, -1000));
 
 	/*
 	lights[1].position.copy( Orbit(center , lightPos.horizontal, lightPos.vertical, lightPos.distance));
@@ -629,6 +614,22 @@ function resetBgObject(){
 //-----------------------------------------------------
 //  DEFINE FINAL GEOMETRY
 //-----------------------------------------------------
+var geo00 = new THREE.PlaneGeometry( 1, 1 );
+//var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
+var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
+var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
+var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
+
+var geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
+var geo01b; //= THREE.BufferGeometryUtils.fromGeometry( geo01 );
+var geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
+var geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
+var geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
+var diceBuffer;
+var colomnBuffer;
+var colomnBaseBuffer;
+var colomnTopBuffer;
+
 var defineGeometry = function(){
 	if(isBuffered){
 		geo01b = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));

@@ -144,19 +144,23 @@
 						    	mesh.position.setFromMatrixPosition( mtx );
 						    	mesh.rotation.setFromRotationMatrix( mtx );
 
-						    	if(mesh.material.name == "mat01sleep") mesh.material = mat01;
-					    		else if(mesh.material.name == "mat02sleep") mesh.material = mat02;
-					    		else if(mesh.material.name == "mat03sleep") mesh.material = mat03;
-					    		else if(mesh.material.name == "mat04sleep") mesh.material = mat04;
-					    		else if(mesh.material.name == "mat07sleep") mesh.material = mat07;
-					    		else if(mesh.material.name == "bonesleep") mesh.material = matBone;
+						    	if(mesh.material){
+							    	if(mesh.material.name == "mat01sleep") mesh.material = mat01;
+						    		else if(mesh.material.name == "mat02sleep") mesh.material = mat02;
+						    		else if(mesh.material.name == "mat03sleep") mesh.material = mat03;
+						    		else if(mesh.material.name == "mat04sleep") mesh.material = mat04;
+						    		else if(mesh.material.name == "mat07sleep") mesh.material = mat07;
+						    		else if(mesh.material.name == "bonesleep") mesh.material = matBone;
+						    	}
 						    } else {
-					    		if(mesh.material.name == "mat01"){ mesh.material = mat01sleep;}
-					    		else if(mesh.material.name == "mat02"){ mesh.material = mat02sleep;}
-					    		else if(mesh.material.name == "mat03"){ mesh.material = mat03sleep;}
-					    		else if(mesh.material.name == "mat04"){ mesh.material = mat04sleep;}
-					    		else if(mesh.material.name == "mat07"){ mesh.material = mat07sleep;}
-					    		else if(mesh.material.name == "bone"){ mesh.material = matBonesleep;}
+						    	if(mesh.material){
+						    		if(mesh.material.name == "mat01"){ mesh.material = mat01sleep;}
+						    		else if(mesh.material.name == "mat02"){ mesh.material = mat02sleep;}
+						    		else if(mesh.material.name == "mat03"){ mesh.material = mat03sleep;}
+						    		else if(mesh.material.name == "mat04"){ mesh.material = mat04sleep;}
+						    		else if(mesh.material.name == "mat07"){ mesh.material = mat07sleep;}
+						    		else if(mesh.material.name == "bone"){ mesh.material = matBonesleep;}
+						    	}
 					    	}
 				        } 
 		            }
