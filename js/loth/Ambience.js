@@ -14,7 +14,7 @@ var Ambience = function () {
 	container.style.cssText = unselect+'width:260px;position:absolute;bottom:8px; left:20px; color:#CCCCCC;font-size:12px;font-family:Monospace;text-align:center;';//pointer-events:none;
 
 	var aMini = document.createElement( 'div' );
-	aMini.style.cssText = 'padding:0px 1px; position:relative; display:block;-webkit-border-top-left-radius:20px; border-top-left-radius: 20px;-webkit-border-top-right-radius: 20px; border-top-right-radius: 20px;';//' background-color:#ff55ff';
+	aMini.style.cssText = 'padding:0px 1px; position:relative; display:block;-webkit-border-top-left-radius:20px; border-top-left-radius: 20px;-webkit-border-top-right-radius: 20px; border-top-right-radius: 20px; ';//' background-color:#ff55ff';
 	container.appendChild( aMini );
 
 	var buttonStyle = 'width:20px; position:relative;padding:4px 2px;margin:2px 2px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.2); background-color: rgba(1,1,1,0.2); display:inline-block; text-decoration:none; cursor:pointer;';
@@ -87,6 +87,7 @@ var Ambience = function () {
     	if(mini){
     		mini=false;
     		aMini.style.border = '1px solid #010101';
+    		aMini.style.backgroundColor = 'rgba(1,1,1,0.2)';
     		container.style.bottom = '-1px';
 
     		typeSelect.style.display = 'block';
@@ -114,6 +115,7 @@ var Ambience = function () {
     	}else{
     		mini=true;
     		aMini.style.border = 'none';
+    		aMini.style.backgroundColor = 'transparent';
     		container.style.bottom = '8px';
 
     		typeSelect.style.display = 'none';
@@ -272,22 +274,22 @@ var Ambience = function () {
 	}
 
 	var updateCamera = function (){
-		//render3d.autoUpdateObjects = false;
-		//render3d.shadowMapEnabled = false;
-		if(cubeCamera)cubeCamera.updateCubeMap( render3d, scene3d );
+		if(cubeCamera){
+			render3d.shadowMapEnabled = false;
+			cubeCamera.updateCubeMap( render3d, scene3d );
+			render3d.shadowMapEnabled = true;
+		}
 		//render3d.autoUpdateObjects = true;
-		//render3d.shadowMapEnabled = true;
-		//if(renderNeedUpdate) renderNeedUpdate= false;
 	}
 
 	//--------------------------------------
 	//  GOOGLE PANORAMA INIT
 	//--------------------------------------
 
-	function loadGoogleMapsAPI () {
+	var loadGoogleMapsAPI = function () {
 	    var script = document.createElement("script");
 	    script.type = "text/javascript";
-	    script.src = "http://maps.google.com/maps/api/js?sensor=false&callback=initializeMap";
+	    script.src = "http://maps.google.com/maps/api/js?sensor=false&callback=initializeGoogleMapsAPI";
 	    document.body.appendChild(script);
 	}
 
@@ -400,59 +402,20 @@ var Ambience = function () {
 		map.panTo(myLatlng);
 	}
 
-window.initializeMap = function () {
+    window.initializeGoogleMapsAPI = function () {
 		isMapApiLoaded = true;
-
-		if(GEOloader) return;
-
 		GEOloader = new GSVPANO.PanoLoader();
-
-		//var pos;
-		/*if( window.location.hash ) {
-			parts = window.location.hash.substr( 1 ).split( ',' );
-			pos = { lat: parts[ 0 ], lng: parts[ 1 ] };
-		} else {*/
-			pos = locations[ currentPosition ];
-		//}
 		pos = locations[ currentPosition ];
 		bcenter.textContent = pos.name;
 		var myLatlng = new google.maps.LatLng( pos.lat, pos.lng );
 		var myOptions = { zoom: 18, center: myLatlng, mapTypeId: google.maps.MapTypeId.HYBRID, streetViewControl: false, mapTypeControl:false, zoomControl: false, panControl: false, overviewMapControl:false};
 
-		//if(map==null){
 		map = new google.maps.Map( bigMapGoogle, myOptions);
 		google.maps.event.addListener(map, 'click', function(event) { addMarker(event.latLng); });
 		geocoder = new google.maps.Geocoder();
-		//}
+
 		setZoom( 2 );
 		addMarker( myLatlng );
-		/*var el = document.getElementById( 'myLocationButton' );
-		el.addEventListener( 'click', function( event ) {
-			event.preventDefault();
-			navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
-		}, false );
-		
-		navigator.pointer = navigator.pointer || navigator.webkitPointer || navigator.mozPointer;  
-
-		var el = document.getElementById( 'fullscreenButton' );
-		if( el ) {
-			el.addEventListener( 'click', function( e ) {
-				container.addEventListener( 'webkitfullscreenchange', function(e) {
-					if( navigator.pointer ) {
-						navigator.pointer.lock( container );
-					}
-				}, false );
-				document.addEventListener( 'mozfullscreenchange', function(e) {
-					if (document.mozFullScreen && document.mozFullScreenElement === container && container.mozRequestPointerLock) {
-						container.mozRequestPointerLock();
-					}
-				}, false );
-				if( container.webkitRequestFullScreen ) container.webkitRequestFullScreen();
-				if( container.mozRequestFullScreen ) container.mozRequestFullScreen();
-				e.preventDefault();
-			}, false );
-		}
-		*/
 		
 		GEOloader.onProgress = function( p ) {
 			setProgress( p );
@@ -580,7 +543,6 @@ window.initializeMap = function () {
 	}
 	}
 	
-	//var geoError = function ( message ) { showMessage( message ); }
 	var showMessage = function ( message ) {
 		messageDiv.innerHTML = message;
 	}
@@ -1189,14 +1151,14 @@ window.initializeMap = function () {
 			loadSphere( mats, n, py, s);
 		},
 
-		update: function(y, z){
+		/*update: function(y, z){
 			if(envSphere && type==="color"){
 				envSphere.rotation.y = y;
 				envSphere.rotation.z = z;
 				updateCamera();
 		    }
 		   // if(renderNeedUpdate)updateCamera();
-		},
+		},*/
 
 		getTexture: function () {
 			return texture;

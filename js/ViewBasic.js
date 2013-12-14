@@ -627,13 +627,32 @@ function resetBgObject(){
 }
 
 //-----------------------------------------------------
+//  DEFINE FINAL GEOMETRY
+//-----------------------------------------------------
+var defineGeometry = function(){
+	if(isBuffered){
+		geo01b = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
+		diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
+		colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
+		colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
+		colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
+    } else {
+    	geo01b = getSeaGeometry('box');
+    	diceBuffer = getSeaGeometry('dice');
+		colomnBuffer = getSeaGeometry('column');
+		colomnBaseBuffer = getSeaGeometry('columnBase');
+		colomnTopBuffer = getSeaGeometry('columnTop');
+    }
+}
+
+//-----------------------------------------------------
 //  SEA3D IMPORT
 //-----------------------------------------------------
 
-var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van'];
+var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van', 'box'];
 var seaN = 0;
 
-function initSea3DMesh(){
+var initSea3DMesh = function (){
 	var name = seaList[seaN];
 	var SeaLoader = new THREE.SEA3D(true);
 	
@@ -660,18 +679,7 @@ function initSea3DMesh(){
 		seaN++;
 		if(seaList[seaN]!=null)initSea3DMesh();
 		else{
-			// buffer geometry
-			if(isBuffered){
-				diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
-				colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
-				colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
-				colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
-		    } else {
-		    	diceBuffer = getSeaGeometry('dice');//THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
-				colomnBuffer = getSeaGeometry('column');
-				colomnBaseBuffer = getSeaGeometry('columnBase');
-				colomnTopBuffer = getSeaGeometry('columnTop');
-		    }
+			defineGeometry();
 			mainAllObjectLoaded();
 			isLoading = false;
 
@@ -684,7 +692,7 @@ function initSea3DMesh(){
 	loadInfo.innerHTML = "Loading sea3d model : "+ name;
 }
 
-function getSeaGeometry(name, scale, axe){
+var getSeaGeometry = function (name, scale, axe){
 	var a = axe || "z";
 	var s = scale || 1;
 	var g = getMeshByName(name).geometry;
@@ -692,7 +700,7 @@ function getSeaGeometry(name, scale, axe){
 	return g;
 }
 
-function getMeshByName(name){
+var getMeshByName = function (name){
 	//var s = scale || -1;
 	for (var i=0; i !== meshs.length; i++){
 		if(meshs[i].name === name){
@@ -702,7 +710,7 @@ function getMeshByName(name){
 	} 
 }
 
-function scaleGeometry(geometry, scale, Axe) {
+var scaleGeometry = function (geometry, scale, Axe) {
 	var s = 1;//scale || 1;
 	var axe = Axe || 'z' 
 	for( var i = 0; i < geometry.vertices.length; i++) {
