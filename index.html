@@ -32,7 +32,6 @@
 		<script type="text/javascript" src="js/loth/Ambience.js"></script>
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
-		<script type="text/javascript" src="js/loth/Stats_loth.js"></script>
 		<script type="text/javascript" src="js/loth/Gravity_loth.js"></script>
 
 		<script type="text/javascript" src="js/materialShader/SphereShader.js"></script>
@@ -48,54 +47,28 @@
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
 		    var currentView = 0;
-            var output, garvity, loadInfo;
 
-            var stats,stats2;
         	var Ambience;
-        	var Gravity;
         	var threeEngine;
         	var Interface;
 
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
-        	//
-
-        	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
         	window.onload = init;
-        	//init();
 
 		    function init() {
+		    	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
-		    	stats = new Stats_loth();
-		    	stats2 = new Stats_loth();
-		    	stats2.domElement.style.bottom = '60px';
-				stats2.rename('OIMO');
-		    	Gravity = new Gravity_loth();
-
-                garvity = document.getElementById("gravity");
-
 		    	threeEngine = new ThreeEngine();
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Interface.domElement );
-				document.body.appendChild( stats.domElement );
-				document.body.appendChild( stats2.domElement );
 				document.body.appendChild( Ambience.domElement );
-				document.body.appendChild( Gravity.domElement );
-				
-
-				Gravity.setup(-10, changeGravity);
-				threeEngine.init({optimized:true});
+				threeEngine.init({optimized:false});
             }
 
             function mainAllObjectLoaded(){
-            	// hide loader
-            	//loadInfo.style.visibility = "hidden";
-            	//document.getElementById("loadIcon").style.visibility = "hidden"; 
-            	//document.getElementById("loader").style.visibility = "hidden";
-
             	// start worker
         	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:-10 });
             }
@@ -112,9 +85,6 @@
 	            	threeEngine.createObjects(e.data);
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
-
-				// stats update
-				if(phase === "BEGIN"){stats2.begin();}
 
 				// update three object
     	    	if( phase === "RUN"){
@@ -172,7 +142,6 @@
 		            }
 		            if(demo === 5){
 		            	threeEngine.cameraFollow(threeEngine.content.children[max-5].position);
-		            	//cameraFollow(content.children[max-4].position);
 		            }
 		            if(demo === 7){
 		            	var m00=threeEngine.content.children[max-1];
@@ -186,7 +155,6 @@
 		            }
 
 					displayInfo(e.data.infos);
-					stats2.end();
 	            }
 
 	            // clear three object
@@ -211,20 +179,20 @@
 
 	        function displayInfo(a){
 	        	document.getElementById("demoName").innerHTML = demoName[a[0]];
-			    var info =[ 
-			        //"-- "+ demoName[a[0]]+" --<br><br>",
+			    var info =[
 	        	    "Rigidbody: "+a[1]+"<br>",
 	        	    "Contact: "+a[2]+"<br>",
 	        	    "Pair Check: "+a[3]+"<br>",
 	        	    "Contact Point: "+a[4]+"<br>",
 	        	    "Island: " + a[5] +"<br><br>",
-	        	    "Broad-Phase Time: " + a[6] + "ms<br>",
-	        	    "Narrow-Phase Time: " + a[7] + "ms<br>",
-	        	    "Solving Time: " + a[8] + "ms<br>",
-	        	    "Updating Time: " + a[9] + "ms<br>",
-	        	    "Total Time: " + a[10] + "ms<br>",
-	        	    //"Physics: " + a[11] +" fps<br>",
-	        	    //"Render: " + fpstxt +" fps<br>"
+	        	    "Broad-Phase Time: " + a[6] + " ms<br>",
+	        	    "Narrow-Phase Time: " + a[7] + " ms<br>",
+	        	    "Solving Time: " + a[8] + " ms<br>",
+	        	    "Updating Time: " + a[9] + " ms<br>",
+	        	    "Total Time: " + a[10] + " ms<br><br>",
+	        	    
+	        	    "Physics: " + a[11] +" fps / "+a[12]+" ms<br>",
+	        	    "Render: " + threeEngine.getFps()
 			    ].join("\n");
 
 	        	document.getElementById("output").innerHTML = info;

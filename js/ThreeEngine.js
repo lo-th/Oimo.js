@@ -20,7 +20,7 @@ var ThreeEngine = function () {
 	var center = new THREE.Vector3(0,150,0);
 
 	var delta, clock = new THREE.Clock();
-	var fpstxt, time, time_prev = 0, fps = 0;
+	var fpstxt, time, time_prev = 0, fps = 0, startTime, ms;
 
 	var meshs = [];
 	var players = [];
@@ -659,7 +659,7 @@ var ThreeEngine = function () {
 
 		SeaLoader.load( PATH+'models/'+name+'.sea' );
 		//loadInfo.innerHTML = "Loading sea3d model : "+ name;
-		//document.getElementById("output").innerHTML = "Loading sea3d model : "+ name;
+		document.getElementById("output").innerHTML = "Loading sea3d model : "+ name;
 	}
 
 	var getSeaGeometry = function (name, scale, axe){
@@ -711,10 +711,11 @@ var ThreeEngine = function () {
 	}
 
 	var update = function () {
+		startTime = Date.now();
 		//var delta = clock.getDelta();
 
 		requestAnimationFrame( update, renderer.domElement );
-		stats.begin();
+		//stats.begin();
 
 
 		
@@ -739,8 +740,8 @@ var ThreeEngine = function () {
 		
 		//Ambience.update((-camPos.horizontal-180)*ToRad, (camPos.vertical-135)*ToRad);
 
-		stats.end();
-		//fpsUpdate();
+		//stats.end();
+		fpsUpdate();
 	}
 
 	var viewRender = function () {
@@ -750,6 +751,7 @@ var ThreeEngine = function () {
 
 	var fpsUpdate = function () {
 	    time = Date.now();
+	    ms = time - startTime;
 	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
 	    fps++;
 	}
@@ -1023,7 +1025,13 @@ var ThreeEngine = function () {
 		updateSnake:updateSnake,
 		getSqueletonStructure:getSqueletonStructure,
 
-		changeView:changeView
+		changeView:changeView,
+
+		getFps: function (name) {
+
+			return fpstxt +" fps / "+ ms+" ms<br>";
+
+		}
 	}
 
 

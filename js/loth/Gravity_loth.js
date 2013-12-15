@@ -7,16 +7,16 @@ var Gravity_loth = function () {
 	var drag;
 	var finalFunction;
 
-	var startTime = Date.now(), prevTime = startTime;
-	var ms = 0, msMin = Infinity, msMax = 0;
-	var fps = 0, fpsMin = Infinity, fpsMax = 0;
-	var frames = 0, mode = 0;
-
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
 
 	var container = document.createElement( 'div' );
 	container.id = 'gravity';
 	container.style.cssText = unselect + 'position:absolute; bottom:110px; right:20px; font-size:12px; font-family:Monospace; text-align:center; color:#888888;';
+
+
+
+
+
 
 	var loDiv = document.createElement( 'div' );
 	loDiv.style.cssText = 'width:40px; height:200px; padding:0 0 0 0; display:block; background:rgba(255,255,255,0.0); border:1px solid rgba(255,255,255,0.2);-webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center;';
@@ -88,7 +88,6 @@ var Gravity_loth = function () {
 			select.style.width = '30px';
 			select.style.left = '5px';
 		}
-		
 	}
 
 	return {

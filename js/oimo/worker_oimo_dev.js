@@ -34,7 +34,7 @@ var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
 var timer, delay, timerStep;
-//var fps=0, time, time_prev=0, fpsint = 0;
+var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
 var ToRad = Math.PI / 180;
 
 // array variable
@@ -43,7 +43,7 @@ var matrix;
 var sleeps;
 var types;
 var sizes;
-var infos = new Float32Array(12);
+var infos = new Float32Array(13);
 //var infos =[]; infos.length=12;
 var currentDemo = 0;
 var maxDemo = 8;
@@ -86,8 +86,8 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var update = function(){
-    self.postMessage({tell:"BEGIN"});
-    var t01 = Date.now();
+    //self.postMessage({tell:"BEGIN"});
+    t01 = Date.now();
 
     world.step();
 
@@ -386,10 +386,11 @@ var addJoint = function(obj){
 
 var worldInfo = function(){
 
-    /*time = Date.now();
+    time = Date.now();
+    ms = time - t01;
     if (time - 1000 > time_prev) {
         time_prev = time; fpsint = fps; fps = 0;
-    } fps++;*/
+    } fps++;
 
     infos[0] = currentDemo;
     infos[1] = world.numRigidBodies;
@@ -402,7 +403,9 @@ var worldInfo = function(){
     infos[8] = world.performance.solvingTime;
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
-    //infos[11] = fpsint;
+    
+    infos[11] = fpsint;
+    infos[12] = ms;
 }
 
 //--------------------------------------------------
