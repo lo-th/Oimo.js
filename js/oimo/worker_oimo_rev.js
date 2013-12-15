@@ -64,7 +64,7 @@ self.onmessage = function (e) {
         initClass();
     }
     if(phase === "UPDATE"){if(isTimout) update(); else timer = setInterval(update, timerStep);}
-    if(phase === "KEY")userKey(e.data.key);
+    if(phase === "KEY") userKey(e.data.key);
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
     if(phase === "NEXT") initNextDemo();

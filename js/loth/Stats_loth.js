@@ -12,7 +12,7 @@ var Stats_loth = function () {
 
 	var container = document.createElement( 'div' );
 	container.id = 'stats';
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; '
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	
 	container.style.cssText =unselect+ 'position:absolute;bottom:10px;right:10px; pointer-events:none;';
 

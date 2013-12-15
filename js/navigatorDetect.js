@@ -57,11 +57,11 @@ if (isNaN(majorVersion)) {
 }
 
 
-document.getElementById("debug").innerHTML = 'Browser name  = '+browserName+'<br>'
+/*document.getElementById("debug").innerHTML = 'Browser name  = '+browserName+'<br>'
  +'Full version  = '+fullVersion+'<br>'
  +'Major version = '+majorVersion+'<br>'
  +'navigator.appName = '+navigator.appName+'<br>'
- +'navigator.userAgent = '+navigator.userAgent+'<br>';
+ +'navigator.userAgent = '+navigator.userAgent+'<br>';*/
  /*
 document.write(''
  +'Browser name  = '+browserName+'<br>'

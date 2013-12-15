@@ -12,20 +12,23 @@ var Gravity_loth = function () {
 	var fps = 0, fpsMin = Infinity, fpsMax = 0;
 	var frames = 0, mode = 0;
 
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; -user-select: none;'
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
 
 	var container = document.createElement( 'div' );
 	container.id = 'gravity';
-	container.style.cssText = unselect + 'position:absolute; bottom:110px; right:20px; color:rgba(1,1,1,0.8)';
+	container.style.cssText = unselect + 'position:absolute; bottom:110px; right:20px; font-size:12px; font-family:Monospace; text-align:center; color:#888888;';
 
 	var loDiv = document.createElement( 'div' );
-	loDiv.id = 'lo';
-	loDiv.style.cssText = 'width:40px;height:200px;padding:0 0 0 0;text-align:left;display:block;background:rgba(255,255,255,0.05);border:1px solid rgba(1,1,1,0.3);-webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center;';
+	loDiv.style.cssText = 'width:40px; height:200px; padding:0 0 0 0; display:block; background:rgba(255,255,255,0.0); border:1px solid rgba(255,255,255,0.2);-webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center;';
 	container.appendChild( loDiv );
+
+	var loDiv2 = document.createElement( 'div' );
+	loDiv2.style.cssText = 'position:absolute; left:10px; bottom:0px; width:20px; height:200px; display:block; background:rgba(255,255,0,0.05);-webkit-border-radius:10px; border-radius:10px; pointer-events:none;';
+	loDiv.appendChild( loDiv2 );
 	
 
 	var center = document.createElement( 'div' );
-	center.style.cssText = 'position:absolute;width:30px;left:5px;height:1px;padding:0 0 0 0; background:rgba(1,1,1,0.3); top:100px; pointer-events:none;';
+	center.style.cssText = 'position:absolute;width:30px;left:5px;height:1px;padding:0 0 0 0; background:rgba(255,255,255,0.2); top:100px; pointer-events:none;';
 	loDiv.appendChild( center );
 
 	var select = document.createElement( 'div' );
@@ -33,11 +36,11 @@ var Gravity_loth = function () {
 	loDiv.appendChild( select );
 
 	var txt = document.createElement( 'div' );
-	txt.style.cssText = 'position:absolute;width:40px;height:30px;padding:0 0 0 0; top:105px; pointer-events:none;font-size:12px;font-family:Monospace;text-align:center;';
+	txt.style.cssText = 'position:absolute;width:40px;height:30px;padding:0 0 0 0; top:105px; pointer-events:none;';
 	loDiv.appendChild( txt );
 
 	var txt2 = document.createElement( 'div' );
-	txt2.style.cssText = 'position:absolute;width:40px;height:30px;padding:0 0 0 0; top:85px; pointer-events:none;font-size:12px;font-family:Monospace;text-align:center;';
+	txt2.style.cssText = 'position:absolute;width:40px;height:30px;padding:0 0 0 0; top:85px; pointer-events:none;';
 	loDiv.appendChild( txt2 );
 	txt2.textContent ="G";
 
@@ -54,6 +57,7 @@ var Gravity_loth = function () {
 			if(pos<0)pos=0;
 			if(pos>200)pos=200;
 			select.style.top = pos+"px";
+			loDiv2.style.height = 200-pos +"px";
 			G = -(pos-100)/10;
 			txt.textContent =G;
 			if(finalFunction)finalFunction(G);
@@ -75,6 +79,7 @@ var Gravity_loth = function () {
 		G = g;
 		txt.textContent = G;
 		select.style.top = pos +"px";
+		loDiv2.style.height = 200-pos +"px";
 
 		if(pos<10 || pos>190){ 
 			select.style.width = '10px';

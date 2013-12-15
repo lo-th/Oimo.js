@@ -4,8 +4,8 @@
 'use strict';
 var Ambience = function () {
 	var render3d, scene3d = null;
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; -user-select: none;'
-	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text; -user-select: text;'
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
+	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
 	var mini = true;
 	var type = "color";
 
@@ -293,9 +293,9 @@ var Ambience = function () {
 
 	var updateCamera = function (){
 		if(cubeCamera){
-			render3d.shadowMapEnabled = false;
+			//render3d.shadowMapEnabled = false;
 			cubeCamera.updateCubeMap( render3d, scene3d );
-			render3d.shadowMapEnabled = true;
+			//render3d.shadowMapEnabled = true;
 		}
 		//render3d.autoUpdateObjects = true;
 	}

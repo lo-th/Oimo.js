@@ -6,17 +6,31 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<link rel="shortcut icon" href="images/favicon.ico">
-		<style>
-			body {
-				font-family: Monospace;
-				background-color: #222;
-				margin: 0px;
-				overflow: hidden;
-			}
-			a { text-decoration:none; }
-		</style> 
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
 	</head>
 	<body>
+		<div id="container" class="unselectable"></div>
+		<div id="debug" class="unselectable"></div>
+		<div id="info" class="unselectable">
+			<a href="http://3dflashlo.wordpress.com/" target="_blank" style="color:#4d4d4d">LOTH 2013</a>
+			| <a href="http://threejs.org" target="_blank" style="color:#4d4d4d">THREE.JS</a>
+			| <a href="https://code.google.com/p/sea3d/" target="_blank" style="color:#4d4d4d">SEA3D</a>
+			| <a href="https://github.com/saharan/OimoPhysics" target="_blank" style="color:#4d4d4d">OIMO.PHYSICS</a>
+		</div>
+		<div id="menu" class="unselectable">
+			<button type="button" onclick="prevDemo()" id="bcontrol">PREV DEMO</button>
+			<button type="button" onclick="nextDemo()" id="bcontrol">NEXT DEMO</button>
+			<button type="button" onclick="moveView()" id="bview">VIEW</button>
+		</div>
+		<div id="titre" class="unselectable">
+			<img id="logo" class="unselectable" src="images/logo.png"/>
+			<a href="https://github.com/lo-th/Oimo.js" target="_blank"><b>Oimo.js</b></a><p style="font-size:12px; display:inline"> &nbsp;&nbsp;<b>DEV</b> / <a href="index_rev.html" target="_self">REV</a></p>
+		</div>
+		<div id="loader" class="unselectable">
+			<img id="loadIcon" class="unselectable" src="images/loader.gif"/><br/>
+			<div id="loadTxt" class="unselectable">...</div>
+		</div>
+
 		<script type="text/javascript" src="js/three.min.js"></script>
 		<script type="text/javascript" src="js/BufferGeometryUtils.js"></script>
 		<script type="text/javascript" src="js/tweenLite.min.js"></script>
@@ -24,11 +38,10 @@
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3DLoader.js"></script>
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3DDeflate.js"></script>
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3DLZMA.js"></script>
-		<script type="text/javascript" src="js/ThreeEngine.js"></script>
+		<script type="text/javascript" src="js/ViewBasic.js"></script>
 		<script type="text/javascript" src="js/AutoTexture.js"></script>
 		<script type="text/javascript" src="js/Detector.js"></script>
 
-		<script type="text/javascript" src="js/loth/Interface.js"></script>
 		<script type="text/javascript" src="js/loth/Ambience.js"></script>
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
@@ -43,7 +56,7 @@
 		
 
 		<script type="text/javascript">
-		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Car simulator", "Ragdoll", "Van"];
+		    var demoName = ["Basic shape", "Dice fall", "Mad Pool", "Joint test", "Supermarket", "Car simulator --- Use keyboard", "RagDoll", "Van"];
 		    var vSet = [ {h:90, v:70, d:600}, {h:0, v:60, d:1000}, {h:360, v:45, d:600}, {h:200, v:70, d:1500}, {h:0, v:10, d:1000}];
 		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
 
@@ -53,48 +66,44 @@
             var stats,stats2;
         	var Ambience;
         	var Gravity;
-        	var threeEngine;
-        	var Interface;
 
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
-        	//
+        	//window.onload = init;
 
         	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
-        	window.onload = init;
-        	//init();
+        	init();
 
 		    function init() {
-		    	Interface = new Interface('dev');
-		    	Ambience = new Ambience();
 		    	stats = new Stats_loth();
-		    	stats2 = new Stats_loth();
-		    	stats2.domElement.style.bottom = '60px';
-				stats2.rename('OIMO');
-		    	Gravity = new Gravity_loth();
-
-                garvity = document.getElementById("gravity");
-
-		    	threeEngine = new ThreeEngine();
-		    	document.body.appendChild( threeEngine.domElement );
-		    	document.body.appendChild( Interface.domElement );
 				document.body.appendChild( stats.domElement );
-				document.body.appendChild( stats2.domElement );
-				document.body.appendChild( Ambience.domElement );
-				document.body.appendChild( Gravity.domElement );
-				
 
+				stats2 = new Stats_loth();
+				document.body.appendChild( stats2.domElement );
+				stats2.domElement.style.bottom = '60px';
+				stats2.rename('OIMO');
+
+				Ambience = new Ambience();
+				document.body.appendChild( Ambience.domElement );
+
+				Gravity = new Gravity_loth();
+				document.body.appendChild( Gravity.domElement );
 				Gravity.setup(-10, changeGravity);
-				threeEngine.init({optimized:true});
+
+		    	output = document.getElementById("debug");
+                garvity = document.getElementById("gravity");
+                loadInfo = document.getElementById("loadTxt");
+
+            	// init three.js engine
+            	initThree({ });
             }
 
             function mainAllObjectLoaded(){
             	// hide loader
             	//loadInfo.style.visibility = "hidden";
             	//document.getElementById("loadIcon").style.visibility = "hidden"; 
-            	//document.getElementById("loader").style.visibility = "hidden";
+            	document.getElementById("loader").style.visibility = "hidden";
 
             	// start worker
         	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:-10 });
@@ -109,7 +118,7 @@
 
     	    	// create mesh
 	            if(phase === "INIT"){
-	            	threeEngine.createObjects(e.data);
+	            	createContentObjects(e.data);
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
 
@@ -130,76 +139,77 @@
         	    	// Update rendering meshes
         	    	//for(i=0; i!==max; i++){
         	    	while (i--) {
-        	    		if( threeEngine.content.children[i] ){
-            	    		mesh = threeEngine.content.children[i];
+        	    		if( content.children[i] ){
+            	    		mesh = content.children[i];
             	    		if( e.data.sleeps[i]===0){
             	    			n = 12*i;
 	            	    		mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3], m[n+4], m[n+5], m[n+6], m[n+7], m[n+8], m[n+9], m[n+10], m[n+11], 0, 0, 0, 1);
 	            	    		mesh.position.setFromMatrixPosition( mtx )
 						    	mesh.rotation.setFromRotationMatrix( mtx );
 						    	if(mesh.material){
-							    	if(mesh.material.name == "mat01sleep") mesh.material = threeEngine.materials[0];
-						    		else if(mesh.material.name == "mat02sleep") mesh.material = threeEngine.materials[1];
-						    		else if(mesh.material.name == "mat03sleep") mesh.material = threeEngine.materials[2];
-						    		else if(mesh.material.name == "mat04sleep") mesh.material = threeEngine.materials[3];
-						    		else if(mesh.material.name == "bonesleep") mesh.material = threeEngine.materials[10];
+							    	if(mesh.material.name == "mat01sleep") mesh.material = mat01;
+						    		else if(mesh.material.name == "mat02sleep") mesh.material = mat02;
+						    		else if(mesh.material.name == "mat03sleep") mesh.material = mat03;
+						    		else if(mesh.material.name == "mat04sleep") mesh.material = mat04;
+						    		else if(mesh.material.name == "bonesleep") mesh.material = matBone;
 						    	}
 						    } else {
 						    	if(mesh.material){
-						    		if(mesh.material.name == "mat01") mesh.material = threeEngine.materials[5];
-						    		else if(mesh.material.name == "mat02") mesh.material = threeEngine.materials[6];
-						    		else if(mesh.material.name == "mat03") mesh.material = threeEngine.materials[7];
-						    		else if(mesh.material.name == "mat04") mesh.material = threeEngine.materials[8];
-						    		else if(mesh.material.name == "bone") mesh.material = threeEngine.materials[11];
+						    		if(mesh.material.name == "mat01"){ mesh.material = mat01sleep;}
+						    		else if(mesh.material.name == "mat02"){ mesh.material = mat02sleep;}
+						    		else if(mesh.material.name == "mat03"){ mesh.material = mat03sleep;}
+						    		else if(mesh.material.name == "mat04"){ mesh.material = mat04sleep;}
+						    		else if(mesh.material.name == "bone"){ mesh.material = matBonesleep;}
 						    	}
 					    	}
 				        } 
 		            }
 
 		            //skin update
-		            if(demo === 3) threeEngine.updateSnake();
-		            if(demo === 6) threeEngine.updateSila();
+		            if(demo === 3) updateSnake();
+		            if(demo === 6) updateSila();
 		            
 		            //Follow object 
 		            if(demo === 4){
-		            	var m00=threeEngine.content.children[max-1];
-		            	var m01=threeEngine.content.children[max];
+		            	var m00=content.children[max-1];
+		            	var m01=content.children[max];
 		            	m01.position.copy(m00.position);
-		            	threeEngine.cameraFollow(m00.position);
+		            	cameraFollow(m00.position);
 		                m01.children[0].rotation.y= m00.rotation.z; //axe01
 		                m01.children[0].children[0].rotation.x = m00.rotation.y; //axe02
 		            	m01.children[0].children[0].children[0].rotation.y = m00.rotation.x; //axe03
 		            }
 		            if(demo === 5){
-		            	threeEngine.cameraFollow(threeEngine.content.children[max-5].position);
+		            	cameraFollow(content.children[max-5].position);
 		            	//cameraFollow(content.children[max-4].position);
 		            }
 		            if(demo === 7){
-		            	var m00=threeEngine.content.children[max-1];
-		            	var m01=threeEngine.content.children[max];
+		            	var m00=content.children[max-1];
+		            	var m01=content.children[max];
 		            	
 		            	m01.position.x=m00.position.x;
 		            	m01.position.y=m00.position.y-36;
 		            	m01.position.z=m00.position.z;
 		            	m01.rotation.copy(m00.rotation);
-		            	threeEngine.cameraFollow(m00.position);
+		            	cameraFollow(m00.position);
 		            }
+
 
 					displayInfo(e.data.infos);
 					stats2.end();
 	            }
 
 	            // clear three object
-				if(phase === "CLEAR") threeEngine.clear();
+				if(phase === "CLEAR") clearContent();
 				// get ragdoll info
-				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);
+				if(phase === "GETBONES") getSqueletonStructure(e.data.name);
     	    }
 
     	    //-----------------------------------------------------
             //  OIMO MESSAGE FUNCTION
             //-----------------------------------------------------
 
-	        function sendKey(key){ OimoWorker.postMessage({tell:"KEY", key:key}); }
+	        function sendKey(){ OimoWorker.postMessage({tell:"KEY", key:key}); }
 	        function sendCameraOrientation(phi, theta){ OimoWorker.postMessage({tell:"CAMERA", cam:[phi, theta]}); }
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
@@ -210,9 +220,8 @@
             //-----------------------------------------------------
 
 	        function displayInfo(a){
-	        	document.getElementById("demoName").innerHTML = demoName[a[0]];
 			    var info =[ 
-			        //"-- "+ demoName[a[0]]+" --<br><br>",
+			        "-- "+ demoName[a[0]]+" --<br><br>",
 	        	    "Rigidbody: "+a[1]+"<br>",
 	        	    "Contact: "+a[2]+"<br>",
 	        	    "Pair Check: "+a[3]+"<br>",
@@ -227,7 +236,7 @@
 	        	    //"Render: " + fpstxt +" fps<br>"
 			    ].join("\n");
 
-	        	document.getElementById("output").innerHTML = info;
+	        	output.innerHTML = info;
 	        }
 
 	        //-----------------------------------------------------
@@ -236,8 +245,8 @@
 
 			function moveView() {
 				var n = currentView;
-				threeEngine.changeView(vSet[n].h, vSet[n].v, vSet[n].d);
-				//document.getElementById("bview").innerHTML = "VIEW " + n;
+				onThreeChangeView(vSet[n].h, vSet[n].v, vSet[n].d);
+				document.getElementById("bview").innerHTML = "VIEW " + n;
 				currentView++;
 				if(currentView == vSet.length)currentView = 0;
 			}
