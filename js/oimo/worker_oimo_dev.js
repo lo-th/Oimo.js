@@ -26,7 +26,7 @@ var version = "10.DEV";
 var World, RigidBody, BroadPhase;
 var Shape, ShapeConfig, BoxShape, SphereShape;
 var JointConfig, HingeJoint, WheelJoint, DistanceJoint;
-var Vec3, Quat, Mat33;
+var Vec3, Quat, Mat33, Mat44;
 
 // physics variable
 var world;
@@ -44,14 +44,18 @@ var ToRad = Math.PI / 180;
 
 // array variable
 var bodys;
+
 var matrix;
 var sleeps;
 var types;
 var sizes;
 var infos = new Float32Array(13);
-//var infos =[]; infos.length=12;
 var currentDemo = 0;
 var maxDemo = 9;
+
+var statics;
+var staticTypes, staticSizes, staticMatrix;
+
 // vehicle by key
 var car = null;
 var van = null;
@@ -193,6 +197,7 @@ var initClass = function(){
         Vec3 = com.elementdev.oimo.math.Vec3;
         Quat = com.elementdev.oimo.math.Quat;
         Mat33 = com.elementdev.oimo.math.Mat33;
+        Mat44 = com.elementdev.oimo.math.Mat44;
 
         createWorld();
     });
@@ -256,6 +261,11 @@ var startDemo = function(){
     types = [];
     sizes = [];
 
+    statics = [];
+    staticTypes = [];
+    staticSizes = [];
+    staticMatrix = [];
+
     if(currentDemo==0)demo0();
     else if(currentDemo==1)demo1();
     else if(currentDemo==2)demo2();
@@ -272,7 +282,7 @@ var startDemo = function(){
     sleeps = new Uint8Array(N);
     //matrix = new Int32Array(N*12);
     //matrix = new Int32Array(new ArrayBuffer(N*12));
-    
+    self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 
 }
@@ -282,13 +292,22 @@ var startDemo = function(){
 //--------------------------------------------------
 
 var addRigid = function(obj){
+
     var sc = obj.sc || new ShapeConfig();
-    var c = obj.config || null;
-    if(c!==null){
-        sc.density = c[0];
-        sc.friction = c[1];
-        sc.restitution = c[2];
+    if(obj.config){
+        sc.density = obj.config[0] || 1;
+        sc.friction = obj.config[1] || 0.4;
+        sc.restitution = obj.config[2] || 0.2;
+        sc.belongsTo = obj.config[3] || 1;
+        sc.collidesWith = obj.config[4] || 0xffffffff;
     }
+    if(obj.configPos){
+        sc.relativePosition.set(obj.configPos[0], obj.configPos[1], obj.configPos[2]);
+    }
+    if(obj.configRot){
+        sc.relativeRotation = eulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
+    }
+    
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
@@ -331,15 +350,22 @@ var addRigid = function(obj){
     if(shape2!=null)body.addShape(shape2);
     //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
 
-    if(!move)body.setupMass(0x2);
-    else{ 
+    if(move){
         if(noAdjust)body.setupMass(0x1, false);
         else body.setupMass(0x1, true);
         bodys.push(body);
         types.push(t);
         sizes.push([s[0]*scale, s[1]*scale, s[2]*scale])
-        if(noSleep)body.allowSleep = false;
+        if(noSleep) body.allowSleep = false;
         else body.allowSleep = true;
+    } else {
+        body.setupMass(0x2);
+        statics.push(body);
+        staticTypes.push(t);
+        staticSizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
+        var sr = body.rotation;
+        var sp = body.position;
+        staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
     }
     world.addRigidBody(body);
     return body;
@@ -422,11 +448,11 @@ var worldInfo = function(){
 
 var eulerToAxisAngle = function( x, y, z ){
     // Assuming the angles are in radians.
-    var c1 = Math.cos(y*0.5);
+    var c1 = Math.cos(y*0.5);//heading
     var s1 = Math.sin(y*0.5);
-    var c2 = Math.cos(z*0.5);
+    var c2 = Math.cos(z*0.5);//altitude
     var s2 = Math.sin(z*0.5);
-    var c3 = Math.cos(x*0.5);
+    var c3 = Math.cos(x*0.5);//bank
     var s3 = Math.sin(x*0.5);
     var c1c2 = c1*c2;
     var s1s2 = s1*s2;
@@ -465,6 +491,27 @@ var matrixToEuler = function(mtx){
         z = Math.asin(mtx.e10);
     }
     return [x, y, z];
+}
+
+var eulerToMatrix = function( x, y, z ) {
+    // Assuming the angles are in radians.
+    var ch = Math.cos(y);//heading
+    var sh = Math.sin(y);
+    var ca = Math.cos(z);//altitude
+    var sa = Math.sin(z);
+    var cb = Math.cos(x);//bank
+    var sb = Math.sin(x);
+    var mtx = new Mat33();
+    mtx.e00 = ch * ca;
+    mtx.e01 = sh*sb - ch*sa*cb;
+    mtx.e02 = ch*sa*sb + sh*cb;
+    mtx.e10 = sa;
+    mtx.e11 = ca*cb;
+    mtx.e12 = -ca*sb;
+    mtx.e20 = -sh*ca;
+    mtx.e21 = sh*sa*cb + ch*sb;
+    mtx.e22 = -sh*sa*sb + ch*cb;
+    return mtx;
 }
 
 var getDistance3d = function(p1, p2){

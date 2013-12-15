@@ -85,6 +85,11 @@
 	            	threeEngine.createObjects(e.data);
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
+				
+				// create static mesh debug
+	            if(phase === "INITSTATIC"){
+	            	threeEngine.createStaticObjects(e.data);
+				}
 
 				// update three object
     	    	if( phase === "RUN"){

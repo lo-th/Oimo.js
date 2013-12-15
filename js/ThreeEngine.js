@@ -10,6 +10,9 @@ var ThreeEngine = function () {
 
 	// containe all object from simulation
 	var content = new THREE.Object3D();
+	// containe all static object from simulation
+	var contentDebug = new THREE.Object3D();
+
 	// containe all material reference
 	var materials = [];
 
@@ -106,6 +109,7 @@ var ThreeEngine = function () {
 		viewResize();
 
 		scene.add(content);
+		scene.add(contentDebug);
 
 		// marker for mouse position
 		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
@@ -131,7 +135,7 @@ var ThreeEngine = function () {
 	//  MATERIAL
 	//-----------------------------------------------------
 
-	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro; 
+	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial; 
 	var poolMaterial = [];
 	//var baseMaterialm baseMaterial2;
 	var envTexture;
@@ -188,6 +192,8 @@ var ThreeEngine = function () {
 		var diceTextureSleep = new createDiceTexture(1);
 		var wheelTexture = new createWheelTexture(0);
 		var gyroTexture = new createGyroTexture();//THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
+
+		debugMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe:true, transparent:true, opacity:0.1 } );
 
 		if(!isOptimized){
 			groundMat =  new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
@@ -272,6 +278,30 @@ var ThreeEngine = function () {
 	}
 
 	//-----------------------------------------------------
+	//  PHYSICS STATIC OBJECT IN THREE
+	//-----------------------------------------------------
+
+	var createStaticObjects = function (data){
+		var max = data.types.length;
+		var mesh;
+		var s, m, mtx;
+	    for(var i=0; i!==max; i++){
+	    	s = data.sizes[i] || [50,50,50];
+	    	m = data.matrix[i];
+	    	switch(data.types[i]){
+	    		case 1: mesh=new THREE.Mesh(geo05, debugMaterial); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+	    		case 2: mesh=new THREE.Mesh(geo01, debugMaterial); mesh.scale.set( s[0], s[1], s[2] ); break; // box
+	        }
+	        mtx = new THREE.Matrix4(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], 0, 0, 0, 1);
+	        mesh.position.setFromMatrixPosition( mtx );
+	        mesh.rotation.setFromRotationMatrix( mtx );
+	        mesh.receiveShadow = false;
+	        mesh.castShadow = false;
+	        contentDebug.add( mesh );
+	    }
+	}
+
+	//-----------------------------------------------------
 	//  PHYSICS OBJECT IN THREE
 	//-----------------------------------------------------
 
@@ -288,7 +318,7 @@ var ThreeEngine = function () {
 	    	s = data.sizes[i] || [50,50,50];
 	    	switch(data.types[i]){
 	    		case 1: mesh=new THREE.Mesh(geo02b, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
-	    		case 2: mesh=new THREE.Mesh(geo01b, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
+	    		case 2: mesh=new THREE.Mesh(smoothCube, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
 	    		case 3: mesh=new THREE.Mesh(geo03b, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
 
 	    		case 4: mesh=new THREE.Mesh(diceBuffer, mat04); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
@@ -364,22 +394,29 @@ var ThreeEngine = function () {
 	    if(data.demo === 3) addSnake();
 	    if(data.demo === 6) addSila();
 
-	   //lightsAnimation(2, 0.5, 0, 90, 500);
-	    //center = new THREE.Vector3(0,150,0);
 
-	   // moveCamera();
+	    // reset camera position
 	    cameraFollow(new THREE.Vector3(0,150,0));
 
 	}
 
 
 	var clear = function (){
+		var i=content.children.length;
+		while (i--) {
+			content.remove(content.children[ i ]);
+		}
 
-		var obj, i;
+		i=contentDebug.children.length;
+		while (i--) {
+			contentDebug.remove(contentDebug.children[ i ]);
+		}
+
+		/*var obj, i;
 	    for ( i = content.children.length - 1; i >= 0 ; i -- ) {
 				obj = content.children[ i ];
 				content.remove(obj);
-		}
+		}*/
 
 		//lightsAnimation(0.5, 0, 180, 90, 0);
 	}
@@ -582,16 +619,18 @@ var ThreeEngine = function () {
 	//  DEFINE FINAL GEOMETRY
 	//-----------------------------------------------------
 	var geo00 = new THREE.PlaneGeometry( 1, 1 );
-	//var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
+	var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 	var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
 	var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
 	var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
+	var geo05 = new THREE.SphereGeometry( 1, 12, 8 );
 
 	var geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
-	var geo01b; //= THREE.BufferGeometryUtils.fromGeometry( geo01 );
+	var geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
 	var geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
 	var geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
 	var geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
+	var smoothCube;
 	var diceBuffer;
 	var colomnBuffer;
 	var colomnBaseBuffer;
@@ -599,13 +638,13 @@ var ThreeEngine = function () {
 
 	var defineGeometry = function(){
 		if(isBuffered){
-			geo01b = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
+			smoothCube = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
 			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
 			colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
 			colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
 			colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
 	    } else {
-	    	geo01b = getSeaGeometry('box');
+	    	smoothCube = getSeaGeometry('box');
 	    	diceBuffer = getSeaGeometry('dice');
 			colomnBuffer = getSeaGeometry('column');
 			colomnBaseBuffer = getSeaGeometry('columnBase');
@@ -1015,6 +1054,7 @@ var ThreeEngine = function () {
 		init:init,
 		clear:clear,
 		createObjects:createObjects,
+		createStaticObjects:createStaticObjects,
 
 		content: content,
 		materials: materials,

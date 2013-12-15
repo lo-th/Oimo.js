@@ -48,8 +48,12 @@ var types;
 var sizes;
 var infos =new Float32Array(13);
 
-var currentDemo = 0//0;
+var statics;
+var staticTypes, staticSizes, staticMatrix;
+
+var currentDemo = 0;
 var maxDemo = 7;
+
 // Controle by key
 var car = null;
 var ball = null;
@@ -247,6 +251,11 @@ var startDemo = function (){
     types = [];
     sizes = [];
 
+    statics = [];
+    staticTypes = [];
+    staticSizes = [];
+    staticMatrix = [];
+
     if(currentDemo==0)demo0();
     else if(currentDemo==1)demo1();
     else if(currentDemo==2)demo2();
@@ -261,6 +270,7 @@ var startDemo = function (){
     //sleeps = new Float32Array(N);
     sleeps = new Uint8Array(N);
     
+    self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
 }
 
@@ -270,12 +280,18 @@ var startDemo = function (){
 
 var addRigid = function (obj){
     var sc = obj.sc || new ShapeConfig();
-    var c = obj.config || null;
-    if(c!==null){
-        sc.density = c[0];
-        sc.friction = c[1];
-        sc.restitution = c[2];
+    if(obj.config){
+        sc.density = obj.config[0] || 1;
+        sc.friction = obj.config[1] || 0.5;
+        sc.restitution = obj.config[2] || 0.5;
     }
+    if(obj.configPos){
+        sc.position.set(obj.configPos[0], obj.configPos[1], obj.configPos[2]);
+    }
+    if(obj.configRot){
+        sc.rotation = eulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
+    }
+
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
@@ -308,8 +324,8 @@ var addRigid = function (obj){
     }
     var body = new RigidBody(r[0], r[1], r[2], r[3]);
     body.addShape(shape);
-    if(!move)body.setupMass(0x1);
-    else{ 
+    
+    if(move){ 
         body.setupMass(0x0);
         bodys.push(body);
         types.push(t);
@@ -318,7 +334,14 @@ var addRigid = function (obj){
         //if(sleeping)body.sleep();
         if(noSleep)body.allowSleep = false;
         else body.allowSleep = true;
-        
+    }else{ 
+        body.setupMass(0x1);
+        statics.push(body);
+        staticTypes.push(t);
+        staticSizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
+        var sr = body.rotation;
+        var sp = body.position;
+        staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
     }
     world.addRigidBody(body);
     return body;
@@ -432,6 +455,27 @@ var matrixToEuler = function(mtx){
         z = Math.asin(mtx.e10);
     }
     return [x, y, z];
+}
+
+var eulerToMatrix = function( x, y, z ) {
+    // Assuming the angles are in radians.
+    var ch = Math.cos(y);//heading
+    var sh = Math.sin(y);
+    var ca = Math.cos(z);//altitude
+    var sa = Math.sin(z);
+    var cb = Math.cos(x);//bank
+    var sb = Math.sin(x);
+    var mtx = new Mat33();
+    mtx.e00 = ch * ca;
+    mtx.e01 = sh*sb - ch*sa*cb;
+    mtx.e02 = ch*sa*sb + sh*cb;
+    mtx.e10 = sa;
+    mtx.e11 = ca*cb;
+    mtx.e12 = -ca*sb;
+    mtx.e20 = -sh*ca;
+    mtx.e21 = sh*sa*cb + ch*sb;
+    mtx.e22 = -sh*sa*sb + ch*cb;
+    return mtx;
 }
 
 var getDistance3d = function(p1, p2) {
