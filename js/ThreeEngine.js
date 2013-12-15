@@ -78,8 +78,8 @@ var ThreeEngine = function () {
 		scene = new THREE.Scene();
 		sceneBG = new THREE.Scene();
 		
-		camera = new THREE.PerspectiveCamera( 60, 1, 1, 4000 );
-		cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 6000 );
+		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
+		cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
 		
 		scene.add(camera);
 		sceneBG.add(cameraBG);
@@ -562,7 +562,7 @@ var ThreeEngine = function () {
 	    }
 
 		// bg Sphere
-		sphereBG=new THREE.Mesh(new THREE.IcosahedronGeometry(2000,1),sphereMaterial);
+		sphereBG=new THREE.Mesh(new THREE.IcosahedronGeometry(16000,1),sphereMaterial);
 		sceneBG.add(sphereBG);
 		sphereBG.receiveShadow = false;
 		sphereBG.castShadow = false;
