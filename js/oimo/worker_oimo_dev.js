@@ -31,7 +31,10 @@ var Vec3, Quat, Mat33;
 // physics variable
 var world;
 var dt = 1/60;
+
 var scale = 100;
+var invScale = 0.01;
+
 var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
@@ -88,7 +91,6 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var update = function(){
-    //self.postMessage({tell:"BEGIN"});
     t01 = Date.now();
 
     world.step();
@@ -103,8 +105,6 @@ var update = function(){
         wakeup = true;
     }
 
-
-    //for ( var i = 0; i !== max ; ++i ) {
     while (i--) {
         if( wakeup ) bodys[i].awake();
         if( bodys[i].sleeping ){ sleeps[i] = 1; }
@@ -114,9 +114,9 @@ var update = function(){
             p = bodys[i].position;
             n = 12*i;
 
-            matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=(p.x*100).toFixed(2);
-            matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=(p.y*100).toFixed(2);
-            matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=(p.z*100).toFixed(2);
+            matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=(p.x*scale).toFixed(2);
+            matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=(p.y*scale).toFixed(2);
+            matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=(p.z*scale).toFixed(2);
         }
     }
 
@@ -282,12 +282,18 @@ var startDemo = function(){
 //--------------------------------------------------
 
 var addRigid = function(obj){
+    var sc = obj.sc || new ShapeConfig();
+    var c = obj.config || null;
+    if(c!==null){
+        sc.density = c[0];
+        sc.friction = c[1];
+        sc.restitution = c[2];
+    }
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var r = obj.rot || [0,0,0,0];
     var rotation = obj.rotation || null;
     var move = obj.move || false;
-    var sc = obj.sc || new ShapeConfig();
     var noSleep  = obj.noSleep || false; 
     var noAdjust = obj.noAdjust || false;
 
@@ -321,8 +327,6 @@ var addRigid = function(obj){
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
-    
-
     body.addShape(shape);
     if(shape2!=null)body.addShape(shape2);
     //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
@@ -346,6 +350,7 @@ var addRigid = function(obj){
 //--------------------------------------------------
 
 var addJoint = function(obj){
+
     var jc = new JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];

@@ -12,26 +12,20 @@
 
 function demo0(n, t){
     world.gravity = new Vec3(0, -10, 0);
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0]});
 
     // wall
-    addRigid({type:"box", size:[5,10,1], pos:[0,5,-2.5], sc:sc});
-    addRigid({type:"box", size:[5,10,1], pos:[0,5, 2.5], sc:sc});
-    addRigid({type:"box", size:[1,10,5], pos:[-2.5,5,0], sc:sc});
-    addRigid({type:"box", size:[1,10,5], pos:[ 2.5,5,0], sc:sc});
+    addRigid({ type:"box", size:[5,10,1], pos:[0,5,-2.5] });
+    addRigid({ type:"box", size:[5,10,1], pos:[0,5, 2.5] });
+    addRigid({ type:"box", size:[1,10,5], pos:[-2.5,5,0] });
+    addRigid({ type:"box", size:[1,10,5], pos:[ 2.5,5,0] });
 
     // add dynamique object
     var body, px, pz, t;
     var sx, sy, sz;
 
-
-    //addRigid({type:"box", size:[5,1,2], pos:[px,30,pz], sc:sc, move:true, rotation:[90*ToRad, 0, 0*ToRad]});
     for (var i=0; i!==100; ++i ){
         if(version=="10.DEV")t = Math.floor(Math.random()*2)+1;
         else t = Math.floor(Math.random()*3)+1;
@@ -41,9 +35,9 @@ function demo0(n, t){
         sx = 0.2+Math.random()*1;
         sy = 0.2+Math.random()*1;
         sz = 0.2+Math.random()*1;
-        if(t==1) addRigid({type:"sphere", size:[sx*0.5], pos:[px,30+i,pz], sc:sc, move:true});
-        else if(t==2) addRigid({type:"box", size:[sx,sy,sz], pos:[px,30+i,pz], sc:sc, move:true});
-        else if(t==3) addRigid({type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,30+i,pz], sc:sc, move:true});
+        if(t==1) addRigid({ type:"sphere", size:[sx*0.5], pos:[px,30+i,pz], move:true });
+        else if(t==2) addRigid({ type:"box", size:[sx,sy,sz], pos:[px,30+i,pz], move:true });
+        else if(t==3) addRigid({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,30+i,pz], move:true });
     }
 }
 
@@ -52,26 +46,22 @@ function demo0(n, t){
 //--------------------------------------------------
 
 function demo1(){
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
+    world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0], sc:sc});
+    addRigid({ type:"box", size:[20,10,20], pos:[0,-5,0] });
     // wall
-    addRigid({type:"box", size:[20,10,1], pos:[0,5,-10], sc:sc});
-    addRigid({type:"box", size:[20,10,1], pos:[0,5,10], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[-10,5,0], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[ 10,5,0], sc:sc});
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5,-10] });
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5,10] });
+    addRigid({ type:"box", size:[1,10,20], pos:[-10,5,0] });
+    addRigid({ type:"box", size:[1,10,20], pos:[ 10,5,0] });
 
     var body, px, pz, s;
     for (var i=0; i!==333; ++i ){
         s = 0.1+Math.random();
-        sc.density = s*10;
         px = -1+Math.random()*2;
         pz = -1+Math.random()*2;
-        addRigid({type:"dice", size:[s,s,s], pos:[px,1+(1.1*i),pz], sc:sc, move:true});
+        addRigid({ type:"dice", size:[s,s,s], pos:[px,1+(1.1*i),pz], config:[s*10, 0.5, 0.5], move:true });
     }
 }
 
@@ -80,28 +70,22 @@ function demo1(){
 //--------------------------------------------------
 
 function demo2(){
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.3;
+	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"box", size:[25.4,10,12.7], pos:[0,-5,0], sc:sc});
+    addRigid({ type:"box", size:[25.4,10,12.7], pos:[0,-5,0] });
     // wall
-    addRigid({type:"box", size:[25.4,5,1], pos:[0,2.5,-6.85], sc:sc});
-    addRigid({type:"box", size:[25.4,5,1], pos:[0,2.5,6.85], sc:sc});
-    addRigid({type:"box", size:[1,5,12.7], pos:[-13.2,2.5,0], sc:sc});
-    addRigid({type:"box", size:[1,5,12.7], pos:[ 13.2,2.5,0], sc:sc});
+    addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,-6.85] });
+    addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,6.85] });
+    addRigid({ type:"box", size:[1,5,12.7], pos:[-13.2,2.5,0] });
+    addRigid({ type:"box", size:[1,5,12.7], pos:[ 13.2,2.5,0] });
 
     // add dynamique object
-    sc.density = 1;//1.62;//0.162;
-    sc.friction = 0.6;
-    sc.restitution = 0.6;
     var body, px, pz, type = 1;
     for (var i=0; i!==333; ++i ){
         px = -2+Math.random()*4;
         pz = -2+Math.random()*4;
-        addRigid({type:"nball", size:[0.286], pos:[px,1+(i*0.3),pz], sc:sc, move:true});
+        addRigid({ type:"nball", size:[0.286], pos:[px,1+(i*0.3),pz], config:[1,0.6,0.6], move:true });
     }
 }
 
@@ -110,23 +94,16 @@ function demo2(){
 //--------------------------------------------------
 
 function demo3(){
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
+	world.gravity = new Vec3(0, -10, 0);
 
     var dy=0.3;
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5+dy,0], sc:sc});
+    addRigid({ type:"box", size:[20,10,20], pos:[0,-5+dy,0] });
     // wall
-    addRigid({type:"box", size:[20,10,1], pos:[0,5+dy,-10], sc:sc});
-    addRigid({type:"box", size:[20,10,1], pos:[0,5+dy, 10], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[-10,5+dy,0], sc:sc});
-    addRigid({type:"box", size:[1,10,20], pos:[ 10,5+dy,0], sc:sc});
-
-    sc.density = 10;
-    sc.friction = 0.4;
-    sc.restitution = 0.4;
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,-10] });
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy, 10] });
+    addRigid({ type:"box", size:[1,10,20], pos:[-10,5+dy,0] });
+    addRigid({ type:"box", size:[1,10,20], pos:[ 10,5+dy,0] });
 
     // add dynamique object
     dy+=1;
@@ -135,7 +112,7 @@ function demo3(){
     // bones
     var bone = [];
     for ( i = 0; i!==10; ++i){
-        bone[i] = addRigid({type:"bone", size:[0.25,1,0.25], pos:[0,dy+0.5+(i*1.001),0], sc:sc, move:true, rot:[0,0,0,0]});
+        bone[i] = addRigid({ type:"bone", size:[0.25,1,0.25], pos:[0,dy+0.5+(i*1.001),0], config:[10,0.4,0.4], move:true, rot:[0,0,0,0]});
     }
     //joints
     for ( i = 0; i!==9; ++i){
@@ -148,13 +125,10 @@ function demo3(){
 //--------------------------------------------------
 
 function demo4(){
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
+	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"box", size:[100,4,100], pos:[0,-2,0], sc:sc});
+    addRigid({ type:"box", size:[100,4,100], pos:[0,-2,0] });
 
     var width = 6;
     var height = 6;
@@ -169,13 +143,10 @@ function demo4(){
                 x= (i - (width - 1) * 0.5) * w;
                 y= j * (h * 1) + h * 0.5;
                 z= (k - (depth - 1) * 0.5) * d;
-                addRigid({type:"box", size:[w-0.025,h,d-0.025], pos:[x,y,z], sc:sc, move:true});
+                addRigid({type:"box", size:[w-0.025,h,d-0.025], pos:[x,y,z], move:true});
             }
         }
     }
-
-    sc.density = 5;
-    //addRigid({type:"sphere", size:[0.5], pos:[0,300,0], sc:sc, move:true});
 
     ball = new Ball(5,1,0, world);
 }
@@ -186,23 +157,15 @@ function demo4(){
 
 function demo5(){
     world.gravity = new Vec3(0, -10, 0);
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
 
     // ground
-    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
+    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
 
     // Greek temple
     var x = 0, z = 0;
     var width = 6;
     var depth= 4;
     var r1, r2;
-
-    sc.density = 3;
-    sc.friction = 0.6;
-    sc.restitution = 0.2;
 
     for(var i =0; i<width; i++){
         for(var j =0; j<depth; j++){
@@ -211,9 +174,9 @@ function demo5(){
                 z = (j - (depth - 1) * 0.5) * 4;
                 r1 = (Math.floor((Math.random()*16))*22.5)*ToRad;// rad
                 r2 = (Math.floor((Math.random()*4))*90)*ToRad;// rad
-                if(k===0)addRigid({type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], sc:sc, move:true, rotation:[0,r2,0]});
-                else if(k<7)addRigid({type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.01*k),z], sc:sc, move:true, rotation:[0,r1,0]});
-                else if (k===7)addRigid({type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.01*k),z], sc:sc, move:true, rotation:[0,r2,0]});
+                if(k===0)addRigid({ type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], config:[3,0.6,0.2], move:true, rotation:[0,r2,0] });
+                else if(k<7)addRigid({ type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rotation:[0,r1,0] });
+                else if (k===7)addRigid({ type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rotation:[0,r2,0] });
                 //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,0,0]});
             }
         }
@@ -234,23 +197,17 @@ function demo5(){
 //--------------------------------------------------
 
 function demo6(){
-    
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
+	world.gravity = new Vec3(0, 0, 0);
 
     // ground
-    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
+    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
 
-    
-    world.gravity = new Vec3(0, 0, 0);
     // test ragdoll stucture
     var bones =[];
     var joints =[];
 
     for(var i=0; i!==bonesPosition.length; ++i){
-        bones[i] = addRigid({type:"bone", size:[0.04,0.02,0.02], pos:bonesPosition[i], sc:sc, move:true, rotation:bonesRotation[i]});
+        bones[i] = addRigid({ type:"bone", size:[0.04,0.02,0.02], pos:bonesPosition[i], move:true, rotation:bonesRotation[i] });
     }
 
     var d = getDistance3d(bonesPosition[0], bonesPosition[1]);
@@ -317,13 +274,10 @@ function demo6(){
 //--------------------------------------------------
 
 function demo7(){
-    var sc = new ShapeConfig();
-    sc.density = 1;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
+	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
+    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
 
     if(version=="10.DEV"){
         // test new vehicle
@@ -336,10 +290,10 @@ function demo7(){
 //--------------------------------------------------
 
 function demo8(){
-    var sc = new ShapeConfig();
-    sc.density = 2;
-    sc.friction = 0.5;
-    sc.restitution = 0.5;
+	world.gravity = new Vec3(0, -10, 0);
+
+	// ground
+    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
 
     var x = 0;
     var y = 3;
@@ -353,7 +307,7 @@ function demo8(){
     var b01;
     var b02;
 
-    body = addRigid({type:"box", size:[width, 0.4, depth], pos:[x,y,z], sc:sc, move:false});
+    body = addRigid({ type:"box", size:[width, 0.4, depth], pos:[x,y,z], config:[2,0.5,0.5] });
 
     for (var i = 0; i !== num; i++) {
 
@@ -362,28 +316,20 @@ function demo8(){
         if(i == num -1) moving = false;
         else moving = true;
 
-        body = addRigid({type:"box", size:[width, 0.4, depth], pos:[x,y,z - (i + 1) * depth], sc:sc, move:moving});
+        body = addRigid({ type:"box", size:[width, 0.4, depth], pos:[x,y,z - (i + 1) * depth], config:[2,0.5,0.5], move:moving});
 
         b02 = body;
 
         addJoint({type:"hinge", body1:b01, body2:b02, pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false });
 
         if(i==10 || i== 20 || i==30){
-            prop = addRigid({type:"sphere", size:[0.2], pos:[x, y + 4, z - (i + 1) * depth], sc:sc, move:false});
+            prop = addRigid({type:"sphere", size:[0.2], pos:[x, y + 4, z - (i + 1) * depth], move:false});
             var dist = Math.sqrt(25 + width * width * 0.25);
             addJoint({type:"distance", body1:body, body2:prop, pos1:[-width * 0.5, 0, 0], pos2:[0, 0, 0], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false, minDistance:1, maxDistance:dist , spring:[2, 0.5] });
             addJoint({type:"distance", body1:body, body2:prop, pos1:[width * 0.5, 0, 0], pos2:[0, 0, 0], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false, minDistance:1, maxDistance:dist , spring:[2, 0.5] });
         }
     }
     
-    sc.density = 1;
-    box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[x, y + 1, z - 6], sc:sc, move:true});
-
-    ball = new Ball(x, y + 1, z, world, 2);
-
-
-    // ground
-    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
-
-    
+    box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[x, y + 1, z - 6],  config:[1,0.5,0.5], move:true});
+    ball = new Ball(x, y + 1, z, world, 2); 
 }
