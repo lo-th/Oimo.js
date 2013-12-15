@@ -40,17 +40,21 @@ var timer, delay, timerStep;
 var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
 var ToRad = Math.PI / 180;
 
-// array variable
+// array rigid
 var bodys;
 var matrix;
 var sleeps;
 var types;
 var sizes;
-var infos =new Float32Array(13);
 
 var statics;
 var staticTypes, staticSizes, staticMatrix;
 
+// array joint 
+var joints;
+var jointPos;
+
+var infos =new Float32Array(13);
 var currentDemo = 0;
 var maxDemo = 7;
 
@@ -72,6 +76,10 @@ self.onmessage = function (e) {
         newGravity = e.data.G;
         initClass();
     }
+
+    if(phase === "ADD") ADD(e.data);
+    if(phase === "REMOVE") REMOVE(e.data);
+
     if(phase === "UPDATE"){if(isTimout) update(); else timer = setInterval(update, timerStep);}
     if(phase === "KEY") userKey(e.data.key);
     if(phase === "CAMERA") userCamera(e.data.cam);
@@ -86,6 +94,22 @@ self.onmessage = function (e) {
 }
 
 //--------------------------------------------------
+//   ADD SOMETING ON FLY
+//--------------------------------------------------
+
+var ADD = function(e){
+
+}
+
+//--------------------------------------------------
+//   REMOVE SOMETING ON FLY
+//--------------------------------------------------
+
+var REMOVE = function(e){
+
+}
+
+//--------------------------------------------------
 //   WORLD UPDATE
 //--------------------------------------------------
 
@@ -95,7 +119,9 @@ var update = function(){
     world.step();
 
     var r, p, t, n;
+    var p1, p2;
     var i = bodys.length;
+    var maxBody = i;
     var wakeup = false;
 
     if(Gravity!==newGravity){
@@ -119,9 +145,23 @@ var update = function(){
         }
     }
 
+    i = joints.length;
+    var maxJoint = i;
+    while (i--) {
+        p1 = joints[i].anchorPosition1;
+        p2 = joints[i].anchorPosition2;
+        n = 6*i;
+        jointPos[n+0] =(p1.x*scale).toFixed(2);
+        jointPos[n+1] =(p1.y*scale).toFixed(2); 
+        jointPos[n+2] =(p1.z*scale).toFixed(2); 
+        jointPos[n+3] =(p2.x*scale).toFixed(2); 
+        jointPos[n+4] =(p2.y*scale).toFixed(2); 
+        jointPos[n+5] =(p2.z*scale).toFixed(2); 
+    }
+
     worldInfo();
 
-    self.postMessage({tell:"RUN", infos: infos, matrix:matrix, sleeps:sleeps  });
+    self.postMessage({tell:"RUN", infos: infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint });
 
     if(isTimout){
         delay = timerStep - (Date.now()-t01);
@@ -256,6 +296,8 @@ var startDemo = function (){
     staticSizes = [];
     staticMatrix = [];
 
+    joints = [];
+
     if(currentDemo==0)demo0();
     else if(currentDemo==1)demo1();
     else if(currentDemo==2)demo2();
@@ -266,12 +308,13 @@ var startDemo = function (){
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);
-    //matrix = new Int32Array(N*12);
-    //sleeps = new Float32Array(N);
     sleeps = new Uint8Array(N);
+
+    N = joints.length;
+    jointPos = new Float32Array(N*6);
     
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
-    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:N });
 }
 
 //--------------------------------------------------
@@ -375,6 +418,7 @@ var addJoint = function (obj){
     
     //joint.limitMotor.setSpring(1, 10); // soften the joint
     world.addJoint(joint);
+    joints.push(joint);
     return joint;
 }
 

@@ -12,6 +12,8 @@ var ThreeEngine = function () {
 	var content = new THREE.Object3D();
 	// containe all static object from simulation
 	var contentDebug = new THREE.Object3D();
+	// containe all joint object from simulation
+	var contentJoint = new THREE.Object3D();
 
 	// containe all material reference
 	var materials = [];
@@ -51,6 +53,8 @@ var ThreeEngine = function () {
 	var container = document.createElement( 'div' );
 	container.id = 'container';
 	container.style.cssText = unselect + 'position:absolute;';
+
+	var selected = null;
 
 	//-----------------------------------------------------
 	//  INIT VIEW
@@ -110,6 +114,7 @@ var ThreeEngine = function () {
 
 		scene.add(content);
 		scene.add(contentDebug);
+		scene.add(contentJoint);
 
 		// marker for mouse position
 		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
@@ -135,7 +140,7 @@ var ThreeEngine = function () {
 	//  MATERIAL
 	//-----------------------------------------------------
 
-	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial; 
+	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial, jointMaterial; 
 	var poolMaterial = [];
 	//var baseMaterialm baseMaterial2;
 	var envTexture;
@@ -194,6 +199,7 @@ var ThreeEngine = function () {
 		var gyroTexture = new createGyroTexture();//THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
 
 		debugMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe:true, transparent:true, opacity:0.1 } );
+		jointMaterial = new THREE.LineBasicMaterial( { color: 0x30ff30 } );
 
 		if(!isOptimized){
 			groundMat =  new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
@@ -276,6 +282,24 @@ var ThreeEngine = function () {
 		Ambience.begin(renderer, scene, array2, 500,100);
 		//Ambience.update((-camPos.horizontal)*ToRad, (-camPos.vertical-90)*ToRad, renderer, scene);
 	}
+	//-----------------------------------------------------
+	//  PHYSICS JOINT OBJECT IN THREE
+	//-----------------------------------------------------
+
+	var createJoints = function (n){
+		var joint;
+		var geo;
+		for(var i=0; i!==n; i++){
+			geo = new THREE.Geometry();
+			geo.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
+			geo.vertices.push( new THREE.Vector3( 0, 10, 0 ) );
+
+			joint = new THREE.Line( geo, jointMaterial, THREE.LinePieces );
+			contentJoint.add( joint );
+		}
+	}
+
+
 
 	//-----------------------------------------------------
 	//  PHYSICS STATIC OBJECT IN THREE
@@ -305,99 +329,94 @@ var ThreeEngine = function () {
 	//  PHYSICS OBJECT IN THREE
 	//-----------------------------------------------------
 
+	var boneindex=0;
+
 	var createObjects = function (data){
-		//resetBgObject();
-		var boneindex=0;
+		boneindex=0;
 		var max = data.types.length;
+
+	    for(var i=0; i!==max; i++){
+	    	addObjects(data.types[i], i, data.sizes[i] || [50,50,50]);
+	    }
+
+	    if(data.demo === 3) addSnake();
+	    if(data.demo === 6) addSila();
+
+	    // reset camera position
+	    cameraFollow(new THREE.Vector3(0,150,0));
+
+	}
+
+	var addObjects = function (type, name, s){
 		var mesh;
 		var m2 = null;
 		var m3 = null;
 		var meshFlag;
-		var s;
-	    for(var i=0; i!==max; i++){
-	    	s = data.sizes[i] || [50,50,50];
-	    	switch(data.types[i]){
-	    		case 1: mesh=new THREE.Mesh(geo02b, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
-	    		case 2: mesh=new THREE.Mesh(smoothCube, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
-	    		case 3: mesh=new THREE.Mesh(geo03b, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
 
-	    		case 4: mesh=new THREE.Mesh(diceBuffer, mat04); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
-	    		case 5:
-	    		    mesh=new THREE.Mesh(getSeaGeometry('wheel'), mat06);
-	    		    mesh.scale.set( s[0]*2, s[1]*2, s[2]*2 );
-	    		    //mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
-	    		    //mesh.scale.set( s[0]*2, s[1]*2, -s[2]*2 );
-	    		break; // Wheel
-	    		case 6:
-	    		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
-	    		    mesh.scale.set( -s[0]*2, s[1]*2, -s[2]*2 );
-	    		break; // Wheel inv
+    	switch(type){
+    		case 1: mesh=new THREE.Mesh(geo02b, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+    		case 2: mesh=new THREE.Mesh(smoothCube, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
+    		case 3: mesh=new THREE.Mesh(geo03b, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
 
-	    		case 7: mesh=new THREE.Mesh(colomnBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column
-	    		case 8: mesh=new THREE.Mesh(colomnBaseBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column base
-	    		case 9: mesh=new THREE.Mesh(colomnTopBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column top
+    		case 4: mesh=new THREE.Mesh(diceBuffer, mat04); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
+    		case 5:
+    		    mesh=new THREE.Mesh(getSeaGeometry('wheel'), mat06);
+    		    mesh.scale.set( s[0]*2, s[1]*2, s[2]*2 );
+    		break; // car Wheel
+    		case 6:
+    		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
+    		    mesh.scale.set( -s[0]*2, s[1]*2, -s[2]*2 );
+    		break; // car Wheel inv
 
-	    		//case 10: mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] ); break; // bone
-	    		case 10: 
-	    		    //var axe = new THREE.AxisHelper( 5 );//new THREE.ArrowHelper( new THREE.Vector3( 0, 1, 0 ), new THREE.Vector3( 0, 0, 0 ), 50 );
-	    		    //mesh=new THREE.Mesh(geo01, matBone); mesh.scale.set( s[0], s[1], s[2] );
-	    		    mesh = new THREE.Object3D();
-	    		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
-	    		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
-	    		    mesh.add(meshFlag);
-	    		    //mesh.add(axe);
-	    		    boneindex++;
-	    		break; // bone
-	    		case 11: mesh = new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+    		case 7: mesh=new THREE.Mesh(colomnBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column
+    		case 8: mesh=new THREE.Mesh(colomnBaseBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column base
+    		case 9: mesh=new THREE.Mesh(colomnTopBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break; // column top
 
-	    		case 12: mesh = new THREE.Object3D();//new THREE.Mesh(geo02b, mat02);
+    		case 10:
+    		    mesh = new THREE.Object3D();
+    		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
+    		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
+    		    mesh.add(meshFlag);
+    		    boneindex++;
+    		break; // bone
+    		case 11: mesh = new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+
+    		case 12: 
+	    		mesh = new THREE.Object3D();
 	    		m2 = getMeshByName('gyro');
 	    		m2.material = matGyro;
 	    		m2.children[0].material = matGyro;
 	    		m2.children[0].children[0].material = matGyro;
 	    		m2.children[0].children[0].children[0].material = matGyro;
 	    		m2.scale.set( s[0], s[0], s[0] );
-	    		break; // gyro
-	    		case 13: 
-	    		    mesh = new THREE.Mesh(getMeshByName('carBody').geometry, mat02); 
-	    		    mesh.scale.set( 100, 100, 100 );break; // carBody
+    		break; // gyro
+    		case 13: 
+    		    mesh = new THREE.Mesh(getMeshByName('carBody').geometry, mat02); 
+    		    mesh.scale.set( 100, 100, 100 );break; // carBody
 
-	    		case 14: 
-	    		    mesh = new THREE.Object3D();//new THREE.Mesh(geo01b, mat01); 
-	    		    //mesh.visible = false;
-	    		   // mesh.scale.set( s[0], s[1], s[2] );
-	    		    m2 = getMeshByName('vanBody');//new THREE.Mesh(getMeshByName('vanBody').geometry, mat02);  //getSeaGeometry(name, scale, axe);
-	    		    m2.material = mat02;
-	    		    m2.children[0].material = mat02;
-	    		    m2.children[1].material = mat02;
-	    		    m2.children[2].material = mat02;
-	    		   // scaleGeometry(m2.geometry,3,'x');
-	    		    m2.scale.set( 3, 3, 3 );
-	    		break; // carBody
-	    		case 15:
-	    		    mesh = new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);//getMeshByName('vanWheel', 3, 'x');//
-	    		    //mesh.material = mat03;
-	    		    //scaleGeometry(mesh.geometry,1,'x');
-
-	    		    mesh.scale.set( 3,3, 3 );
-	    		break
-	    	}
-	    	mesh.position.y = -10000;
-	    	content.add( mesh );
-	    	if(m2!==null)content.add( m2 );
-	    	//if(m3!==null)content.add( m3 );
-	    	if(data.types[i]!==10){
-	    		mesh.receiveShadow = true;
-	    		mesh.castShadow = true;
-	    	}
-	    }
-	    if(data.demo === 3) addSnake();
-	    if(data.demo === 6) addSila();
-
-
-	    // reset camera position
-	    cameraFollow(new THREE.Vector3(0,150,0));
-
+    		case 14: 
+    		    mesh = new THREE.Object3D();
+    		    m2 = getMeshByName('vanBody');
+    		    m2.material = mat02;
+    		    m2.children[0].material = mat02;
+    		    m2.children[1].material = mat02;
+    		    m2.children[2].material = mat02;
+    		    m2.scale.set( 3, 3, 3 );
+    		break; // carBody
+    		case 15:
+    		    mesh = new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);
+    		    mesh.scale.set( 3,3, 3 );
+    		break // vanWheel
+    	}
+    	mesh.position.y = -10000;
+    	mesh.name = name;
+    	content.add( mesh );
+    	if(m2!==null) content.add( m2 );
+    	
+    	if(type!==10){
+    		mesh.receiveShadow = true;
+    		mesh.castShadow = true;
+    	}
 	}
 
 
@@ -410,6 +429,11 @@ var ThreeEngine = function () {
 		i=contentDebug.children.length;
 		while (i--) {
 			contentDebug.remove(contentDebug.children[ i ]);
+		}
+
+		i=contentJoint.children.length;
+		while (i--) {
+			contentJoint.remove(contentJoint.children[ i ]);
 		}
 
 		/*var obj, i;
@@ -886,8 +910,11 @@ var ThreeEngine = function () {
 			if ( intersects.length ) {
 				//marker.position.set( 0, 0, 0 );
 				//if(intersects[0].face!==null)marker.lookAt(intersects[0].face.normal);
+				//console.log("intersects.length: "+ intersects.length);
+				//console.log("intersects.distance: "+ intersects[0].distance);
+				//console.log("intersects.face: "+ intersects[0].face);
 				marker.position.copy( intersects[0].point );
-				
+				selected = intersects[0].object;
 				//if(sh)shoot();
 		    }
 		}
@@ -1055,9 +1082,12 @@ var ThreeEngine = function () {
 		clear:clear,
 		createObjects:createObjects,
 		createStaticObjects:createStaticObjects,
+		createJoints:createJoints,
 
-		content: content,
-		materials: materials,
+		content:content,
+		contentJoint:contentJoint,
+
+		materials:materials,
 		cameraFollow:cameraFollow,
 
 		updateSila:updateSila,
@@ -1069,6 +1099,10 @@ var ThreeEngine = function () {
 		getFps: function (name) {
 
 			return fpstxt +" fps / "+ ms+" ms<br>";
+
+		},
+		getSelected: function () {
+			if(selected) return selected.name;
 
 		}
 	}

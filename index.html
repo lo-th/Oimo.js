@@ -83,6 +83,7 @@
     	    	// create mesh
 	            if(phase === "INIT"){
 	            	threeEngine.createObjects(e.data);
+	            	threeEngine.createJoints(e.data.joints);
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
 				
@@ -97,8 +98,8 @@
     	    		
     	    		var demo = e.data.infos[0];
     	    		//var i=0;
-    	    		var max = e.data.sleeps.length;
-    	    		var i=e.data.sleeps.length;//0;
+    	    		var max = e.data.maxB;
+    	    		var i = e.data.maxB;
     	    		var m = e.data.matrix;
         	    	var mtx, n, mesh;
 
@@ -129,6 +130,19 @@
 						    	}
 					    	}
 				        } 
+		            }
+
+		            // Update rendering joints
+		            i = e.data.maxJ;
+		            var jointPos = e.data.jointPos;
+		            while (i--) {
+		            	if( threeEngine.contentJoint.children[i] ){
+		            		n = 6*i
+		            		mesh = threeEngine.contentJoint.children[i];
+		            		mesh.geometry.vertices[0].set( jointPos[n+0], jointPos[n+1], jointPos[n+2] );
+		            		mesh.geometry.vertices[1].set( jointPos[n+3], jointPos[n+4], jointPos[n+5] );
+		            		mesh.geometry.verticesNeedUpdate = true;
+		            	}
 		            }
 
 		            //skin update
@@ -197,7 +211,11 @@
 	        	    "Total Time: " + a[10] + " ms<br><br>",
 	        	    
 	        	    "Physics: " + a[11] +" fps / "+a[12]+" ms<br>",
-	        	    "Render: " + threeEngine.getFps()
+	        	    "Render: " + threeEngine.getFps()+"<br><br>",
+
+	        	    "Selected: "+ threeEngine.getSelected()
+
+
 			    ].join("\n");
 
 	        	document.getElementById("output").innerHTML = info;
