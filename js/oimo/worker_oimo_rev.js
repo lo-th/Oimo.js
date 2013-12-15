@@ -1,5 +1,7 @@
 /*
 OimoPhysics alpha dev 10
+Copyright (c) 2012-2013 EL-EMENT saharan
+
 @author Saharan _ http://el-ement.com
 @link https://github.com/saharan/OimoPhysics
 ...

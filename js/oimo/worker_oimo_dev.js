@@ -1,5 +1,7 @@
 /*
 OimoPhysics alpha dev 10
+Copyright (c) 2012-2013 EL-EMENT saharan
+
 @author Saharan _ http://el-ement.com
 @link https://github.com/saharan/OimoPhysics
 ...
@@ -46,7 +48,7 @@ var sizes;
 var infos = new Float32Array(13);
 //var infos =[]; infos.length=12;
 var currentDemo = 0;
-var maxDemo = 8;
+var maxDemo = 9;
 // vehicle by key
 var car = null;
 var van = null;
@@ -262,6 +264,7 @@ var startDemo = function(){
     else if(currentDemo==5)demo5();
     else if(currentDemo==6)demo6();
     else if(currentDemo==7)demo7();
+    else if(currentDemo==8)demo8();
 
     var N = bodys.length;
     matrix = new Float32Array(N*12);

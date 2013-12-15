@@ -1,8 +1,8 @@
 /* Copyright (c) 2012-2013 EL-EMENT saharan */
 
-Ball = function (x, y, z, world) {
+Ball = function (x, y, z, world, d) {
 	var sc = new ShapeConfig();
-	sc.density = 10;
+	sc.density = d || 10;
 	sc.friction = 2;
 	this.speed = 0.2;
 	this.phi = 0;

@@ -122,8 +122,7 @@ var ThreeEngine = function () {
 		initMaterial();
 		initObject();
 		initSea3DMesh();
-
-
+		
 	    update();
 	    changeView(45,60,1000);
 	}

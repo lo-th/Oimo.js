@@ -5,6 +5,7 @@
     http://3dflashlo.wordpress.com/
 */
 
+
 //--------------------------------------------------
 //    BASIC SHAPE
 //--------------------------------------------------
@@ -316,8 +317,6 @@ function demo6(){
 //--------------------------------------------------
 
 function demo7(){
-     world.gravity = new Vec3(0, -10, 0);
-     
     var sc = new ShapeConfig();
     sc.density = 1;
     sc.friction = 0.5;
@@ -330,4 +329,61 @@ function demo7(){
         // test new vehicle
         van = new Van(0,2,0,world);
     }
+}
+
+//--------------------------------------------------
+//    BRIDGE
+//--------------------------------------------------
+
+function demo8(){
+    var sc = new ShapeConfig();
+    sc.density = 2;
+    sc.friction = 0.5;
+    sc.restitution = 0.5;
+
+    var x = 0;
+    var y = 3;
+    var z = 20;
+    var num = 40;
+    var width = 4;
+    var depth = 1;
+    var moving = false;
+    var body;
+    var prop;
+    var b01;
+    var b02;
+
+    body = addRigid({type:"box", size:[width, 0.4, depth], pos:[x,y,z], sc:sc, move:false});
+
+    for (var i = 0; i !== num; i++) {
+
+        b01 = body;
+
+        if(i == num -1) moving = false;
+        else moving = true;
+
+        body = addRigid({type:"box", size:[width, 0.4, depth], pos:[x,y,z - (i + 1) * depth], sc:sc, move:moving});
+
+        b02 = body;
+
+        addJoint({type:"hinge", body1:b01, body2:b02, pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false });
+
+        if(i==10 || i== 20 || i==30){
+            prop = addRigid({type:"sphere", size:[0.2], pos:[x, y + 4, z - (i + 1) * depth], sc:sc, move:false});
+            var dist = Math.sqrt(25 + width * width * 0.25);
+            addJoint({type:"distance", body1:body, body2:prop, pos1:[-width * 0.5, 0, 0], pos2:[0, 0, 0], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false, minDistance:1, maxDistance:dist , spring:[2, 0.5] });
+            addJoint({type:"distance", body1:body, body2:prop, pos1:[width * 0.5, 0, 0], pos2:[0, 0, 0], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false, minDistance:1, maxDistance:dist , spring:[2, 0.5] });
+        }
+    }
+    
+    sc.density = 1;
+    box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[x, y + 1, z - 6], sc:sc, move:true});
+
+    ball = new Ball(x, y + 1, z, world, 2);
+
+
+    // ground
+    addRigid({type:"box", size:[2000,10,2000], pos:[0,-5,0], sc:sc});
+
+    
 }
