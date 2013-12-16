@@ -27,7 +27,7 @@ function createDiceTexture(n) {
 	    ctx.fillRect(0, 0, 256, 256);
 	}*/
 	var tx = new THREE.Texture(canvas);
-	//tx.anisotropy = MaxAnistropy;
+	tx.anisotropy = threeEngine.getAnistropy;
 	tx.needsUpdate = true;
 	return tx;
 }
@@ -52,7 +52,7 @@ function createGyroTexture() {
 	ctx.fill();
 	
 	var tx = new THREE.Texture(canvas);
-	//tx.anisotropy = MaxAnistropy;
+	tx.anisotropy = threeEngine.getAnistropy;
 	tx.needsUpdate = true;
 	return tx;
 }
@@ -87,7 +87,7 @@ function createWheelTexture(n) {
 	ctx.fillRect(0, 163, 256, 256);
 
 	var tx = new THREE.Texture(canvas);
-	//tx.anisotropy = MaxAnistropy;
+	tx.anisotropy = threeEngine.getAnistropy;
 	tx.needsUpdate = true;
 	return tx;
 }
@@ -130,7 +130,7 @@ function createSnakeTexture() {
 	ctx.fill();
 
 	var tx = new THREE.Texture(canvas);
-	//tx.anisotropy = MaxAnistropy;
+	tx.anisotropy = threeEngine.getAnistropy;
 	tx.needsUpdate = true;
 	return tx;
 }
@@ -197,7 +197,7 @@ function eightBall(n) {
 	}
 
 	var tx = new THREE.Texture(canvas);
-	//tx.anisotropy = MaxAnistropy;
+	tx.anisotropy = threeEngine.getAnistropy;
 	tx.needsUpdate = true;
 	return tx;
 }

@@ -7,11 +7,11 @@ var Interface = function (name) {
 	container.id = 'interface';
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	
-	container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:11px; font-family:Trebuchet MS; width:100%; height:100%; pointer-events:none;';
+	container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
 
 	
 
-	var buttonStyle = 'font-weight:bold;width:40px; height:28px; position:relative;  -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.5); text-shadow: 1px 1px 3px #000;background-color: rgba(255,255,255,0); display:inline-block; text-align:left; cursor:pointer; pointer-events:auto;font-size:20px;letter-spacing:-4px';
+	var buttonStyle = 'font-weight:bold; width:40px; height:28px; position:relative;  -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.3); text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:left; cursor:pointer; pointer-events:auto;font-size:20px; letter-spacing:-4px;';
 	var bbStyle = 'font-weight:bold;width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 3px #000;';
 
 	//-----------------------------------------------------
@@ -35,7 +35,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'font-family:Monospace; letter-spacing:-1px; position:absolute; color:#999999; top:120px; width:300px; height:400px; left:60px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'font-family:Verdana;line-height:12px; letter-spacing:-1px; position:absolute; color:#777777; top:120px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -43,16 +43,16 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
 	var copy = document.createElement( 'div' );
-	copy.style.cssText = 'position:absolute; bottom:7px; width:350px; right:10px; text-align:right; pointer-events:auto; color:#888888;';
+	copy.style.cssText = 'position:absolute; bottom:7px; width:350px; right:10px; text-align:right; pointer-events:auto; color:#777777;';
 	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#888888'>LOTH 2013</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a> | <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a>";
 	container.appendChild( copy );
 
 	//-----------------------------------------------------
-    //  MENU
+    //  MENU DEMO
     //-----------------------------------------------------
 
     var aMenu = document.createElement( 'div' );
-	aMenu.style.cssText = 'left:10px; top:74px;  position:absolute; display:block; text-align:center;';
+	aMenu.style.cssText = 'left:20px; top:74px;  position:absolute; display:block; text-align:center;';
 	container.appendChild( aMenu );
 
 	var bnext = document.createElement( 'div' );
@@ -68,18 +68,37 @@ var Interface = function (name) {
 	bcenter.style.cssText = bbStyle;
 	bcenter.textContent = "Basic shape";
 
-	
 	aMenu.appendChild( bprev );
 	aMenu.appendChild( bcenter );
 	aMenu.appendChild( bnext );
 
-    bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(200,123,88,1)';  }, false );
-    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0)';  }, false );
-    bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(200,123,88,1)';  }, false );
-    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0)';  }, false );
+    bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
-	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); prevDemo(); this.style.backgroundColor = 'rgba(55,123,167,1)';}, false );
-	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); nextDemo(); this.style.backgroundColor = 'rgba(55,123,167,1)';}, false );
+	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); prevDemo(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); nextDemo(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+
+	//-----------------------------------------------------
+    //  MENU DEMO
+    //-----------------------------------------------------
+
+    var bMenu = document.createElement( 'div' );
+	bMenu.style.cssText = 'right:20px; top:20px;  position:absolute; width:40px; display:block; text-align:center; ';
+	container.appendChild( bMenu );
+
+	var bbMenu = [];
+
+	for(var i=0;i!==3;i++){
+		bbMenu[i] = document.createElement( 'div' );
+		bbMenu[i].style.cssText = buttonStyle + " height:40px; margin-bottom:6px;";
+		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+
+		bMenu.appendChild( bbMenu[i] );
+	}
+
 
 	//-----------------------------------------------------
     //  GRAVITY
@@ -90,7 +109,7 @@ var Interface = function (name) {
 	//var finalFunction;
 
 	var loDiv = document.createElement( 'div' );
-	loDiv.style.cssText = 'position:absolute;left:10px; top:120px; width:40px; height:200px; padding:0 0 0 0; display:block; background:rgba(255,255,255,0.0); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto; box-shadow: 0 0 4px rgba(255,255,255,0.5);';
+	loDiv.style.cssText = 'position:absolute;left:20px; top:120px; width:40px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto; box-shadow: 0 0 4px rgba(255,255,255,0.3);';
 	container.appendChild( loDiv );
 
 	var loDiv2 = document.createElement( 'div' );

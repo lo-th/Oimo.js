@@ -7,12 +7,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<link rel="shortcut icon" href="images/favicon.ico">
 		<style>
-			body {
-				font-family: Monospace;
-				background-color: #222;
-				margin: 0px;
-				overflow: hidden;
-			}
+			body { background-color: #222; margin: 0px; overflow: hidden; }
 			a { text-decoration:none; }
 		</style> 
 	</head>
@@ -39,18 +34,11 @@
 
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 		
-
 		<script type="text/javascript">
 		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Greek temple", "Ragdoll"];
-		    var vSet = [ {h:90, v:70, d:600}, {h:0, v:60, d:1000}, {h:360, v:45, d:600}, {h:200, v:70, d:1500}, {h:0, v:10, d:1000}];
-		    var key = { front:false, back:false, left:false, right:false, jump:false, crouch:false };
-
-		    var currentView = 0;
-
         	var Ambience;
         	var threeEngine;
         	var Interface;
-
             var OimoWorker = new Worker('js/oimo/worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -68,12 +56,12 @@
             }
 
             function mainAllObjectLoaded(){
-            	// start worker
+            	// start physic worker
         	    OimoWorker.postMessage({tell:"INITWORLD", dt:1/60, iterations:8, G:-10 });
             }
 
             //-----------------------------------------------------
-            //  OIMO MESSAGE MAIN
+            //  OIMO ON MESSAGE MAIN
             //-----------------------------------------------------
 
     	    OimoWorker.onmessage = function(e) {
@@ -127,7 +115,7 @@
 				        } 
 		            }
 
-		             // Update rendering joints
+		            // Update rendering joints
 		            i = e.data.maxJ;
 		            var jointPos = e.data.jointPos;
 		            while (i--) {
@@ -165,7 +153,7 @@
     	    }
 
     	    //-----------------------------------------------------
-            //  OIMO MESSAGE FUNCTION
+            //  OIMO POST MESSAGE FUNCTION
             //-----------------------------------------------------
 
 	        function sendKey(key){ OimoWorker.postMessage({tell:"KEY", key:key}); }
@@ -191,27 +179,12 @@
 	        	    "Solving Time: " + a[8] + " ms<br>",
 	        	    "Updating Time: " + a[9] + " ms<br>",
 	        	    "Total Time: " + a[10] + " ms<br><br>",
-
 	        	    "Physics: " + a[11] +" fps / "+a[12]+" ms<br>",
 	        	    "Render: " + threeEngine.getFps()+"<br><br>",
-
 	        	    "Selected: "+ threeEngine.getSelected()
 			    ].join("\n");
-
 	        	document.getElementById("output").innerHTML = info;
 	        }
-
-	        //-----------------------------------------------------
-            //  CAMERA AUTOMOVE
-            //-----------------------------------------------------
-
-			function moveView() {
-				var n = currentView;
-				threeEngine.changeView(vSet[n].h, vSet[n].v, vSet[n].d);
-				//document.getElementById("bview").innerHTML = "VIEW " + n;
-				currentView++;
-				if(currentView == vSet.length)currentView = 0;
-			}
 
 		</script>
 	</body>

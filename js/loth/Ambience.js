@@ -191,9 +191,12 @@ var Ambience = function () {
 	    	bigMapInterface.style.visibility = 'visible';
 
 	    	if(!isMapApiLoaded)loadGoogleMapsAPI();
-	    	if(geoMap){
-	    		envMaterial.map = geoMap;
-	    		updateCamera();
+	    	if(mapCanvas){
+	    		//envMaterial.map = geoMap;
+	    		//updateCamera();
+	    		texture = new THREE.Texture( mapCanvas );
+	    		//texture.needsUpdate = true;
+	    		applyMaterial();
 	    	}
 	    	
 
@@ -218,9 +221,12 @@ var Ambience = function () {
 	    	bigOption.style.display = 'block';
 	    	bigOption.style.visibility = 'visible';
 
-	    	//applyMaterial();
-	    	envMaterial.map = texture;
-	    	updateCamera();
+	    	//
+	    	//envMaterial.map = texture;
+	    	//updateCamera();
+	    	texture = new THREE.Texture(canvasSphere[0]);
+	    	//texture.needsUpdate = true;
+	    	applyMaterial();
 
     	}
     }
@@ -228,76 +234,13 @@ var Ambience = function () {
 	//--------------------------------------
     // 3D SIDE
     //--------------------------------------
-    var envSphere, envMaterial, cubeCamera, envMaterialHdr;
-   // var materials = [];
-    var textureHDR;
-    var imageConfig = { alpha:70, exposure:1.5, brightMax: 0.5, noExposure:false };
-    var textureNeedUpdate = false;
-    var renderNeedUpdate = false;
-
-    var loadSphere = function ( materials, PY, S){
-    	var posY = PY  || -1000 ;
-		var s = S || 1 ;
-	    if(scene3d == null)scene3d = new THREE.Scene();
-
-		//var geo = seaLoader.meshes[0].geometry;
-		cubeCamera = new THREE.CubeCamera( 0.1, s*1.2, 256 );
-		cubeCamera.position.set(0,posY,0);
-		cubeCamera.lookAt( new THREE.Vector3(0,posY,5));
-		scene3d.add( cubeCamera );
-
-		envMaterial = new THREE.MeshBasicMaterial({ map:texture });
-
-		//envSphere = new THREE.Mesh(geo, envMaterial);
-		envSphere = new THREE.Mesh( new THREE.SphereGeometry( 1, 32, 16  ),  envMaterial);
-		envSphere.castShadow = false;
-		envSphere.receiveShadow = false;
-		envSphere.scale.set(-s,s,s);
-		envSphere.position.set(0,posY,0);
-
-		scene3d.add( envSphere );
-		updateCamera();
-
-		for(var i=0;i!==materials.length; i++){
-			materials[i].envMap = cubeCamera.renderTarget;
-			materials[i].combine = THREE.MixOperation;
-			//materials[i].combine = THREE.MultiplyOperation;
-			materials[i].reflectivity = 0.5;
-		}
-	}
 
 	var applyMaterial = function () {
-		updateCamera();
-
-		if(textureNeedUpdate){
-			textureNeedUpdate = false;
-			//texture = new THREE.Texture(canvasSphere[0]);
-			envMaterial.map = texture;
-
-		}
-		// update texture
 		if(texture==null ){
 			texture = new THREE.Texture(canvasSphere[0]);
-		   // texture.anisotropy = MaxAnistropy;
-		    texture.needsUpdate = true;
-		    
-		} else{
-			texture.needsUpdate = true;
 		}
-		// update material 
-		if(envMaterial){
-		//	envMaterial.map = texture;
-			//if(material)material.uniforms.tMatCap.value=texture;
-		}
-	}
-
-	var updateCamera = function (){
-		if(cubeCamera){
-			//render3d.shadowMapEnabled = false;
-			cubeCamera.updateCubeMap( render3d, scene3d );
-			//render3d.shadowMapEnabled = true;
-		}
-		//render3d.autoUpdateObjects = true;
+		texture.needsUpdate = true; 
+		if(threeEngine) threeEngine.updateBallCamera();
 	}
 
 	//--------------------------------------
@@ -459,21 +402,24 @@ var Ambience = function () {
 
 			//texture.needsUpdate = true;
 			// get final image
-			envSphere.rotation.y = 0;
-			envSphere.rotation.z = 0;
+			//envSphere.rotation.y = 0;
+			//envSphere.rotation.z = 0;
 
 			setTimeout(function(){
 			
 			//var ct = mapCanvas.getContext("2d");
 			//var image = ct.getImageData(0, 0, mapCanvas.width, mapCanvas.height);
-			geoMap = new THREE.Texture( mapCanvas );
-			envMaterial.map = geoMap;
-			geoMap.needsUpdate = true;
+			texture = new THREE.Texture( mapCanvas );
+			//texture.needsUpdate = true;
+			//threeEngine.changeBallMap();
+			applyMaterial();
+			//envMaterial.map = geoMap;
+			//geoMap.needsUpdate = true;
 
 			//envMaterial.map = new THREE.Texture( mapCanvas ); 
 			//envMaterial.map.needsUpdate = true;
 
-			updateCamera();
+			//updateCamera();
 
 		//	renderNeedUpdate = true;
 		},10);
@@ -1168,21 +1114,6 @@ var Ambience = function () {
 	return {
 
 		domElement: container,
-
-		begin: function ( renderer, scene, mats, n, py, s) {
-			render3d = renderer;
-			//scene3d = scene;
-			loadSphere( mats, n, py, s);
-		},
-
-		/*update: function(y, z){
-			if(envSphere && type==="color"){
-				envSphere.rotation.y = y;
-				envSphere.rotation.z = z;
-				updateCamera();
-		    }
-		   // if(renderNeedUpdate)updateCamera();
-		},*/
 
 		getTexture: function () {
 			return texture;

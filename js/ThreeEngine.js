@@ -128,6 +128,7 @@ var ThreeEngine = function () {
 			initLights();
 		}
 
+		initReflectBall();
 		initMaterial();
 		initObject();
 		initSea3DMesh();
@@ -137,10 +138,46 @@ var ThreeEngine = function () {
 	}
 
 	//-----------------------------------------------------
+	//  REFLECT BALL
+	//-----------------------------------------------------
+
+	var ballScene, ballCamera, ball, ballMaterial;
+
+	var initReflectBall = function(){
+		var s = 1;
+		ballScene = new THREE.Scene();
+
+		ballCamera = new THREE.CubeCamera( s*0.5, s*1.2, 256 );
+		ballCamera.position.set(0,0,0);
+		ballCamera.lookAt( new THREE.Vector3(0,0,5));
+		ballScene.add( ballCamera );
+
+		ballMaterial = new THREE.MeshBasicMaterial({  });
+		ball = new THREE.Mesh( new THREE.SphereGeometry( 1, 20, 12  ),  ballMaterial);
+		ball.castShadow = false;
+		ball.receiveShadow = false;
+		ball.scale.set(-s,s,s);
+		ballScene.add( ball );
+
+		updateBallCamera();
+	}
+
+	var updateBallCamera = function (){
+		if(ballCamera){
+			ballMaterial.map = Ambience.getTexture();
+			ballMaterial.map.anisotropy = MaxAnistropy;
+			ballMaterial.map.needsUpdate = true;
+			renderer.shadowMapEnabled = false;
+			ballCamera.updateCubeMap( renderer, ballScene );
+			renderer.shadowMapEnabled = true;
+		}
+	}
+
+	//-----------------------------------------------------
 	//  MATERIAL
 	//-----------------------------------------------------
 
-	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial, jointMaterial; 
+	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial, jointMaterial, glassMaterial; 
 	var poolMaterial = [];
 	//var baseMaterialm baseMaterial2;
 	var envTexture;
@@ -153,7 +190,14 @@ var ThreeEngine = function () {
 	}
 
 	var initMaterial = function () {
-		envTexture = Ambience.getTexture();
+		//var r = "images/Park3Med/";
+		/*var urls = [ r + "px.jpg", r + "nx.jpg",
+					 r + "py.jpg", r + "ny.jpg",
+					 r + "pz.jpg", r + "nz.jpg" ];
+
+		var textureCube = THREE.ImageUtils.loadTextureCube( urls, new THREE.CubeRefractionMapping() );
+
+		envTexture = Ambience.getTexture();*/
 
 		// SHADER
 
@@ -200,6 +244,7 @@ var ThreeEngine = function () {
 
 		debugMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe:true, transparent:true, opacity:0.1 } );
 		jointMaterial = new THREE.LineBasicMaterial( { color: 0x30ff30 } );
+		glassMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff,  refractionRatio: 0.98, transparent:true, opacity:0.2 } );
 
 		if(!isOptimized){
 			groundMat =  new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
@@ -276,12 +321,20 @@ var ThreeEngine = function () {
 		materials[11] = matBonesleep;
 
 		// define Ambiante Colors
-		var array1=[mat01, mat02, mat03, mat04, mat07, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat07sleep, mat05, mat06, mat08, matGyro];
+		var array1=[mat01, mat02, mat03, mat04, mat07, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat07sleep, mat05, mat06, mat08, matGyro, glassMaterial];
 		var array2 = array1.concat(poolMaterial)
 		//Ambience.begin(scene, [mat01, mat02, mat03,mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep], 2);
-		Ambience.begin(renderer, scene, array2, 500,100);
+		//Ambience.begin(renderer, scene, array2, 500,100);
 		//Ambience.update((-camPos.horizontal)*ToRad, (-camPos.vertical-90)*ToRad, renderer, scene);
+		for(var i=0;i!==array2.length; i++){
+			array2[i].envMap = ballCamera.renderTarget;
+			array2[i].combine = THREE.MixOperation;
+			//materials[i].combine = THREE.MultiplyOperation;
+			array2[i].reflectivity = 0.5;
+		}
 	}
+
+
 	//-----------------------------------------------------
 	//  PHYSICS JOINT OBJECT IN THREE
 	//-----------------------------------------------------
@@ -616,7 +669,7 @@ var ThreeEngine = function () {
 		if(!isOptimized){
 			planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMat );
 			planeBG.rotation.x = (-90)*ToRad;
-			//planeBG.position.y =-2
+			planeBG.position.y =0.01;
 			scene.add(planeBG);
 			planeBG.receiveShadow = true;
 			planeBG.castShadow = false;
@@ -1001,6 +1054,9 @@ var ThreeEngine = function () {
 	//  CAMERA
 	//-----------------------------------------------------
 
+	var vSet = [ {h:90, v:70, d:600}, {h:0, v:60, d:1000}, {h:360, v:45, d:600}, {h:200, v:70, d:1500}, {h:0, v:10, d:1000} ];
+	var currentView = 0;
+
 	var moveCamera = function () {
 		camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 		camera.lookAt(center);
@@ -1024,6 +1080,14 @@ var ThreeEngine = function () {
 		moveLights();
 		moveCamera();
 		moveBgObject();
+	}
+
+	var switchView = function () {
+		var n = currentView;
+		changeView(vSet[n].h, vSet[n].v, vSet[n].d);
+		//document.getElementById("bview").innerHTML = "VIEW " + n;
+		currentView++;
+		if(currentView == vSet.length) currentView = 0;
 	}
 
 	//-----------------------------------------------------
@@ -1094,17 +1158,21 @@ var ThreeEngine = function () {
 		updateSnake:updateSnake,
 		getSqueletonStructure:getSqueletonStructure,
 
-		changeView:changeView,
+		switchView:switchView,
+
+		updateBallCamera:updateBallCamera,
 
 		getFps: function (name) {
-
 			return fpstxt +" fps / "+ ms+" ms";
-
 		},
 		getSelected: function () {
 			if(selected) return selected.name;
+		},
+		getAnistropy: function (name) {
 
-		}
+			return MaxAnistropy;
+
+		},
 	}
 
 

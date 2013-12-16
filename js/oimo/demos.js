@@ -14,13 +14,13 @@ function demo0(n, t){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"box", size:[20,10,20], pos:[0,-5,0]});
+    addRigid({type:"box", size:[5.5,4,5.5], pos:[0,-2,0]});
 
     // wall
-    addRigid({ type:"box", size:[5,10,1], pos:[0,5,-2.5] });
-    addRigid({ type:"box", size:[5,10,1], pos:[0,5, 2.5] });
-    addRigid({ type:"box", size:[1,10,5], pos:[-2.5,5,0] });
-    addRigid({ type:"box", size:[1,10,5], pos:[ 2.5,5,0] });
+    addRigid({ type:"box", size:[4.5,10,0.5], pos:[0,5,-2.5] });
+    addRigid({ type:"box", size:[4.5,10,0.5], pos:[0,5, 2.5] });
+    addRigid({ type:"box", size:[0.5,10,5.5], pos:[-2.5,5,0] });
+    addRigid({ type:"box", size:[0.5,10,5.5], pos:[ 2.5,5,0] });
 
     // add dynamique object
     var body, px, pz, t;
