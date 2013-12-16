@@ -25,7 +25,7 @@ importScripts('vehicle/ball.js');
 var version = "10.DEV";
 var World, RigidBody, BroadPhase;
 var Shape, ShapeConfig, BoxShape, SphereShape;
-var JointConfig, HingeJoint, WheelJoint, DistanceJoint;
+var JointConfig, HingeJoint, WheelJoint, DistanceJoint, BallAndSocketJoint, PrismaticJoint, SliderJoint;
 var Vec3, Quat, Mat33, Mat44;
 
 // physics variable
@@ -234,6 +234,10 @@ var initClass = function(){
         HingeJoint = com.elementdev.oimo.physics.constraint.joint.HingeJoint;
         WheelJoint = com.elementdev.oimo.physics.constraint.joint.WheelJoint;
         DistanceJoint = com.elementdev.oimo.physics.constraint.joint.DistanceJoint;
+        BallAndSocketJoint = com.elementdev.oimo.physics.constraint.joint.BallAndSocketJoint;
+        PrismaticJoint = com.elementdev.oimo.physics.constraint.joint.PrismaticJoint;
+        SliderJoint = com.elementdev.oimo.physics.constraint.joint.SliderJoint;
+
         // Math
         Vec3 = com.elementdev.oimo.math.Vec3;
         Quat = com.elementdev.oimo.math.Quat;
@@ -426,10 +430,12 @@ var addJoint = function(obj){
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
-    var minDistance =0.01// obj.minDistance || 0.01;
+    var minDistance = 0.01;// obj.minDistance || 0.01;
     var maxDistance = obj.maxDistance || 0.1;
     var lowerAngleLimit = obj.lowerAngle || 1;
     var upperAngleLimit = obj.upperAngle || 0;
+    var lowerTranslation = obj.lowerTranslation || 1;
+    var upperTranslation = obj.upperTranslation || 0;
     var type = obj.type || "hinge";
     var limit = obj.limit || null;
     var spring = obj.spring || null;
@@ -445,6 +451,9 @@ var addJoint = function(obj){
     switch(type){
         case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
         case "hinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
+        case "prisme": joint = new PrismaticJoint(jc, lowerTranslation, upperTranslation); break;
+        case "slide": joint = new SliderJoint(jc, lowerTranslation, upperTranslation); break;
+        case "ball": joint = new BallAndSocketJoint(jc); break;
         case "wheel": 
             joint = new WheelJoint(jc);  
             if(limit !== null) 

@@ -1098,7 +1098,7 @@ var ThreeEngine = function () {
 
 		getFps: function (name) {
 
-			return fpstxt +" fps / "+ ms+" ms<br>";
+			return fpstxt +" fps / "+ ms+" ms";
 
 		},
 		getSelected: function () {
