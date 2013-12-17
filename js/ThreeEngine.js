@@ -13,6 +13,9 @@ var ThreeEngine = function () {
 	// containe all joint object from simulation
 	var contentJoint = new THREE.Object3D();
 
+	// containe special object
+	var contentSpecial = new THREE.Object3D();
+
 	// containe all material reference
 	var materials = [];
 
@@ -115,6 +118,7 @@ var ThreeEngine = function () {
 		scene.add(content);
 		scene.add(contentDebug);
 		scene.add(contentJoint);
+		scene.add(contentSpecial);
 
 		// marker for mouse position
 		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
@@ -359,6 +363,7 @@ var ThreeEngine = function () {
 		
 		if(type === 'joint'){//_____________________________ Joint
 			addJoint();
+			//OimoWorker.postMessage({ tell:"ADD", type:type, move:move, size:size, pos:pos, rot:rot, config:config, notSleep:notSleep });
 		}else{
 			if(move){//_____________________________________ Dynamic
 				addObjects( type, size );
@@ -370,6 +375,9 @@ var ThreeEngine = function () {
 			// now create in oimo physic
 			OimoWorker.postMessage({ tell:"ADD", type:type, move:move, size:size, pos:pos, rot:rot, config:config, notSleep:notSleep });
 		}
+	}
+
+	var REMOVE = function (obj){
 	}
 
 	var rotationToRad = function (ar){
@@ -398,8 +406,6 @@ var ThreeEngine = function () {
 		return joint;
 	}
 
-
-
 	//-----------------------------------------------------
 	//  PHYSICS STATIC OBJECT IN THREE
 	//-----------------------------------------------------
@@ -409,12 +415,7 @@ var ThreeEngine = function () {
 		var mesh;
 		var m, mtx;
 	    for(var i=0; i!==max; i++){
-	    	//s = ;
 	    	mesh = addStaticObjects(data.types[i], data.sizes[i] || [50,50,50]);
-	    	/*switch(data.types[i]){
-	    		case 1: mesh=new THREE.Mesh(geo05, debugMaterial); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
-	    		case 2: mesh=new THREE.Mesh(geo01, debugMaterial); mesh.scale.set( s[0], s[1], s[2] ); break; // box
-	        }*/
 	        m = data.matrix[i];
 	        mtx = new THREE.Matrix4(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], 0, 0, 0, 1);
 	        mesh.position.setFromMatrixPosition( mtx );
@@ -432,7 +433,6 @@ var ThreeEngine = function () {
 	    mesh.castShadow = false;
 	    mesh.name = 'D'+contentDebug.children.length;
 	    contentDebug.add( mesh );
-
 	    return mesh;
 	}
 
@@ -503,7 +503,7 @@ var ThreeEngine = function () {
 	    		m2.children[0].children[0].material = matGyro;
 	    		m2.children[0].children[0].children[0].material = matGyro;
 	    		m2.scale.set( s[0], s[0], s[0] );
-	    		mesh.add(m2);
+	    		contentSpecial.add(m2);
 	    		followSpecial = "gyro";
 	    		followObject = name;
     		break;
@@ -540,7 +540,6 @@ var ThreeEngine = function () {
     		mesh.receiveShadow = true;
     		mesh.castShadow = true;
     	}
-
     	return mesh;
 	}
 
@@ -561,6 +560,11 @@ var ThreeEngine = function () {
 		i=contentJoint.children.length;
 		while (i--) {
 			contentJoint.remove(contentJoint.children[ i ]);
+		}
+
+		i=contentSpecial.children.length;
+		while (i--) {
+			contentSpecial.remove(contentSpecial.children[ i ]);
 		}
 
 		/*var obj, i;
@@ -899,15 +903,14 @@ var ThreeEngine = function () {
 		if(renderLoop) {clearInterval(renderLoop); renderLoop = null;}
 	}
 
+	var prevR=[0,0];
+
 	var update = function () {
 		startTime = Date.now();
 		//var delta = clock.getDelta();
 
 		requestAnimationFrame( update, renderer.domElement );
-		//stats.begin();
 
-
-		
 		renderNoise+=(nRenderNoise-renderNoise)*.2;
 		setNoise(renderNoise);
 
@@ -915,36 +918,33 @@ var ThreeEngine = function () {
 		if(followSpecial){
 			if(followSpecial === 'gyro'){
 				var m00=content.children[followObject];
-		        var m01=content.children[followObject].children[0];
-				m01.children[0].rotation.y= m00.rotation.z; //axe01
-		        m01.children[0].children[0].rotation.x = m00.rotation.y; //axe02
-		        m01.children[0].children[0].children[0].rotation.y = m00.rotation.x; // axe03
+		        var m01=contentSpecial.children[0];
+		        m01.position.copy(m00.position);
+		        m01.children[0].rotation.y=-(camPos.horizontal-90)*ToRad;
+		        m01.children[0].children[0].rotation.x =(camPos.vertical-90)*ToRad;
+		        m01.children[0].children[0].children[0].rotation.y += (getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1])) * ToRad;
+		        prevR[0] = m00.position.x;
+		        prevR[1] = m00.position.z;
 			}
 		}
 
-		//render(delta);
-
-		/*collisionDetector ();
-
+		/*
 		//delta = clock.getDelta();
 		//THREE.AnimationHandler.update( delta*0.5 );
 		//updatePlayerMove();
+		*/
 
-		if(!isOptimized){
-		// groundMirror.renderWithMirror( verticalMirror );
-		//verticalMirror.renderWithMirror( groundMirror );
-		}*/
 		//renderer.clear();
 		renderer.render( sceneBG, cameraBG );
 		renderer.render( scene, camera );
-		
-		//Ambience.update((-camPos.horizontal-180)*ToRad, (camPos.vertical-135)*ToRad);
 
-		//stats.end();
-		fpsUpdate();
+		time = Date.now();
+	    ms = time - startTime;
+	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
+	    fps++;
 	}
 
-	var viewRender = function () {
+	/*var viewRender = function () {
 		renderer.render( scene, camera );
 		fpsUpdate();
 	}
@@ -954,7 +954,7 @@ var ThreeEngine = function () {
 	    ms = time - startTime;
 	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
 	    fps++;
-	}
+	}*/
 
 
 
@@ -1237,7 +1237,6 @@ var ThreeEngine = function () {
 		contentJoint:contentJoint,
 
 		materials:materials,
-		cameraFollow:cameraFollow,
 
 		updateSila:updateSila,
 		updateSnake:updateSnake,
@@ -1248,6 +1247,7 @@ var ThreeEngine = function () {
 		updateBallCamera:updateBallCamera,
 
 		ADD:ADD,
+		REMOVE:REMOVE,
 
 		getFps: function (name) {
 			return fpstxt +" fps / "+ ms+" ms";
