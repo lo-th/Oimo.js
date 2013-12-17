@@ -101,15 +101,25 @@ self.onmessage = function (e) {
 //   ADD SOMETING ON FLY
 //--------------------------------------------------
 
-var ADD = function(e){
+var ADD = function(data){
+    var obj;
+    if(data.type === 'joint'){
 
+    } else {
+        obj = { type:data.type, size:rzOimo(data.size), pos:rzOimo(data.pos), rot:data.rot, move:data.move, config:data.config, notSleep:data.notSleep };
+        addRigid(obj, true);
+    }
+}
+
+var rzOimo = function (ar){
+    return [ar[0]*invScale, ar[1]*invScale, ar[2]*invScale];
 }
 
 //--------------------------------------------------
 //   REMOVE SOMETING ON FLY
 //--------------------------------------------------
 
-var REMOVE = function(e){
+var REMOVE = function(data){
 
 }
 
@@ -323,15 +333,13 @@ var startDemo = function(){
     else if(currentDemo==7)demo7();
     else if(currentDemo==8)demo8();
 
-    var N = bodys.length;
-    matrix = new Float32Array(N*12);
-    sleeps = new Uint8Array(N);
-
-    N = joints.length;
-    jointPos = new Float32Array(N*6);
+    // sending array
+    matrix = [];
+    sleeps = [];
+    jointPos = [];
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
-    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:N });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
 
 }
 
@@ -339,7 +347,8 @@ var startDemo = function(){
 //    BASIC OBJECT
 //--------------------------------------------------
 
-var addRigid = function(obj){
+var addRigid = function(obj, OO){
+    var notSaveSetting = OO || false;
 
     var sc = obj.sc || new ShapeConfig();
     if(obj.config){
@@ -358,21 +367,14 @@ var addRigid = function(obj){
     
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
-    var r = obj.rot || [0,0,0,0];
-    var rotation = obj.rotation || null;
+    var rot = obj.rot || [0,0,0];
+    var r = eulerToAxisAngle(rot[0], rot[1], rot[2]);
     var move = obj.move || false;
     var noSleep  = obj.noSleep || false; 
     var noAdjust = obj.noAdjust || false;
 
-
-    // rotation x y z in degre to axis
-    //if(rotation !== null ) r = eulerToAxisAngle(rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad);
-    // rotation x y z in radian
-    if(rotation !== null ) r = eulerToAxisAngle(rotation[0], rotation[1], rotation[2]);
-    else r[0] = r[0]*ToRad;
-
     var shape, t;
-    var shape2 = null;
+    //var shape2 = null;
     switch(obj.type){
         case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
         case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
@@ -395,25 +397,28 @@ var addRigid = function(obj){
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
     body.addShape(shape);
-    if(shape2!=null)body.addShape(shape2);
-    //if(t===5)body.addShape(new BoxShape(sc, s[0] * 2, 0.2, 0.2));
+    //if(shape2!=null)body.addShape(shape2);
 
     if(move){
         if(noAdjust)body.setupMass(0x1, false);
         else body.setupMass(0x1, true);
         bodys.push(body);
-        types.push(t);
-        sizes.push([s[0]*scale, s[1]*scale, s[2]*scale])
+        if(!notSaveSetting){
+            types.push(t);
+            sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
+        }
         if(noSleep) body.allowSleep = false;
         else body.allowSleep = true;
     } else {
         body.setupMass(0x2);
         statics.push(body);
-        staticTypes.push(t);
-        staticSizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
-        var sr = body.rotation;
-        var sp = body.position;
-        staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
+        if(!notSaveSetting){
+            staticTypes.push(t);
+            staticSizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
+            var sr = body.rotation;
+            var sp = body.position;
+            staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
+        }
     }
     world.addRigidBody(body);
     return body;

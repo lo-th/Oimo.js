@@ -131,23 +131,12 @@
 		            //skin update
 		            if(demo === 3) threeEngine.updateSnake();
 		            if(demo === 6) threeEngine.updateSila();
-		            
-		            //Follow object 
-		            if(demo === 4 || demo === 5){
-		            	var m00=threeEngine.content.children[max-1];
-		            	var m01=threeEngine.content.children[max];
-		            	m01.position.copy(m00.position);
-		            	threeEngine.cameraFollow(m00.position);
-		                m01.children[0].rotation.y= m00.rotation.z; //axe01
-		                m01.children[0].children[0].rotation.x = m00.rotation.y; //axe02
-		            	m01.children[0].children[0].children[0].rotation.y = m00.rotation.x; //axe03
-		            }
 
 					displayInfo(e.data.infos);
 	            }
 
 	            // clear three object
-				if(phase === "CLEAR") threeEngine.clear();
+				if(phase === "CLEAR") threeEngine.clearAll();
 				// get ragdoll info
 				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);
     	    }

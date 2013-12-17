@@ -99,6 +99,9 @@ var Interface = function (name) {
 		bMenu.appendChild( bbMenu[i] );
 	}
 
+	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.ADD({ move:true, size:[50,50,50], pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.ADD({ type:'sphere', size:[25,0,0], move:true, pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.ADD({ type:'dice', move:true, size:[60,60,60], pos:[0,800,0], rot:[45,45,45] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	//-----------------------------------------------------
     //  GRAVITY
