@@ -5,13 +5,14 @@
 var Interface = function (name) {
 	var container = document.createElement( 'div' );
 	container.id = 'interface';
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
-	
-	container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
+	//var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
+	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
+	container.style.cssText = 'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; pointer-events:none;';
+
 
 	
 
-	var buttonStyle = 'font-weight:bold; width:40px; height:28px; position:relative;  -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.3); text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:left; cursor:pointer; pointer-events:auto;font-size:20px; letter-spacing:-4px;';
+	var buttonStyle = 'font-weight:bold; width:40px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.3); text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:left; cursor:pointer; pointer-events:auto;font-size:20px; letter-spacing:-4px;';
 	var bbStyle = 'font-weight:bold;width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 3px #000;';
 
 	//-----------------------------------------------------
