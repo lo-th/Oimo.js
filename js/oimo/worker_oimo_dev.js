@@ -50,7 +50,7 @@ var types;
 var sizes;
 var infos = new Float32Array(13);
 var currentDemo = 0;
-var maxDemo = 9;
+var maxDemo = 10;
 
 var statics;
 var staticTypes, staticSizes, staticMatrix;
@@ -332,6 +332,7 @@ var startDemo = function(){
     else if(currentDemo==6)demo6();
     else if(currentDemo==7)demo7();
     else if(currentDemo==8)demo8();
+    else if(currentDemo==9)demo9();
 
     // sending array
     matrix = [];
@@ -393,6 +394,8 @@ var addRigid = function(obj, OO){
 
         case "vanBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=14; break;
         case "vanwheel": shape = new SphereShape(sc, s[0] ); t=15; break;// fake cylinder
+
+        case "droid": shape = new SphereShape(sc, s[0]); t=16; break;// droid
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     

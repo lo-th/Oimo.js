@@ -333,3 +333,18 @@ function demo8(){
     box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[x, y + 1, z - 6],  config:[1,0.5,0.5], move:true});
     ball = new Ball(x, y + 1, z, world, 2); 
 }
+
+//--------------------------------------------------
+//    DROID
+//--------------------------------------------------
+
+function demo9(){
+    world.gravity = new Vec3(0, -10, 0);
+
+    // ground
+    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
+    var box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[2, 1, 6],  config:[1,0.5,0.5], move:true});
+    ball = new Ball(0, 2, 0, world, 2, 'droid');
+
+
+}

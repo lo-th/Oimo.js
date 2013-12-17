@@ -1,13 +1,14 @@
 /* Copyright (c) 2012-2013 EL-EMENT saharan */
 
-Ball = function (x, y, z, world, d) {
+Ball = function (x, y, z, world, d, Name) {
 	var sc = new ShapeConfig();
 	sc.density = d || 10;
 	sc.friction = 2;
 	this.speed = 0.2;
 	this.phi = 0;
 	
-	this.body = addRigid({type:"gyro", size:[1], pos:[x, y, z], sc:sc, move:true, noSleep:true});
+	var name  = Name || 'gyro';
+	this.body = addRigid({type:name, size:[1], pos:[x, y, z], sc:sc, move:true, noSleep:true});
 }
 
 Ball.prototype.Phi =function (v) {

@@ -366,6 +366,7 @@ var addRigid = function (obj, OO){
         case "columnTop": shape = new BoxShape(s[0], s[1], s[2], sc); t=9; break;
         case "nball": shape = new SphereShape(s[0], sc); t=11; break;
         case "gyro": shape = new SphereShape(s[0], sc); t=12; break;
+        case "droid": shape = new SphereShape(sc, s[0]); t=16; break;// droid
     }
     var body = new RigidBody(r[0], r[1], r[2], r[3]);
     body.addShape(shape);

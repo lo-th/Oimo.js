@@ -29,7 +29,7 @@ var ThreeEngine = function () {
 	var fpstxt, time, time_prev = 0, fps = 0, startTime, ms;
 
 	var meshs = [];
-	var players = [];
+	//var players = [];
 
 	var currentPlay;
 	var character=0;
@@ -58,6 +58,7 @@ var ThreeEngine = function () {
 	var selected = null;
 	var followObject = null;
 	var followSpecial = null;
+	var player = null;
 
 	//-----------------------------------------------------
 	//  INIT VIEW
@@ -181,7 +182,7 @@ var ThreeEngine = function () {
 	//  MATERIAL
 	//-----------------------------------------------------
 
-	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial, jointMaterial, glassMaterial; 
+	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial, jointMaterial, glassMaterial, matDroid; 
 	var poolMaterial = [];
 	//var baseMaterialm baseMaterial2;
 	var envTexture;
@@ -266,6 +267,7 @@ var ThreeEngine = function () {
 			mat04sleep = new THREE.MeshLambertMaterial( { map: diceTextureSleep, shininess:10, specular:0xffffff } );
 			mat07sleep = new THREE.MeshLambertMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
 			matGyro = new THREE.MeshLambertMaterial( { map: gyroTexture, shininess:100, specular:0xffffff } );
+			matDroid = new THREE.MeshLambertMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true } );
 
 			matBone = new THREE.MeshBasicMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
 			matBonesleep = new THREE.MeshBasicMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
@@ -530,6 +532,25 @@ var ThreeEngine = function () {
     		    mesh = new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);
     		    mesh.scale.set( 3, 3, 3 );
     		break;
+    		case 16: case 'droid':
+    		    mesh = new THREE.Object3D();
+    		    m3 = new THREE.Object3D();
+    		    m2 = getMeshByName('Android');
+    		   // m2 = new THREE.SkinnedMesh( getSeaGeometry('Android', 2), matDroid, false);
+    		   // m2.animations = getMeshByName('Android').animations;
+                        //var animation = new THREE.Animation( block, "idle" );
+                        //THREE.AnimationHandler.add( block.geometry.animations )
+                       
+    		    m2.material = matDroid;
+    		    m3.scale.set( 3, 3, -3 );
+    		    
+    		    m3.add(m2);
+    		    contentSpecial.add(m3);
+	    		followSpecial = "droid";
+	    		player = m3;
+	    		player.children[0].play("Walk");
+	    		followObject = name;
+    		break;
     	}
     	mesh.position.y = -10000;
     	mesh.name = name;
@@ -545,6 +566,7 @@ var ThreeEngine = function () {
 
 
 	var clearAll = function (){
+		player = null;
 		followObject = null;
 		followSpecial = null;
 		var i=content.children.length;
@@ -579,7 +601,7 @@ var ThreeEngine = function () {
 	var addSnake = function (s) {
 		if(s==null) s = [10,10,10];
 		var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, mat05 );
-		mesh.material = mat05;
+		//mesh.material = mat05;
 		mesh.scale.set( s[0], s[1], -s[2] );
 		content.add( mesh );
 		mesh.receiveShadow = true;
@@ -624,7 +646,7 @@ var ThreeEngine = function () {
 	var addSila = function (s) {
 		if(s==null) s = [1,1,1];
 		var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, mat08 );
-		mesh.material = mat08;
+		//mesh.material = mat08;
 		mesh.scale.set( s[0], s[1], s[2] );
 		//mesh.position.y=90;
 		content.add( mesh );
@@ -811,7 +833,7 @@ var ThreeEngine = function () {
 	//  SEA3D IMPORT
 	//-----------------------------------------------------
 
-	var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van', 'box'];
+	var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van', 'box', 'droid'];
 	var seaN = 0;
 
 	var initSea3DMesh = function (){
@@ -835,6 +857,9 @@ var ThreeEngine = function () {
 	    		    scaleGeometry(SeaLoader.meshes[i].children[0].children[0].geometry, 1, 'z');
 	    		    scaleGeometry(SeaLoader.meshes[i].children[0].children[0].children[0].geometry, 1, 'x');
 				}
+				/*if(SeaLoader.meshes[i].name ==="Android"){
+					scaleGeometry(SeaLoader.meshes[i].geometry, 1, 'x');
+				}*/
 				meshs.push( SeaLoader.meshes[i] );
 			}
 			// load Next
@@ -895,21 +920,26 @@ var ThreeEngine = function () {
 	//  EVENT
 	//-----------------------------------------------------
 
-	var startRender = function () {
+	/*var startRender = function () {
 	    if(!renderLoop) renderLoop = setInterval( function () { requestAnimationFrame( update ); }, 1000 / 60 );
 	}
 
 	var stopRender = function () {
 		if(renderLoop) {clearInterval(renderLoop); renderLoop = null;}
-	}
+	}*/
 
 	var prevR=[0,0];
+	var Anim="Walk";
 
 	var update = function () {
-		startTime = Date.now();
-		//var delta = clock.getDelta();
-
 		requestAnimationFrame( update, renderer.domElement );
+
+		startTime = Date.now();
+
+		var delta = clock.getDelta();
+		THREE.AnimationHandler.update( delta );
+
+		
 
 		renderNoise+=(nRenderNoise-renderNoise)*.2;
 		setNoise(renderNoise);
@@ -923,6 +953,23 @@ var ThreeEngine = function () {
 		        m01.children[0].rotation.y=-(camPos.horizontal-90)*ToRad;
 		        m01.children[0].children[0].rotation.x =(camPos.vertical-90)*ToRad;
 		        m01.children[0].children[0].children[0].rotation.y += (getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1])) * ToRad;
+		        prevR[0] = m00.position.x;
+		        prevR[1] = m00.position.z;
+			} else if(followSpecial === 'droid'){
+				var m00=content.children[followObject];
+				//player = null;
+		       // var m01=contentSpecial.children[0];
+		        var distance= getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
+		        player.position.copy(m00.position);
+		        if(distance>2){
+		        	if(Anim === "Idle"){ Anim="Walk"; player.children[0].play("Walk");}
+		        	player.rotation.y=-(camPos.horizontal+90)*ToRad;
+		        }
+		        else {
+		        	if(Anim === "Walk"){ Anim="Idle";
+		        		player.children[0].play("Idle");
+		        	}
+		        }
 		        prevR[0] = m00.position.x;
 		        prevR[1] = m00.position.z;
 			}
