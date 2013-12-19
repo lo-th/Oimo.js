@@ -23,6 +23,7 @@ var Ambience = function (Pos) {
 	var deco = document.createElement( 'div' );
 	deco.style.cssText = borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
 	deco.style.transform='translateY('+(startHeight-30)+'px)';
+	deco.style.webkitTransform='translateY('+(startHeight-30)+'px)';
 	container.appendChild( deco );
 
 	//----------------------------------------------
