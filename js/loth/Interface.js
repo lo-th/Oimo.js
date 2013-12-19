@@ -5,15 +5,11 @@
 var Interface = function (name) {
 	var container = document.createElement( 'div' );
 	container.id = 'interface';
-	//var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
-	container.style.cssText = 'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; pointer-events:none;';
-
-
-	
-
-	var buttonStyle = 'font-weight:bold; width:40px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.3); text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:left; cursor:pointer; pointer-events:auto;font-size:20px; letter-spacing:-4px;';
-	var bbStyle = 'font-weight:bold;width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 3px #000;';
+	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
+	var buttonStyle = 'font-weight:bold; width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.3); text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:20px; ';
+	var bbStyle = 'font-weight:bold; width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 3px #000;';
 
 	//-----------------------------------------------------
     //  TITLE
@@ -36,7 +32,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'font-family:Verdana;line-height:12px; letter-spacing:-1px; position:absolute; color:#777777; top:120px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#777777; top:120px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -58,11 +54,11 @@ var Interface = function (name) {
 
 	var bnext = document.createElement( 'div' );
 	bnext.style.cssText = buttonStyle;
-	bnext.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;>>";
+	bnext.innerHTML = ">";
 
 	var bprev = document.createElement( 'div' );
 	bprev.style.cssText = buttonStyle;
-	bprev.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<";
+	bprev.innerHTML = "<";
 
 	var bcenter = document.createElement( 'div' );
 	bcenter.id = "demoName";
@@ -113,28 +109,28 @@ var Interface = function (name) {
 	//var finalFunction;
 
 	var loDiv = document.createElement( 'div' );
-	loDiv.style.cssText = 'position:absolute;left:20px; top:120px; width:40px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto; box-shadow: 0 0 4px rgba(255,255,255,0.3);';
+	loDiv.style.cssText = 'position:absolute;left:20px; top:120px; width:30px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto; box-shadow: 0 0 4px rgba(255,255,255,0.3);';
 	container.appendChild( loDiv );
 
 	var loDiv2 = document.createElement( 'div' );
-	loDiv2.style.cssText = 'position:absolute; left:10px; bottom:0px; width:20px; height:200px; display:block; background:rgba(255,255,0,0.05);-webkit-border-radius:10px; border-radius:10px; pointer-events:none;';
+	loDiv2.style.cssText = 'position:absolute; left:5px; bottom:0px; width:20px; height:200px; display:block; background:rgba(255,255,0,0.05);-webkit-border-radius:10px; border-radius:10px; pointer-events:none;';
 	loDiv.appendChild( loDiv2 );
 	
 
 	var center = document.createElement( 'div' );
-	center.style.cssText = 'position:absolute;width:30px;left:5px;height:1px;padding:0 0 0 0; background:rgba(255,255,255,0.2); top:100px; pointer-events:none;';
+	center.style.cssText = 'position:absolute;width:30px;left:0px;height:1px;padding:0 0 0 0; background:rgba(255,255,255,0.2); top:100px; pointer-events:none;';
 	loDiv.appendChild( center );
 
 	var select = document.createElement( 'div' );
-	select.style.cssText = 'position:absolute;width:30px;left:5px;height:1px;padding:0 0 0 0; background:rgba(255,255,1,0.8); top:100px; pointer-events:none;';
+	select.style.cssText = 'position:absolute;width:30px;left:0px;height:1px;padding:0 0 0 0; background:rgba(255,255,1,0.8); top:100px; pointer-events:none;';
 	loDiv.appendChild( select );
 
 	var txt = document.createElement( 'div' );
-	txt.style.cssText = 'position:absolute;width:40px;height:30px;padding:0 0 0 0; top:105px; pointer-events:none;';
+	txt.style.cssText = 'position:absolute;width:30px;height:30px; padding:0 0 0 0; top:105px; pointer-events:none; font-size:10px;';
 	loDiv.appendChild( txt );
 
 	var txt2 = document.createElement( 'div' );
-	txt2.style.cssText = 'position:absolute;width:40px;height:30px;padding:0 0 0 0; top:85px; pointer-events:none;';
+	txt2.style.cssText = 'position:absolute;width:30px;height:30px; padding:0 0 0 0; top:85px; pointer-events:none; font-size:10px;';
 	loDiv.appendChild( txt2 );
 	txt2.textContent ="G";
 
@@ -158,10 +154,10 @@ var Interface = function (name) {
 
 			if(pos<10 || pos>190){ 
 				select.style.width = '10px';
-				select.style.left = '15px';
+				select.style.left = '10px';
 			}else{
 				select.style.width = '30px';
-				select.style.left = '5px';
+				select.style.left = '0px';
 			}
 		}
 	}
@@ -177,10 +173,10 @@ var Interface = function (name) {
 
 		if(pos<10 || pos>190){ 
 			select.style.width = '10px';
-			select.style.left = '15px';
+			select.style.left = '10px';
 		}else{
 			select.style.width = '30px';
-			select.style.left = '5px';
+			select.style.left = '0px';
 		}
 	}
 

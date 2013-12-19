@@ -8,6 +8,7 @@
 		<link rel="shortcut icon" href="images/favicon.ico">
 		<style>
 			body { background-color: #222; margin: 0px; overflow: hidden; }
+			@font-face { font-family: 'SourceCode'; src: url('images/SourceCodePro.woff') format('woff');}
 			a { text-decoration:none; }
 		</style> 
 	</head>
@@ -27,6 +28,7 @@
 		<script type="text/javascript" src="js/loth/Ambience.js"></script>
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
 		<script type="text/javascript" src="js/loth/TinyRadio.js"></script>
+		<script type="text/javascript" src="js/loth/Editor.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
 
 		<script type="text/javascript" src="js/materialShader/SphereShader.js"></script>
@@ -41,6 +43,8 @@
         	var threeEngine;
         	var Interface;
         	var TinyRadio;
+        	var Editor;
+        	var menu;
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -48,15 +52,20 @@
 
 		    function init() {
 		    	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+		    	menu = document.createElement( 'div' );
+		    	menu.style.cssText ='position:absolute; height:600px;width:100%; overflow:hidden; bottom:0px; left:0px;  pointer-events:none;';
 		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
 		    	threeEngine = new ThreeEngine();
 		    	TinyRadio = new TinyRadio();
-
+		    	Editor = new Editor();
+		    	
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Interface.domElement );
-				document.body.appendChild( Ambience.domElement );
-				document.body.appendChild( TinyRadio.domElement );
+		    	document.body.appendChild( menu );
+				menu.appendChild( Ambience.domElement );
+				menu.appendChild( Editor.domElement );
+				//menu.appendChild( TinyRadio.domElement );
 				threeEngine.init({optimized:false});
             }
 

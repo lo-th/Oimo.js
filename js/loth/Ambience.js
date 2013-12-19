@@ -3,7 +3,7 @@
  */
 'use strict';
 var Ambience = function (Pos) {
-	var left = Pos || 150;
+	var left = Pos || 150+266;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
@@ -13,7 +13,7 @@ var Ambience = function (Pos) {
 	var startHeight = 416;
 
     var container = document.createElement( 'div' );
-	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:"Trebuchet MS", Helvetica, sans-serif; text-align:center; pointer-events:none;';
+	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:SourceCode; text-align:center; pointer-events:none;';
 	container.id = 'Ambience';
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
@@ -28,12 +28,12 @@ var Ambience = function (Pos) {
 	//----------------------------------------------
 
 
-	var aMini = document.createElement( 'div' );
+	/*var aMini = document.createElement( 'div' );
 	aMini.style.cssText = 'padding:0px 1px; position:relative; display:block;-webkit-border-top-left-radius:20px; border-top-left-radius: 20px;-webkit-border-top-right-radius: 20px; border-top-right-radius: 20px; ';//' background-color:#ff55ff';
 	//container.appendChild( aMini );
 
 	var buttonStyle = 'width:20px; position:relative;padding:4px 2px;margin:2px 2px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.2); background-color: rgba(1,1,1,0.1); display:inline-block; text-decoration:none; cursor:pointer;';
-	
+	*/
 
 	var bstyle = 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
@@ -150,7 +150,7 @@ var Ambience = function (Pos) {
 
 	var isShowfinalPreset = false;
 	var finalPresetButton = document.createElement( 'div' );
-	finalPresetButton.style.cssText = 'font-size:9px;bottom:2px; right:2px; position:absolute; padding:-2px -2px; width:13px; height:13px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.6); background-color: rgba(1,1,1,0.5);cursor:pointer; pointer-events:auto;';
+	finalPresetButton.style.cssText = 'font-size:9px; bottom:2px; right:2px; position:absolute; padding:-2px -2px; width:13px; height:13px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.6); background-color: rgba(1,1,1,0.5);cursor:pointer; pointer-events:auto;';
 	finalPresetButton.textContent = "+";
 	
 
@@ -329,7 +329,7 @@ var Ambience = function (Pos) {
 	var searchTxt = document.createElement( 'input' );
 	searchTxt.type = 'text';
 	//searchTxt.style.cssText = 'color:#EEEEEE; left:2px; width:180px; padding:4px 2px;margin:2px 2px; height:14px;position:absolute; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.5); background-color: rgba(1,1,1,0.2);font-size:12px;font-family:Monospace;text-align:center;';
-	searchTxt.style.cssText ='width:184px;position:relative; color:#CCCCCC; background:none; text-shadow: 1px 1px 3px #000;  font-size:14px; height:19px; padding:5px 4px; display:inline-block; pointer-events:auto; border:none; ';
+	searchTxt.style.cssText ='width:184px; position:relative; color:#CCCCCC; background:none; text-shadow: 1px 1px 3px #000;  font-size:14px; height:19px; padding:5px 4px; display:inline-block; pointer-events:auto; border:none; ';
 	//search.appendChild( searchTxt );
 	bigMapInterface.appendChild( searchTxt );
 	searchTxt.addEventListener( 'keydown', function ( e ) { if (e.keyCode == 13)findAddress(); }, false );
@@ -362,7 +362,7 @@ var Ambience = function (Pos) {
 
 	// loading bar
 	var preloader = document.createElement( 'div' );
-	preloader.style.cssText = 'display:block; top:0px; width:256px;height:6px; position:relative; -webkit-border-radius: 20px; border-radius:5px; border-bottom:1px solid rgba(1,1,1,0.3); background-color: rgba(1,1,1,0.1); pointer-events: none;';
+	preloader.style.cssText = 'display:block; top:0px; width:256px; height:6px; position:relative; -webkit-border-radius: 20px; border-radius:5px; border-bottom:1px solid rgba(1,1,1,0.3); background-color: rgba(1,1,1,0.1); pointer-events: none;';
 	bigMapInterface.appendChild( preloader );
 
 	var bar = document.createElement( 'div' );

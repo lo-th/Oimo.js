@@ -49,7 +49,7 @@ var ThreeEngine = function () {
 	var isBuffered = true;
 	var PATH = 'http://lo-th.github.io/Oimo.js/';
 
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; overflow:hidden;';
 
 	var container = document.createElement( 'div' );
 	container.id = 'container';

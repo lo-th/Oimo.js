@@ -3,12 +3,12 @@
  */
 'use strict';
 var TinyRadio = function (pos) {
-	var left = pos || 380;
+	var left = pos || 380+266;
 	var open = false;
 	var startHeight = 210;
 
 	var container = document.createElement( 'div' );	
-	container.style.cssText = 'position:absolute; left:'+left+'px; bottom:0px; color:#CCCCCC; font-size:12px; font-family:"Trebuchet MS", Helvetica, sans-serif; text-align:center; text-shadow: 1px 1px 3px #000; pointer-events:none; ';
+	container.style.cssText = 'position:absolute; left:'+left+'px; bottom:0px; color:#CCCCCC; font-size:12px; font-family:SourceCode; text-align:center; text-shadow: 1px 1px 3px #000; pointer-events:none;';
 	container.id = 'TinyRadio';
 
 	var border = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px; -webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
