@@ -26,6 +26,7 @@
 		<script type="text/javascript" src="js/loth/Interface.js"></script>
 		<script type="text/javascript" src="js/loth/Ambience.js"></script>
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
+		<script type="text/javascript" src="js/loth/TinyRadio.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
 
 		<script type="text/javascript" src="js/materialShader/SphereShader.js"></script>
@@ -39,6 +40,7 @@
 		    var Ambience;
         	var threeEngine;
         	var Interface;
+        	var TinyRadio;
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -49,9 +51,12 @@
 		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
 		    	threeEngine = new ThreeEngine();
+		    	TinyRadio = new TinyRadio();
+
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				document.body.appendChild( Ambience.domElement );
+				document.body.appendChild( TinyRadio.domElement );
 				threeEngine.init({optimized:false});
             }
 

@@ -2,154 +2,205 @@
  * @author loth / http://3dflashlo.wordpress.com/
  */
 'use strict';
-var Ambience = function () {
+var Ambience = function (Pos) {
+	var left = Pos || 150;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
 	var mini = true;
 	var type = "color";
-
+	var open = false;
+	var startHeight = 416;
 
     var container = document.createElement( 'div' );
+	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:"Trebuchet MS", Helvetica, sans-serif; text-align:center; pointer-events:none;';
 	container.id = 'Ambience';
-	container.style.cssText = unselect+'width:260px;position:absolute;bottom:8px; left:20px; color:#CCCCCC;font-size:12px;font-family:Monospace;text-align:center;';//pointer-events:none;
+
+	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
+	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
+    var effect = 'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
+
+	var deco = document.createElement( 'div' );
+	deco.style.cssText = borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
+	deco.style.transform='translateY('+(startHeight-30)+'px)';
+	container.appendChild( deco );
+
+	//----------------------------------------------
+
 
 	var aMini = document.createElement( 'div' );
 	aMini.style.cssText = 'padding:0px 1px; position:relative; display:block;-webkit-border-top-left-radius:20px; border-top-left-radius: 20px;-webkit-border-top-right-radius: 20px; border-top-right-radius: 20px; ';//' background-color:#ff55ff';
-	container.appendChild( aMini );
+	//container.appendChild( aMini );
 
-	var buttonStyle = 'width:20px; position:relative;padding:4px 2px;margin:2px 2px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.2); background-color: rgba(1,1,1,0.2); display:inline-block; text-decoration:none; cursor:pointer;';
+	var buttonStyle = 'width:20px; position:relative;padding:4px 2px;margin:2px 2px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.2); background-color: rgba(1,1,1,0.1); display:inline-block; text-decoration:none; cursor:pointer;';
 	
-	var bType = document.createElement( 'div' );
-	bType.style.cssText = buttonStyle+'width:100px';
-	bType.textContent = "Colors";
 
-	var bType2 = document.createElement( 'div' );
-	bType2.style.cssText = buttonStyle+'width:100px';
-	bType2.textContent = "Real";
-
-	bType.style.color = "#FFFF00";
+	var bstyle = 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
+	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
 	var bnext = document.createElement( 'div' );
-	bnext.style.cssText = buttonStyle;
+	bnext.style.cssText =bstyle + borderR+buttonActif+'width:30px;';
 	bnext.textContent = ">";
 
 	var bprev = document.createElement( 'div' );
-	bprev.style.cssText = buttonStyle;
+	bprev.style.cssText =bstyle+ borderL+buttonActif+'width:30px;';
 	bprev.textContent = "<";
 
 	var bcenter = document.createElement( 'div' );
-	bcenter.style.cssText = buttonStyle+'width:80px';
-	bcenter.textContent = "Ambiente";
+	bcenter.style.cssText =bstyle+buttonActif+'width:80px;';
+	bcenter.textContent = "AMBIENT";
 
-	aMini.appendChild( bprev );
-	aMini.appendChild( bcenter );
-	aMini.appendChild( bnext );
+	deco.appendChild( bprev );
+	deco.appendChild( bcenter );
+	deco.appendChild( bnext );
+
+	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); transforme(); this.style.backgroundColor = 'rgba(55,123,167,0.5)'; }, false );
+	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") prev(); else prevLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") next(); else nextLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+
+	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false ); 
+	bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+	bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+
+    bcenter.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor ='rgba(1,1,1,0.1)';  }, false );
+    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+
+	var transforme = function(){
+	    if(!open){
+	    	open = true;
+	    	bcenter.style.width= '196px';
+			deco.style.marginLeft='-128px';
+			deco.style.width= '256px';
+			deco.style.height= '416px';
+			deco.style.transform='translateY(0px)';
+			deco.style.transition='transform 250ms ease-out';
+			deco.style.webkitTransform='translateY(0px)';
+			deco.style.webkitTransition='transform 250ms ease-out';
+			displayPannel();
+		} else {
+			open = false;
+			var ty = deco.clientHeight-30;
+			bcenter.style.width= '80px';
+			deco.style.marginLeft='-70px';
+			deco.style.width= '140px';
+			deco.style.transform='translateY('+ty+'px)';
+			deco.style.transition='transform 250ms ease-out';
+			deco.style.webkitTransform='translateY('+ty+'px)';
+			deco.style.webkitTransition='transform 250ms ease-out';
+			hidePannel();
+		}
+	}
+
+	// type select
+
+	var bType = document.createElement( 'div' );
+	bType.style.cssText = bstyle+buttonActif+'width:128px';
+	bType.textContent = "Colors";
+
+	var bType2 = document.createElement( 'div' );
+	bType2.style.cssText = bstyle+buttonActif+'width:127px; border-left:1px solid rgba(1,1,1,0.3);';
+	bType2.textContent = "Real";
+	bType.style.color = "#FFFF00";
 
 	var typeSelect = document.createElement( 'div' );
-	typeSelect.style.cssText = ' width:256px;height:30px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( typeSelect );
+	typeSelect.style.cssText = ' width:256px; position:relative; display:none;';
+	deco.appendChild( typeSelect );
 
 	typeSelect.appendChild( bType );
 	typeSelect.appendChild( bType2 );
 
+	bType.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    bType.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    bType.addEventListener( 'click', function ( event ) { event.preventDefault(); switchType(1); }, false );
+
+    bType2.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    bType2.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    bType2.addEventListener( 'click', function ( event ) { event.preventDefault(); switchType(2); }, false );
+
+    
+
+	//-------------------------------------------------
+
+	
 	var bigMap = document.createElement( 'div' );
-	bigMap.style.cssText = ' width:256px;height:256px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( bigMap );
-
-	var bigMapGoogle = document.createElement( 'div' );
-	bigMapGoogle.style.cssText = ' width:256px;height:256px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( bigMapGoogle );
-
-	var bigMapInterface = document.createElement( 'div' );
-	bigMapInterface.style.cssText = ' width:256px;height:102px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( bigMapInterface );
+	bigMap.style.cssText = ' width:256px;height:256px; position:relative; display:none; ';
+	deco.appendChild( bigMap );
 
 	var bigGradian = document.createElement( 'div' );
-	bigGradian.style.cssText = ' width:256px;height:102px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( bigGradian );
+	bigGradian.style.cssText = ' width:256px; height:60px; position:relative; display:none; ';
+	deco.appendChild( bigGradian );
 
 	var bigColor = document.createElement( 'div' );
-	bigColor.style.cssText = ' width:256px;height:64px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( bigColor );
+	bigColor.style.cssText = ' width:256px; height:40px; position:relative; display:none; ';
+	deco.appendChild( bigColor );
 
-	var bigOption = document.createElement( 'div' );
-	bigOption.style.cssText = ' width:256px;height:64px; position:relative;margin:2px 0px; display:none; visibility:hidden';
-	aMini.appendChild( bigOption );
+	//-------------------------------------------------
 
-	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); openPannel() }, false );
-	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") prev(); else prevLocation(); }, false );
-	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") next(); else nextLocation(); }, false );
+	
 
-	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-    bcenter.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
-    bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
-    bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
+	var bigMapGoogle = document.createElement( 'div' );
+	bigMapGoogle.style.cssText = ' width:256px; height:256px; position:relative; display:block; visibility:hidden; pointer-events:auto;';
+	deco.appendChild( bigMapGoogle );
+	var bigMapInterface = document.createElement( 'div' );
+	bigMapInterface.style.cssText = ' width:256px; height:102px; position:relative; display:none; ';
+	deco.appendChild( bigMapInterface );
 
-    var openPannel = function () {
-    	if(mini){
-    		mini=false;
-    		aMini.style.border = '1px solid #010101';
-    		aMini.style.backgroundColor = 'rgba(1,1,1,0.2)';
-    		container.style.bottom = '-1px';
+	//-----------------------------------------------
 
-    		typeSelect.style.display = 'block';
-    		typeSelect.style.visibility = 'visible';
+	var isShowfinalPreset = false;
+	var finalPresetButton = document.createElement( 'div' );
+	finalPresetButton.style.cssText = 'font-size:9px;bottom:2px; right:2px; position:absolute; padding:-2px -2px; width:13px; height:13px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.6); background-color: rgba(1,1,1,0.5);cursor:pointer; pointer-events:auto;';
+	finalPresetButton.textContent = "+";
+	
 
-    		if(type==="color"){
-	    		bigMap.style.display = 'block';
-	    		bigMap.style.visibility = 'visible';
+	var finalPreset = document.createElement( 'div' );
+	finalPreset.style.cssText =  textselect + 'font-size:9px; position:absolute; padding:10px 10px; width:230px; height:300px; bottom:40px; left:138px; border-radius: 10px; border:1px solid #010101; background-color: #111; text-align:left; display:none; pointer-events:auto;';
 
-	    		bigGradian.style.display = 'block';
-	    		bigGradian.style.visibility = 'visible';
+	container.appendChild( finalPreset );
+	finalPresetButton.addEventListener( 'mouseover', function ( e ) { e.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
+	finalPresetButton.addEventListener( 'mouseout', function ( e ) { e.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
+	finalPresetButton.addEventListener('click',function(e){
+		e.preventDefault();
+		if(isShowfinalPreset){isShowfinalPreset = false;  finalPreset.style.display = "none";}
+		else {isShowfinalPreset=true; finalPreset.style.display = "block"; traceCurrent();}
+	});
 
-	    		bigOption.style.display = 'block';
-	    		bigOption.style.visibility = 'visible';
+	//-----------------------------------------------
 
-	    		if(currentColor!==-1){
-	    			bigColor.style.display = 'block';
-	    			bigColor.style.visibility = 'visible';
-	    		}
-    	    } else {
-    	    	bigMapGoogle.style.display = 'block';
-	    		bigMapGoogle.style.visibility = 'visible';
+    var displayPannel = function () {
+		typeSelect.style.display = 'block';
 
-	    		bigMapInterface.style.display = 'block';
-	    		bigMapInterface.style.visibility = 'visible';
-    	    }
+		if(type==="color"){
+    		bigMap.style.display = 'block';
+    		bigGradian.style.display = 'block';
+    		bigColor.style.display = 'block';
+    		/*if(currentColor!==-1){
+    			bigColor.style.display = 'block';
+    		}*/
+	    } else {
+	    	//deco.appendChild( bigMapGoogle );
+	    	bigMapGoogle.style.visibility = 'visible';
+	    	//bigMapGoogle.style.display = 'block';
+    		bigMapInterface.style.display = 'block';
+	    }
+	}
 
-    	}else{
-    		mini=true;
-    		aMini.style.border = 'none';
-    		aMini.style.backgroundColor = 'transparent';
-    		container.style.bottom = '8px';
+	var hidePannel = function () {
+		typeSelect.style.display = 'none';
 
-    		typeSelect.style.display = 'none';
-    		typeSelect.style.visibility = 'hidden'
-
-    		if(type==="color"){
-	    		bigMap.style.display = 'none';
-	    		bigMap.style.visibility = 'hidden';
-
-	    		bigGradian.style.display = 'none';
-	    		bigGradian.style.visibility = 'hidden';
-
-	    		bigColor.style.display = 'none';
-	    		bigColor.style.visibility = 'hidden';
-
-	    		bigOption.style.display = 'none';
-	    		bigOption.style.visibility = 'hidden';
-
-    	    } else {
-    	    	bigMapGoogle.style.display = 'none';
-	    		bigMapGoogle.style.visibility = 'hidden';
-
-	    		bigMapInterface.style.display = 'none';
-	    		bigMapInterface.style.visibility = 'hidden';
-    	    }
-    	}
+		if(type==="color"){
+    		bigMap.style.display = 'none';
+    		bigGradian.style.display = 'none';
+    		bigColor.style.display = 'none';
+    		finalPreset.style.display = 'none';
+    		//bigOption.style.display = 'none';
+	    } else {
+	    	//deco.removeChild( bigMapGoogle );
+	    	bigMapGoogle.style.visibility = 'hidden';
+	    	//bigMapGoogle.style.display = 'none';
+    		bigMapInterface.style.display = 'none';
+	    }
 	}
 
 
@@ -157,77 +208,50 @@ var Ambience = function () {
     // TYPE PRESET
     //--------------------------------------
 
-    bType.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-    bType.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
-    bType.addEventListener( 'click', function ( event ) { event.preventDefault(); switchType(1); }, false );
-
-    bType2.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-    bType2.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
-    bType2.addEventListener( 'click', function ( event ) { event.preventDefault(); switchType(2); }, false );
-
     var switchType = function (n){
     	if(n===2){
     		type = "real";
+    		pos = locations[ currentPosition ];
+    		bcenter.textContent = pos.name;
+
     		bType.style.color = "#CCCCCC";
     		bType2.style.color = "#FFFF00";
 
-    		//bType.textContent = "Real Environements";
     		bigMap.style.display = 'none';
-    		bigMap.style.visibility = 'hidden';
-
     		bigGradian.style.display = 'none';
-    		bigGradian.style.visibility = 'hidden';
-
     		bigColor.style.display = 'none';
-    		bigColor.style.visibility = 'hidden';
+    		finalPreset.style.display = 'none';
 
-    		bigOption.style.display = 'none';
-	    	bigOption.style.visibility = 'hidden';
-
-    		bigMapGoogle.style.display = 'block';
-	    	bigMapGoogle.style.visibility = 'visible';
+    		//bigMapGoogle.style.display = 'block';
+    		bigMapGoogle.style.visibility = 'visible';
+    		//deco.appendChild( bigMapGoogle );
 
 	    	bigMapInterface.style.display = 'block';
-	    	bigMapInterface.style.visibility = 'visible';
 
 	    	if(!isMapApiLoaded)loadGoogleMapsAPI();
+
 	    	if(mapCanvas){
-	    		//envMaterial.map = geoMap;
-	    		//updateCamera();
 	    		texture = new THREE.Texture( mapCanvas );
-	    		//texture.needsUpdate = true;
 	    		applyMaterial();
 	    	}
-	    	
-
     	} else {
     		type = "color";
+    		bcenter.textContent = ShaderMapList[currentShader].name;
+
     		bType.style.color = "#FFFF00";
-    		bType2.style.color = "#CCCCCC"
-    		//bType.textContent = "Colors Environements";
+    		bType2.style.color = "#CCCCCC";
 
-    		bigMapGoogle.style.display = 'none';
-	    	bigMapGoogle.style.visibility = 'hidden';
-
+    		//bigMapGoogle.style.display = 'none';
+    		//deco.removeChild( bigMapGoogle );
+    		bigMapGoogle.style.visibility = 'hidden';
 	    	bigMapInterface.style.display = 'none';
-	    	bigMapInterface.style.visibility = 'hidden';
 
     		bigMap.style.display = 'block';
-	    	bigMap.style.visibility = 'visible';
-
 	    	bigGradian.style.display = 'block';
-	    	bigGradian.style.visibility = 'visible';
+	    	bigColor.style.display = 'block';
 
-	    	bigOption.style.display = 'block';
-	    	bigOption.style.visibility = 'visible';
-
-	    	//
-	    	//envMaterial.map = texture;
-	    	//updateCamera();
 	    	texture = new THREE.Texture(canvasSphere[0]);
-	    	//texture.needsUpdate = true;
 	    	applyMaterial();
-
     	}
     }
 
@@ -278,7 +302,7 @@ var Ambience = function () {
 	var scaleButtons = [];
 	var position = { x: 0, y: 0 };
 	var pos;
-	var GEOloader = null;
+	var GEOloader = null;// = new GSVPANO.PanoLoader();
 	var marker = null;
 	var map = null;
 	var mapCanvas;
@@ -299,23 +323,25 @@ var Ambience = function () {
 
 	// search 
 	var search = document.createElement( 'div' );
-	search.style.cssText = 'display:block; top:3px; width:256px;height:30px; position:relative; margin:2px 2px;';
+	search.style.cssText = 'position:absolute;width:192px; height:19px; padding:5px 0px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.2);';
 	bigMapInterface.appendChild( search );
 
 	var searchTxt = document.createElement( 'input' );
 	searchTxt.type = 'text';
-	searchTxt.style.cssText = 'color:#EEEEEE; left:2px; width:180px; padding:4px 2px;margin:2px 2px; height:14px;position:absolute; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.5); background-color: rgba(1,1,1,0.2);font-size:12px;font-family:Monospace;text-align:center;';
-	search.appendChild( searchTxt );
+	//searchTxt.style.cssText = 'color:#EEEEEE; left:2px; width:180px; padding:4px 2px;margin:2px 2px; height:14px;position:absolute; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.5); background-color: rgba(1,1,1,0.2);font-size:12px;font-family:Monospace;text-align:center;';
+	searchTxt.style.cssText ='width:184px;position:relative; color:#CCCCCC; background:none; text-shadow: 1px 1px 3px #000;  font-size:14px; height:19px; padding:5px 4px; display:inline-block; pointer-events:auto; border:none; ';
+	//search.appendChild( searchTxt );
+	bigMapInterface.appendChild( searchTxt );
 	searchTxt.addEventListener( 'keydown', function ( e ) { if (e.keyCode == 13)findAddress(); }, false );
 
 
 	var searchButton = document.createElement( 'div' );
-	searchButton.style.cssText = buttonStyle+'width:50px; right:2px;position:absolute;';
-	searchButton.textContent = "SEARCH";
-	search.appendChild( searchButton );
+	searchButton.style.cssText = bstyle+buttonActif+'width:63px; border-left:1px solid rgba(1,1,1,0.3);';//buttonStyle+'width:50px; right:2px;position:absolute;';
+	searchButton.textContent = "Search";
+	bigMapInterface.appendChild( searchButton );
 
-	searchButton.addEventListener( 'mouseover', function ( e ) { e.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-    searchButton.addEventListener( 'mouseout', function ( e ) { e.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
+	searchButton.addEventListener( 'mouseover', function ( e ) { e.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    searchButton.addEventListener( 'mouseout', function ( e ) { e.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
     searchButton.addEventListener( 'click', function ( e ) { e.preventDefault(); findAddress(); }, false );
 
     // scale button
@@ -323,23 +349,24 @@ var Ambience = function () {
 	var scalesName = ['low', 'medium', 'high', 'max'];
 	for(var i=0; i!==4; i++){
 		scales[i] = document.createElement( 'div' );
-		scales[i].style.cssText = buttonStyle+'width:50px';
+		if(i===0)scales[i].style.cssText = bstyle+buttonActif+'width:64px;';
+		else scales[i].style.cssText = bstyle+buttonActif+'width:63px; border-left:1px solid rgba(1,1,1,0.3);';//buttonStyle+'width:50px';
 		scales[i].textContent = scalesName[i];
 		scales[i].name = i+1;
 		bigMapInterface.appendChild( scales[i] );
-		scales[i].addEventListener( 'mouseover', function ( e ) { e.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-		scales[i].addEventListener( 'mouseout', function ( e ) { e.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
+		scales[i].addEventListener( 'mouseover', function ( e ) { e.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+		scales[i].addEventListener( 'mouseout', function ( e ) { e.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 		scales[i].addEventListener( 'click', function ( e ) { e.preventDefault(); setZoom( this.name ); }, false );
 	}
 
 
 	// loading bar
 	var preloader = document.createElement( 'div' );
-	preloader.style.cssText = 'display:block; top:5px; width:250px;height:10px; position:relative; margin:2px 2px; -webkit-border-radius: 20px; border-radius:5px; border:1px solid rgba(1,1,1,0.5); background-color: rgba(1,1,1,0.2); pointer-events: none;';
+	preloader.style.cssText = 'display:block; top:0px; width:256px;height:6px; position:relative; -webkit-border-radius: 20px; border-radius:5px; border-bottom:1px solid rgba(1,1,1,0.3); background-color: rgba(1,1,1,0.1); pointer-events: none;';
 	bigMapInterface.appendChild( preloader );
 
 	var bar = document.createElement( 'div' );
-	bar.style.cssText = ' width:250px;height:10px; position:absolute; -webkit-border-radius: 20px; border-radius:5px; background-color: rgba(1,1,1,0.6); pointer-events: none;';
+	bar.style.cssText = ' width:256px;height:5px; position:absolute; background-color: rgba(55,123,167,1); pointer-events: none;';
 	preloader.appendChild( bar );
 
 	// message
@@ -363,6 +390,8 @@ var Ambience = function () {
 		map.panTo(myLatlng);
 	}
 
+
+
     window.initializeGoogleMapsAPI = function () {
 		isMapApiLoaded = true;
 		GEOloader = new GSVPANO.PanoLoader();
@@ -377,7 +406,7 @@ var Ambience = function () {
 
 		setZoom( 2 );
 		addMarker( myLatlng );
-		
+	//}
 		GEOloader.onProgress = function( p ) {
 			setProgress( p );
 		};
@@ -393,6 +422,7 @@ var Ambience = function () {
 		
 		GEOloader.onPanoramaLoad = function(e) {
 			activeLocation = this.location;
+			bcenter.textContent = pos.name;
 
 			//textureNeedUpdate = true;
 
@@ -447,7 +477,7 @@ var Ambience = function () {
 		//addMarker( myLatlng );
 	}
 
-	var changeAlpha = function (){
+	//var changeAlpha = function (){
 		/*var imageData = image.data, length = imageData.length;
 		var perc = imageConfig.alpha;
 		for(var i=3; i < length; i+=4){ imageData[i] =  255/(100/perc); }
@@ -458,7 +488,7 @@ var Ambience = function () {
       	textureHDR.magFilter = THREE.NearestFilter;
       	materialHDR.uniforms.tDiffuse.value = textureHDR;
 	    materialHDR.uniforms.tDiffuse.value.needsUpdate = true; */
-	}
+	//}
 
 	/*function lightup(imageobject, opacity){
 		if (navigator.appName.indexOf("Netscape")!=-1 && parseInt(navigator.appVersion)>=5)
@@ -538,9 +568,7 @@ var Ambience = function () {
 	var drag2 = false;
 	var drag3 = false;
 
-	var finalPreset;
-	var finalPresetButton;
-	var isShowfinalPreset = false;
+	
 	var currentColor = -1;
 
 
@@ -583,30 +611,13 @@ var Ambience = function () {
 	}
 
 	var initInterface = function (){
-		finalPresetButton = document.createElement( 'div' );
-		finalPresetButton.style.cssText = buttonStyle+'width:200px';
-		finalPresetButton.textContent = "Display setting";
-		finalPreset = document.createElement( 'div' );
-		finalPreset.style.cssText =  textselect + 'font-size:9px; position:absolute; padding:10px 10px; width:230px; height:300px; top:-350px; left: 260px; border-radius: 10px; border:1px solid #010101; background-color: #111; text-align:left; display:none; visibility:hidden';
-
-		finalPresetButton.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.6)'; this.style.backgroundColor = 'rgba(1,1,1,0.6)';  }, false );
-		finalPresetButton.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.border = '1px solid rgba(1,1,1,0.2)'; this.style.backgroundColor = 'rgba(1,1,1,0.2)';  }, false );
-		
-		bigOption.appendChild(finalPresetButton);
-		bigOption.appendChild(finalPreset);
-
-		finalPresetButton.addEventListener('click',function(e){
-			if(isShowfinalPreset){isShowfinalPreset = false;  finalPreset.style.display = "none"; finalPreset.style.visibility = "hidden";}
-			else {isShowfinalPreset=true; finalPreset.style.display = "block"; finalPreset.style.visibility = "visible"; finalPreset.style.height = "360px"; traceCurrent();}
-		});
-
 		mh[0]= document.createElement( 'div' );//document.getElementById('mh0');
 		mh[1]= document.createElement( 'div' );//document.getElementById('mh1');
 		mh[2]= document.createElement( 'div' );//document.getElementById('mh2');
 		mh[3]= document.createElement( 'div' );//document.getElementById('mh3');
 
 		mh[0].style.cssText = mh[1].style.cssText ='pointer-events:none; position:absolute; margin-left:-64px; margin-top:-64px;';
-		mh[2].style.cssText = mh[3].style.cssText ='position:absolute; margin-left:-10px; margin-top:-10px; cursor:move;';
+		mh[2].style.cssText = mh[3].style.cssText ='position:absolute; margin-left:-10px; margin-top:-10px; cursor:move; pointer-events:auto;';
 
 		initSphereGradian();
 		drawSphereGradian();
@@ -647,7 +658,7 @@ var Ambience = function () {
 		grd[0]=document.createElement( 'div' );
 		grd[1]=document.createElement( 'div' );
 		grd[2]=document.createElement( 'div' );
-		grd[0].style.cssText = grd[1].style.cssText = grd[2].style.cssText ='position:relative; display:block; height:30px; padding:0px 0px;';
+		grd[0].style.cssText = grd[1].style.cssText = grd[2].style.cssText ='position:relative; display:block; height:20px;';
 
 		bigMap.appendChild(canvasSphere[0]);
 		bigMap.appendChild(mh[0]);
@@ -669,13 +680,13 @@ var Ambience = function () {
 		for(var i=0; i!==12; i++){
 			dragcc[i] = false;
 			cac[i]= document.createElement( 'div' ); //document.getElementById('cc'+i);
-			cac[i].style.cssText = 'width:20px; height:28px; position:absolute; margin-top:-34px; margin-left:-10px; cursor:w-resize; background-color: rgba(1,1,1,0);';
+			cac[i].style.cssText = 'width:20px; height:18px; position:absolute; margin-top:-33px; margin-left:-10px; cursor:w-resize; background-color: rgba(1,1,1,0); pointer-events:auto;';
 
 			ccIn= document.createElement( 'div' ); //document.getElementById('cc'+i);
-			ccIn.style.cssText = 'width:2px; height:28px; position:absolute; margin-left:9px; background-color: rgba(255,255,0,1);pointer-events:none;';
+			ccIn.style.cssText = 'width:2px; height:18px; position:absolute; margin-left:9px; background-color: rgba(255,255,0,1);pointer-events:none;';
 			
 			ccIn2= document.createElement( 'div' ); //document.getElementById('cc'+i);
-			ccIn2.style.cssText = 'width:4px; height:28px; position:absolute; margin-left:8px; background-color: rgba(0,0,0,0.3);pointer-events:none;';
+			ccIn2.style.cssText = 'width:4px; height:18px; position:absolute; margin-left:8px; background-color: rgba(0,0,0,0.3);pointer-events:none;';
 			cac[i].appendChild(ccIn2);
 			cac[i].appendChild(ccIn);
 
@@ -913,18 +924,18 @@ var Ambience = function () {
 		ctxs[0].fillRect(0, 0, 256, 256);
 
 		//______________linear gradian
-		ctxs[3].clearRect(0, 0, 256, 30);
-		ctxs[4].clearRect(0, 0, 256, 30);
-		ctxs[5].clearRect(0, 0, 256, 30);
+		ctxs[3].clearRect(0, 0, 256, 20);
+		ctxs[4].clearRect(0, 0, 256, 20);
+		ctxs[5].clearRect(0, 0, 256, 20);
 
 		ctxs[3].fillStyle = grads[5];
-		ctxs[3].fillRect(0, 0, 256, 30);
+		ctxs[3].fillRect(0, 0, 256, 20);
 
 		ctxs[4].fillStyle = grads[3];
-		ctxs[4].fillRect(0, 0, 256, 30);
+		ctxs[4].fillRect(0, 0, 256, 20);
 
 		ctxs[5].fillStyle = grads[4];
-		ctxs[5].fillRect(0, 0, 256, 30);
+		ctxs[5].fillRect(0, 0, 256, 20);
 
 		//_____________stroke line
 		/*ctxs[1].beginPath();
@@ -976,40 +987,39 @@ var Ambience = function () {
 	var ddDiv = [];
 	var ddSel = [];
 	var ddOutColor;
-	var ddOutCanvas;
+	var ccFactor;
+	var cclong;
 
 	var initColorSelector = function (){
-		var ccw = 64;
+		var ccw = 40;
 		var cch = (ccw/4);
+		cclong = 256-ccw;
+		ccFactor = (255/cclong).toFixed(2);
 		var ctx;
 		var grd;
-		ddOutCanvas = document.createElement("canvas");
-		ddOutCanvas.width = ddOutCanvas.height = ccw;
 
 		ddOutColor =  document.createElement( 'div' );//document.getElementById('finalColor');
-		ddOutColor.style.cssText ='position:absolute; pointer-events:none; width:64px; height:64px;';
-		bigColor.appendChild( ddOutColor );
+		ddOutColor.style.cssText ='position:absolute; margin:0; padding:0; top:0px; right:0; pointer-events:none; width:'+ccw+'px; height:'+ccw+'px;';
+		ddOutColor.style.background = 'rgba(0,0,0,0)';
 
-		ddOutColor.appendChild(ddOutCanvas);
-		ddOutColor.style.left = 256-ccw+'px';
-		ctx = ddOutCanvas.getContext("2d");
-		ctx.fillStyle = 'rgba(0,0,0,0)';
-		ctx.fillRect(0, 0, ccw, ccw);
+		bigColor.appendChild( ddOutColor );
+		bigColor.appendChild( finalPresetButton );
 		
 		for(var i=0;i!==4; i++){
 			ddDiv[i] = document.createElement( 'div' );
 			ddSel[i] = document.createElement( 'div' );
-			ddDiv[i].style.cssText ='position:absolute; cursor:w-resize;';
-			ddSel[i].style.cssText ='position:absolute; pointer-events:none;margin-left:0.5px;width:1px;height:'+cch+'px; background-color:#FFFF00';
+			ddDiv[i].style.cssText ='position:absolute; margin-top:-2px; padding:0; cursor:w-resize; pointer-events:auto;  height:'+cch+'px;';
+			ddSel[i].style.cssText ='position:absolute; pointer-events:none; margin-left:0.5px; width:1px; height:'+cch+'px; background-color:#FFFF00';
 			bigColor.appendChild( ddDiv[i] );
-			ddDiv[i].appendChild( ddSel[i] );
+			bigColor.appendChild( ddSel[i] );
 			ddDiv[i].style.top = i*cch+'px';
+			ddSel[i].style.top = i*cch+'px';
 
 			ddcolors[i] = document.createElement("canvas");
-			ddcolors[i].width = 187.5;
+			ddcolors[i].width = cclong;
 			ddcolors[i].height = cch;
 			ctx = ddcolors[i].getContext("2d");
-			grd = ctx.createLinearGradient(0,0,187.5,0);
+			grd = ctx.createLinearGradient(0,0,cclong,0);
 			grd.addColorStop(0,'rgba(0,0,0,0)');
 			if(i==0)grd.addColorStop(1,'rgba(255,0,0,1)');
 			if(i==1)grd.addColorStop(1,'rgba(0,255,0,1)');
@@ -1017,7 +1027,7 @@ var Ambience = function () {
 			if(i==3)grd.addColorStop(1,'rgba(0,0,0,1)');
 
 			ctx.fillStyle = grd;
-			ctx.fillRect(0, 0, 187.5, cch);
+			ctx.fillRect(0, 0, cclong, cch);
 
 			ddDiv[i].appendChild(ddcolors[i]);
 			ddDiv[i].name = i;
@@ -1033,11 +1043,7 @@ var Ambience = function () {
 	var drawColorSelector = function (){
 		var c= GRD.colors;
 		var n= currentColor;
-
-		var ctx = ddOutCanvas.getContext("2d");
-		ctx.clearRect(0, 0, 64, 64);
-		ctx.fillStyle = 'rgba('+c['r'+n]+','+c['v'+n]+','+c['b'+n]+','+c['a'+n]+')';
-		ctx.fillRect(0, 0, 64, 64);
+		ddOutColor.style.background = 'rgba('+c['r'+n]+','+c['v'+n]+','+c['b'+n]+','+c['a'+n]+')';
 		drawSphereGradian();
 	}
 
@@ -1045,17 +1051,13 @@ var Ambience = function () {
 		displayColorChoose();
 		var c= GRD.colors;
 		var n= currentColor;
-
 		setActiveColor();
-		var ctx = ddOutCanvas.getContext("2d");
-		ctx.clearRect(0, 0, 64, 64);
-		ctx.fillStyle = 'rgba('+c['r'+n]+','+c['v'+n]+','+c['b'+n]+','+c['a'+n]+')';
-		ctx.fillRect(0, 0, 64, 64);
+		ddOutColor.style.background = 'rgba('+c['r'+n]+','+c['v'+n]+','+c['b'+n]+','+c['a'+n]+')';
 		for(var i=0;i!==4; i++){
-			if(i===0) ddSel[i].style.left = (c['r'+n]/1.36).toFixed(0)+'px';
-			if(i===1) ddSel[i].style.left = (c['v'+n]/1.36).toFixed(0)+'px';
-			if(i===2) ddSel[i].style.left = (c['b'+n]/1.36).toFixed(0)+'px';
-			if(i===3) ddSel[i].style.left = (c['a'+n]*187.5).toFixed(0)+'px';
+			if(i===0) ddSel[i].style.left = (c['r'+n]/ccFactor).toFixed(0)+'px';
+			if(i===1) ddSel[i].style.left = (c['v'+n]/ccFactor).toFixed(0)+'px';
+			if(i===2) ddSel[i].style.left = (c['b'+n]/ccFactor).toFixed(0)+'px';
+			if(i===3) ddSel[i].style.left = (c['a'+n]*cclong).toFixed(0)+'px';
 		}
 	}
 
@@ -1064,10 +1066,10 @@ var Ambience = function () {
 		if( ddDrag[n]){
 			ddSel[n].style.left = (px-rect.left)+'px';
 			if(currentColor!==-1){
-				if(n===0) GRD.colors['r'+currentColor] = ((px-rect.left)*1.36).toFixed(0);
-				if(n===1) GRD.colors['v'+currentColor] = ((px-rect.left)*1.36).toFixed(0);
-				if(n===2) GRD.colors['b'+currentColor] = ((px-rect.left)*1.36).toFixed(0);
-				if(n===3) GRD.colors['a'+currentColor] = ((px-rect.left)/187.5).toFixed(2);
+				if(n===0) GRD.colors['r'+currentColor] = ((px-rect.left)*ccFactor).toFixed(0);
+				if(n===1) GRD.colors['v'+currentColor] = ((px-rect.left)*ccFactor).toFixed(0);
+				if(n===2) GRD.colors['b'+currentColor] = ((px-rect.left)*ccFactor).toFixed(0);
+				if(n===3) GRD.colors['a'+currentColor] = ((px-rect.left)/cclong).toFixed(2);
 				drawColorSelector();
 			}
 		}
