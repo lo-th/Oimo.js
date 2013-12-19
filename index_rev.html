@@ -38,6 +38,7 @@
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 		
 		<script type="text/javascript">
+		    var version='REV';
 		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Greek temple", "Ragdoll"];
         	var Ambience;
         	var threeEngine;
@@ -149,7 +150,10 @@
 	            }
 
 	            // clear three object
-				if(phase === "CLEAR") threeEngine.clearAll();
+				if(phase === "CLEAR"){
+				    threeEngine.clearAll();
+				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null;} 
+				}
 				// get ragdoll info
 				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);
     	    }
@@ -163,6 +167,23 @@
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
 	        function changeGravity(G){ OimoWorker.postMessage({tell:"GRAVITY", G:G}); }
+
+	        //-----------------------------------------------------
+            // TRANSE SCRIPT
+            //-----------------------------------------------------
+
+            var basicOption = null;
+
+            var ADD = function(obj){
+            	threeEngine.ADD(obj);
+            }
+
+            var CLEAR = function(obj){
+            	basicOption = obj || {ground:false};
+            	basicOption.tell = "BASIC";
+            	OimoWorker.postMessage({tell:"CLEAR"});
+            }
+
 
 	        //-----------------------------------------------------
             //  OIMO INFO

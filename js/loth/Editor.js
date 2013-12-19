@@ -3,7 +3,7 @@
  */
 'use strict';
 var Editor = function (Pos) {
-	var left = Pos || 150;
+	var left = Pos || 500;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
@@ -11,6 +11,7 @@ var Editor = function (Pos) {
 	var type = "color";
 	var open = false;
 	var startHeight = 416;
+	var maxWidth = 500;
 
     var container = document.createElement( 'div' );
 	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:SourceCode; text-align:center; pointer-events:none;';
@@ -61,9 +62,9 @@ var Editor = function (Pos) {
 	var transforme = function(){
 	    if(!open){
 	    	open = true;
-	    	bcenter.style.width= '196px';
-			deco.style.marginLeft='-128px';
-			deco.style.width= '256px';
+	    	bcenter.style.width= maxWidth-60+'px';
+			deco.style.marginLeft=-maxWidth*0.5+'px';
+			deco.style.width= maxWidth+'px';
 			deco.style.height= '416px';
 			deco.style.transform='translateY(0px)';
 			deco.style.transition='transform 250ms ease-out';
@@ -86,14 +87,85 @@ var Editor = function (Pos) {
 		}
 	}
 
-	var MainEditor = document.createElement( 'input' );
-	MainEditor.type = 'text';
-	MainEditor.async = true;
-	MainEditor.style.cssText ='color:#CCCCCC; padding:4px 4px; width:256px; height:256px; display:none; background:rgba(1,1,1,0.1); pointer-events:auto; text-align:left; border:none;';
-	deco.appendChild( MainEditor );
+	var editboxHTML = 
+'<html class="expand close">' +
+'<head>' +
+'<style type="text/css">' +
+'.expand { width: 100%; height: 100%; }' +
+'.close { border: none; margin: 0px; padding: 0px; }' +
+'html,body { overflow: hidden; }' +
+'@font-face { font-family: "SourceCode"; src: url("images/SourceCodePro.woff") format("woff");}' +
+'<\/style>' +
+'<\/head>' +
+'<body class="expand close" onload="document.f.ta.focus(); document.f.ta.select();">' +
+'<form class="expand close" name="f">' +
+'<textarea class="expand close" style="background:#000; font-family:SourceCode; letter-spacing:-1px; color:#cccccc;" name="ta" wrap="hard" spellcheck="false" >' +
+'<\/textarea>' +
+'<\/form>' +
+'<\/body>' +
+'<\/html>';
 
+	//var MainEditor = document.createElement( 'input' );
+	/*var fs = document.createElement( 'frameset' );
 
+	var MainEditor = document.createElement( 'frame' );
+	MainEditor.name = 'MainEditor';
+	//MainEditor.src = 'javascript:'';';
+	//a
 
+	var refEditor = document.createElement( 'frame' );
+	refEditor.style.cssText = 'display:none;'
+	refEditor.name = 'refEditor';
+	refEditor.src = 'demos/demo01.html';
+	// init();
+	//MainEditor.type = 'text';
+	//MainEditor.async = true;
+	MainEditor.style.cssText ='width:'+maxWidth+'px; height:256px; display:none; pointer-events:auto; text-align:left; border:none; ';
+*/
+	
+	//deco.appendChild( MainEditor );
+/*
+	deco.appendChild( fs );
+	fs.appendChild( MainEditor );
+fs.appendChild( refEditor );
+	//window.MainEditor.document.write(editboxHTML);
+
+refEditor.onload = function ()
+{
+	var doc =window.MainEditor.document;
+    var defaultStuff =refEditor.document.documentElement.innerHTML;//.getElementsByTagName('pre')[0].innerHTML//outerHTML  //read(); 
+    refEditor.style.cssText = 'display:none;'
+     //document.documentElement.innerHTML
+    // document.documentElement.outerHTML
+  doc.write(editboxHTML);
+  doc.close();
+ doc.f.ta.value = defaultStuff;
+ 
+	    //document.body.appendChild(script);
+ // window.MainEditor.document.f.ta.style.fontFamily = 'SourceCode';
+  doc.f.ta.style.fontSize = '10px';
+  //update();
+}*/
+/*var script = document.createElement("script");
+	    script.type = "text/javascript";
+	    script.src = "demos/demo01.js";
+	    doc.f.ta.value = script.documentElement.innerHTML*/
+/*function update()
+{
+  var textarea = window.MainEditor.document.f.ta;
+  var d = dynamicframe.document; 
+
+  if (old != textarea.value) {
+    old = textarea.value;
+    d.open();
+    d.write(old);
+    if (old.replace(/[\r\n]/g,'') == defaultStuff.replace(/[\r\n]/g,''))
+     // d.write(extraStuff);
+    d.close();
+  }
+
+  window.setTimeout(update, 150);
+}*/
 
 
 

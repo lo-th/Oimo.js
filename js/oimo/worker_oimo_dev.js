@@ -83,6 +83,8 @@ self.onmessage = function (e) {
 
     if(phase === "ADD") ADD(e.data);
     if(phase === "REMOVE") REMOVE(e.data);
+    if(phase === "CLEAR") clearWorld();
+    if(phase === "BASIC") basicStart(e.data);
 
     if(phase === "UPDATE"){ if(isTimout) update(); else timer = setInterval(update, timerStep);  }
     if(phase === "KEY") userKey(e.data.key);
@@ -271,6 +273,7 @@ var createWorld = function(){
         timerStep = dt * 1000;
         world.gravity = new Vec3(0, Gravity, 0);
     }
+    resetArray();
     lookIfNeedInfo();
 }
    
@@ -281,8 +284,18 @@ var clearWorld = function(){
     // Clear control object
     if(car !== null ) car = null;
     if(ball !== null ) ball = null;
+
+    resetArray();
     // Clear three object
     self.postMessage({tell:"CLEAR"});
+}
+
+var basicStart = function(data){
+    // ground
+    if(data.ground) addRigid({type:"box", size:[40,1,40], pos:[0,-0.5,0]});
+
+    self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
 }
 
 //--------------------------------------------------
@@ -311,7 +324,7 @@ var lookIfNeedInfo = function(){
     }
 }
 
-var startDemo = function(){
+var resetArray = function (){
     bodys = [];
     types = [];
     sizes = [];
@@ -322,6 +335,14 @@ var startDemo = function(){
     staticMatrix = [];
 
     joints = [];
+
+    // sending array
+    matrix = [];
+    sleeps = [];
+    jointPos = [];;
+}
+
+var startDemo = function(){
 
     if(currentDemo==0)demo0();
     else if(currentDemo==1)demo1();
@@ -334,10 +355,7 @@ var startDemo = function(){
     else if(currentDemo==8)demo8();
     else if(currentDemo==9)demo9();
 
-    // sending array
-    matrix = [];
-    sleeps = [];
-    jointPos = [];
+    // start engine
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });

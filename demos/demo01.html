@@ -1,0 +1,36 @@
+<html class="expand close">
+<head>
+        <title>Oimo.js DEV</title>
+        <meta charset="utf-8">
+</head>
+<body>
+<script type="text/javascript" >
+// wall
+ADD({ type:"box", size:[4.5,10,0.5], pos:[0,5,-2.5] });
+ADD({ type:"box", size:[4.5,10,0.5], pos:[0,5, 2.5] });
+ADD({ type:"box", size:[0.5,10,5.5], pos:[-2.5,5,0] });
+ADD({ type:"box", size:[0.5,10,5.5], pos:[ 2.5,5,0] });
+
+// add dynamique object
+var body, px, pz, t, n;
+var sx, sy, sz;
+
+for (var i=0; i!==100; ++i ){
+    if(version=="DEV") n=2;
+    else n=3;
+    t = Math.floor(Math.random()*n)+1;
+    px = -1+Math.random()*2;
+    pz = -1+Math.random()*2;
+
+    sx = 0.2+Math.random()*1;
+    sy = 0.2+Math.random()*1;
+    sz = 0.2+Math.random()*1;
+    if(t==1) ADD({ type:"sphere", size:[sx*0.5], pos:[px,30+i,pz], move:true });
+    else if(t==2) ADD({ type:"box", size:[sx,sy,sz], pos:[px,30+i,pz], move:true });
+    else if(t==3) ADD({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,30+i,pz], move:true });
+}
+
+
+</script>
+</body>
+</html>

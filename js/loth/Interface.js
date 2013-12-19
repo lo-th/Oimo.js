@@ -54,11 +54,11 @@ var Interface = function (name) {
 
 	var bnext = document.createElement( 'div' );
 	bnext.style.cssText = buttonStyle;
-	bnext.innerHTML = ">";
+	bnext.innerHTML = "&raquo;";
 
 	var bprev = document.createElement( 'div' );
 	bprev.style.cssText = buttonStyle;
-	bprev.innerHTML = "<";
+	bprev.innerHTML = "&laquo;";
 
 	var bcenter = document.createElement( 'div' );
 	bcenter.id = "demoName";
@@ -87,7 +87,7 @@ var Interface = function (name) {
 
 	var bbMenu = [];
 
-	for(var i=0;i!==3;i++){
+	for(var i=0;i!==4;i++){
 		bbMenu[i] = document.createElement( 'div' );
 		bbMenu[i].style.cssText = buttonStyle + " height:40px; margin-bottom:6px;";
 		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
@@ -96,9 +96,10 @@ var Interface = function (name) {
 		bMenu.appendChild( bbMenu[i] );
 	}
 
-	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.ADD({ move:true, size:[50,50,50], pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.ADD({ type:'sphere', size:[25,0,0], move:true, pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.ADD({ type:'dice', move:true, size:[60,60,60], pos:[0,800,0], rot:[45,45,45] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); ADD({ move:true, size:[50,50,50], pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); ADD({ type:'sphere', size:[25,0,0], move:true, pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); CLEAR({ground:true}); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+bbMenu[3].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); IMP(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	//-----------------------------------------------------
     //  GRAVITY
@@ -181,9 +182,6 @@ var Interface = function (name) {
 	}
 
 	moveDef(G);
-
-
-
 
     return {
 		domElement: container

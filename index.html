@@ -38,6 +38,7 @@
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 		
 		<script type="text/javascript">
+		    var version='DEV';
 		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Car simulator", "Ragdoll", "Van", "Bridge", "Droid"];
 		    var Ambience;
         	var threeEngine;
@@ -57,7 +58,7 @@
 		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
 		    	threeEngine = new ThreeEngine();
-		    	TinyRadio = new TinyRadio();
+		    	//TinyRadio = new TinyRadio();
 		    	Editor = new Editor();
 		    	
 		    	document.body.appendChild( threeEngine.domElement );
@@ -154,7 +155,10 @@
 	            }
 
 	            // clear three object
-				if(phase === "CLEAR") threeEngine.clearAll();
+				if(phase === "CLEAR"){
+				    threeEngine.clearAll();
+				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null; if(script) initDemo(); } 
+				}
 				// get ragdoll info
 				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);
     	    }
@@ -168,6 +172,41 @@
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
 	        function changeGravity(G){ OimoWorker.postMessage({tell:"GRAVITY", G:G}); }
+
+	        //-----------------------------------------------------
+            // TRANSE SCRIPT
+            //-----------------------------------------------------
+
+            var basicOption = null;
+            var script = null;
+
+            var ADD = function(obj){
+            	threeEngine.ADD(obj);
+            }
+
+            var CLEAR = function(obj){
+            	basicOption = obj || {ground:false};
+            	basicOption.tell = "BASIC";
+            	OimoWorker.postMessage({tell:"CLEAR"});
+            }
+
+            var IMP = function(){
+            	var head = document.getElementsByTagName('head')[0];
+            	script = document.createElement("script");
+            	script.type = "text/javascript";
+            	script.src = "demos/demo01.js";
+
+            	script.onreadystatechange = callback;
+            	script.onload = callback;
+
+            	//document.body.appendChild(sc);
+            	head.appendChild(script);
+
+            }
+
+            var callback = function(){
+
+            }
 
 	        //-----------------------------------------------------
             //  OIMO INFO
