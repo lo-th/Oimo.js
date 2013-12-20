@@ -36,7 +36,7 @@
 		<script type="text/javascript" src='js/materialShader/HdrShader.js'></script>
 
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
-		
+		<script type="text/javascript" id="topScript" name="topScript"></script>
 		<script type="text/javascript">
 		    var version='DEV';
 		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Car simulator", "Ragdoll", "Van", "Bridge", "Droid"];
@@ -157,7 +157,7 @@
 	            // clear three object
 				if(phase === "CLEAR"){
 				    threeEngine.clearAll();
-				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null; if(script) initDemo(); } 
+				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null; if(Editor.getScript()) initDemo(); } 
 				}
 				// get ragdoll info
 				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);
@@ -178,7 +178,7 @@
             //-----------------------------------------------------
 
             var basicOption = null;
-            var script = null;
+            //var script = null;
 
             var ADD = function(obj){
             	threeEngine.ADD(obj);
@@ -191,7 +191,8 @@
             }
 
             var IMP = function(){
-            	var head = document.getElementsByTagName('head')[0];
+            	Editor.importScript();
+            	/*var head = document.getElementsByTagName('head')[0];
             	script = document.createElement("script");
             	script.type = "text/javascript";
             	script.src = "demos/demo01.js";
@@ -199,14 +200,12 @@
             	script.onreadystatechange = callback;
             	script.onload = callback;
 
-            	//document.body.appendChild(sc);
-            	head.appendChild(script);
-
+            	head.appendChild(script);*/
             }
 
-            var callback = function(){
+           /*var callback = function(){
 
-            }
+            }*/
 
 	        //-----------------------------------------------------
             //  OIMO INFO

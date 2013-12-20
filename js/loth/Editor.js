@@ -3,7 +3,7 @@
  */
 'use strict';
 var Editor = function (Pos) {
-	var left = Pos || 500;
+	var left = Pos || 550;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
@@ -11,36 +11,40 @@ var Editor = function (Pos) {
 	var type = "color";
 	var open = false;
 	var startHeight = 416;
-	var maxWidth = 500;
+	var maxWidth = 600;
 
     var container = document.createElement( 'div' );
 	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:SourceCode; text-align:center; pointer-events:none;';
-	container.id = 'Demo';
+	container.id = 'Editor';
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
 	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
     var effect = 'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
 
 	var deco = document.createElement( 'div' );
-	deco.style.cssText = borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
+	deco.id = 'Editor-deco';
+	deco.style.cssText = unselect+borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;pointer-events:none;';
 	deco.style.transform='translateY('+(startHeight-30)+'px)';
 	deco.style.webkitTransform='translateY('+(startHeight-30)+'px)';
 	container.appendChild( deco );
 
 	//----------------------------------------------
 
-	var bstyle = 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
+	var bstyle =unselect+ 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
 	var bnext = document.createElement( 'div' );
+	bnext.id = 'Editor-bnext';
 	bnext.style.cssText =bstyle + borderR+buttonActif+'width:30px;';
 	bnext.textContent = ">";
 
 	var bprev = document.createElement( 'div' );
-	bprev.style.cssText =bstyle+ borderL+buttonActif+'width:30px;';
+	bprev.id = 'Editor-bprev';
+	bprev.style.cssText =bstyle+borderL+buttonActif+'width:30px;';
 	bprev.textContent = "<";
 
 	var bcenter = document.createElement( 'div' );
+	bcenter.id = 'Editor-bcenter';
 	bcenter.style.cssText =bstyle+buttonActif+'width:80px;';
 	bcenter.textContent = "EDITOR";
 
@@ -49,8 +53,8 @@ var Editor = function (Pos) {
 	deco.appendChild( bnext );
 
 	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); transforme(); this.style.backgroundColor = 'rgba(55,123,167,0.5)'; }, false );
-	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") prev(); else prevLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") next(); else nextLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault();update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false ); 
 	bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
@@ -72,7 +76,12 @@ var Editor = function (Pos) {
 			deco.style.webkitTransform='translateY(0px)';
 			deco.style.webkitTransition='transform 250ms ease-out';
 			//displayPannel();
-			MainEditor.style.display = 'block';
+
+			decoFrame.style.pointerEvents= 'auto';
+			decoFrame.style.display = 'block';
+			//decoFrame.appendChild( fs );
+			//fs.style.display ='block';
+			//fs.style.top = "30px";
 		} else {
 			open = false;
 			var ty = deco.clientHeight-30;
@@ -83,104 +92,120 @@ var Editor = function (Pos) {
 			deco.style.transition='transform 250ms ease-out';
 			deco.style.webkitTransform='translateY('+ty+'px)';
 			deco.style.webkitTransition='transform 250ms ease-out';
-			MainEditor.style.display = 'none';
+			if(doc)doc.f.ta.blur(); 
+			//bcenter.blur();
+			//bcenter.style.pointerEvents= 'none';
+			decoFrame.style.pointerEvents= 'none';
+			//decoFrame.style.display = 'none';
+			//document.body.select();
+			//deco.blur();
+			//decoFrame.removeChild( fs );
 			//hidePannel();
 		}
 	}
 
-	var editboxHTML = 
-'<html class="expand close">' +
-'<head>' +
-'<style type="text/css">' +
-'.expand { width: 100%; height: 100%; }' +
-'.close { border: none; margin: 0px; padding: 0px; }' +
-'html,body { overflow: hidden; }' +
-'@font-face { font-family: "SourceCode"; src: url("images/SourceCodePro.woff") format("woff");}' +
-'<\/style>' +
-'<\/head>' +
-'<body class="expand close" onload="document.f.ta.focus(); document.f.ta.select();">' +
-'<form class="expand close" name="f">' +
-'<textarea class="expand close" style="background:#000; font-family:SourceCode; letter-spacing:-1px; color:#cccccc;" name="ta" wrap="hard" spellcheck="false" >' +
-'<\/textarea>' +
-'<\/form>' +
-'<\/body>' +
-'<\/html>';
+	var bRun = document.createElement( 'div' );
+	bRun.id = 'Editor-Run';
+	bRun.style.cssText =bstyle+buttonActif+'width:'+maxWidth*0.5+'px;';
+	bRun.textContent = "RUN SCRIPT";
+	deco.appendChild( bRun );
 
-	//var MainEditor = document.createElement( 'input' );
-	/*var fs = document.createElement( 'frameset' );
+	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
-	var MainEditor = document.createElement( 'frame' );
+    var bImport = document.createElement( 'div' );
+	bImport.id = 'Editor-Import';
+	bImport.style.cssText =bstyle+buttonActif+'width:'+maxWidth*0.5+'px;';
+	bImport.textContent = "IMPORT SCRIPT";
+	deco.appendChild( bImport );
+
+	bImport.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bImport.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+    bImport.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+
+	var decoFrame = document.createElement( 'div' );
+	decoFrame.id = 'decoFrame';
+	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; height:300px; overflow:hidden; ';
+	deco.appendChild( decoFrame );
+
+	var MainEditor = document.createElement( 'iframe' );
+	MainEditor.id = 'mEditor'
 	MainEditor.name = 'MainEditor';
-	//MainEditor.src = 'javascript:'';';
-	//a
+	MainEditor.src = "editor.html";
+	MainEditor.style.cssText ='width:'+maxWidth+'px; height:300px; border:none;';
 
-	var refEditor = document.createElement( 'frame' );
-	refEditor.style.cssText = 'display:none;'
-	refEditor.name = 'refEditor';
-	refEditor.src = 'demos/demo01.html';
-	// init();
-	//MainEditor.type = 'text';
-	//MainEditor.async = true;
-	MainEditor.style.cssText ='width:'+maxWidth+'px; height:256px; display:none; pointer-events:auto; text-align:left; border:none; ';
-*/
+	var doc;
 	
-	//deco.appendChild( MainEditor );
-/*
-	deco.appendChild( fs );
-	fs.appendChild( MainEditor );
-fs.appendChild( refEditor );
-	//window.MainEditor.document.write(editboxHTML);
+	decoFrame.appendChild( MainEditor );
 
-refEditor.onload = function ()
-{
-	var doc =window.MainEditor.document;
-    var defaultStuff =refEditor.document.documentElement.innerHTML;//.getElementsByTagName('pre')[0].innerHTML//outerHTML  //read(); 
-    refEditor.style.cssText = 'display:none;'
-     //document.documentElement.innerHTML
-    // document.documentElement.outerHTML
-  doc.write(editboxHTML);
-  doc.close();
- doc.f.ta.value = defaultStuff;
- 
-	    //document.body.appendChild(script);
- // window.MainEditor.document.f.ta.style.fontFamily = 'SourceCode';
-  doc.f.ta.style.fontSize = '10px';
-  //update();
-}*/
-/*var script = document.createElement("script");
-	    script.type = "text/javascript";
-	    script.src = "demos/demo01.js";
-	    doc.f.ta.value = script.documentElement.innerHTML*/
-/*function update()
-{
-  var textarea = window.MainEditor.document.f.ta;
-  var d = dynamicframe.document; 
+	MainEditor.onload  = function () {
+		doc = window.MainEditor.document;
+		doc.f.ta.value = "";
+		doc.f.ta.focus(); 
+		doc.f.ta.select();
+	}
+	var head = document.getElementsByTagName('head')[0];
+	var script = null;
+	var nscript;
+	/*var old = '';
+	var defaultStuff ='';
+	var dynamicframe = document.createElement("frame");
+	dynamicframe.name = "dynamicframe";
+	dynamicframe.id = "dynamicframe";
+	dynamicframe.src = "javascript:'';";
+	head.appendChild(dynamicframe);*/
 
-  if (old != textarea.value) {
-    old = textarea.value;
-    d.open();
-    d.write(old);
-    if (old.replace(/[\r\n]/g,'') == defaultStuff.replace(/[\r\n]/g,''))
-     // d.write(extraStuff);
-    d.close();
-  }
-
-  window.setTimeout(update, 150);
-}*/
+	var importScript = function(){
+		
+		//script = document.createElement("script");
+		script = document.createElement("frame");
+		script.name = "script";
+		script.id = "scriptDemo";
+		script.charset = "utf-8";
+		//script.type = "text/javascript";
+		script.type = "text/html";
+		//script.src = "demos/demo01.js";
+		script.src = "demos/demo01.html";
+		//script.as
+		//script.defer = true;
 
 
+		script.onreadystatechange = callback;
+		script.onload = callback;
 
+		head.appendChild(script);
+	}
 
+	var callback = function(e){
+	 if(doc){
+	 	var v = window.script.document.documentElement.getElementsByTagName('head')[0].innerHTML;
+	 	//v = v.replace('ADD', '<font style="color:red">ADD</font>');
+	 	var txt = v.slice(31, -9);
+	 	doc.f.ta.value = txt;
+	 	//doc.f.ta.innerHTML = txt;
+	    }
+	}
 
-
-
-
-
+	var update = function ()
+	{
+		nscript = document.createElement("script");
+		nscript.type = "text/javascript";
+		nscript.name = "topScript";
+		nscript.id = "topScript";
+		nscript.charset = "utf-8";
+		nscript.text = doc.f.ta.value;
+		head.appendChild(nscript);
+	}
 
     
 
 	return {
-		domElement: container
+		domElement: container,
+		importScript:importScript,
+		getScript: function () {
+			return nscript;
+		}
 	}
 
 }
