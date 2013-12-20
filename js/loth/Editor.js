@@ -33,7 +33,7 @@ var Editor = function (Pos) {
 	var bstyle =unselect+ 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
-	var bnext = document.createElement( 'div' );
+	/*var bnext = document.createElement( 'div' );
 	bnext.id = 'Editor-bnext';
 	bnext.style.cssText =bstyle + borderR+buttonActif+'width:30px;';
 	bnext.textContent = ">";
@@ -41,33 +41,33 @@ var Editor = function (Pos) {
 	var bprev = document.createElement( 'div' );
 	bprev.id = 'Editor-bprev';
 	bprev.style.cssText =bstyle+borderL+buttonActif+'width:30px;';
-	bprev.textContent = "<";
+	bprev.textContent = "<";*/
 
 	var bcenter = document.createElement( 'div' );
 	bcenter.id = 'Editor-bcenter';
-	bcenter.style.cssText =bstyle+buttonActif+'width:80px;';
+	bcenter.style.cssText =bstyle+borderL+borderR+buttonActif+'width:140px;';
 	bcenter.textContent = "EDITOR";
 
-	deco.appendChild( bprev );
+	//deco.appendChild( bprev );
 	deco.appendChild( bcenter );
-	deco.appendChild( bnext );
+	//deco.appendChild( bnext );
 
 	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); transforme(); this.style.backgroundColor = 'rgba(55,123,167,0.5)'; }, false );
-	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault();update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	//bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	//bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false ); 
-	bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-	bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+	//bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+	//bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
 
     bcenter.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
-    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor ='rgba(1,1,1,0.1)';  }, false );
-    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    //bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor ='rgba(1,1,1,0.1)';  }, false );
+    //bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
 	var transforme = function(){
 	    if(!open){
 	    	open = true;
-	    	bcenter.style.width= maxWidth-60+'px';
+	    	bcenter.style.width= maxWidth+'px';
 			deco.style.marginLeft=-maxWidth*0.5+'px';
 			deco.style.width= maxWidth+'px';
 			deco.style.height= '416px';
@@ -85,7 +85,7 @@ var Editor = function (Pos) {
 		} else {
 			open = false;
 			var ty = deco.clientHeight-30;
-			bcenter.style.width= '80px';
+			bcenter.style.width= '140px';
 			deco.style.marginLeft='-70px';
 			deco.style.width= '140px';
 			deco.style.transform='translateY('+ty+'px)';
@@ -154,7 +154,8 @@ var Editor = function (Pos) {
 	MainEditor.id = 'mEditor'
 	MainEditor.name = 'MainEditor';
 	MainEditor.src = "demos/editor.html";
-	MainEditor.style.cssText ='width:'+maxWidth+'px; height:325px; border:none;';
+	MainEditor.style.cssText ='width:'+maxWidth+'px; height:325px; border:none; ';
+	//scrollbar-face-color: #000000; scrollbar-shadow-color: #2D2C4D; scrollbar-highlight-color:#7D7E94; scrollbar-3dlight-color: #7D7E94; scrollbar-darkshadow-color: #2D2C4D; scrollbar-track-color: #7D7E94; scrollbar-arrow-color: #C1C1D1;';
 
 	var doc;
 	

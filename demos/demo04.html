@@ -1,33 +1,31 @@
 <meta charset="utf-8">
 <script>
 CLEAR({ground:false});
-
+// BRIDGE TEST
 function initDemo(){
-    // wall
-    ADD({ type:"box", size:[450,1000,50], pos:[0,500,-250] });
-    ADD({ type:"box", size:[450,1000,50], pos:[0,500, 250] });
-    ADD({ type:"box", size:[50,1000,550], pos:[-250,500,0] });
-    ADD({ type:"box", size:[50,1000,550], pos:[ 250,500,0] });
-    // bottom
-    ADD({type:"box", size:[550,400,550], pos:[0,-200,0]});
+    // ground
+    ADD({ type:"box", size:[2000,1000,2000], pos:[0,-500,0] });
 
-    // add dynamique object
-    var px, pz, t, n;
-    var sx, sy, sz;
+    var x = 0, y = 300, z = 2000;
+    var width = 400, depth = 100;
+    var moving = false;
+    var num = 40, n=0;
 
-    for (var i=0; i!==100; ++i ){
-        if(version=="DEV") n=2;
-        else n=3;
-        t = Math.floor(Math.random()*n)+1;
-        px = -100+Math.random()*200;
-        pz = -100+Math.random()*200;
+    body = ADD({ type:"box", size:[width, 40, depth], pos:[x,y,z], config:[2,0.5,0.5], name:'b0' });
 
-        sx = 20+Math.random()*100;
-        sy = 20+Math.random()*100;
-        sz = 20+Math.random()*100;
-        if(t==1) ADD({ type:"sphere", size:[sx*0.5], pos:[px,500+i,pz], move:true });
-        else if(t==2) ADD({ type:"box", size:[sx,sy,sz], pos:[px,500+i,pz], move:true });
-        else if(t==3) ADD({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,500+i,pz], move:true });
+    for (var i = 0; i !== num; i++) {
+        if(i == num -1) moving = false;
+        else moving = true;
+        ADD({ type:"box", size:[width, 40, depth], pos:[x,y,z - (i + 1) * depth], config:[2,0.5,0.5], move:moving, name:'b'+(i+1)});
+        ADD({type:"jointHinge", body1:'b'+i, body2:'b'+(i+1), pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false });
+        if(i==10 || i== 20 || i==30){
+            ADD({type:"sphere", size:[20], pos:[x, y + 400, z - (i + 1) * depth], move:false, name:'s'+n});
+            var dist = 500;
+            ADD({type:"jointDistance", body1:'b'+(i+1), body2:'s'+n, pos1:[-width * 0.5, 0, 0], axis1:[1,0,0], axis2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
+            ADD({type:"jointDistance", body1:'b'+(i+1), body2:'s'+n, pos1:[width * 0.5, 0, 0], axis1:[1,0,0], axis2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
+            n++;
+        }
     }
+    ADD({type:"box", size:[120, 120, 120], pos:[x, y + 100, z - 600],  config:[1,0.5,0.5], move:true});
 }
 </script>

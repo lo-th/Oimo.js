@@ -104,12 +104,16 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var ADD = function(data){
-    var obj;
-    if(data.type === 'joint'){
-
+    if(data.type.substring(0,5) === 'joint'){
+        if(data.pos1) data.pos1 = rzOimo(data.pos1);
+        if(data.pos2) data.pos2 = rzOimo(data.pos2);
+        if(data.minDistance) data.minDistance = data.minDistance*invScale;
+        if(data.maxDistance) data.maxDistance = data.maxDistance*invScale;
+        addJoint(data);
     } else {
-        obj = { type:data.type, size:rzOimo(data.size), pos:rzOimo(data.pos), rot:data.rot, move:data.move, config:data.config, notSleep:data.notSleep };
-        addRigid(obj, true);
+        if(data.size) data.size = rzOimo(data.size);
+        if(data.pos) data.pos = rzOimo(data.pos);
+        addRigid(data, true);
     }
 }
 
@@ -383,7 +387,7 @@ var addRigid = function(obj, OO){
     if(obj.configRot){
         sc.relativeRotation = eulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
     }
-    
+    var name = obj.name || '';
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
     var rot = obj.rot || [0,0,0];
@@ -441,7 +445,20 @@ var addRigid = function(obj, OO){
             staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
         }
     }
+    body.name = name;
     world.addRigidBody(body);
+    return body;
+}
+
+var getBodyByName = function(name){
+    var i;
+    var body;
+    for(i=0; i!==bodys.length; i++){
+        if(bodys[i].name === name ) body = bodys[i];
+    }
+    for(i=0; i!==statics.length; i++){
+        if(statics[i].name === name ) body = statics[i];
+    }
     return body;
 }
 
@@ -450,7 +467,6 @@ var addRigid = function(obj, OO){
 //--------------------------------------------------
 
 var addJoint = function(obj){
-
     var jc = new JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];
@@ -471,16 +487,18 @@ var addJoint = function(obj){
     jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
     jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
     jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
+    if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = getBodyByName(obj.body1);
+    if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = getBodyByName(obj.body2);
     jc.body1 = obj.body1;
     jc.body2 = obj.body2;
     var joint;
     switch(type){
-        case "distance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
-        case "hinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
-        case "prisme": joint = new PrismaticJoint(jc, lowerTranslation, upperTranslation); break;
-        case "slide": joint = new SliderJoint(jc, lowerTranslation, upperTranslation); break;
-        case "ball": joint = new BallAndSocketJoint(jc); break;
-        case "wheel": 
+        case "distance": case "jointDistance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
+        case "hinge": case "jointHinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
+        case "prisme": case "jointPrisme": joint = new PrismaticJoint(jc, lowerTranslation, upperTranslation); break;
+        case "slide": case "jointSlide": joint = new SliderJoint(jc, lowerTranslation, upperTranslation); break;
+        case "ball": case "jointBall": joint = new BallAndSocketJoint(jc); break;
+        case "wheel": case "jointWheel": 
             joint = new WheelJoint(jc);  
             if(limit !== null) 
                 joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);

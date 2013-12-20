@@ -345,6 +345,7 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 
 	var ADD = function (obj){
+		var name = obj.name || "";
 		var mesh;
 		var type = obj.type || "box";
 		var move = obj.move || false;
@@ -358,14 +359,21 @@ var ThreeEngine = function () {
 		var config = obj.config || [1, 0.4, 0.2];
 
 		// joint
+		var body1 = obj.body1 || null;
+		var body2 = obj.body2 || null;
 		var pos1 = obj.pos1 || [0,0,0];
 		var pos2 = obj.pos2 || [0,0,0];
 		var axis1 = obj.axis1 || [0,0,0];
 		var axis2 = obj.axis2 || [0,0,0];
+		var minDistance = obj.min || 1;
+		var maxDistance = obj.max || 10;
+		var collision = obj.collision || false;
+		var spring = obj.spring || [1, 0.5];
+		var upperAngle = obj.upperAngle || 0;
 		
-		if(type === 'joint'){//_____________________________ Joint
+		if(type.substring(0,5) === 'joint'){//_____________________________ Joint
 			addJoint();
-			//OimoWorker.postMessage({ tell:"ADD", type:type, move:move, size:size, pos:pos, rot:rot, config:config, notSleep:notSleep });
+			OimoWorker.postMessage({ tell:"ADD", name:name, type:type, body1:body1, body2:body2, pos1:pos1, pos2:pos2, axis1:axis1, axis2:axis2, collision:collision, minDistance:minDistance, maxDistance:maxDistance, spring:spring, upperAngle:upperAngle   });
 		}else{
 			if(move){//_____________________________________ Dynamic
 				addObjects( type, size );
@@ -375,7 +383,7 @@ var ThreeEngine = function () {
 				mesh.rotation.set( rot[0], rot[1], rot[2] );
 			}
 			// now create in oimo physic
-			OimoWorker.postMessage({ tell:"ADD", type:type, move:move, size:size, pos:pos, rot:rot, config:config, notSleep:notSleep });
+			OimoWorker.postMessage({ tell:"ADD", name:name, type:type, move:move, size:size, pos:pos, rot:rot, config:config, notSleep:notSleep });
 		}
 	}
 
