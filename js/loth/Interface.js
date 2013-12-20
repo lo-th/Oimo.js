@@ -87,7 +87,7 @@ var Interface = function (name) {
 
 	var bbMenu = [];
 
-	for(var i=0;i!==4;i++){
+	for(var i=0;i!==3;i++){
 		bbMenu[i] = document.createElement( 'div' );
 		bbMenu[i].style.cssText = buttonStyle + " height:40px; margin-bottom:6px;";
 		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
@@ -99,7 +99,6 @@ var Interface = function (name) {
 	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); ADD({ move:true, size:[50,50,50], pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); ADD({ type:'sphere', size:[25,0,0], move:true, pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); CLEAR({ground:true}); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-bbMenu[3].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); IMP(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	//-----------------------------------------------------
     //  GRAVITY

@@ -3,7 +3,7 @@
  */
 'use strict';
 var Editor = function (Pos) {
-	var left = Pos || 550;
+	var left = Pos || 590;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
@@ -106,7 +106,7 @@ var Editor = function (Pos) {
 
 	var bRun = document.createElement( 'div' );
 	bRun.id = 'Editor-Run';
-	bRun.style.cssText =bstyle+buttonActif+'width:'+maxWidth*0.5+'px;';
+	bRun.style.cssText =bstyle+buttonActif+'width:'+maxWidth+'px;';
 	bRun.textContent = "RUN SCRIPT";
 	deco.appendChild( bRun );
 
@@ -114,7 +114,7 @@ var Editor = function (Pos) {
 	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
     bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
-    var bImport = document.createElement( 'div' );
+    /*var bImport = document.createElement( 'div' );
 	bImport.id = 'Editor-Import';
 	bImport.style.cssText =bstyle+buttonActif+'width:'+maxWidth*0.5+'px;';
 	bImport.textContent = "IMPORT SCRIPT";
@@ -122,18 +122,39 @@ var Editor = function (Pos) {
 
 	bImport.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bImport.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-    bImport.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    bImport.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );*/
+
+    //-----------------------------------------------------
+    //  MENU DEMO
+    //-----------------------------------------------------
+    
+	var bbMenu = [];
+	var maxDemo = 6;
+
+
+	for(var i=0;i!==maxDemo;i++){
+		bbMenu[i] = document.createElement( 'div' );
+		bbMenu[i].name = 'demo0'+i;
+		if(i===0) bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+maxWidth/maxDemo+"px; ";
+		else bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+ (maxWidth/maxDemo-1) +"px; border-left:1px solid rgba(1,1,1,0.3);";
+		bbMenu[i].textContent = 'DEMO 0'+i;
+		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+		bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+
+		deco.appendChild( bbMenu[i] );
+	}
 
 	var decoFrame = document.createElement( 'div' );
 	decoFrame.id = 'decoFrame';
-	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; height:300px; overflow:hidden; ';
+	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; height:325px; overflow:hidden; ';
 	deco.appendChild( decoFrame );
 
 	var MainEditor = document.createElement( 'iframe' );
 	MainEditor.id = 'mEditor'
 	MainEditor.name = 'MainEditor';
-	MainEditor.src = "editor.html";
-	MainEditor.style.cssText ='width:'+maxWidth+'px; height:300px; border:none;';
+	MainEditor.src = "demos/editor.html";
+	MainEditor.style.cssText ='width:'+maxWidth+'px; height:325px; border:none;';
 
 	var doc;
 	
@@ -156,7 +177,8 @@ var Editor = function (Pos) {
 	dynamicframe.src = "javascript:'';";
 	head.appendChild(dynamicframe);*/
 
-	var importScript = function(){
+	var importScript = function(name){
+		if(script) head.removeChild(script);
 		
 		//script = document.createElement("script");
 		script = document.createElement("frame");
@@ -166,7 +188,7 @@ var Editor = function (Pos) {
 		//script.type = "text/javascript";
 		script.type = "text/html";
 		//script.src = "demos/demo01.js";
-		script.src = "demos/demo01.html";
+		script.src = "demos/"+name+".html";
 		//script.as
 		//script.defer = true;
 
@@ -197,6 +219,7 @@ var Editor = function (Pos) {
 		nscript.text = doc.f.ta.value;
 		head.appendChild(nscript);
 	}
+
 
     
 

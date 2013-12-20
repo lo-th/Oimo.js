@@ -36,7 +36,7 @@
 		<script type="text/javascript" src='js/materialShader/HdrShader.js'></script>
 
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
-		<script type="text/javascript" id="topScript" name="topScript"></script>
+		
 		<script type="text/javascript">
 		    var version='DEV';
 		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Car simulator", "Ragdoll", "Van", "Bridge", "Droid"];
@@ -178,7 +178,6 @@
             //-----------------------------------------------------
 
             var basicOption = null;
-            //var script = null;
 
             var ADD = function(obj){
             	threeEngine.ADD(obj);
@@ -189,23 +188,6 @@
             	basicOption.tell = "BASIC";
             	OimoWorker.postMessage({tell:"CLEAR"});
             }
-
-            var IMP = function(){
-            	Editor.importScript();
-            	/*var head = document.getElementsByTagName('head')[0];
-            	script = document.createElement("script");
-            	script.type = "text/javascript";
-            	script.src = "demos/demo01.js";
-
-            	script.onreadystatechange = callback;
-            	script.onload = callback;
-
-            	head.appendChild(script);*/
-            }
-
-           /*var callback = function(){
-
-            }*/
 
 	        //-----------------------------------------------------
             //  OIMO INFO
