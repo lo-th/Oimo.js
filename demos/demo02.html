@@ -1,33 +1,22 @@
 <meta charset="utf-8">
 <script>
 CLEAR({ground:false});
-
+// DICE FALL
 function initDemo(){
+    // ground
+    ADD({ type:"box", size:[2000,1000,2000], pos:[0,-500,0] });
     // wall
-    ADD({ type:"box", size:[450,1000,50], pos:[0,500,-250] });
-    ADD({ type:"box", size:[450,1000,50], pos:[0,500, 250] });
-    ADD({ type:"box", size:[50,1000,550], pos:[-250,500,0] });
-    ADD({ type:"box", size:[50,1000,550], pos:[ 250,500,0] });
-    // bottom
-    ADD({type:"box", size:[550,400,550], pos:[0,-200,0]});
+    ADD({ type:"box", size:[2000,1000,100], pos:[0,500,-1000] });
+    ADD({ type:"box", size:[2000,1000,100], pos:[0,500,1000] });
+    ADD({ type:"box", size:[100,1000,2000], pos:[-1000,500,0] });
+    ADD({ type:"box", size:[100,1000,2000], pos:[ 1000,500,0] });
 
-    // add dynamique object
-    var px, pz, t, n;
-    var sx, sy, sz;
-
-    for (var i=0; i!==100; ++i ){
-        if(version=="DEV") n=2;
-        else n=3;
-        t = Math.floor(Math.random()*n)+1;
+    var px, pz, s;
+    for (var i=0; i!==333; ++i ){
+        s = 10+(Math.random()*100);
         px = -100+Math.random()*200;
         pz = -100+Math.random()*200;
-
-        sx = 20+Math.random()*100;
-        sy = 20+Math.random()*100;
-        sz = 20+Math.random()*100;
-        if(t==1) ADD({ type:"sphere", size:[sx*0.5], pos:[px,500+i,pz], move:true });
-        else if(t==2) ADD({ type:"box", size:[sx,sy,sz], pos:[px,500+i,pz], move:true });
-        else if(t==3) ADD({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,500+i,pz], move:true });
+        ADD({ type:"dice", size:[s,s,s], pos:[px,1+(100*i),pz], config:[s/10, 0.5, 0.5], move:true });
     }
 }
 </script>

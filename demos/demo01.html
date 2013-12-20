@@ -1,16 +1,16 @@
 <meta charset="utf-8">
 <script>
 CLEAR({ground:false});
-
+// BASIC SHAPE
 function initDemo(){
+    // ground
+    ADD({type:"box", size:[550,400,550], pos:[0,-200,0]});
     // wall
     ADD({ type:"box", size:[450,1000,50], pos:[0,500,-250] });
     ADD({ type:"box", size:[450,1000,50], pos:[0,500, 250] });
     ADD({ type:"box", size:[50,1000,550], pos:[-250,500,0] });
     ADD({ type:"box", size:[50,1000,550], pos:[ 250,500,0] });
-    // bottom
-    ADD({type:"box", size:[550,400,550], pos:[0,-200,0]});
-
+    
     // add dynamique object
     var px, pz, t, n;
     var sx, sy, sz;
