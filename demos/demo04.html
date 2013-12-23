@@ -1,5 +1,6 @@
 <meta charset="utf-8">
 <script>
+function CLEAR(o){};
 CLEAR({ground:false});
 // BRIDGE TEST
 function initDemo(){
@@ -11,7 +12,7 @@ function initDemo(){
     var moving = false;
     var num = 40, n=0;
 
-    body = ADD({ type:"box", size:[width, 40, depth], pos:[x,y,z], config:[2,0.5,0.5], name:'b0' });
+    ADD({ type:"box", size:[width, 40, depth], pos:[x,y,z], config:[2,0.5,0.5], name:'b0' });
 
     for (var i = 0; i !== num; i++) {
         if(i == num -1) moving = false;

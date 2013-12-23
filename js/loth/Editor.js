@@ -145,69 +145,28 @@ var Editor = function (Pos) {
 		deco.appendChild( bbMenu[i] );
 	}
 
-	var decoFrame = document.createElement( 'div' );
+	//var doc;
+	var codeEditor
+	var head = document.getElementsByTagName('head')[0];
+	var nscript;
+
+	/*var decoFrame = document.createElement( 'div' );
 	decoFrame.id = 'decoFrame';
 	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; height:325px; overflow:hidden; ';
-	deco.appendChild( decoFrame );
+	deco.appendChild( decoFrame );*/
 
 	var MainEditor = document.createElement( 'iframe' );
 	MainEditor.id = 'mEditor'
 	MainEditor.name = 'MainEditor';
 	MainEditor.src = "demos/editor.html";
-	MainEditor.style.cssText ='width:'+maxWidth+'px; height:325px; border:none; ';
+	MainEditor.style.cssText =unselect+'width:'+maxWidth+'px; height:325px; border:none; overflow:hidden; pointer-events:auto;';
+	deco.appendChild( MainEditor );
 	//scrollbar-face-color: #000000; scrollbar-shadow-color: #2D2C4D; scrollbar-highlight-color:#7D7E94; scrollbar-3dlight-color: #7D7E94; scrollbar-darkshadow-color: #2D2C4D; scrollbar-track-color: #7D7E94; scrollbar-arrow-color: #C1C1D1;';
 
-	var doc;
+	//MainEditor.onload  = function () { doc = window.MainEditor.document;}
 	
-	decoFrame.appendChild( MainEditor );
-
-	MainEditor.onload  = function () {
-		doc = window.MainEditor.document;
-		doc.f.ta.value = "";
-		doc.f.ta.focus(); 
-		doc.f.ta.select();
-	}
-	var head = document.getElementsByTagName('head')[0];
-	var script = null;
-	var nscript;
-	/*var old = '';
-	var defaultStuff ='';
-	var dynamicframe = document.createElement("frame");
-	dynamicframe.name = "dynamicframe";
-	dynamicframe.id = "dynamicframe";
-	dynamicframe.src = "javascript:'';";
-	head.appendChild(dynamicframe);*/
-
 	var importScript = function(name){
-		if(script) head.removeChild(script);
-		
-		//script = document.createElement("script");
-		script = document.createElement("frame");
-		script.name = "script";
-		script.id = "scriptDemo";
-		script.charset = "utf-8";
-		//script.type = "text/javascript";
-		script.type = "text/html";
-		//script.src = "demos/demo01.js";
-		script.src = "demos/"+name+".html";
-		//script.as
-		//script.defer = true;
-
-
-		script.onreadystatechange = callback;
-		script.onload = callback;
-
-		head.appendChild(script);
-	}
-
-	var callback = function(e){
-	 if(doc){
-	 	var v = window.script.document.documentElement.getElementsByTagName('head')[0].innerHTML;
-	 	//v = v.replace('ADD', '<font style="color:red">ADD</font>');
-	 	var txt = v.slice(31, -9);
-	 	doc.f.ta.value = txt;
-	 	//doc.f.ta.innerHTML = txt;
-	    }
+		MainEditor.contentWindow.loadfile(name+".html");
 	}
 
 	var update = function ()
@@ -217,12 +176,9 @@ var Editor = function (Pos) {
 		nscript.name = "topScript";
 		nscript.id = "topScript";
 		nscript.charset = "utf-8";
-		nscript.text = doc.f.ta.value;
+		nscript.text = MainEditor.contentWindow.codeEditor.getValue();
 		head.appendChild(nscript);
 	}
-
-
-    
 
 	return {
 		domElement: container,

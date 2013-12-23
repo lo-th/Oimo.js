@@ -152,7 +152,7 @@
 	            // clear three object
 				if(phase === "CLEAR"){
 				    threeEngine.clearAll();
-				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null; if(Editor.getScript()) initDemo(); }  
+				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null;  initDemo(); }  
 				}
 				// get ragdoll info
 				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);

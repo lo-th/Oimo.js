@@ -1,10 +1,13 @@
-<html>
+<html class="expand close">
 <head>
 <meta charset="utf-8">
-<style type="text/css">
-  html,body { border: none; margin: 0px; padding: 0px; overflow: hidden; }
-</style>
 <link rel="stylesheet" href="../js/codemirror/codemirror.css">
+<style type="text/css">
+	.expand { width: 100%; height: 100%; }
+	.close { border: none; margin: 0px; padding: 0px; }
+	html,body { overflow: hidden; }
+	@font-face { font-family: "SourceCode"; src:url("../images/SourceCodePro.woff") format("woff");}
+</style>
 <script src="../js/codemirror/codemirror.js"></script>
 <script src="../js/codemirror/javascript.js"></script>
 <script src="../js/codemirror/extra.js"></script>
@@ -12,15 +15,13 @@
 <script src="../js/codemirror/matchbrackets.js"></script>
 <script>
 window.onload = init;
-
+var delay;
 var codeEditor;
 var fileref;
-var head;
+var head =   document.getElementsByTagName("head")[0];
 
 function init() {
-  head = document.getElementsByTagName("head")[0];
-  codeEditor = CodeMirror(document.body, {
-  //codeEditor= CodeMirror.fromTextArea(document.getElementById("textEd"), {
+  codeEditor= CodeMirror.fromTextArea(document.getElementById("textEd"), {
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
@@ -48,21 +49,27 @@ head.appendChild(fileref);
 function callback(){
 
 var doc; 
-var frame = document.getElementById("fileref");
-if(frame.contentDocument) { 
-    doc = frame.contentDocument; 
+var iframe =  document.getElementById("fileref");
+if(iframe.contentDocument) { 
+    doc = iframe.contentDocument; 
 } else {
-    doc = frame.contentWindow.document; 
+    doc = iframe.contentWindow.document; 
 }
 
 var v = doc.getElementsByTagName("head")[0].innerHTML;
-var txt = v.slice(53, -10);
+var txt = v.slice(52, -9);
 codeEditor.setValue( txt );
 
 
 }
-</script>
+
+  </script>
 </head>
-<body>
+<body class="expand close">
+<form class="expand close" name="f">
+<textarea class="expand close" id="textEd" style="background:rgba(1,1,1,0.6); font-family:SourceCode; letter-spacing:-1px; font-size:12px; color:#eeeeee;" name="ta" wrap="hard" spellcheck="false">
+</textarea>
+</form>
+
 </body>
 </html>
