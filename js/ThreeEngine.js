@@ -49,11 +49,11 @@ var ThreeEngine = function () {
 	var isBuffered = true;
 	var PATH = 'http://lo-th.github.io/Oimo.js/';
 
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; overflow:hidden;';
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
 
 	var container = document.createElement( 'div' );
 	container.id = 'container';
-	container.style.cssText = unselect + 'padding:0; position:absolute; left:0;  top:0; ';
+	container.style.cssText = unselect + ' padding:0; position:absolute; left:0; top:0; overflow:hidden;';
 
 	var selected = null;
 	var followObject = null;
@@ -172,9 +172,9 @@ var ThreeEngine = function () {
 			ballMaterial.map = Ambience.getTexture();
 			ballMaterial.map.anisotropy = MaxAnistropy;
 			ballMaterial.map.needsUpdate = true;
-			renderer.shadowMapEnabled = false;
+			if(!isOptimized)renderer.shadowMapEnabled = false;
 			ballCamera.updateCubeMap( renderer, ballScene );
-			renderer.shadowMapEnabled = true;
+			if(!isOptimized)renderer.shadowMapEnabled = true;
 		}
 	}
 
@@ -205,7 +205,7 @@ var ThreeEngine = function () {
 		envTexture = Ambience.getTexture();*/
 
 		// SHADER
-
+if(!isOptimized){
 		sphereMaterial=new THREE.ShaderMaterial({
 			uniforms:THREE.SpShader.uniforms,
 			vertexShader:THREE.SpShader.vertexShader,
@@ -214,6 +214,9 @@ var ThreeEngine = function () {
 			depthWrite: false
 		});
 		sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
+}else{
+	sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 ,side:THREE.BackSide, depthWrite: false} );
+}
 
 		/*baseMaterial=new THREE.ShaderMaterial({
 			uniforms: THREE.SphereShader.uniforms,
@@ -278,7 +281,7 @@ var ThreeEngine = function () {
 			//MeshLambertMaterial
 		}else{
 			groundMat = new THREE.MeshBasicMaterial( { color: 0x185E77} );
-			mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933} );
+			mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933, emissive:0xffffff} );
 			mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
 			mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
 			mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
@@ -332,11 +335,15 @@ var ThreeEngine = function () {
 		//Ambience.begin(scene, [mat01, mat02, mat03,mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep], 2);
 		//Ambience.begin(renderer, scene, array2, 500,100);
 		//Ambience.update((-camPos.horizontal)*ToRad, (-camPos.vertical-90)*ToRad, renderer, scene);
-		for(var i=0;i!==array2.length; i++){
-			array2[i].envMap = ballCamera.renderTarget;
-			array2[i].combine = THREE.MixOperation;
+		activReflection(array2);
+	}
+
+	var activReflection = function (ar){
+		for(var i=0;i!==ar.length; i++){
+			ar[i].envMap = ballCamera.renderTarget;
+			ar[i].combine = THREE.MixOperation;
 			//materials[i].combine = THREE.MultiplyOperation;
-			array2[i].reflectivity = 0.5;
+			ar[i].reflectivity = 0.5;
 		}
 	}
 
@@ -949,8 +956,10 @@ var ThreeEngine = function () {
 
 		
 
-		renderNoise+=(nRenderNoise-renderNoise)*.2;
-		setNoise(renderNoise);
+		if(!isOptimized){
+			renderNoise+=(nRenderNoise-renderNoise)*.2;
+			setNoise(renderNoise);
+		}
 
 		if(followObject) cameraFollow(content.children[followObject].position);
 		if(followSpecial){
@@ -1241,7 +1250,7 @@ var ThreeEngine = function () {
 		cameraBG.aspect = vsize.z;
 		cameraBG.updateProjectionMatrix();
 		renderer.setSize( vsize.x, vsize.y );
-		if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
+		if(!isOptimized)if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
 	}
 
 	//-----------------------------------------------------

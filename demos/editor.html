@@ -2,7 +2,7 @@
 <head>
 <meta charset="utf-8">
 <style type="text/css">
-  html,body { border: none; margin: 0px; padding: 0px; overflow: hidden; }
+  html,body { border: none; margin:0px; padding: 0px; overflow:hidden; }
 </style>
 <link rel="stylesheet" href="../js/codemirror/codemirror.css">
 <script src="../js/codemirror/codemirror.js"></script>
@@ -20,8 +20,7 @@ var head;
 function init() {
   head = document.getElementsByTagName("head")[0];
   codeEditor = CodeMirror(document.body, {
-  //codeEditor= CodeMirror.fromTextArea(document.getElementById("textEd"), {
-    lineNumbers: true,
+   // lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
     theme:'monokai',

@@ -76,12 +76,11 @@ var Editor = function (Pos) {
 			deco.style.webkitTransform='translateY(0px)';
 			deco.style.webkitTransition='transform 250ms ease-out';
 			//displayPannel();
-
-			decoFrame.style.pointerEvents= 'auto';
 			decoFrame.style.display = 'block';
-			//decoFrame.appendChild( fs );
-			//fs.style.display ='block';
-			//fs.style.top = "30px";
+			decoFrame.style.pointerEvents= 'auto';
+
+			MainEditor.style.display = 'block';
+			MainEditor.style.pointerEvents= 'auto';
 		} else {
 			open = false;
 			var ty = deco.clientHeight-30;
@@ -92,23 +91,26 @@ var Editor = function (Pos) {
 			deco.style.transition='transform 250ms ease-out';
 			deco.style.webkitTransform='translateY('+ty+'px)';
 			deco.style.webkitTransition='transform 250ms ease-out';
-			if(doc)doc.f.ta.blur(); 
-			//bcenter.blur();
-			//bcenter.style.pointerEvents= 'none';
+
+			decoFrame.style.display = 'none';
 			decoFrame.style.pointerEvents= 'none';
-			//decoFrame.style.display = 'none';
-			//document.body.select();
-			//deco.blur();
-			//decoFrame.removeChild( fs );
-			//hidePannel();
+
+			MainEditor.style.display = 'none';
+			MainEditor.style.pointerEvents= 'none';
 		}
 	}
+
+
+	var decoFrame = document.createElement( 'div' );
+	decoFrame.id = 'decoFrame';
+	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; overflow:hidden; ';
+	deco.appendChild( decoFrame );
 
 	var bRun = document.createElement( 'div' );
 	bRun.id = 'Editor-Run';
 	bRun.style.cssText =bstyle+buttonActif+'width:'+maxWidth+'px;';
 	bRun.textContent = "RUN SCRIPT";
-	deco.appendChild( bRun );
+	decoFrame.appendChild( bRun );
 
 	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
@@ -142,7 +144,7 @@ var Editor = function (Pos) {
 		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 		bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
-		deco.appendChild( bbMenu[i] );
+		decoFrame.appendChild( bbMenu[i] );
 	}
 
 	//var doc;
@@ -169,8 +171,7 @@ var Editor = function (Pos) {
 		MainEditor.contentWindow.loadfile(name+".html");
 	}
 
-	var update = function ()
-	{
+	var update = function (){
 		nscript = document.createElement("script");
 		nscript.type = "text/javascript";
 		nscript.name = "topScript";

@@ -4,7 +4,7 @@
   /* Set height, width, borders, and global font properties here */
   /*font-family: monospace;*/
   font-family: SourceCode;
-  height: 320px;
+  height: 325px;
   width:100%;
   font-size: 12px;
   letter-spacing:-1px;
@@ -14,9 +14,13 @@
   left:0px;
   top:0px;
 }
+
+
+
 .CodeMirror-scroll {
   /* Set scrolling behaviour here */
   overflow: auto;
+
 }
 
 /* PADDING */
@@ -29,7 +33,7 @@
 }
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
-  background-color: black; /*white;  The little square between H and V scrollbars */
+  background-color: #888888; /*white;  The little square between H and V scrollbars */
 }
 
 /* GUTTER */
@@ -219,7 +223,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 }
 .CodeMirror pre {
   /* Reset some styles that the rest of the page might have set */
-  -moz-border-radius: 0; -webkit-border-radius: 0; border-radius: 0;
+  -webkit-border-radius: 0; border-radius: 0;
   border-width: 0;
   background: transparent;
   font-family: inherit;
