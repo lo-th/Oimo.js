@@ -117,6 +117,16 @@ var ADD = function(data){
     }
 }
 
+var CONTROL = function(data){
+    if(data.pos) data.pos = rzOimo(data.pos);
+    switch(data.type){
+        case 'car': car = new Car(data.pos, data.config || [10,0.5,0.5 , 10,4,0.5]); break;
+        case 'van': van = new Van(data.pos); break;
+        case 'ball': ball = new Ball(data.pos, 2 ); break;
+        case 'droid': ball = new Ball(data.pos, 2, 'droid'); break;
+    }
+}
+
 var rzOimo = function (ar){
     return [ar[0]*invScale, ar[1]*invScale, ar[2]*invScale];
 }
@@ -297,6 +307,7 @@ var clearWorld = function(){
 var basicStart = function(data){
     // ground
     if(data.ground) addRigid({type:"box", size:[40,1,40], pos:[0,-0.5,0]});
+    isTimout = data.timer || false;
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
@@ -341,9 +352,9 @@ var resetArray = function (){
     joints = [];
 
     // sending array
-    matrix = [];
-    sleeps = [];
-    jointPos = [];;
+    matrix = new Array();//Float32Array(100000);// [];
+    sleeps = new Array();//new Float32Array(100000);//[];
+    jointPos = new Array();//new Float32Array(100000);//[];
 }
 
 var startDemo = function(){

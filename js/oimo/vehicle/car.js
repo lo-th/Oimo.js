@@ -1,6 +1,6 @@
 /* Copyright (c) 2012-2013 EL-EMENT saharan */
 
-Car = function (x, y, z, world) {
+Car = function (Pos, Config) {
 	this.body;
 	this.wheel1;
 	this.wheel2;
@@ -12,7 +12,9 @@ Car = function (x, y, z, world) {
 	this.joint4;
 	this.angle =0;
 
+	this.pos = Pos || [0,0,0];
 	this.size = {w:0.5, d:1, h:0.4}
+	this.config = Config || [10,0.5,0.5,    10,4,0.5];
 
 	// create a body
 	//var off = 0.4;
@@ -23,18 +25,22 @@ Car = function (x, y, z, world) {
 
 	var sc = new ShapeConfig();
 	sc.relativePosition.init(0, (h*0.5)+rad, 0);
-	sc.density = 10;
+	sc.density = this.config[0] || 10;
+	sc.friction = this.config[1] || 0.5;
+	sc.restitution = this.config[2] || 0.5;
 	
-	this.body = addRigid({type:"carBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:[x, y, z], sc:sc, move:true, noSleep:true, noAdjust:true});
+	this.body = addRigid({type:"carBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, noAdjust:true});
 
 	// create wheels
-	sc.friction = 4;
+	sc.friction = this.config[3] || 10;
+	sc.friction = this.config[4] || 4;
+	sc.restitution = this.config[5] || 0.5;
 	sc.relativePosition.init(0, 0, 0);
-	this.wheel1 = addRigid({type:"wheelinv", size:[rad, rad, rad], pos:[x - w , y, z - d], sc:sc, move:true});
-	this.wheel2 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[x + w, y, z - d], sc:sc, move:true});
-	this.wheel3 = addRigid({type:"wheelinv", size:[rad, rad, rad], pos:[x - w, y, z + d], sc:sc, move:true});
-	this.wheel4 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[x + w, y, z + d], sc:sc, move:true});
-		
+	this.wheel1 = addRigid({type:"wheelinv", size:[rad, rad, rad], pos:[this.pos[0] - w , this.pos[1], this.pos[2] - d], sc:sc, move:true});
+	this.wheel2 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[this.pos[0] + w, this.pos[1], this.pos[2] - d], sc:sc, move:true});
+	this.wheel3 = addRigid({type:"wheelinv", size:[rad, rad, rad], pos:[this.pos[0] - w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
+	this.wheel4 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[this.pos[0] + w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
+	
 	// create joints
 	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[-w, 0, -d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
 	this.joint2 = addJoint({type:"wheel", body1:this.body, body2:this.wheel2, pos1:[w, 0, -d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });

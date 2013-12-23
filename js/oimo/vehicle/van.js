@@ -1,7 +1,7 @@
 
 // ape piaggio
 
-Van = function (x, y, z, world) {
+Van = function (Pos) {
 	this.body;
 	this.wheel1;
 	//this.wheel2;
@@ -14,7 +14,7 @@ Van = function (x, y, z, world) {
 	this.angle =0;
 
 	this.size = {w:0.87, d:1.07, da: 2.31, h:0.4}
-
+	this.pos = Pos || [0,0,0];
 	// create a body
 	//var off = 0.4;
 	var rad = 0.39;
@@ -33,16 +33,21 @@ Van = function (x, y, z, world) {
 	sc.friction = 4;
 	sc.density = 10;
 	sc.relativePosition.init(0, 0, 0);
+	this.wheel1 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[this.pos[0] , this.pos[1], this.pos[2] - da], sc:sc, move:true});
+	this.wheel3 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[this.pos[0] - w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
+	this.wheel4 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[this.pos[0] + w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
+
+/*
 	this.wheel1 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x , y, z - da], sc:sc, move:true});
 	//this.wheel2 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[x + w, y, z - d], sc:sc, move:true});
 	this.wheel3 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x - w, y, z + d], sc:sc, move:true});
 	this.wheel4 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x + w, y, z + d], sc:sc, move:true});
-
+*/
 	sc = new ShapeConfig();
 	sc.relativePosition.init(0, (h*0.5)+rad, 0);
 	sc.density = 10;
 
-	this.body = addRigid({type:"vanBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:[x, y, z], sc:sc, move:true, noSleep:true, noAdjust:true});
+	this.body = addRigid({type:"vanBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, noAdjust:true});
 		
 	// create joints
 	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[0, 0, -da], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });

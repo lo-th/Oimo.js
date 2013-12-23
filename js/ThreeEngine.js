@@ -394,6 +394,22 @@ if(!isOptimized){
 		}
 	}
 
+	var CONTROL = function(data){
+		var type = obj.type || "ball";
+	    var pos = obj.pos || [0,0,0];
+	    switch(data.type){
+	        case 'car': 
+	        break;
+	        case 'van': 
+	        break;
+	        case 'ball': 
+	        break;
+	        case 'droid':
+	        break;
+	    }
+	    OimoWorker.postMessage({ tell:"CONTROL", type:type, pos:pos, config:config });
+	}
+
 	var REMOVE = function (obj){
 	}
 
@@ -551,6 +567,7 @@ if(!isOptimized){
     		    mesh = new THREE.Object3D();
     		    m3 = new THREE.Object3D();
     		    m2 = getMeshByName('Android');
+    		    m2.position.set(0,-6,0)
     		   // m2 = new THREE.SkinnedMesh( getSeaGeometry('Android', 2), matDroid, false);
     		   // m2.animations = getMeshByName('Android').animations;
                         //var animation = new THREE.Animation( block, "idle" );
