@@ -96,9 +96,9 @@ var Interface = function (name) {
 		bMenu.appendChild( bbMenu[i] );
 	}
 
-	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); ADD({ move:true, size:[50,50,50], pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); ADD({ type:'sphere', size:[25,0,0], move:true, pos:[0,800,0] }); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); CLEAR({ground:true}); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.debug(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	//-----------------------------------------------------
     //  GRAVITY
@@ -162,7 +162,7 @@ var Interface = function (name) {
 		}
 	}
 
-	var moveDef =  function ( g ) {
+	var setCurrentGravity =  function ( g ) {
 		var rect = loDiv.getBoundingClientRect();
 		var pos = (((-g)*10)+100);
 
@@ -180,10 +180,20 @@ var Interface = function (name) {
 		}
 	}
 
-	moveDef(G);
+	setCurrentGravity(G);
+
+	//-----------------------------------------------------
+    //  MENU OPTIONS
+    //-----------------------------------------------------
+
+	var menu = document.createElement( 'div' );
+	menu.style.cssText ='position:absolute; height:600px;width:100%; overflow:hidden; bottom:0px; left:0px;  pointer-events:none;';
+	container.appendChild( menu );
 
     return {
-		domElement: container
+		domElement: container,
+		menu:menu,
+		setCurrentGravity:setCurrentGravity
 	}
 
 

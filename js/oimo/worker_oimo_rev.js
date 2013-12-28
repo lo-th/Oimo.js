@@ -21,7 +21,7 @@ importScripts('vehicle/ball.js');
 
 // main class
 var version = "10.REV";
-var World, RigidBody, BruteForceBroadPhase, SweepAndPruneBroadPhase;
+var World, RigidBody, BruteForceBroadPhase, SweepAndPruneBroadPhase, BroadPhase;
 var Shape, ShapeConfig, BoxShape, SphereShape, CylinderShape;
 var Joint, JointConfig, HingeJoint, Hinge2Joint, BallJoint, DistanceJoint;
 var Vec3, Quat, Mat33, Mat44;
@@ -41,18 +41,16 @@ var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
 var ToRad = Math.PI / 180;
 
 // array rigid
-var bodys;
-var matrix;
-var sleeps;
-var types;
-var sizes;
+var bodys = [];
+var matrix = [];
+var sleeps = [];
+var types = [];
+var sizes = [];
 
-var statics;
-var staticTypes, staticSizes, staticMatrix;
+var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
 
 // array joint 
-var joints;
-var jointPos;
+var joints = [], jointPos = [];
 
 var infos =new Float32Array(13);
 var currentDemo = 0;
@@ -63,6 +61,8 @@ var car = null;
 var ball = null;
 
 var isTimout = false;
+var isNeedRemove = false;
+var removeTemp = {};
 
 //--------------------------------------------------
 //   WORKER MAIN MESSAGE
@@ -78,7 +78,7 @@ self.onmessage = function (e) {
     }
 
     if(phase === "ADD") ADD(e.data);
-    if(phase === "REMOVE") REMOVE(e.data);
+    if(phase === "REMOVE") { isNeedRemove = true; removeTemp = e.data} //REMOVE(e.data);
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
 
@@ -132,7 +132,20 @@ var rzOimo = function (ar){
 //--------------------------------------------------
 
 var REMOVE = function(data){
-
+    var n = data.n
+    if(data.type.substring(0,5) === 'joint'){
+        world.removeJoint(joints[n]);
+        joints.splice(n,1);
+        jointPos.splice(n*6,6);
+    }else {
+        world.removeRigidBody(bodys[n]);
+        bodys.splice(n,1);
+        sleeps.splice(n,1);
+        matrix.splice(n*12,12);
+    }
+    self.postMessage(removeTemp);
+    isNeedRemove=false;
+    removeTemp = {};
 }
 
 //--------------------------------------------------
@@ -140,6 +153,7 @@ var REMOVE = function(data){
 //--------------------------------------------------
 
 var update = function(){
+    if(isNeedRemove){REMOVE(removeTemp);}
     t01 = Date.now();
 
     world.step();
@@ -236,6 +250,7 @@ var initClass = function (){
     joo.classLoader.complete(function(imports){
         World = com.element.oimo.physics.dynamics.World;
         RigidBody = com.element.oimo.physics.dynamics.RigidBody;
+        BroadPhase = com.element.oimo.physics.collision.broad.BroadPhase;
         BruteForceBroadPhase = com.element.oimo.physics.collision.broad.BruteForceBroadPhase;
         SweepAndPruneBroadPhase = com.element.oimo.physics.collision.broad.SweepAndPruneBroadPhase;
         // Shape
@@ -290,6 +305,30 @@ var clearWorld = function (){
 }
 
 var basicStart = function(data){
+    isTimout = data.timer || false;
+
+    if(data.G || data.G===0){
+        Gravity = data.G;
+        newGravity = Gravity;
+        world.gravity = new Vec3(0, Gravity, 0);
+        self.postMessage({tell:"GRAVITY", G:Gravity});
+    }
+
+    if(data.iteration){
+        iterations = data.iteration;
+        world.numIterations = iterations;
+    }
+
+    if(data.timestep){
+        dt = data.timestep;
+        world.timeStep = dt;
+        timerStep = dt * 1000;
+    }
+
+    /*if(data.broadphase){
+        if(data.BroadPhase==="brute") world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
+        else world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
+    }*/
     // ground
     if(data.ground) addRigid({type:"box", size:[40,1,40], pos:[0,-0.5,0]});
     if(data.timer) isTimout = data.timer;
@@ -325,21 +364,21 @@ var lookIfNeedInfo = function (){
 }
 
 var resetArray = function (){
-    bodys = [];
-    types = [];
-    sizes = [];
+    bodys.length = 0;
+    types.length = 0;
+    sizes.length = 0;
 
-    statics = [];
-    staticTypes = [];
-    staticSizes = [];
-    staticMatrix = [];
+    statics.length = 0;
+    staticTypes.length = 0;
+    staticSizes.length = 0;
+    staticMatrix.length = 0;
 
-    joints = [];
+    joints.length = 0;
 
     // sending array
-    matrix = [];
-    sleeps = [];
-    jointPos = [];;
+    matrix.length = 0;
+    sleeps.length = 0;
+    jointPos.length = 0;
 }
 
 var startDemo = function (){

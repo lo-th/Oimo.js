@@ -12,3 +12,9 @@ Demo with three.js and worker:
 [oimo.js dev](http://lo-th.github.io/Oimo.js/index.html)
 
 [oimo.js rev](http://lo-th.github.io/Oimo.js/index_rev.html)
+
+Demo for lower gpu:
+
+[oimo.js dev](http://lo-th.github.io/Oimo.js/index_low.html)
+
+[oimo.js rev](http://lo-th.github.io/Oimo.js/index_rev_low.html)

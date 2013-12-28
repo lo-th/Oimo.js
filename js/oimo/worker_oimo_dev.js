@@ -43,21 +43,19 @@ var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
 var ToRad = Math.PI / 180;
 
 // array variable
-var bodys;
-var matrix;
-var sleeps;
-var types;
-var sizes;
+var bodys = [];
+var matrix = [];
+var sleeps = [];
+var types = [];
+var sizes = [];
 var infos = new Float32Array(13);
 var currentDemo = 0;
 var maxDemo = 10;
 
-var statics;
-var staticTypes, staticSizes, staticMatrix;
+var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
 
 // array joint 
-var joints;
-var jointPos;
+var joints = [], jointPos = [];
 
 // vehicle by key
 var car = null;
@@ -67,6 +65,8 @@ var ball = null;
 var statBegin;
 
 var isTimout = false;
+var isNeedRemove = false;
+var removeTemp = {};
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -82,7 +82,7 @@ self.onmessage = function (e) {
     }
 
     if(phase === "ADD") ADD(e.data);
-    if(phase === "REMOVE") REMOVE(e.data);
+    if(phase === "REMOVE"){ isNeedRemove = true; removeTemp = e.data} //REMOVE(e.data);
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
 
@@ -136,7 +136,20 @@ var rzOimo = function (ar){
 //--------------------------------------------------
 
 var REMOVE = function(data){
-
+    var n = data.n
+    if(data.type.substring(0,5) === 'joint'){
+        world.removeJoint(joints[n]);
+        joints.splice(n,1);
+        jointPos.splice(n*6,6);
+    }else {
+        world.removeRigidBody(bodys[n]);
+        bodys.splice(n,1);
+        sleeps.splice(n,1);
+        matrix.splice(n*12,12);
+    }
+    self.postMessage(removeTemp);
+    isNeedRemove=false;
+    removeTemp = {};
 }
 
 
@@ -145,6 +158,7 @@ var REMOVE = function(data){
 //--------------------------------------------------
 
 var update = function(){
+    if(isNeedRemove){REMOVE(removeTemp);}
     t01 = Date.now();
 
     world.step();
@@ -294,7 +308,7 @@ var createWorld = function(){
 var clearWorld = function(){
     if(isTimout)clearTimeout(timer);
     else clearInterval(timer);
-    if(world != null) world.clear();
+    if(world !== null) world.clear();
     // Clear control object
     if(car !== null ) car = null;
     if(ball !== null ) ball = null;
@@ -305,9 +319,35 @@ var clearWorld = function(){
 }
 
 var basicStart = function(data){
+    
+    isTimout = data.timer || false;
+
+    if(data.G || data.G===0){
+        Gravity = data.G;
+        newGravity = Gravity;
+        world.gravity = new Vec3(0, Gravity, 0);
+        self.postMessage({tell:"GRAVITY", G:Gravity});
+    }
+
+    if(data.iteration){
+        iterations = data.iteration;
+        world.numIterations = iterations;
+    }
+
+    if(data.timestep){
+        dt = data.timestep;
+        world.timeStep = dt;
+        timerStep = dt * 1000;
+    }
+
+    if(data.broadphase){
+        if(data.BroadPhase==="brute") world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
+        else if(data.BroadPhase==="sweep") world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
+        else world.broadphase = BroadPhase.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
+    }
+
     // ground
     if(data.ground) addRigid({type:"box", size:[40,1,40], pos:[0,-0.5,0]});
-    isTimout = data.timer || false;
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
@@ -340,21 +380,21 @@ var lookIfNeedInfo = function(){
 }
 
 var resetArray = function (){
-    bodys = [];
-    types = [];
-    sizes = [];
+    bodys.length = 0; // = [];
+    types.length = 0; // = [];
+    sizes.length = 0; // = [];
 
-    statics = [];
-    staticTypes = [];
-    staticSizes = [];
-    staticMatrix = [];
+    statics.length = 0; // = [];
+    staticTypes.length = 0; // = [];
+    staticSizes.length = 0; // = [];
+    staticMatrix.length = 0; // = [];
 
-    joints = [];
+    joints.length = 0; // = [];
 
     // sending array
-    matrix = new Array();//Float32Array(100000);// [];
-    sleeps = new Array();//new Float32Array(100000);//[];
-    jointPos = new Array();//new Float32Array(100000);//[];
+    matrix.length = 0; // = new Array();//Float32Array(100000);// [];
+    sleeps.length = 0; // = new Array();//new Float32Array(100000);//[];
+    jointPos.length = 0; // = new Array();//new Float32Array(100000);//[];
 }
 
 var startDemo = function(){

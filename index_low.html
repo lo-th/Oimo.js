@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Oimo.js REV</title>
+		<title>Oimo.js DEV</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<link rel="shortcut icon" href="images/favicon.ico">
 		<style>
-			body { background-color: #222; margin: 0px; overflow: hidden; }
+			body { background-color: #555; margin:0; padding:0; overflow: hidden; }
 			@font-face { font-family: 'SourceCode'; src: url('images/SourceCodePro.woff') format('woff');}
 			a { text-decoration:none; }
-		</style> 
+		</style>
 	</head>
 	<body>
 		<script type="text/javascript" src="js/three.min.js"></script>
@@ -36,33 +36,34 @@
 		<script type="text/javascript" src='js/materialShader/HdrShader.js'></script>
 
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
-		
+
 		<script type="text/javascript">
-		    var version='REV';
-		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Greek temple", "Ragdoll"];
-        	var Ambience;
+		    var version='DEV';
+		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Car simulator", "Ragdoll", "Van", "Bridge", "Droid"];
+		    var Ambience;
         	var threeEngine;
         	var Interface;
-        	var TinyRadio;
+        	//var TinyRadio;
         	var Editor;
-            var OimoWorker = new Worker('js/oimo/worker_oimo_rev.js');
+            var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
         	window.onload = init;
 
 		    function init() {
 		    	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-		    	Interface = new Interface('rev');
+		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
 		    	threeEngine = new ThreeEngine();
 		    	//TinyRadio = new TinyRadio();
 		    	Editor = new Editor();
+		    	
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
 				Interface.menu.appendChild( Editor.domElement );
 				//menu.appendChild( TinyRadio.domElement );
-				threeEngine.init();
+				threeEngine.init({optimized:true, notReflected:false});
             }
 
             function mainAllObjectLoaded(){
@@ -83,7 +84,7 @@
 	            	threeEngine.createJoints(e.data.joints);
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
-
+				
 				// create static mesh debug
 	            if(phase === "INITSTATIC"){
 	            	threeEngine.createStaticObjects(e.data);
@@ -92,13 +93,17 @@
 
 				// update three object
     	    	if( phase === "RUN"){
+    	    		//stats2.end();
+    	    		
     	    		var demo = e.data.infos[0];
+    	    		//var i=0;
     	    		var max = e.data.maxB;
-    	    		var i=e.data.maxB;
+    	    		var i = e.data.maxB;
     	    		var m = e.data.matrix;
         	    	var mtx, n, mesh;
 
         	    	// Update rendering meshes
+        	    	//for(i=0; i!==max; i++){
         	    	while (i--) {
         	    		if( threeEngine.content.children[i] ){
             	    		mesh = threeEngine.content.children[i];
@@ -112,7 +117,7 @@
 						    		else if(mesh.material.name == "mat02sleep") mesh.material = threeEngine.materials[1];
 						    		else if(mesh.material.name == "mat03sleep") mesh.material = threeEngine.materials[2];
 						    		else if(mesh.material.name == "mat04sleep") mesh.material = threeEngine.materials[3];
-						    		//else if(mesh.material.name == "bonesleep") mesh.material = threeEngine.materials[10];
+						    		else if(mesh.material.name == "mat07sleep") mesh.material = threeEngine.materials[6];
 						    	}
 						    } else {
 						    	if(mesh.material){
@@ -120,7 +125,7 @@
 						    		else if(mesh.material.name == "mat02") mesh.material = threeEngine.materials[9];
 						    		else if(mesh.material.name == "mat03") mesh.material = threeEngine.materials[10];
 						    		else if(mesh.material.name == "mat04") mesh.material = threeEngine.materials[11];
-						    		//else if(mesh.material.name == "bone") mesh.material = threeEngine.materials[11];
+						    		else if(mesh.material.name == "mat07") mesh.material = threeEngine.materials[12];
 						    	}
 					    	}
 				        } 
@@ -149,7 +154,7 @@
 	            // clear three object
 				if(phase === "CLEAR"){
 				    threeEngine.clearAll();
-				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null;  initDemo(); }  
+				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null; if(Editor.getScript()) initDemo(); } 
 				}
 				// get ragdoll info
 				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);

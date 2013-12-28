@@ -6,6 +6,8 @@
 */
 'use strict';
 var ThreeEngine = function () {
+	// containe background object
+	var back = new THREE.Object3D();
 	// containe all object from simulation
 	var content = new THREE.Object3D();
 	// containe all static object from simulation
@@ -36,7 +38,7 @@ var ThreeEngine = function () {
 	var currentPlayer = 1;
 	var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 
-	var isOptimized;
+	
 	var isLoading = true;
 	var antialias;
 	var MaxAnistropy;
@@ -46,19 +48,28 @@ var ThreeEngine = function () {
 	var directionVector = new THREE.Vector3();
 	var marker;
 
-	var isBuffered = true;
+
 	var PATH = 'http://lo-th.github.io/Oimo.js/';
 
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
 
 	var container = document.createElement( 'div' );
 	container.id = 'container';
-	container.style.cssText = unselect + ' padding:0; position:absolute; left:0; top:0; overflow:hidden;';
+	container.style.cssText = unselect + ' padding:0; position:absolute; left:0; top:0; bottom:0; overflow:hidden;';
 
 	var selected = null;
+	var point = null;
 	var followObject = null;
 	var followSpecial = null;
 	var player = null;
+
+	var isBuffered = false;
+	var isDebug = true;
+	var isShadow = false;
+	var isOptimized;
+	var isNotReflected;
+
+	var mouseMode = '';
 
 	//-----------------------------------------------------
 	//  INIT VIEW
@@ -68,6 +79,7 @@ var ThreeEngine = function () {
 
 		if(!option) option = {};
 		isOptimized = option.optimized || false;
+		isNotReflected = option.notReflected || false;
 		if(!isOptimized) antialias = true;
 		else antialias = false;
 
@@ -75,28 +87,84 @@ var ThreeEngine = function () {
 		if(browserName==="Firefox" || browserName==="Chrome") PATH = '';
 
 		renderer = new THREE.WebGLRenderer({ antialias:antialias, alpha: false });
-		//renderer.setClearColor( 0x161616, 1 );
+		//
 		//renderer.autoClearColor = false;
 		//renderer.clearStencil = false;
-		renderer.physicallyBasedShading = true;
-		renderer.gammaOutput = true;
-		renderer.gammaInput = true;
-		renderer.autoClear = false;
+		
 		container.appendChild( renderer.domElement );
 
-		MaxAnistropy = renderer.getMaxAnisotropy();
+		
 
 		scene = new THREE.Scene();
-		sceneBG = new THREE.Scene();
-		
 		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
-		cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
 		
+
+        scene.add(back);
 		scene.add(camera);
-		sceneBG.add(cameraBG);
+		scene.add(content);
+		scene.add(contentDebug);
+		scene.add(contentJoint);
+		scene.add(contentSpecial);
 
+		// marker for mouse position
+		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
+		scene.add(marker);
+
+		
+
+		if(!isNotReflected) initReflectBall();
+		initMaterial();
+
+		if(!isOptimized){
+			MaxAnistropy = renderer.getMaxAnisotropy();
+			renderer.physicallyBasedShading = true;
+			renderer.gammaOutput = true;
+			renderer.gammaInput = true;
+			renderer.autoClear = false;
+			//sceneBG = new THREE.Scene();
+			//cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
+			//sceneBG.add(cameraBG);
+
+		    renderer.shadowMapEnabled = true;
+		    renderer.shadowMapType = THREE.PCFSoftShadowMap;
+		    renderer.shadowMapSoft = true;
+
+		    isShadow = true;
+
+			initLights();
+			initObject();
+		}else {
+			MaxAnistropy = 1;
+			//initBackPlane();
+			//renderer.clearStencil = true;
+			//renderer.autoClear = false;
+			renderer.setClearColor( 0x505050);
+		}
+
+		
+
+		
+		initSea3DMesh();
 		moveCamera();
+		
+	    changeView(45,60,1000);
+	    initListener();
+	    update();
+	}
 
+	var initBackPlane = function () {
+		var backMat = new THREE.MeshBasicMaterial( { color: 0x505050, depthWrite: false} );
+		var bplane = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), backMat );
+		//planeBG.rotation.x = (-90)*ToRad;
+		//planeBG.position.y =0.01;
+		scene.add(bplane);
+		bplane.receiveShadow = true;
+		bplane.castShadow = false;
+		back.add(bplane);
+
+	}
+
+	var initListener = function () {
 		container.addEventListener( 'mousemove', onMouseMove, false );
 		container.addEventListener( 'mousedown', onMouseDown, false );
 		container.addEventListener( 'mouseout', onMouseUp, false );
@@ -115,38 +183,58 @@ var ThreeEngine = function () {
 
 		window.addEventListener( 'resize', viewResize, false ); 
 		viewResize();
-
-		scene.add(content);
-		scene.add(contentDebug);
-		scene.add(contentJoint);
-		scene.add(contentSpecial);
-
-		// marker for mouse position
-		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
-		scene.add(marker);
-
-		if(!isOptimized){
-		    renderer.shadowMapEnabled = true;
-		    //renderer.shadowMapType = THREE.PCFSoftShadowMap;
-		    //renderer.shadowMapSoft = true;
-
-			initLights();
-		}
-
-		initReflectBall();
-		initMaterial();
-		initObject();
-		initSea3DMesh();
-		
-	    update();
-	    changeView(45,60,1000);
 	}
+
+	//-----------------------------------------------------
+	//  OPTION ON/OFF
+	//-----------------------------------------------------
+	
+
+	var reflection = function(){
+		if(isNotReflected){
+			isNotReflected = false;
+			initReflectBall();
+			updateBallCamera();
+			activReflection();
+		} else {
+			isNotReflected = true;
+			removeReflection();
+			if(ballCamera){
+				ballScene.remove( ballCamera );
+				ballScene.remove( ball );
+				//ballScene = null;
+			}
+		}
+	}
+
+	var debug = function(){
+		if(isDebug)isDebug = false;
+		else isDebug = true;
+		var i=contentDebug.children.length;
+		while (i--) contentDebug.children[ i ].visible = isDebug;
+	}
+
+	var shadow = function(){
+		if(isShadow){
+			isShadow = false;
+			removeLights();
+			removeGroundShadow();
+		}else{ 
+			isShadow = true;
+			initLights();
+			addGroundShadow();
+			renderer.shadowMapType = THREE.PCFSoftShadowMap;
+		}
+		renderer.shadowMapEnabled = isShadow;
+		renderer.shadowMapSoft = isShadow;
+	}
+
 
 	//-----------------------------------------------------
 	//  REFLECT BALL
 	//-----------------------------------------------------
 
-	var ballScene, ballCamera, ball, ballMaterial;
+	var ballScene, ballCamera, ball, ballMaterial, envtexture;
 
 	var initReflectBall = function(){
 		var s = 1;
@@ -164,7 +252,7 @@ var ThreeEngine = function () {
 		ball.scale.set(-s,s,s);
 		ballScene.add( ball );
 
-		updateBallCamera();
+		//updateBallCamera();
 	}
 
 	var updateBallCamera = function (){
@@ -178,12 +266,40 @@ var ThreeEngine = function () {
 		}
 	}
 
+	var activReflection = function (){ 
+		envtexture = ballCamera.renderTarget;
+		var i = materials.length;
+		//var m='';
+		//for(var i=0; i!==materials.length; i++){
+		while (i--) {
+			materials[i].envMap = envtexture;
+			materials[i].combine = THREE.MixOperation;
+			//materials[i].combine = THREE.MultiplyOperation;
+			materials[i].reflectivity = 0.5;
+			//materials[i].envMap.needsUpdate = true;
+			//m += materials[i].name + "<br>";
+		}
+		//document.getElementById("output").innerHTML = m;
+	}
+
+	var removeReflection = function (){
+		var i = materials.length;
+		//for(var i=0;i!==materials.length; i++){
+		while (i--) {
+			materials[i].envMap = null;
+			materials[i].combine = null;
+			//materials[i].combine = THREE.MultiplyOperation;
+			materials[i].reflectivity = 0;
+		}
+	}
+
 	//-----------------------------------------------------
 	//  MATERIAL
 	//-----------------------------------------------------
 
-	var groundMat, mat01, mat02, mat03, mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat05, matBone, matBonesleep, mat06, mat07, mat07sleep, mat08, matGyro, debugMaterial, jointMaterial, glassMaterial, matDroid; 
-	var poolMaterial = [];
+	//var groundMat; 
+	var debugMaterial, jointMaterial;
+
 	//var baseMaterialm baseMaterial2;
 	var envTexture;
 	var sphereMaterial;
@@ -195,28 +311,20 @@ var ThreeEngine = function () {
 	}
 
 	var initMaterial = function () {
-		//var r = "images/Park3Med/";
-		/*var urls = [ r + "px.jpg", r + "nx.jpg",
-					 r + "py.jpg", r + "ny.jpg",
-					 r + "pz.jpg", r + "nz.jpg" ];
-
-		var textureCube = THREE.ImageUtils.loadTextureCube( urls, new THREE.CubeRefractionMapping() );
-
-		envTexture = Ambience.getTexture();*/
 
 		// SHADER
-if(!isOptimized){
-		sphereMaterial=new THREE.ShaderMaterial({
-			uniforms:THREE.SpShader.uniforms,
-			vertexShader:THREE.SpShader.vertexShader,
-			fragmentShader:THREE.SpShader.fragmentShader,
-			side:THREE.BackSide,
-			depthWrite: false
-		});
-		sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
-}else{
-	sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 ,side:THREE.BackSide, depthWrite: false} );
-}
+		if(!isOptimized){
+				sphereMaterial=new THREE.ShaderMaterial({
+					uniforms:THREE.SpShader.uniforms,
+					vertexShader:THREE.SpShader.vertexShader,
+					fragmentShader:THREE.SpShader.fragmentShader,
+					side:THREE.BackSide,
+					depthWrite: false
+				});
+				sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
+		}else{
+			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 ,side:THREE.BackSide, depthWrite: false} );
+		}
 
 		/*baseMaterial=new THREE.ShaderMaterial({
 			uniforms: THREE.SphereShader.uniforms,
@@ -249,103 +357,67 @@ if(!isOptimized){
 		var diceTextureSleep = new createDiceTexture(1);
 		var wheelTexture = new createWheelTexture(0);
 		var gyroTexture = new createGyroTexture();//THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
-
+// 
 		debugMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe:true, transparent:true, opacity:0.1 } );
 		jointMaterial = new THREE.LineBasicMaterial( { color: 0x30ff30 } );
-		glassMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff,  refractionRatio: 0.98, transparent:true, opacity:0.2 } );
+		//glassMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff,  refractionRatio: 0.98, transparent:true, opacity:0.2 } );
+		//groundMat = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
 
-		if(!isOptimized){
-			groundMat =  new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
-			mat01 = new THREE.MeshLambertMaterial( { color: 0xff9933, shininess:100, specular:0xffffff } );
-			mat02 = new THREE.MeshLambertMaterial( { color: 0x3399ff, shininess:100, specular:0xffffff } );
-			mat03 = new THREE.MeshLambertMaterial( { color: 0x33ff99, shininess:100, specular:0xffffff } );
-			mat04 = new THREE.MeshLambertMaterial( { map: diceTexture, shininess:10, specular:0xffffff } );
-			mat05 = new THREE.MeshLambertMaterial( { map: snakeTexture, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.9 } ); 
-			mat06 = new THREE.MeshLambertMaterial( { map: wheelTexture } );
-			mat07 = new THREE.MeshLambertMaterial( { color: 0x7C7B77, shininess:100, specular:0xffffff } );
-			mat08 = new THREE.MeshLambertMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true, transparent:true, opacity:0.5 } );
-			mat01sleep = new THREE.MeshLambertMaterial( { color: 0xffd9b2, shininess:100, specular:0xffffff } );
-			mat02sleep = new THREE.MeshLambertMaterial( { color: 0xb2d9ff, shininess:100, specular:0xffffff } );
-			mat03sleep = new THREE.MeshLambertMaterial( { color: 0xb2ffd9, shininess:100, specular:0xffffff } );
-			mat04sleep = new THREE.MeshLambertMaterial( { map: diceTextureSleep, shininess:10, specular:0xffffff } );
-			mat07sleep = new THREE.MeshLambertMaterial( { color: 0xAEABA6, shininess:100, specular:0xffffff } );
-			matGyro = new THREE.MeshLambertMaterial( { map: gyroTexture, shininess:100, specular:0xffffff } );
-			matDroid = new THREE.MeshLambertMaterial( { color: 0xe7b37a, shininess:100, specular:0xffffff, skinning: true } );
+		//---------------------------------------------
 
-			matBone = new THREE.MeshBasicMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } ); 
-			matBonesleep = new THREE.MeshBasicMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4 } );  
-			for(var i=0;i!==16;i++){
-				poolMaterial[i] = new THREE.MeshLambertMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff } );
-			}
-	        //MeshPhongMaterial
-			//MeshLambertMaterial
-		}else{
-			groundMat = new THREE.MeshBasicMaterial( { color: 0x185E77} );
-			mat01 = new THREE.MeshBasicMaterial( { color: 0xff9933, emissive:0xffffff} );
-			mat02 = new THREE.MeshBasicMaterial( { color: 0x3399ff} );
-			mat03 = new THREE.MeshBasicMaterial( { color: 0x33ff99} );
-			mat04 = new THREE.MeshBasicMaterial( { map: diceTexture} );
-			mat05 = new THREE.MeshBasicMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9} );
-			mat06 = new THREE.MeshBasicMaterial( { map: wheelTexture} );
-			mat07 = new THREE.MeshBasicMaterial( { color: 0x7C7B77} );
-			mat08 = new THREE.MeshBasicMaterial( { color: 0xAEABA6, skinning: true, transparent:true, opacity:0.5} );
-			mat01sleep = new THREE.MeshBasicMaterial( { color: 0xffd9b2} );
-			mat02sleep = new THREE.MeshBasicMaterial( { color: 0xb2d9ff} );
-			mat03sleep = new THREE.MeshBasicMaterial( { color: 0xb2ffd9} );
-			mat04sleep = new THREE.MeshBasicMaterial( { map: diceTextureSleep} );
-			mat07sleep = new THREE.MeshBasicMaterial( { color: 0xAEABA6} );
-			matGyro = new THREE.MeshBasicMaterial( { map: gyroTexture} );
+		makeMaterial( { color: 0xff9933, name:'mat01' } );//0
+		makeMaterial( { color: 0x3399ff, name:'mat02'} );//1
+		makeMaterial( { color: 0x33ff99, name:'mat03' } );//2
+		makeMaterial( { map: diceTexture, name:'mat04' } );//3
+		makeMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9, name:'mat05' } ); //4
+		makeMaterial( { map: wheelTexture, name:'mat06' } );//5
+		makeMaterial( { color: 0x7C7B77, name:'mat07' } );//6
+		makeMaterial( { color: 0xe7b37a, skinning: true, transparent:true, opacity:0.5, name:'mat08' } );
+		makeMaterial( { color: 0xffd9b2, name:'mat01sleep' } );//8
+		makeMaterial( { color: 0xb2d9ff, name:'mat02sleep' } );//9
+		makeMaterial( { color: 0xb2ffd9, name:'mat03sleep' } );//10
+		makeMaterial( { map: diceTextureSleep, name:'mat04sleep' } );//11
+		makeMaterial( { color: 0xAEABA6, name:'mat07sleep' } );//12
+		makeMaterial( { map: gyroTexture, name:'matGyro' } );
+		makeMaterial( { color: 0xe7b37a, skinning: true, name:'matDroid' } );
 
-			matBone = new THREE.MeshBasicMaterial( { color: 0xffff00, transparent:true, opacity:0.1 } ); 
-			matBonesleep = new THREE.MeshBasicMaterial( { color: 0xffffff, transparent:true, opacity:0.1 } ); 
-			for(var i=0;i!==16;i++){
-				poolMaterial[i] = new THREE.MeshBasicMaterial( { map: new eightBall(i) } );
-			}
+		//makeMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4, name:'matBone' } ); 
+		//makeMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4, name:'matBonesleep' } );  
+		for(var i=0;i!==16;i++){
+			makeMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff, name:'pool'+i } );
 		}
 
-		mat01.name = "mat01";
-		mat02.name = "mat02";
-		mat03.name = "mat03";
-		mat04.name = "mat04";
-		mat07.name = "mat07";
-		mat01sleep.name = "mat01sleep";
-		mat02sleep.name = "mat02sleep";
-		mat03sleep.name = "mat03sleep";
-		mat04sleep.name = "mat04sleep";
-		mat07sleep.name = "mat07sleep";
-		matBone.name = "bone";
-		matBonesleep.name = "bonesleep";
 
-		materials[0] = mat01;
-		materials[1] = mat02;
-		materials[2] = mat03;
-		materials[3] = mat04;
-		materials[4] = mat07;
-		materials[5] = mat01sleep;
-		materials[6] = mat02sleep;
-		materials[7] = mat03sleep;
-		materials[8] = mat04sleep;
-		materials[9] = mat07sleep;
-		materials[10] = matBone;
-		materials[11] = matBonesleep;
-
-		// define Ambiante Colors
-		var array1=[mat01, mat02, mat03, mat04, mat07, mat01sleep, mat02sleep, mat03sleep, mat04sleep, mat07sleep, mat05, mat06, mat08, matGyro, glassMaterial];
-		var array2 = array1.concat(poolMaterial)
-		//Ambience.begin(scene, [mat01, mat02, mat03,mat04, mat01sleep, mat02sleep, mat03sleep, mat04sleep], 2);
-		//Ambience.begin(renderer, scene, array2, 500,100);
-		//Ambience.update((-camPos.horizontal)*ToRad, (-camPos.vertical-90)*ToRad, renderer, scene);
-		activReflection(array2);
+		if(!isNotReflected){
+			activReflection();
+			updateBallCamera();
+		} 
 	}
 
-	var activReflection = function (ar){
-		for(var i=0;i!==ar.length; i++){
-			ar[i].envMap = ballCamera.renderTarget;
-			ar[i].combine = THREE.MixOperation;
-			//materials[i].combine = THREE.MultiplyOperation;
-			ar[i].reflectivity = 0.5;
+	var makeMaterial = function (obj){
+		var mat;
+		//obj.ambient = 0x909090;
+		//obj.emissive = 0x000000;
+		
+		if(isOptimized) mat = new THREE.MeshBasicMaterial( obj );
+		else{
+			obj.shininess = 100;
+			obj.specular = 0xffffff;
+			mat = new THREE.MeshLambertMaterial( obj );
 		}
+		// mat = new THREE.MeshPhongMaterial( obj );
+		materials.push(mat);
 	}
+
+	var getMaterial = function (name){
+		var mat;
+		for(var i=0;i!==materials.length; i++){
+			if(materials[i].name === name) mat = materials[i];
+		}
+		return mat;
+	}
+
+	
 
 	//-----------------------------------------------------
 	//  CROSSED OIMO FUNCTIONS
@@ -466,6 +538,7 @@ if(!isOptimized){
 	    mesh.castShadow = false;
 	    mesh.name = 'D'+contentDebug.children.length;
 	    contentDebug.add( mesh );
+	    if(!isDebug) mesh.visible = false;
 	    return mesh;
 	}
 
@@ -499,89 +572,99 @@ if(!isOptimized){
 		var meshFlag;
 
     	switch(type){
-    		case 1: case 'sphere': mesh=new THREE.Mesh(geo02b, mat02); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
-    		case 2: case 'box': mesh=new THREE.Mesh(smoothCube, mat01); mesh.scale.set( s[0], s[1], s[2] ); break; // box
-    		case 3: case 'cylinder': mesh=new THREE.Mesh(geo03b, mat03); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
+    		case 1: case 'sphere': mesh=new THREE.Mesh(geo02b, getMaterial('mat02')); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
+    		case 2: case 'box':
+    		    mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
+    		    //mesh=new THREE.Mesh(geo01b, getMaterial('mat01'));
+    		    mesh.scale.set( s[0], s[1], s[2] ); 
+    		break; // box
+    		case 3: case 'cylinder': mesh=new THREE.Mesh(geo03b, getMaterial('mat03')); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
 
-    		case 4: case 'dice': mesh=new THREE.Mesh(diceBuffer, mat04); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
+    		case 4: case 'dice': mesh=new THREE.Mesh(diceBuffer, getMaterial('mat04')); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
     		case 5: case 'wheel':
-    		    mesh=new THREE.Mesh(getSeaGeometry('wheel'), mat06);
+    		    mesh=new THREE.Mesh(getSeaGeometry('wheel'), getMaterial('mat06'));
     		    mesh.scale.set( s[0]*2, s[1]*2, s[2]*2 );
     		break;
     		case 6: case 'wheelinv':
-    		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, mat06);
+    		    mesh=new THREE.Mesh(getMeshByName('wheel').geometry, getMaterial('mat06'));
     		    mesh.scale.set( -s[0]*2, s[1]*2, -s[2]*2 );
     		break;
 
-    		case 7: case 'column': mesh=new THREE.Mesh(colomnBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break;
-    		case 8: case 'columnBase': mesh=new THREE.Mesh(colomnBaseBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break;
-    		case 9: case 'columnTop': mesh=new THREE.Mesh(colomnTopBuffer, mat07); mesh.scale.set( s[1], s[1], s[1] ); break;
+    		case 7: case 'column': mesh=new THREE.Mesh(colomnBuffer, getMaterial('mat07')); mesh.scale.set( s[1], s[1], s[1] ); break;
+    		case 8: case 'columnBase': mesh=new THREE.Mesh(colomnBaseBuffer, getMaterial('mat07')); mesh.scale.set( s[1], s[1], s[1] ); break;
+    		case 9: case 'columnTop': mesh=new THREE.Mesh(colomnTopBuffer, getMaterial('mat07')); mesh.scale.set( s[1], s[1], s[1] ); break;
 
     		case 10: case 'bone':
     		    mesh = new THREE.Object3D();
     		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
-    		    meshFlag=new THREE.Mesh(geo00, Bmat ); mesh.scale.set( s[0], s[1], s[2] ); 
+    		    meshFlag=new THREE.Mesh(geo00, Bmat ); 
+    		    mesh.scale.set( s[0], s[1], s[2] ); 
     		    mesh.add(meshFlag);
     		    boneindex++;
     		break;
     		case 11: case 'nball': 
-    		    mesh = new THREE.Mesh(geo04b, poolMaterial[Math.floor((Math.random()*16))]); 
+    		    mesh = new THREE.Mesh(geo04b, getMaterial('pool'+Math.floor((Math.random()*16))) ); 
     		    mesh.scale.set( s[0], s[0], s[0] ); 
     		break;
     		case 12: case 'gyro':
 	    		mesh = new THREE.Object3D();
 	    		m2 = getMeshByName('gyro');
-	    		m2.material = matGyro;
-	    		m2.children[0].material = matGyro;
-	    		m2.children[0].children[0].material = matGyro;
-	    		m2.children[0].children[0].children[0].material = matGyro;
+	    		m2.material = getMaterial('matGyro');
+	    		m2.children[0].material = getMaterial('matGyro');
+	    		m2.children[0].children[0].material = getMaterial('matGyro');
+	    		m2.children[0].children[0].children[0].material = getMaterial('matGyro');
 	    		m2.scale.set( s[0], s[0], s[0] );
 	    		contentSpecial.add(m2);
 	    		followSpecial = "gyro";
-	    		followObject = name;
+	    		followObject = mesh;//name;
     		break;
     		case 13: case 'carBody':
-    		    mesh = new THREE.Mesh(getMeshByName('carBody').geometry, mat02); 
+    		    mesh = new THREE.Mesh(getMeshByName('carBody').geometry, getMaterial('mat02')); 
     		    mesh.scale.set( 100, 100, 100 );
 
-    		    followObject = name;
+    		    followObject = mesh;//name;
     		break;
     		case 14: case 'vanBody':
     		    mesh = new THREE.Object3D();
     		    m2 = getMeshByName('vanBody');
-    		    m2.material = mat02;
-    		    m2.children[0].material = mat02;
-    		    m2.children[1].material = mat02;
-    		    m2.children[2].material = mat02;
+    		    m2.material = getMaterial('mat02');
+    		    m2.children[0].material = getMaterial('mat02');
+    		    m2.children[1].material = getMaterial('mat02');
+    		    m2.children[2].material = getMaterial('mat02');
     		    m2.scale.set( 3, 3, 3 );
     		    m2.position.y= -36;
     		    mesh.add(m2);
 
-    		    followObject = name;
+    		    followObject = mesh;//name;
     		break;
     		case 15: case 'vanwheel':
-    		    mesh = new THREE.Mesh(getMeshByName('vanWheel').geometry, mat03);
+    		    mesh = new THREE.Mesh(getMeshByName('vanWheel').geometry, getMaterial('mat03'));
     		    mesh.scale.set( 3, 3, 3 );
     		break;
     		case 16: case 'droid':
     		    mesh = new THREE.Object3D();
     		    m3 = new THREE.Object3D();
     		    m2 = getMeshByName('Android');
-    		    m2.position.set(0,-6,0)
+    		    m2.position.set(0,-6,0);
     		   // m2 = new THREE.SkinnedMesh( getSeaGeometry('Android', 2), matDroid, false);
     		   // m2.animations = getMeshByName('Android').animations;
                         //var animation = new THREE.Animation( block, "idle" );
                         //THREE.AnimationHandler.add( block.geometry.animations )
                        
-    		    m2.material = matDroid;
+    		   // m2.material = getMaterial('matDroid');
+    		    if(!isNotReflected) {
+	    		   	m2.material.envMap = envtexture;
+					m2.material.combine = THREE.MixOperation;
+					m2.material.reflectivity = 0.5;
+    		    }
     		    m3.scale.set( 3, 3, -3 );
     		    
     		    m3.add(m2);
     		    contentSpecial.add(m3);
 	    		followSpecial = "droid";
 	    		player = m3;
-	    		player.children[0].play("Walk");
-	    		followObject = name;
+	    		//player.children[0].play("Walk");
+	    		followObject = mesh;
     		break;
     	}
     	mesh.position.y = -10000;
@@ -632,7 +715,7 @@ if(!isOptimized){
 
 	var addSnake = function (s) {
 		if(s==null) s = [10,10,10];
-		var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, mat05 );
+		var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, getMaterial('mat05') );
 		//mesh.material = mat05;
 		mesh.scale.set( s[0], s[1], -s[2] );
 		content.add( mesh );
@@ -677,7 +760,7 @@ if(!isOptimized){
 	// for ragdoll test
 	var addSila = function (s) {
 		if(s==null) s = [1,1,1];
-		var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, mat08 );
+		var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, getMaterial('mat08') );
 		//mesh.material = mat08;
 		mesh.scale.set( s[0], s[1], s[2] );
 		//mesh.position.y=90;
@@ -757,35 +840,47 @@ if(!isOptimized){
 	var lights = [];
 
 	var initLights = function () {
-		lights[0] = new THREE.DirectionalLight( 0xffffff );
-		lights[0].intensity = 1.3;
-		lights[0].castShadow = true;
+		lights[0] = new THREE.AmbientLight( 0x505050 );
+		scene.add(lights[0]);
 
-		lights[0].shadowCameraNear = 500;
-		lights[0].shadowCameraFar = 2000;
+		//if(isOptimized) return
+
+		lights[1] = new THREE.DirectionalLight( 0xffffff );
+		lights[1].intensity = 1.3;
+		lights[1].castShadow = true;
+
+		lights[1].shadowCameraNear = 500;
+		lights[1].shadowCameraFar = 2000;
 		
-		lights[0].shadowMapBias = 0.0001;
-		lights[0].shadowMapDarkness = 0.5;
-		lights[0].shadowMapWidth = 1024;
-		lights[0].shadowMapHeight = 1024;
+		lights[1].shadowMapBias = 0.0001;
+		lights[1].shadowMapDarkness = 0.5;
+		lights[1].shadowMapWidth = 1024;
+		lights[1].shadowMapHeight = 1024;
 
 		var lightSize = 2000;
 
-		lights[0].shadowCameraLeft = -lightSize;
-		lights[0].shadowCameraRight = lightSize;
-		lights[0].shadowCameraTop = lightSize;
-		lights[0].shadowCameraBottom = -lightSize;
+		lights[1].shadowCameraLeft = -lightSize;
+		lights[1].shadowCameraRight = lightSize;
+		lights[1].shadowCameraTop = lightSize;
+		lights[1].shadowCameraBottom = -lightSize;
 
-		lights[0].position.copy( Orbit(center , 35, 45, 1000));
-		lights[0].target.position.copy(center);
+		lights[1].position.copy( Orbit(center , 35, 45, 1000));
+		lights[1].target.position.copy(center);
 
-		scene.add(lights[0]);
+		scene.add(lights[1]);
+	}
+
+	var removeLights = function () {
+		lights[1].castShadow = false;
+		scene.remove(lights[1]);
+		scene.remove(lights[0]);
+		lights.length = 0;
 	}
 
 	var moveLights = function (vect) {
-		if(!isOptimized){
-			lights[0].position.copy( Orbit(center , 35, 45, 1000));
-			lights[0].target.position.copy(center);
+		if(lights[1]){
+			lights[1].position.copy( Orbit(center , 35, 45, 1000));
+			lights[1].target.position.copy(center);
 			//lights[1].position.copy( Orbit(center , 35, 45, -1000));
 	    }
 	}
@@ -794,39 +889,53 @@ if(!isOptimized){
 	//  BG OBJECT
 	//-----------------------------------------------------
 
-	var planeBG, sphereBG;
+	var planeBG = null, sphereBG = null;
+
+	var addGroundShadow = function () {
+		var groundMat = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
+		planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMat );
+		planeBG.rotation.x = (-90)*ToRad;
+		planeBG.position.y =0.01;
+		planeBG.receiveShadow = true;
+		planeBG.castShadow = false;
+		back.add(planeBG);
+	}
+
+	var removeGroundShadow = function () {
+		back.remove(planeBG);
+		planeBG.geometry.dispose();
+		planeBG.material.dispose();
+		planeBG = null;
+	}
 
 	var initObject = function () {
 		// ground
-		if(!isOptimized){
-			planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMat );
-			planeBG.rotation.x = (-90)*ToRad;
-			planeBG.position.y =0.01;
-			scene.add(planeBG);
-			planeBG.receiveShadow = true;
-			planeBG.castShadow = false;
-	    }
-
+		addGroundShadow();
+	    
 		// bg Sphere
 		sphereBG=new THREE.Mesh(new THREE.IcosahedronGeometry(16000,1),sphereMaterial);
-		sceneBG.add(sphereBG);
+		//sceneBG.add(sphereBG);
+		back.add(sphereBG);
 		sphereBG.receiveShadow = false;
 		sphereBG.castShadow = false;
 	}
 
 	var moveBgObject = function (){
-		if(!isOptimized) planeBG.position.set(center.x, 0, center.z);
-		sphereBG.position.copy(center);
+		//if(isOptimized) return;
+		if(planeBG!==null)planeBG.position.set(center.x, 0, center.z);
+		if(sphereBG!==null)sphereBG.position.copy(center);
 	}
 
 	var resetBgObject = function (){
-		if(!isOptimized)planeBG.position.set(0, 0, 0);
-		sphereBG.position.set(0, 0, 0);
+		//if(isOptimized) return;
+		if(planeBG!==null)planeBG.position.set(0, 0, 0);
+		if(sphereBG!==null)sphereBG.position.set(0, 0, 0);
 	}
 
 	//-----------------------------------------------------
 	//  DEFINE FINAL GEOMETRY
 	//-----------------------------------------------------
+
 	var geo00 = new THREE.PlaneGeometry( 1, 1 );
 	var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 	var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
@@ -834,11 +943,7 @@ if(!isOptimized){
 	var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
 	var geo05 = new THREE.SphereGeometry( 1, 12, 8 );
 
-	var geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
-	var geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
-	var geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
-	var geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
-	var geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
+	var geo00b,geo01b,geo02b,geo03b,geo04b;
 	var smoothCube;
 	var diceBuffer;
 	var colomnBuffer;
@@ -847,12 +952,22 @@ if(!isOptimized){
 
 	var defineGeometry = function(){
 		if(isBuffered){
+			geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
+			geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
+			geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
+			geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
+			geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
 			smoothCube = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
 			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
 			colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
 			colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
 			colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
 	    } else {
+	    	geo00b = geo00;
+			geo01b = geo01;
+			geo02b = geo02;
+			geo03b = geo03;
+			geo04b = geo04;
 	    	smoothCube = getSeaGeometry('box');
 	    	diceBuffer = getSeaGeometry('dice');
 			colomnBuffer = getSeaGeometry('column');
@@ -973,15 +1088,12 @@ if(!isOptimized){
 
 		
 
-		if(!isOptimized){
-			renderNoise+=(nRenderNoise-renderNoise)*.2;
-			setNoise(renderNoise);
-		}
+		
 
-		if(followObject) cameraFollow(content.children[followObject].position);
+		if(followObject) cameraFollow(followObject.position);
 		if(followSpecial){
 			if(followSpecial === 'gyro'){
-				var m00=content.children[followObject];
+				var m00=followObject;
 		        var m01=contentSpecial.children[0];
 		        m01.position.copy(m00.position);
 		        m01.children[0].rotation.y=-(camPos.horizontal-90)*ToRad;
@@ -990,7 +1102,7 @@ if(!isOptimized){
 		        prevR[0] = m00.position.x;
 		        prevR[1] = m00.position.z;
 			} else if(followSpecial === 'droid'){
-				var m00=content.children[followObject];
+				var m00=followObject;
 				//player = null;
 		       // var m01=contentSpecial.children[0];
 		        var distance= getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
@@ -1009,6 +1121,12 @@ if(!isOptimized){
 			}
 		}
 
+		if(!isOptimized){
+			renderNoise+=(nRenderNoise-renderNoise)*.2;
+			setNoise(renderNoise);
+			//renderer.render( sceneBG, cameraBG );
+		}
+
 		/*
 		//delta = clock.getDelta();
 		//THREE.AnimationHandler.update( delta*0.5 );
@@ -1016,7 +1134,7 @@ if(!isOptimized){
 		*/
 
 		//renderer.clear();
-		renderer.render( sceneBG, cameraBG );
+		
 		renderer.render( scene, camera );
 
 		time = Date.now();
@@ -1132,10 +1250,28 @@ if(!isOptimized){
 				//console.log("intersects.length: "+ intersects.length);
 				//console.log("intersects.distance: "+ intersects[0].distance);
 				//console.log("intersects.face: "+ intersects[0].face);
-				marker.position.copy( intersects[0].point );
+				point = intersects[0].point;
+				marker.position.copy( point );
 				selected = intersects[0].object;
+
+				if(mouseMode==='delete') delSelected();
+				else if(mouseMode==='drag'){
+					var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
+
+				}
 				//if(sh)shoot();
 		    }
+		}
+	}
+
+	var delSelected = function () {
+		OimoWorker.postMessage({tell:"REMOVE", type:'object', n:selected.name});
+	}
+
+	var removeObject = function (n) {
+		content.remove( content.children[n] );
+		for(var i=0; i!== content.children.length; i++){
+			content.children[i].name = i;
 		}
 	}
 
@@ -1226,9 +1362,10 @@ if(!isOptimized){
 	var moveCamera = function () {
 		camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 		camera.lookAt(center);
-
-		cameraBG.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
-		cameraBG.lookAt(center);
+		if(!isOptimized){
+			//cameraBG.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
+			//cameraBG.lookAt(center);
+		}
 	}
 
 	var endMove = function () {
@@ -1264,10 +1401,13 @@ if(!isOptimized){
 		vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
 		camera.aspect = vsize.z;
 		camera.updateProjectionMatrix();
-		cameraBG.aspect = vsize.z;
-		cameraBG.updateProjectionMatrix();
 		renderer.setSize( vsize.x, vsize.y );
-		if(!isOptimized)if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
+
+		if(!isOptimized){
+			//cameraBG.aspect = vsize.z;
+			//cameraBG.updateProjectionMatrix();
+			if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
+		}
 	}
 
 	//-----------------------------------------------------
@@ -1318,6 +1458,7 @@ if(!isOptimized){
 		contentJoint:contentJoint,
 
 		materials:materials,
+		getMaterial:getMaterial,
 
 		updateSila:updateSila,
 		updateSnake:updateSnake,
@@ -1329,6 +1470,13 @@ if(!isOptimized){
 
 		ADD:ADD,
 		REMOVE:REMOVE,
+		removeObject:removeObject,
+
+		//options
+		reflection:reflection,
+		debug:debug,
+		shadow:shadow,
+
 
 		getFps: function (name) {
 			return fpstxt +" fps / "+ ms+" ms";
@@ -1342,7 +1490,5 @@ if(!isOptimized){
 
 		},
 	}
-
-
 
 };
