@@ -33,36 +33,15 @@ var Editor = function (Pos) {
 	var bstyle =unselect+ 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
-	/*var bnext = document.createElement( 'div' );
-	bnext.id = 'Editor-bnext';
-	bnext.style.cssText =bstyle + borderR+buttonActif+'width:30px;';
-	bnext.textContent = ">";
-
-	var bprev = document.createElement( 'div' );
-	bprev.id = 'Editor-bprev';
-	bprev.style.cssText =bstyle+borderL+buttonActif+'width:30px;';
-	bprev.textContent = "<";*/
-
 	var bcenter = document.createElement( 'div' );
 	bcenter.id = 'Editor-bcenter';
 	bcenter.style.cssText =bstyle+borderL+borderR+buttonActif+'width:140px;';
 	bcenter.textContent = "EDITOR";
-
-	//deco.appendChild( bprev );
 	deco.appendChild( bcenter );
-	//deco.appendChild( bnext );
 
 	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); transforme(); this.style.backgroundColor = 'rgba(55,123,167,0.5)'; }, false );
-	//bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	//bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-
-	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false ); 
-	//bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-	//bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-
+	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
     bcenter.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
-    //bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor ='rgba(1,1,1,0.1)';  }, false );
-    //bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
 	var transforme = function(){
 	    if(!open){
@@ -75,12 +54,8 @@ var Editor = function (Pos) {
 			deco.style.transition='transform 250ms ease-out';
 			deco.style.webkitTransform='translateY(0px)';
 			deco.style.webkitTransition='transform 250ms ease-out';
-			//displayPannel();
-			decoFrame.style.display = 'block';
-			decoFrame.style.pointerEvents= 'auto';
 
-			MainEditor.style.display = 'block';
-			MainEditor.style.pointerEvents= 'auto';
+			addEditor();
 		} else {
 			open = false;
 			var ty = deco.clientHeight-30;
@@ -92,86 +67,79 @@ var Editor = function (Pos) {
 			deco.style.webkitTransform='translateY('+ty+'px)';
 			deco.style.webkitTransition='transform 250ms ease-out';
 
-			decoFrame.style.display = 'none';
-			decoFrame.style.pointerEvents= 'none';
-
-			MainEditor.style.display = 'none';
-			MainEditor.style.pointerEvents= 'none';
+			removeEditor();
 		}
 	}
 
+	var decoFrame, bRun, bbMenu, maxDemo, codeEditor, nscript, oldScript, MainEditor;
 
-	var decoFrame = document.createElement( 'div' );
-	decoFrame.id = 'decoFrame';
-	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; overflow:hidden; ';
-	deco.appendChild( decoFrame );
+	var addEditor = function(){
+		bbMenu = [];
+		maxDemo = 6;
+		decoFrame = document.createElement( 'div' );
+		decoFrame.id = 'decoFrame';
+		decoFrame.style.cssText =unselect+'top:0px; position:relative; display:block; overflow:hidden; ';
+		deco.appendChild( decoFrame );
 
-	var bRun = document.createElement( 'div' );
-	bRun.id = 'Editor-Run';
-	bRun.style.cssText =bstyle+buttonActif+'width:'+maxWidth+'px;';
-	bRun.textContent = "RUN SCRIPT";
-	decoFrame.appendChild( bRun );
+		bRun = document.createElement( 'div' );
+		bRun.id = 'Editor-Run';
+		bRun.style.cssText =bstyle+buttonActif+'width:'+maxWidth+'px;';
+		bRun.textContent = "RUN SCRIPT";
+		decoFrame.appendChild( bRun );
 
-	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+		bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+		bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+	    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
-    /*var bImport = document.createElement( 'div' );
-	bImport.id = 'Editor-Import';
-	bImport.style.cssText =bstyle+buttonActif+'width:'+maxWidth*0.5+'px;';
-	bImport.textContent = "IMPORT SCRIPT";
-	deco.appendChild( bImport );
+	    //  MENU DEMO
+		for(var i=0;i!==maxDemo;i++){
+			bbMenu[i] = document.createElement( 'div' );
+			bbMenu[i].name = 'demo0'+i;
+			if(i===0) bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+maxWidth/maxDemo+"px; ";
+			else bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+ (maxWidth/maxDemo-1) +"px; border-left:1px solid rgba(1,1,1,0.3);";
+			bbMenu[i].textContent = 'DEMO 0'+i;
+			bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+			bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+			bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+			decoFrame.appendChild( bbMenu[i] );
+		}
 
-	bImport.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bImport.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-    bImport.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );*/
+		MainEditor = document.createElement( 'iframe' );
+		MainEditor.id = 'mEditor';
+		MainEditor.name = 'MainEditor';
+		MainEditor.src = "demos/editor.html";
+		MainEditor.style.cssText =unselect+'width:'+maxWidth+'px; height:325px; border:none; overflow:hidden; pointer-events:auto; display:block;';
+		deco.appendChild( MainEditor );
 
-    //-----------------------------------------------------
-    //  MENU DEMO
-    //-----------------------------------------------------
-    
-	var bbMenu = [];
-	var maxDemo = 6;
-
-
-	for(var i=0;i!==maxDemo;i++){
-		bbMenu[i] = document.createElement( 'div' );
-		bbMenu[i].name = 'demo0'+i;
-		if(i===0) bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+maxWidth/maxDemo+"px; ";
-		else bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+ (maxWidth/maxDemo-1) +"px; border-left:1px solid rgba(1,1,1,0.3);";
-		bbMenu[i].textContent = 'DEMO 0'+i;
-		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
-		bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-
-		decoFrame.appendChild( bbMenu[i] );
+		if(oldScript) setTimeout(reFileEditor, 1000);
 	}
 
-	//var doc;
-	var codeEditor
-	var head = document.getElementsByTagName('head')[0];
-	var nscript;
+	var reFileEditor = function(){
+		MainEditor.contentWindow.codeEditor.setValue(oldScript);
+	}
 
-	/*var decoFrame = document.createElement( 'div' );
-	decoFrame.id = 'decoFrame';
-	decoFrame.style.cssText =unselect+'top:0px; position:relative; display:none; height:325px; overflow:hidden; ';
-	deco.appendChild( decoFrame );*/
+	var removeEditor = function(){
+		oldScript = MainEditor.contentWindow.codeEditor.getValue() || '';
+		deco.removeChild(MainEditor);
+		for(var i=0;i!==maxDemo;i++){
+			bbMenu[i].removeEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+			bbMenu[i].removeEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+			bbMenu[i].removeEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+			decoFrame.removeChild( bbMenu[i] );
+		}
+		bRun.removeEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+		bRun.removeEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
+	    bRun.removeEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+		decoFrame.removeChild( bRun );
+		deco.removeChild( decoFrame );
+	}
 
-	var MainEditor = document.createElement( 'iframe' );
-	MainEditor.id = 'mEditor'
-	MainEditor.name = 'MainEditor';
-	MainEditor.src = "demos/editor.html";
-	MainEditor.style.cssText =unselect+'width:'+maxWidth+'px; height:325px; border:none; overflow:hidden; pointer-events:auto;';
-	deco.appendChild( MainEditor );
-	//scrollbar-face-color: #000000; scrollbar-shadow-color: #2D2C4D; scrollbar-highlight-color:#7D7E94; scrollbar-3dlight-color: #7D7E94; scrollbar-darkshadow-color: #2D2C4D; scrollbar-track-color: #7D7E94; scrollbar-arrow-color: #C1C1D1;';
-
-	//MainEditor.onload  = function () { doc = window.MainEditor.document;}
-	
 	var importScript = function(name){
 		MainEditor.contentWindow.loadfile(name+".html");
 	}
 
 	var update = function (){
+		var head = document.getElementsByTagName('head')[0];
 		nscript = document.createElement("script");
 		nscript.type = "text/javascript";
 		nscript.name = "topScript";

@@ -305,6 +305,7 @@ var clearWorld = function (){
 }
 
 var basicStart = function(data){
+    
     isTimout = data.timer || false;
 
     if(data.G || data.G===0){
@@ -331,7 +332,6 @@ var basicStart = function(data){
     }*/
     // ground
     if(data.ground) addRigid({type:"box", size:[40,1,40], pos:[0,-0.5,0]});
-    if(data.timer) isTimout = data.timer;
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });

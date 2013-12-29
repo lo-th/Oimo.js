@@ -27,7 +27,6 @@
 		<script type="text/javascript" src="js/loth/AutoTexture.js"></script>
 		<script type="text/javascript" src="js/loth/Ambience.js"></script>
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
-		<script type="text/javascript" src="js/loth/TinyRadio.js"></script>
 		<script type="text/javascript" src="js/loth/Editor.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
 
@@ -43,7 +42,6 @@
 		    var Ambience;
         	var threeEngine;
         	var Interface;
-        	//var TinyRadio;
         	var Editor;
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
@@ -55,14 +53,12 @@
 		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
 		    	threeEngine = new ThreeEngine();
-		    	//TinyRadio = new TinyRadio();
 		    	Editor = new Editor();
 		    	
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
 				Interface.menu.appendChild( Editor.domElement );
-				//menu.appendChild( TinyRadio.domElement );
 				threeEngine.init({optimized:false, notReflected:false});
             }
 
@@ -177,9 +173,7 @@
 
             var basicOption = null;
 
-            var ADD = function(obj){
-            	threeEngine.ADD(obj);
-            }
+            var ADD = function(obj){ threeEngine.ADD(obj); }
 
             var CLEAR = function(obj){
             	basicOption = obj || {ground:false};

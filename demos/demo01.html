@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <script>
 function CLEAR(o){};
-CLEAR({ground:false});
+CLEAR({ground:false, timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
 // BASIC SHAPE
 function initDemo(){
     // ground
@@ -26,9 +26,9 @@ function initDemo(){
         sx = 20+Math.random()*100;
         sy = 20+Math.random()*100;
         sz = 20+Math.random()*100;
-        if(t==1) ADD({ type:"sphere", size:[sx*0.5], pos:[px,500+i,pz], move:true });
-        else if(t==2) ADD({ type:"box", size:[sx,sy,sz], pos:[px,500+i,pz], move:true });
-        else if(t==3) ADD({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,500+i,pz], move:true });
+        if(t==1) ADD({ type:"sphere", size:[sx*0.5], pos:[px,100*i,pz], move:true });
+        else if(t==2) ADD({ type:"box", size:[sx,sy,sz], pos:[px,100*i,pz], move:true });
+        else if(t==3) ADD({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,100*i,pz], move:true });
     }
 }
 </script>

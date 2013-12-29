@@ -10,11 +10,12 @@ var ThreeEngine = function () {
 	var back = new THREE.Object3D();
 	// containe all object from simulation
 	var content = new THREE.Object3D();
+	// containe object from drag and shoot
+	var contentPlus = new THREE.Object3D();
 	// containe all static object from simulation
 	var contentDebug = new THREE.Object3D();
 	// containe all joint object from simulation
 	var contentJoint = new THREE.Object3D();
-
 	// containe special object
 	var contentSpecial = new THREE.Object3D();
 
@@ -22,7 +23,7 @@ var ThreeEngine = function () {
 	var materials = [];
 
 	var renderer, scene, sceneBG, camera, cameraBG, renderLoop ;
-	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false };
+	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false, phi:0, theta:0 };
 	var vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
 	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
 	var center = new THREE.Vector3(0,150,0);
@@ -38,7 +39,6 @@ var ThreeEngine = function () {
 	var currentPlayer = 1;
 	var controls = { rotation: 0, speed: 0, vx: 0, vz: 0, maxSpeed: 275, acceleration: 600, angularSpeed: 2.5};
 
-	
 	var isLoading = true;
 	var antialias;
 	var MaxAnistropy;
@@ -48,7 +48,6 @@ var ThreeEngine = function () {
 	var directionVector = new THREE.Vector3();
 	var marker;
 
-
 	var PATH = 'http://lo-th.github.io/Oimo.js/';
 
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
@@ -57,6 +56,7 @@ var ThreeEngine = function () {
 	container.id = 'container';
 	container.style.cssText = unselect + ' padding:0; position:absolute; left:0; top:0; bottom:0; overflow:hidden;';
 
+	var selectedCenter = new THREE.Vector3(0,150,0);
 	var selected = null;
 	var point = null;
 	var followObject = null;
@@ -70,6 +70,7 @@ var ThreeEngine = function () {
 	var isNotReflected;
 
 	var mouseMode = '';
+	var backPlane;
 
 	//-----------------------------------------------------
 	//  INIT VIEW
@@ -93,15 +94,13 @@ var ThreeEngine = function () {
 		
 		container.appendChild( renderer.domElement );
 
-		
-
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
 		
-
         scene.add(back);
 		scene.add(camera);
 		scene.add(content);
+		scene.add(contentPlus);
 		scene.add(contentDebug);
 		scene.add(contentJoint);
 		scene.add(contentSpecial);
@@ -109,8 +108,6 @@ var ThreeEngine = function () {
 		// marker for mouse position
 		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
 		scene.add(marker);
-
-		
 
 		if(!isNotReflected) initReflectBall();
 		initMaterial();
@@ -141,27 +138,29 @@ var ThreeEngine = function () {
 			renderer.setClearColor( 0x505050);
 		}
 
-		
-
-		
 		initSea3DMesh();
 		moveCamera();
 		
 	    changeView(45,60,1000);
 	    initListener();
+	    
+	    //initBackPlane();
 	    update();
 	}
 
 	var initBackPlane = function () {
-		var backMat = new THREE.MeshBasicMaterial( { color: 0x505050, depthWrite: false} );
-		var bplane = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), backMat );
-		//planeBG.rotation.x = (-90)*ToRad;
-		//planeBG.position.y =0.01;
-		scene.add(bplane);
-		bplane.receiveShadow = true;
-		bplane.castShadow = false;
-		back.add(bplane);
+		var backMat = new THREE.MeshBasicMaterial( { color: 0x905050, wireframe:true} );
+		backPlane = new THREE.Mesh( new THREE.PlaneGeometry( 2000,2000, 4, 4 ), backMat );
+		backPlane.receiveShadow = true;
+		backPlane.castShadow = false;
+		contentPlus.add(backPlane);
+	}
 
+	var updateBackPlane = function () {
+		if(backPlane){
+			backPlane.position.copy(selectedCenter);
+			backPlane.rotation.y = -camPos.theta-(90*ToRad);
+		}
 	}
 
 	var initListener = function () {
@@ -228,7 +227,6 @@ var ThreeEngine = function () {
 		renderer.shadowMapEnabled = isShadow;
 		renderer.shadowMapSoft = isShadow;
 	}
-
 
 	//-----------------------------------------------------
 	//  REFLECT BALL
@@ -387,7 +385,6 @@ var ThreeEngine = function () {
 			makeMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff, name:'pool'+i } );
 		}
 
-
 		if(!isNotReflected){
 			activReflection();
 			updateBallCamera();
@@ -504,10 +501,8 @@ var ThreeEngine = function () {
 		var geo = new THREE.Geometry();
 		geo.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
 		geo.vertices.push( new THREE.Vector3( 0, 10, 0 ) );
-
 		joint = new THREE.Line( geo, jointMaterial, THREE.LinePieces );
 		contentJoint.add( joint );
-
 		return joint;
 	}
 
@@ -561,7 +556,6 @@ var ThreeEngine = function () {
 
 	    // reset camera position
 	    cameraFollow(new THREE.Vector3(0,150,0));
-
 	}
 
 	var addObjects = function (type, s){
@@ -1016,9 +1010,6 @@ var ThreeEngine = function () {
 				defineGeometry();
 				mainAllObjectLoaded();
 				isLoading = false;
-
-				//changeView(45,60,1000);
-				//update();
 			} 
 		}
 
@@ -1078,6 +1069,12 @@ var ThreeEngine = function () {
 	var prevR=[0,0];
 	var Anim="Walk";
 
+	//-----------------------------------------------------
+	//
+	//  UPDATE
+	//
+	//-----------------------------------------------------
+
 	var update = function () {
 		requestAnimationFrame( update, renderer.domElement );
 
@@ -1085,10 +1082,6 @@ var ThreeEngine = function () {
 
 		var delta = clock.getDelta();
 		THREE.AnimationHandler.update( delta );
-
-		
-
-		
 
 		if(followObject) cameraFollow(followObject.position);
 		if(followSpecial){
@@ -1126,6 +1119,8 @@ var ThreeEngine = function () {
 			setNoise(renderNoise);
 			//renderer.render( sceneBG, cameraBG );
 		}
+
+		updateBackPlane();
 
 		/*
 		//delta = clock.getDelta();
@@ -1253,9 +1248,11 @@ var ThreeEngine = function () {
 				point = intersects[0].point;
 				marker.position.copy( point );
 				selected = intersects[0].object;
+				selectedCenter = point;
 
 				if(mouseMode==='delete') delSelected();
 				else if(mouseMode==='drag'){
+
 					var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
 
 				}
@@ -1426,7 +1423,10 @@ var ThreeEngine = function () {
 		var p = new THREE.Vector3();
 		var phi = unwrapDegrees(vertical)*ToRad;
 		var theta = unwrapDegrees(horizontal)*ToRad;
-		if(mainCamera) sendCameraOrientation(phi, theta);
+		if(mainCamera){
+			camPos.phi = phi; camPos.theta = theta;
+			sendCameraOrientation(phi, theta);
+		} 
 		p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
 		p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
 		p.y = (distance * Math.cos(phi)) + origine.y;
@@ -1476,7 +1476,6 @@ var ThreeEngine = function () {
 		reflection:reflection,
 		debug:debug,
 		shadow:shadow,
-
 
 		getFps: function (name) {
 			return fpstxt +" fps / "+ ms+" ms";

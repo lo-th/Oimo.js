@@ -152,7 +152,6 @@ var REMOVE = function(data){
     removeTemp = {};
 }
 
-
 //--------------------------------------------------
 //   WORLD UPDATE
 //--------------------------------------------------
@@ -207,7 +206,7 @@ var update = function(){
 
     worldInfo();
 
-    self.postMessage({tell:"RUN", infos: infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
+    self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
 
     if(isTimout){
         delay = timerStep - (Date.now()-t01);
@@ -341,8 +340,8 @@ var basicStart = function(data){
     }
 
     if(data.broadphase){
-        if(data.BroadPhase==="brute") world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
-        else if(data.BroadPhase==="sweep") world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
+        if(data.broadphase==="brute") world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
+        else if(data.broadphase==="sweep") world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
         else world.broadphase = BroadPhase.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
     }
 
