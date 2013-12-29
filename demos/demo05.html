@@ -2,33 +2,26 @@
 <script>
 function CLEAR(o){};
 CLEAR({ground:false});
-
+// PYRAMID
 function initDemo(){
-    // wall
-    ADD({ type:"box", size:[450,1000,50], pos:[0,500,-250] });
-    ADD({ type:"box", size:[450,1000,50], pos:[0,500, 250] });
-    ADD({ type:"box", size:[50,1000,550], pos:[-250,500,0] });
-    ADD({ type:"box", size:[50,1000,550], pos:[ 250,500,0] });
-    // bottom
-    ADD({type:"box", size:[550,400,550], pos:[0,-200,0]});
+    // ground
+    ADD({type:"box", size:[1300,400,1300], pos:[0,-200,0]});
 
     // add dynamique object
-    var px, pz, t, n;
-    var sx, sy, sz;
+    var px, py, pz;
+    var height = 20, depth = 1;
+    var sx = 60, sy = 40, sz = 60;
 
-    for (var i=0; i!==100; ++i ){
-        if(version=="DEV") n=2;
-        else n=3;
-        t = Math.floor(Math.random()*n)+1;
-        px = -100+Math.random()*200;
-        pz = -100+Math.random()*200;
+    for (var i = 0; i < height; i++) {
+        for (var j = i; j < height; j++) {
+            for (var k = 0; k < depth; k++) {
+                px = (j - i * 0.5 - (height - 1) * 0.5) * (sx * 1.05);
+                py = i * (sy + 0.01) + sy * 0.6;
+                pz = (k - (sz - 1) * 0.5) * 5;
 
-        sx = 20+Math.random()*100;
-        sy = 20+Math.random()*100;
-        sz = 20+Math.random()*100;
-        if(t==1) ADD({ type:"sphere", size:[sx*0.5], pos:[px,500+i,pz], move:true });
-        else if(t==2) ADD({ type:"box", size:[sx,sy,sz], pos:[px,500+i,pz], move:true });
-        else if(t==3) ADD({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,500+i,pz], move:true });
+                ADD({ type:"box", size:[sx,sy,sz], pos:[px,py,pz], config:[1,0.5,0.1], move:true });
+            }
+        }
     }
 }
 </script>
