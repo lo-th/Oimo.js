@@ -38,9 +38,13 @@
 
 		<script type="text/javascript">
 		    var version='DEV';
-		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Car simulator", "Ragdoll", "Van", "Bridge", "Droid"];
-		    var Ambience;
-        	var threeEngine;
+		    var demoName = [
+		       "Basic shape", "Dice fall", "Mad pool", 
+		       "Joint test", "Supermarket", "Car simulator", 
+		       "Ragdoll", "Van", "Bridge", "Droid"
+		    ];
+        	var threeEngine, TE;
+        	var Ambience;
         	var Interface;
         	var Editor;
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
@@ -60,6 +64,7 @@
 				Interface.menu.appendChild( Ambience.domElement );
 				Interface.menu.appendChild( Editor.domElement );
 				threeEngine.init({optimized:false, notReflected:false});
+				TE = threeEngine;
             }
 
             function mainAllObjectLoaded(){
@@ -89,8 +94,6 @@
 
 				// update three object
     	    	if( phase === "RUN"){
-    	    		//stats2.end();
-    	    		
     	    		var demo = e.data.infos[0];
     	    		//var i=0;
     	    		var max = e.data.maxB;
@@ -105,7 +108,12 @@
             	    		mesh = threeEngine.content.children[i];
             	    		if( e.data.sleeps[i]===0){
             	    			n = 12*i;
-	            	    		mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3], m[n+4], m[n+5], m[n+6], m[n+7], m[n+8], m[n+9], m[n+10], m[n+11], 0, 0, 0, 1);
+	            	    		mtx = new THREE.Matrix4(
+	            	    			m[n+0], m[n+1], m[n+2], m[n+3],
+	            	    			m[n+4], m[n+5], m[n+6], m[n+7], 
+	            	    			m[n+8], m[n+9], m[n+10], m[n+11], 
+	            	    			0, 0, 0, 1
+	            	    		);
 	            	    		mesh.position.setFromMatrixPosition( mtx )
 						    	mesh.rotation.setFromRotationMatrix( mtx );
 						    	if(mesh.material){

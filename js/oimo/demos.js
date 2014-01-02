@@ -14,7 +14,7 @@ function demo0(n, t){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"box", size:[5.5,4,5.5], pos:[0,-2,0]});
+    addRigid({type:"ground", size:[5.5,4,5.5], pos:[0,-2,0]});
 
     // wall
     addRigid({ type:"box", size:[4.5,10,0.5], pos:[0,5,-2.5] });
@@ -49,7 +49,7 @@ function demo1(){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"box", size:[20,10,20], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[20,10,20], pos:[0,-5,0] });
     // wall
     addRigid({ type:"box", size:[20,10,1], pos:[0,5,-10] });
     addRigid({ type:"box", size:[20,10,1], pos:[0,5,10] });
@@ -73,7 +73,7 @@ function demo2(){
 	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"box", size:[25.4,10,12.7], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[25.4,10,12.7], pos:[0,-5,0] });
     // wall
     addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,-6.85] });
     addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,6.85] });
@@ -98,7 +98,7 @@ function demo3(){
 
     var dy=0.3;
     // ground
-    addRigid({ type:"box", size:[20,10,20], pos:[0,-5+dy,0] });
+    addRigid({ type:"ground", size:[20,10,20], pos:[0,-5+dy,0] });
     // wall
     addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,-10] });
     addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy, 10] });
@@ -128,7 +128,7 @@ function demo4(){
 	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"box", size:[100,4,100], pos:[0,-2,0] });
+    addRigid({ type:"ground", size:[100,4,100], pos:[0,-2,0] });
 
     var width = 6;
     var height = 6;
@@ -159,7 +159,7 @@ function demo5(){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[100,4,100], pos:[0,-2,0] });
 
     // Greek temple
     var x = 0, z = 0;
@@ -200,7 +200,7 @@ function demo6(){
 	world.gravity = new Vec3(0, 0, 0);
 
     // ground
-    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[2000,10,2000], pos:[0,-5,0] });
 
     // test ragdoll stucture
     var bones =[];
@@ -277,7 +277,7 @@ function demo7(){
 	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[2000,10,2000], pos:[0,-5,0] });
 
     if(version=="10.DEV"){
         // test new vehicle
@@ -293,7 +293,7 @@ function demo8(){
 	world.gravity = new Vec3(0, -10, 0);
 
 	// ground
-    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[2000,10,2000], pos:[0,-5,0] });
 
     var x = 0;
     var y = 3;
@@ -342,7 +342,8 @@ function demo9(){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"box", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[1000,10,1000], pos:[0,-5,0] });
+
     var box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[2, 1, 6],  config:[1,0.5,0.5], move:true});
     ball = new Ball([0, 2, 0], 2, 'droid');
 

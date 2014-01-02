@@ -201,3 +201,27 @@ function eightBall(n) {
 	tx.needsUpdate = true;
 	return tx;
 }
+
+//-----------------------------------------------------
+//  8 BALL
+//-----------------------------------------------------
+
+function createDroidTexture() {
+	var canvas = document.createElement("canvas");
+	canvas.width = 512; canvas.height = 512;
+	var ctx = canvas.getContext("2d");
+	ctx.fillStyle = "#a2c239";
+	ctx.fillRect(0, 0, 512, 512);
+
+	//iris
+	ctx.beginPath();
+	ctx.arc(161,96,30,0,2*Math.PI);
+	ctx.arc(351,96,30,0,2*Math.PI);
+	ctx.fillStyle = "#EEEEEE";
+	ctx.fill();
+
+	var tx = new THREE.Texture(canvas);
+	tx.anisotropy = threeEngine.getAnistropy;
+	tx.needsUpdate = true;
+	return tx;
+}

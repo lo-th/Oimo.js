@@ -82,14 +82,14 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var bMenu = document.createElement( 'div' );
-	bMenu.style.cssText = 'right:20px; top:20px;  position:absolute; width:40px; display:block; text-align:center; ';
+	bMenu.style.cssText = 'right:10px; top:20px;  position:absolute; width:40px; display:block; text-align:center; ';
 	container.appendChild( bMenu );
 
 	var bbMenu = [];
 
 	for(var i=0;i!==3;i++){
 		bbMenu[i] = document.createElement( 'div' );
-		bbMenu[i].style.cssText = buttonStyle + " height:40px; margin-bottom:6px;";
+		bbMenu[i].style.cssText = buttonStyle + " height:30px; margin-bottom:6px;";
 		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
 		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
@@ -99,6 +99,12 @@ var Interface = function (name) {
 	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.debug(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	
+
+	/*bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('delete'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('drag'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('shoot'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );*/
+
 
 	//-----------------------------------------------------
     //  GRAVITY

@@ -212,6 +212,7 @@ var update = function(){
 //--------------------------------------------------
 //   GET BONES STUCTURE
 //--------------------------------------------------
+
 var bonesPosition;
 var bonesRotation;
 
@@ -288,6 +289,10 @@ var createWorld = function (){
     lookIfNeedInfo();
 }
 
+//--------------------------------------------------
+//   CLEAR WORLD AND ALL OBJECT
+//--------------------------------------------------
+ 
 var clearWorld = function (){
     if(isTimout)clearTimeout(timer);
     else clearInterval(timer);
@@ -303,6 +308,10 @@ var clearWorld = function (){
     // Clear three object
     self.postMessage({tell:"CLEAR"});
 }
+
+//--------------------------------------------------
+//   INIT WORLD FOR EDITOR
+//--------------------------------------------------
 
 var basicStart = function(data){
     
@@ -331,7 +340,7 @@ var basicStart = function(data){
         else world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
     }*/
     // ground
-    if(data.ground) addRigid({type:"box", size:[40,1,40], pos:[0,-0.5,0]});
+    if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
@@ -431,6 +440,7 @@ var addRigid = function (obj, OO){
     switch(obj.type){
         case "sphere": shape=new SphereShape(s[0], sc); t=1; break;
         case "box": shape=new BoxShape(s[0], s[1], s[2], sc); t=2; break;
+        case "ground": shape=new BoxShape(s[0], s[1], s[2], sc); t=22; break;
         case "bone": shape=new BoxShape(s[0], s[1], s[2], sc); t=10; break;
         case "cylinder": shape=new CylinderShape(s[0], s[1], sc); t=3; break;
         case "dice": shape=new BoxShape(s[0], s[1], s[2], sc); t=4; break;

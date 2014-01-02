@@ -32,6 +32,7 @@ var ThreeEngine = function () {
 	var fpstxt, time, time_prev = 0, fps = 0, startTime, ms;
 
 	var meshs = [];
+	var bullets = [];
 	//var players = [];
 
 	var currentPlay;
@@ -46,7 +47,7 @@ var ThreeEngine = function () {
 	var raycaster = new THREE.Raycaster();
 	var projector = new THREE.Projector();
 	var directionVector = new THREE.Vector3();
-	var marker;
+	var marker, markerMaterial;
 
 	var PATH = 'http://lo-th.github.io/Oimo.js/';
 
@@ -71,6 +72,7 @@ var ThreeEngine = function () {
 
 	var mouseMode = '';
 	var backPlane;
+	var debugColor = 0x606060;
 
 	//-----------------------------------------------------
 	//  INIT VIEW
@@ -106,7 +108,8 @@ var ThreeEngine = function () {
 		scene.add(contentSpecial);
 
 		// marker for mouse position
-		marker = new THREE.Mesh(new THREE.SphereGeometry(3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:1}));
+		markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
+		marker = new THREE.Mesh(new THREE.SphereGeometry(3), markerMaterial);
 		scene.add(marker);
 
 		if(!isNotReflected) initReflectBall();
@@ -115,8 +118,8 @@ var ThreeEngine = function () {
 		if(!isOptimized){
 			MaxAnistropy = renderer.getMaxAnisotropy();
 			renderer.physicallyBasedShading = true;
-			renderer.gammaOutput = true;
-			renderer.gammaInput = true;
+			//renderer.gammaOutput = true;
+			//renderer.gammaInput = true;
 			renderer.autoClear = false;
 			//sceneBG = new THREE.Scene();
 			//cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
@@ -131,11 +134,13 @@ var ThreeEngine = function () {
 			initLights();
 			initObject();
 		}else {
+			addShereBackgroud();
+			addGroundShadow();
 			MaxAnistropy = 1;
 			//initBackPlane();
 			//renderer.clearStencil = true;
-			//renderer.autoClear = false;
-			renderer.setClearColor( 0x505050);
+			renderer.autoClear = false;
+			//renderer.setClearColor( 0x505050);
 		}
 
 		initSea3DMesh();
@@ -188,7 +193,6 @@ var ThreeEngine = function () {
 	//  OPTION ON/OFF
 	//-----------------------------------------------------
 	
-
 	var reflection = function(){
 		if(isNotReflected){
 			isNotReflected = false;
@@ -300,8 +304,9 @@ var ThreeEngine = function () {
 
 	//var baseMaterialm baseMaterial2;
 	var envTexture;
-	var sphereMaterial;
+	var sphereMaterial, groundMaterial;
 	var renderNoise=.04,nRenderNoise=.04;
+	//var droidTexture;
 
 	var setNoise = function (n){
 		//baseMaterial.uniforms.noise.value=baseMaterial2.uniforms.noise.value=
@@ -312,16 +317,20 @@ var ThreeEngine = function () {
 
 		// SHADER
 		if(!isOptimized){
-				sphereMaterial=new THREE.ShaderMaterial({
-					uniforms:THREE.SpShader.uniforms,
-					vertexShader:THREE.SpShader.vertexShader,
-					fragmentShader:THREE.SpShader.fragmentShader,
-					side:THREE.BackSide,
-					depthWrite: false
-				});
-				sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
+			//groundMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 } );
+		    groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
+		    //sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x6f6f6f, side:THREE.BackSide, depthWrite: false} );
+			sphereMaterial = new THREE.ShaderMaterial({
+				uniforms:THREE.SpShader.uniforms,
+				vertexShader:THREE.SpShader.vertexShader,
+				fragmentShader:THREE.SpShader.fragmentShader,
+				side:THREE.BackSide,
+				depthWrite: false
+			});
+			sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
 		}else{
-			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 ,side:THREE.BackSide, depthWrite: false} );
+			groundMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 } );
+			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x6f6f6f, side:THREE.BackSide, depthWrite: false} );
 		}
 
 		/*baseMaterial=new THREE.ShaderMaterial({
@@ -355,8 +364,10 @@ var ThreeEngine = function () {
 		var diceTextureSleep = new createDiceTexture(1);
 		var wheelTexture = new createWheelTexture(0);
 		var gyroTexture = new createGyroTexture();//THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
+		var droidTexture = new createDroidTexture();
 // 
-		debugMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe:true, transparent:true, opacity:0.1 } );
+		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, ambient:0x000000, specular:0x000000,  transparent:true, opacity:0.5} );// ,depthWrite: false } );//, transparent:true, opacity:0.5 
+		//, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
 		jointMaterial = new THREE.LineBasicMaterial( { color: 0x30ff30 } );
 		//glassMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff,  refractionRatio: 0.98, transparent:true, opacity:0.2 } );
 		//groundMat = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
@@ -376,8 +387,8 @@ var ThreeEngine = function () {
 		makeMaterial( { color: 0xb2ffd9, name:'mat03sleep' } );//10
 		makeMaterial( { map: diceTextureSleep, name:'mat04sleep' } );//11
 		makeMaterial( { color: 0xAEABA6, name:'mat07sleep' } );//12
-		makeMaterial( { map: gyroTexture, name:'matGyro' } );
-		makeMaterial( { color: 0xe7b37a, skinning: true, name:'matDroid' } );
+		makeMaterial( { map: gyroTexture, name:'matGyro' } );//13
+		makeMaterial( { map: droidTexture, skinning: true, name:'matDroid' } );//14
 
 		//makeMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4, name:'matBone' } ); 
 		//makeMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4, name:'matBonesleep' } );  
@@ -525,9 +536,33 @@ var ThreeEngine = function () {
 
 	var addStaticObjects = function (type, s){
 		var mesh;
+		var helper, helper2;
 		switch(type){
 		    case 1: case 'sphere': mesh=new THREE.Mesh(geo05, debugMaterial); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
-		    case 2: case 'box': mesh=new THREE.Mesh(geo01, debugMaterial); mesh.scale.set( s[0], s[1], s[2] ); break; // box
+		    case 2: case 'box': 
+		        mesh=new THREE.Mesh(geo01, debugMaterial);
+		        mesh.scale.set( s[0], s[1], s[2] );
+		        mesh.visible = false;
+		        //mesh=new THREE.Mesh(new THREE.CubeGeometry( s[0], s[1], s[2] ), debugMaterial);
+                helper = new THREE.BoxHelper(mesh);
+                helper.material.color.set( debugColor );
+		        mesh.add( helper );
+		    break; // box
+		    case 22: case 'ground': 
+		        mesh=new THREE.Mesh(geo01, debugMaterial);
+		        mesh.scale.set( s[0], s[1], s[2] );
+		        mesh.visible = false;
+		        //mesh=new THREE.Mesh(new THREE.CubeGeometry( s[0], s[1], s[2] ), debugMaterial);
+                helper = new THREE.BoxHelper(mesh);
+                helper.material.color.setHex( debugColor );
+                //helper.material.fog = false;;
+                mesh.add( helper );
+		        
+		        helper2 = new THREE.GridHelper( 0.5, 0.0625 );
+				helper2.setColors( 0x608060, debugColor );
+				helper2.position.y = 0.5;
+				mesh.add( helper2 );
+		    break; // box
 	    }
 	    mesh.receiveShadow = false;
 	    mesh.castShadow = false;
@@ -640,17 +675,26 @@ var ThreeEngine = function () {
     		    m3 = new THREE.Object3D();
     		    m2 = getMeshByName('Android');
     		    m2.position.set(0,-6,0);
+    		     m2.material = materials[14];
+    		    //m2.material.map = new createDroidTexture();
+    		    //m2.material.map.needsUpdate = true;
+    		    //m2.material.color.setHex(0xffffff);
+    		    //m2.material.ambient.setHex(0xffffff);
+    		    //m2.material.shininess.setHex(0xffffff);
+    		   // m2.material.specular.setHex(0xffffff);
+    		    //m2.receiveShadow = false;
+    		    //m2.castShadow = false;
     		   // m2 = new THREE.SkinnedMesh( getSeaGeometry('Android', 2), matDroid, false);
     		   // m2.animations = getMeshByName('Android').animations;
                         //var animation = new THREE.Animation( block, "idle" );
                         //THREE.AnimationHandler.add( block.geometry.animations )
                        
     		   // m2.material = getMaterial('matDroid');
-    		    if(!isNotReflected) {
+    		    /*if(!isNotReflected) {
 	    		   	m2.material.envMap = envtexture;
 					m2.material.combine = THREE.MixOperation;
 					m2.material.reflectivity = 0.5;
-    		    }
+    		    }*/
     		    m3.scale.set( 3, 3, -3 );
     		    
     		    m3.add(m2);
@@ -679,12 +723,14 @@ var ThreeEngine = function () {
 		followObject = null;
 		followSpecial = null;
 		var i=content.children.length;
+		var j;
 		while (i--) {
 			content.remove(content.children[ i ]);
 		}
 
 		i=contentDebug.children.length;
 		while (i--) {
+			if(contentDebug.children[ i ].children.length){j =contentDebug.children[ i ].children.length; while (j--){contentDebug.children[ i ].remove(contentDebug.children[ i ].children[j]);}}
 			contentDebug.remove(contentDebug.children[ i ]);
 		}
 
@@ -885,14 +931,24 @@ var ThreeEngine = function () {
 
 	var planeBG = null, sphereBG = null;
 
+	var initObject = function () {
+		addGroundShadow();
+		addShereBackgroud();
+	}
+
 	var addGroundShadow = function () {
-		var groundMat = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
-		planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMat );
+		planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMaterial );
 		planeBG.rotation.x = (-90)*ToRad;
 		planeBG.position.y =0.01;
-		planeBG.receiveShadow = true;
+		if(!isOptimized) planeBG.receiveShadow = true;
+		else{ 
+			planeBG.receiveShadow = false;
+			planeBG.visible = false;
+		}
 		planeBG.castShadow = false;
 		back.add(planeBG);
+		planeBG.name = 'ground';
+		
 	}
 
 	var removeGroundShadow = function () {
@@ -902,26 +958,20 @@ var ThreeEngine = function () {
 		planeBG = null;
 	}
 
-	var initObject = function () {
-		// ground
-		addGroundShadow();
-	    
-		// bg Sphere
-		sphereBG=new THREE.Mesh(new THREE.IcosahedronGeometry(16000,1),sphereMaterial);
-		//sceneBG.add(sphereBG);
+	var addShereBackgroud = function () {
+		sphereBG = new THREE.Mesh(new THREE.IcosahedronGeometry(16000,1),sphereMaterial);
 		back.add(sphereBG);
 		sphereBG.receiveShadow = false;
 		sphereBG.castShadow = false;
+		sphereBG.name = 'background';
 	}
 
 	var moveBgObject = function (){
-		//if(isOptimized) return;
 		if(planeBG!==null)planeBG.position.set(center.x, 0, center.z);
 		if(sphereBG!==null)sphereBG.position.copy(center);
 	}
 
 	var resetBgObject = function (){
-		//if(isOptimized) return;
 		if(planeBG!==null)planeBG.position.set(0, 0, 0);
 		if(sphereBG!==null)sphereBG.position.set(0, 0, 0);
 	}
@@ -1115,9 +1165,8 @@ var ThreeEngine = function () {
 		}
 
 		if(!isOptimized){
-			renderNoise+=(nRenderNoise-renderNoise)*.2;
-			setNoise(renderNoise);
-			//renderer.render( sceneBG, cameraBG );
+			//renderNoise+=(nRenderNoise-renderNoise)*.2;
+			//setNoise(renderNoise);
 		}
 
 		updateBackPlane();
@@ -1233,30 +1282,47 @@ var ThreeEngine = function () {
 	//  MOUSE COLLISION DETECTION
 	//-----------------------------------------------------
 
-	var rayTest = function (sh) {
+	var rayTest = function () {
 		if ( content.children.length ) {
 			var vector = new THREE.Vector3( mouse.mx, mouse.my, 1 );
 			projector.unprojectVector( vector, camera );
 			raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+			
+			var intersectsBack = raycaster.intersectObjects( back.children, true );
 			var intersects = raycaster.intersectObjects( content.children, true );
-			if ( intersects.length ) {
-				//marker.position.set( 0, 0, 0 );
-				//if(intersects[0].face!==null)marker.lookAt(intersects[0].face.normal);
-				//console.log("intersects.length: "+ intersects.length);
-				//console.log("intersects.distance: "+ intersects[0].distance);
-				//console.log("intersects.face: "+ intersects[0].face);
-				point = intersects[0].point;
-				marker.position.copy( point );
-				selected = intersects[0].object;
-				selectedCenter = point;
 
-				if(mouseMode==='delete') delSelected();
-				else if(mouseMode==='drag'){
-
-					var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
-
+			if ( intersectsBack.length || intersects.length ) {
+				if(!marker.visible) marker.visible=true;
+				if ( intersectsBack.length ) {
+					if(markerMaterial.color!==0x888888)markerMaterial.color.setHex(0x888888);
+					point = intersectsBack[0].point;
+					marker.position.copy( point );
+					selected = intersectsBack[0].object;
 				}
-				//if(sh)shoot();
+				if ( intersects.length ) {
+					if(markerMaterial.color!==0xffffff) markerMaterial.color.setHex(0xFFFFFF);
+					//if(!marker.visible)marker.visible=true;
+					//if(intersects[0].face!==null)marker.lookAt(intersects[0].face.normal);
+					//console.log("intersects.length: "+ intersects.length);
+					//console.log("intersects.distance: "+ intersects[0].distance);
+					//console.log("intersects.face: "+ intersects[0].face);
+					point = intersects[0].point;
+					marker.position.copy( point );
+					selected = intersects[0].object;
+					selectedCenter = point;
+
+					if(mouseMode==='delete') delSelected();
+					else if(mouseMode==='drag'){
+						var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
+
+					}else if(mouseMode==='shoot'){
+
+					}else if(mouseMode==='push'){
+
+					}
+			    }
+		    } else {
+		    	marker.visible = false;
 		    }
 		}
 	}
@@ -1285,7 +1351,7 @@ var ThreeEngine = function () {
 		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
 		mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
 		mouse.down = true;
-		rayTest(false);
+		rayTest();
 	}
 
 	var onMouseUp = function (e) {
@@ -1295,16 +1361,21 @@ var ThreeEngine = function () {
 
 	var onMouseMove = function (e) {
 		e.preventDefault();
+		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
+		mouse.my = -( e.clientY / vsize.y ) * 2 + 1;
+		rayTest();
+
 		if (mouse.down && !camPos.automove ) {
 			if (mouse.moving) {
 				document.body.style.cursor = 'move';
 				camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
 				camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
 				moveCamera();
-			} else {
+			}/* else {
 				mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
 		    	mouse.my = -( e.clientY / vsize.y ) * 2 + 1;
-			}
+		    	rayTest();
+			}*/
 		}
 	}
 
@@ -1331,21 +1402,25 @@ var ThreeEngine = function () {
 		mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
 		mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
 		mouse.down = true;
+		rayTest();
 	}
 
 	var onTouchMove = function (e) { 
 		e.preventDefault();
 		var t=event.touches[0];
+		mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
+		mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
+		rayTest();
 	    if (mouse.down && !camPos.automove ) {
 		    if (mouse.moving) {
 				document.body.style.cursor = 'move';
 				camPos.horizontal = ((t.clientX - mouse.ox) * 0.3) + mouse.h;
 				camPos.vertical = (-(t.clientY - mouse.oy) * 0.3) + mouse.v;
 				moveCamera();
-			} else {
+			}/* else {
 				mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
 		    	mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
-			}
+			}*/
 	    }
 	}
 
@@ -1359,10 +1434,6 @@ var ThreeEngine = function () {
 	var moveCamera = function () {
 		camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 		camera.lookAt(center);
-		if(!isOptimized){
-			//cameraBG.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
-			//cameraBG.lookAt(center);
-		}
 	}
 
 	var endMove = function () {
@@ -1385,9 +1456,8 @@ var ThreeEngine = function () {
 	var switchView = function () {
 		var n = currentView;
 		changeView(vSet[n].h, vSet[n].v, vSet[n].d);
-		//document.getElementById("bview").innerHTML = "VIEW " + n;
 		currentView++;
-		if(currentView == vSet.length) currentView = 0;
+		if(currentView === vSet.length) currentView = 0;
 	}
 
 	//-----------------------------------------------------
@@ -1401,8 +1471,6 @@ var ThreeEngine = function () {
 		renderer.setSize( vsize.x, vsize.y );
 
 		if(!isOptimized){
-			//cameraBG.aspect = vsize.z;
-			//cameraBG.updateProjectionMatrix();
 			if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
 		}
 	}
@@ -1477,6 +1545,9 @@ var ThreeEngine = function () {
 		debug:debug,
 		shadow:shadow,
 
+		setMouseMode: function (name) {
+			mouseMode = name;
+		},
 		getFps: function (name) {
 			return fpstxt +" fps / "+ ms+" ms";
 		},
