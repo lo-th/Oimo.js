@@ -27,7 +27,6 @@
 		<script type="text/javascript" src="js/loth/AutoTexture.js"></script>
 		<script type="text/javascript" src="js/loth/Ambience.js"></script>
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
-		<script type="text/javascript" src="js/loth/TinyRadio.js"></script>
 		<script type="text/javascript" src="js/loth/Editor.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
 
@@ -39,11 +38,14 @@
 		
 		<script type="text/javascript">
 		    var version='REV';
-		    var demoName = ["Basic shape", "Dice fall", "Mad pool", "Joint test", "Supermarket", "Greek temple", "Ragdoll"];
+		    var demoName = [
+		        "Basic shape", "Dice fall", "Mad pool", 
+		        "Joint test", "Supermarket", "Greek temple", 
+		        "Ragdoll"
+		    ];
         	var Ambience;
-        	var threeEngine;
+        	var threeEngine, TE;
         	var Interface;
-        	var TinyRadio;
         	var Editor;
             var OimoWorker = new Worker('js/oimo/worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
@@ -55,14 +57,13 @@
 		    	Interface = new Interface('rev');
 		    	Ambience = new Ambience();
 		    	threeEngine = new ThreeEngine();
-		    	//TinyRadio = new TinyRadio();
 		    	Editor = new Editor();
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
 				Interface.menu.appendChild( Editor.domElement );
-				//menu.appendChild( TinyRadio.domElement );
 				threeEngine.init({optimized:true, notReflected:false});
+				TE = threeEngine;
             }
 
             function mainAllObjectLoaded(){
@@ -79,16 +80,16 @@
 
     	    	// create mesh
 	            if(phase === "INIT"){
-	            	threeEngine.createObjects(e.data);
-	            	threeEngine.createJoints(e.data.joints);
+	            	TE.createObjects(e.data);
+	            	TE.createJoints(e.data.joints);
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
 
 				// create static mesh debug
 	            if(phase === "INITSTATIC"){
-	            	threeEngine.createStaticObjects(e.data);
+	            	TE.createStaticObjects(e.data);
 				}
-				if( phase === "REMOVE"){threeEngine.removeObject(e.data.n);}
+				if( phase === "REMOVE"){TE.removeObject(e.data.n);}
 
 				// update three object
     	    	if( phase === "RUN"){
@@ -100,27 +101,32 @@
 
         	    	// Update rendering meshes
         	    	while (i--) {
-        	    		if( threeEngine.content.children[i] ){
-            	    		mesh = threeEngine.content.children[i];
+        	    		if( TE.content.children[i] ){
+            	    		mesh = TE.content.children[i];
             	    		if( e.data.sleeps[i]===0){
             	    			n = 12*i;
-	            	    		mtx = new THREE.Matrix4(m[n+0], m[n+1], m[n+2], m[n+3], m[n+4], m[n+5], m[n+6], m[n+7], m[n+8], m[n+9], m[n+10], m[n+11], 0, 0, 0, 1);
+	            	    		mtx = new THREE.Matrix4(
+	            	    			m[n+0], m[n+1], m[n+2], m[n+3],
+	            	    			m[n+4], m[n+5], m[n+6], m[n+7], 
+	            	    			m[n+8], m[n+9], m[n+10], m[n+11], 
+	            	    			0, 0, 0, 1
+	            	    		);
 	            	    		mesh.position.setFromMatrixPosition( mtx )
 						    	mesh.rotation.setFromRotationMatrix( mtx );
 						    	if(mesh.material){
-							    	if(mesh.material.name == "mat01sleep") mesh.material = threeEngine.materials[0];
-						    		else if(mesh.material.name == "mat02sleep") mesh.material = threeEngine.materials[1];
-						    		else if(mesh.material.name == "mat03sleep") mesh.material = threeEngine.materials[2];
-						    		else if(mesh.material.name == "mat04sleep") mesh.material = threeEngine.materials[3];
-						    		//else if(mesh.material.name == "bonesleep") mesh.material = threeEngine.materials[10];
+							    	if(mesh.material.name == "mat01sleep") mesh.material = TE.materials[0];
+						    		else if(mesh.material.name == "mat02sleep") mesh.material = TE.materials[1];
+						    		else if(mesh.material.name == "mat03sleep") mesh.material = TE.materials[2];
+						    		else if(mesh.material.name == "mat04sleep") mesh.material = TE.materials[3];
+						    		else if(mesh.material.name == "mat07sleep") mesh.material = TE.materials[6];
 						    	}
 						    } else {
 						    	if(mesh.material){
-						    		if(mesh.material.name == "mat01") mesh.material = threeEngine.materials[8];
-						    		else if(mesh.material.name == "mat02") mesh.material = threeEngine.materials[9];
-						    		else if(mesh.material.name == "mat03") mesh.material = threeEngine.materials[10];
-						    		else if(mesh.material.name == "mat04") mesh.material = threeEngine.materials[11];
-						    		//else if(mesh.material.name == "bone") mesh.material = threeEngine.materials[11];
+						    		if(mesh.material.name == "mat01") mesh.material = TE.materials[8];
+						    		else if(mesh.material.name == "mat02") mesh.material = TE.materials[9];
+						    		else if(mesh.material.name == "mat03") mesh.material = TE.materials[10];
+						    		else if(mesh.material.name == "mat04") mesh.material = TE.materials[11];
+						    		else if(mesh.material.name == "mat07") mesh.material = TE.materials[12];
 						    	}
 					    	}
 				        } 
@@ -130,9 +136,9 @@
 		            i = e.data.maxJ;
 		            var jointPos = e.data.jointPos;
 		            while (i--) {
-		            	if( threeEngine.contentJoint.children[i] ){
+		            	if( TE.contentJoint.children[i] ){
 		            		n = 6*i
-		            		mesh = threeEngine.contentJoint.children[i];
+		            		mesh = TE.contentJoint.children[i];
 		            		mesh.geometry.vertices[0].set( jointPos[n+0], jointPos[n+1], jointPos[n+2] );
 		            		mesh.geometry.vertices[1].set( jointPos[n+3], jointPos[n+4], jointPos[n+5] );
 		            		mesh.geometry.verticesNeedUpdate = true;
@@ -140,19 +146,19 @@
 		            }
 
 		            //skin update
-		            if(demo === 3) threeEngine.updateSnake();
-		            if(demo === 6) threeEngine.updateSila();
+		            if(demo === 3) TE.updateSnake();
+		            if(demo === 6) TE.updateSila();
 
 					displayInfo(e.data.infos);
 	            }
 
 	            // clear three object
 				if(phase === "CLEAR"){
-				    threeEngine.clearAll();
+				    TE.clearAll();
 				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null;  initDemo(); }  
 				}
 				// get ragdoll info
-				if(phase === "GETBONES") threeEngine.getSqueletonStructure(e.data.name);
+				if(phase === "GETBONES") TE.getSqueletonStructure(e.data.name);
 				if(phase === "GRAVITY") Interface.setCurrentGravity(e.data.G);
     	    }
 
@@ -173,7 +179,7 @@
             var basicOption = null;
 
             var ADD = function(obj){
-            	threeEngine.ADD(obj);
+            	TE.ADD(obj);
             }
 
             var CLEAR = function(obj){
@@ -200,8 +206,8 @@
 	        	    "Updating Time: " + a[9] + " ms<br>",
 	        	    "Total Time: " + a[10] + " ms<br><br>",
 	        	    "Physics: " + a[11] +" fps / "+a[12]+" ms<br>",
-	        	    "Render: " + threeEngine.getFps()+"<br><br>",
-	        	    "Selected: "+ threeEngine.getSelected()
+	        	    "Render: " + TE.getFps()+"<br><br>",
+	        	    "Selected: "+ TE.getSelected()
 			    ].join("\n");
 	        	document.getElementById("output").innerHTML = info;
 	        }

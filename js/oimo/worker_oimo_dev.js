@@ -155,8 +155,10 @@ var REMOVE = function(data){
 //--------------------------------------------------
 //   WORLD UPDATE
 //--------------------------------------------------
+var maxBody, maxJoint;
 
 var update = function(){
+    //if(infos.length) self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
     if(isNeedRemove){REMOVE(removeTemp);}
     t01 = Date.now();
 
@@ -165,7 +167,8 @@ var update = function(){
     var r, p, t, n;
     var p1, p2;
     var i =  bodys.length;
-    var maxBody = i;
+    //var 
+    maxBody = i;
 
     var wakeup = false;
 
@@ -191,7 +194,8 @@ var update = function(){
     }
 
     i = joints.length;
-    var maxJoint = i;
+    //var 
+    maxJoint = i;
     while (i--) {
         p1 = joints[i].anchorPoint1;
         p2 = joints[i].anchorPoint2;

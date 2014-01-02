@@ -32,7 +32,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#777777; top:120px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#AAAAAA; top:120px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
