@@ -117,10 +117,10 @@ var ThreeEngine = function () {
 
 		if(!isOptimized){
 			MaxAnistropy = renderer.getMaxAnisotropy();
-			renderer.physicallyBasedShading = true;
+			//renderer.physicallyBasedShading = true;
 			//renderer.gammaOutput = true;
 			//renderer.gammaInput = true;
-			//renderer.autoClear = false;
+			renderer.autoClear = false;
 			//sceneBG = new THREE.Scene();
 			//cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
 			//sceneBG.add(cameraBG);
@@ -139,7 +139,7 @@ var ThreeEngine = function () {
 			MaxAnistropy = 1;
 			//initBackPlane();
 			//renderer.clearStencil = true;
-			//renderer.autoClear = false;
+			renderer.autoClear = false;
 			//renderer.setClearColor( 0x505050);
 		}
 

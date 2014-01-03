@@ -184,7 +184,7 @@ var update = function(){
         wakeup = true;
     }
 
-    if(isPlayerMove){player.move(playerSet.x, playerSet.y, playerSet.z, playerSet.rot); isPlayerMove = false;}
+    if(isPlayerMove && player!==null){player.move(playerSet.x, playerSet.y, playerSet.z, playerSet.rot); isPlayerMove = false;}
 
     while (i--) {
         if( wakeup ) bodys[i].awake();
