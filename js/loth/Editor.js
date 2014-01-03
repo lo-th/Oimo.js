@@ -30,7 +30,7 @@ var Editor = function (Pos) {
 
 	//----------------------------------------------
 
-	var bstyle =unselect+ 'text-shadow: 1px 1px 3px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
+	var bstyle =unselect+ 'text-shadow: 1px 1px 1px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
 	var bcenter = document.createElement( 'div' );

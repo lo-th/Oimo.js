@@ -42,7 +42,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#AAAAAA; top:125px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#808080; top:125px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -212,7 +212,7 @@ var Interface = function (name) {
 
 	var ribbon = document.createElement( 'div' );
 	ribbon.style.cssText ='position: absolute; top: 0; right: 0; border: 0;  pointer-events:auto;';
-	ribbon.innerHTML ="<a href='https://github.com/lo-th/Oimo.js'><img  src='http://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png' alt='Fork me on GitHub' /></a>";
+	ribbon.innerHTML ="<a href='https://github.com/lo-th/Oimo.js'  target='_blank' ><img  src='http://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png' alt='Fork me on GitHub' /></a>";
 	container.appendChild( ribbon );
 
     return {
