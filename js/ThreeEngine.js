@@ -109,7 +109,7 @@ var ThreeEngine = function () {
 
 		// marker for mouse position
 		markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
-		marker = new THREE.Mesh(new THREE.SphereGeometry(3), markerMaterial);
+		marker = new THREE.Mesh(new THREE.SphereGeometry(6), markerMaterial);
 		scene.add(marker);
 
 		if(!isNotReflected) initReflectBall();
@@ -120,7 +120,7 @@ var ThreeEngine = function () {
 			renderer.physicallyBasedShading = true;
 			//renderer.gammaOutput = true;
 			//renderer.gammaInput = true;
-			renderer.autoClear = false;
+			//renderer.autoClear = false;
 			//sceneBG = new THREE.Scene();
 			//cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
 			//sceneBG.add(cameraBG);
@@ -139,7 +139,7 @@ var ThreeEngine = function () {
 			MaxAnistropy = 1;
 			//initBackPlane();
 			//renderer.clearStencil = true;
-			renderer.autoClear = false;
+			//renderer.autoClear = false;
 			//renderer.setClearColor( 0x505050);
 		}
 
@@ -663,7 +663,6 @@ var ThreeEngine = function () {
     		    m2.scale.set( 3, 3, 3 );
     		    m2.position.y= -36;
     		    mesh.add(m2);
-
     		    followObject = mesh;//name;
     		break;
     		case 15: case 'vanwheel':
@@ -672,37 +671,30 @@ var ThreeEngine = function () {
     		break;
     		case 16: case 'droid':
     		    mesh = new THREE.Object3D();
-    		    m3 = new THREE.Object3D();
+    		    //mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
+    		    //mesh.scale.set( s[0], s[1], s[2] );
+    		    //mesh=new THREE.Mesh(geo02b, getMaterial('mat02'));
+    		    //mesh.scale.set( s[0], s[0], s[0] ); 
+
+    		    player = new THREE.Object3D();
     		    m2 = getMeshByName('Android');
-    		    m2.position.set(0,-6,0);
-    		     m2.material = materials[14];
-    		    //m2.material.map = new createDroidTexture();
-    		    //m2.material.map.needsUpdate = true;
-    		    //m2.material.color.setHex(0xffffff);
-    		    //m2.material.ambient.setHex(0xffffff);
-    		    //m2.material.shininess.setHex(0xffffff);
-    		   // m2.material.specular.setHex(0xffffff);
-    		    //m2.receiveShadow = false;
-    		    //m2.castShadow = false;
-    		   // m2 = new THREE.SkinnedMesh( getSeaGeometry('Android', 2), matDroid, false);
-    		   // m2.animations = getMeshByName('Android').animations;
-                        //var animation = new THREE.Animation( block, "idle" );
-                        //THREE.AnimationHandler.add( block.geometry.animations )
-                       
-    		   // m2.material = getMaterial('matDroid');
-    		    /*if(!isNotReflected) {
-	    		   	m2.material.envMap = envtexture;
-					m2.material.combine = THREE.MixOperation;
-					m2.material.reflectivity = 0.5;
-    		    }*/
-    		    m3.scale.set( 3, 3, -3 );
-    		    
-    		    m3.add(m2);
-    		    contentSpecial.add(m3);
+
+    		    m2.scale.set( 1, 1, -1 );
+    		    //m2.position.set(0,-10,0);
+
+    		    m2.material = getMaterial('matDroid');
+    		   
+    		    m2.play("Idle");
+    		    m2.rotation.y = -90*ToRad;
+    		    player.add(m2);
+    		    player.scale.set( 2,2, 2 );
+    		    //m2.position.y=30;
+    		    contentSpecial.add(player);
 	    		followSpecial = "droid";
-	    		player = m3;
+	    		//player = m3;
+	    		//player.position.set(0,0,0);
 	    		//player.children[0].play("Walk");
-	    		followObject = mesh;
+	    		followObject = player;
     		break;
     	}
     	mesh.position.y = -10000;
@@ -721,7 +713,7 @@ var ThreeEngine = function () {
 	var clearAll = function (){
 		player = null;
 		followObject = null;
-		followSpecial = null;
+		followSpecial = '';
 		var i=content.children.length;
 		var j;
 		while (i--) {
@@ -755,27 +747,14 @@ var ThreeEngine = function () {
 
 	var addSnake = function (s) {
 		if(s==null) s = [10,10,10];
-		var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, getMaterial('mat05') );
-		//mesh.material = mat05;
+		//var mesh = new THREE.SkinnedMesh( getMeshByName('snake').geometry, getMaterial('mat05') );
+		var mesh = getMeshByName('snake');
+		mesh.material = getMaterial('mat05');
+
 		mesh.scale.set( s[0], s[1], -s[2] );
 		content.add( mesh );
 		mesh.receiveShadow = true;
 		mesh.castShadow = true;
-
-		/*var n = mesh.bones.length;
-		var e;
-		for (var i=0; i!==n ; i++){
-		  e = new THREE.AxisHelper( 10 )
-			content.add( e );
-
-			e.position.x = mesh.bones[i].position.x;
-			e.position.y = mesh.bones[i].position.y+90;
-			e.position.z = mesh.bones[i].position.z-30;
-
-			e.rotation.x = mesh.bones[i].rotation.x;
-			e.rotation.y = mesh.bones[i].rotation.y;
-			e.rotation.z = mesh.bones[i].rotation.z;
-		}*/
 	}
 
 
@@ -800,8 +779,9 @@ var ThreeEngine = function () {
 	// for ragdoll test
 	var addSila = function (s) {
 		if(s==null) s = [1,1,1];
-		var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, getMaterial('mat08') );
-		//mesh.material = mat08;
+		//var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, getMaterial('mat08') );
+		var mesh = getMeshByName('sila')
+		mesh.material = getMaterial('mat08');
 		mesh.scale.set( s[0], s[1], s[2] );
 		//mesh.position.y=90;
 		content.add( mesh );
@@ -1121,7 +1101,7 @@ var ThreeEngine = function () {
 
 	//-----------------------------------------------------
 	//
-	//  UPDATE
+	//  UPDATE ENGINE
 	//
 	//-----------------------------------------------------
 
@@ -1131,10 +1111,10 @@ var ThreeEngine = function () {
 		startTime = Date.now();
 
 		var delta = clock.getDelta();
-		THREE.AnimationHandler.update( delta );
+		
 
 		if(followObject) cameraFollow(followObject.position);
-		if(followSpecial){
+		//if(followSpecial){
 			if(followSpecial === 'gyro'){
 				var m00=followObject;
 		        var m01=contentSpecial.children[0];
@@ -1145,12 +1125,15 @@ var ThreeEngine = function () {
 		        prevR[0] = m00.position.x;
 		        prevR[1] = m00.position.z;
 			} else if(followSpecial === 'droid'){
-				var m00=followObject;
+				
+				movePlayer(delta);
+
+				//var m00 = followObject;
 				//player = null;
 		       // var m01=contentSpecial.children[0];
-		        var distance= getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
-		        player.position.copy(m00.position);
-		        if(distance>2){
+		        //var distance = getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
+		        //player.position.copy(m00.position);
+		       /* if(distance>2){
 		        	if(Anim === "Idle"){ Anim="Walk"; player.children[0].play("Walk");}
 		        	player.rotation.y=-(camPos.horizontal+90)*ToRad;
 		        }
@@ -1160,16 +1143,23 @@ var ThreeEngine = function () {
 		        	}
 		        }
 		        prevR[0] = m00.position.x;
-		        prevR[1] = m00.position.z;
+		        prevR[1] = m00.position.z;*/
 			}
-		}
+		//}
+
+		// test 
+		/*looker.position.copy(center);
+		looker.position.y = 10;
+		var dir=Math.atan2(center.z-marker.position.z,center.x-marker.position.x);
+		looker.rotation.y = -dir+(90*ToRad);*/
+
 
 		if(!isOptimized){
 			//renderNoise+=(nRenderNoise-renderNoise)*.2;
 			//setNoise(renderNoise);
 		}
 
-		updateBackPlane();
+		//updateBackPlane();
 
 		/*
 		//delta = clock.getDelta();
@@ -1186,6 +1176,8 @@ var ThreeEngine = function () {
 	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
 	    fps++;
 	}
+
+	
 
 	/*var viewRender = function () {
 		renderer.render( scene, camera );
@@ -1204,6 +1196,39 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 	//  PLAYER MOVE
 	//-----------------------------------------------------
+
+	var playerSet = {animation:'Idle', destX:0, destZ:0, maxSpeed:0.02, speed:0, acc:0.001, decay:0.9};
+
+
+	var setPlayerDestination = function (){
+		//playerSet.destX = marker.position.x;
+		//playerSet.destZ = marker.position.z;
+		//player.rotation.y = - Math.atan2(player.position.z-marker.position.z,player.position.x-marker.position.x)//+(90*ToRad);
+	}
+
+	var movePlayer = function (delta){
+		if (mouse.down && selected.name!=='background'){
+			playerSet.destX = marker.position.x;
+			playerSet.destZ = marker.position.z;
+			if (playerSet.speed < playerSet.maxSpeed) playerSet.speed += playerSet.acc;
+			if(playerSet.animation === 'Idle'){ playerSet.animation = 'Walk'; player.children[0].play(playerSet.animation);}
+		}else{
+			if (playerSet.speed > 0.001) playerSet.speed *= playerSet.decay;
+			else{ playerSet.speed = 0; if(playerSet.animation === 'Walk'){ playerSet.animation = 'Idle';player.children[0].play(playerSet.animation);} }	
+		}
+
+		player.position.x += (playerSet.destX - player.position.x) * playerSet.speed;
+		player.position.z += (playerSet.destZ - player.position.z) * playerSet.speed;
+		player.rotation.y = - Math.atan2(player.position.z-marker.position.z,player.position.x-marker.position.x)//+(90*ToRad);
+		//player.children[0].play(playerSet.animation);
+        THREE.AnimationHandler.update( delta*(0.5 +  (playerSet.speed*5)) );
+		//player.position.x += (playerSet.destX - player.position.x) / playerSet.speed;
+		//player.position.z += (playerSet.destZ - player.position.z) / playerSet.speed;
+		player.position.y = 0;//22;
+
+
+		OimoWorker.postMessage({tell:"PLAYERMOVE", x:player.position.x*0.01, y:player.position.y*0.01,z:player.position.z*0.01, rot:player.rotation.y}); 
+	}
 
 	/*function updatePlayerMove() {
 		var n = currentPlayer;
@@ -1352,6 +1377,7 @@ var ThreeEngine = function () {
 		mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
 		mouse.down = true;
 		rayTest();
+		if(followSpecial === 'droid')setPlayerDestination();
 	}
 
 	var onMouseUp = function (e) {
@@ -1447,7 +1473,6 @@ var ThreeEngine = function () {
 
 	var cameraFollow = function (vec) {
 		center.copy(vec);
-		
 		moveLights();
 		moveCamera();
 		moveBgObject();

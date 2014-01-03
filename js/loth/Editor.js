@@ -3,7 +3,7 @@
  */
 'use strict';
 var Editor = function (Pos) {
-	var left = Pos || 590;
+	var left = Pos || 310;//590;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
@@ -19,7 +19,7 @@ var Editor = function (Pos) {
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
 	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
-    var effect = 'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
+    var effect = 'border:1px solid rgba(255,255,255,0.3);';//'box-shadow: 0 0 4px rgba(255,255,255,0.3);';
 
 	var deco = document.createElement( 'div' );
 	deco.id = 'Editor-deco';

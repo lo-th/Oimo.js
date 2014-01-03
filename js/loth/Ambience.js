@@ -3,7 +3,7 @@
  */
 'use strict';
 var Ambience = function (Pos) {
-	var left = Pos || 150;
+	var left = Pos || 750//140;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'
@@ -18,7 +18,7 @@ var Ambience = function (Pos) {
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
 	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
-    var effect = 'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
+    var effect = 'border:1px solid rgba(255,255,255,0.3);';//'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
 
 	var deco = document.createElement( 'div' );
 	deco.style.cssText = borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';

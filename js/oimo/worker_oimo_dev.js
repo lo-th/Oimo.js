@@ -20,6 +20,7 @@ importScripts('demos.js');
 importScripts('vehicle/car.js');
 importScripts('vehicle/van.js');
 importScripts('vehicle/ball.js');
+importScripts('vehicle/player.js');
 
 // main class
 var version = "10.DEV";
@@ -61,6 +62,7 @@ var joints = [], jointPos = [];
 var car = null;
 var van = null;
 var ball = null;
+var player = null;
 
 var statBegin;
 
@@ -68,6 +70,8 @@ var isTimout = false;
 var isNeedRemove = false;
 var removeTemp = {};
 
+var isPlayerMove = false;
+var playerSet = {};
 //--------------------------------------------------
 //   WORKER MESSAGE
 //--------------------------------------------------
@@ -88,6 +92,7 @@ self.onmessage = function (e) {
 
     if(phase === "UPDATE"){ if(isTimout) update(); else timer = setInterval(update, timerStep);  }
     if(phase === "KEY") userKey(e.data.key);
+    if(phase === "PLAYERMOVE"){isPlayerMove= true; playerSet = e.data;}
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
     if(phase === "NEXT") initNextDemo();
@@ -123,7 +128,7 @@ var CONTROL = function(data){
         case 'car': car = new Car(data.pos, data.config || [10,0.5,0.5 , 10,4,0.5]); break;
         case 'van': van = new Van(data.pos); break;
         case 'ball': ball = new Ball(data.pos, 2 ); break;
-        case 'droid': ball = new Ball(data.pos, 2, 'droid'); break;
+        //case 'droid': ball = new Ball(data.pos, 2, 'droid'); break;
     }
 }
 
@@ -159,10 +164,11 @@ var maxBody, maxJoint;
 
 var update = function(){
     //if(infos.length) self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
+   
     if(isNeedRemove){REMOVE(removeTemp);}
     t01 = Date.now();
 
-    world.step();
+    //world.step();
     
     var r, p, t, n;
     var p1, p2;
@@ -177,6 +183,8 @@ var update = function(){
         world.gravity = new Vec3(0, Gravity, 0);
         wakeup = true;
     }
+
+    if(isPlayerMove){player.move(playerSet.x, playerSet.y, playerSet.z, playerSet.rot); isPlayerMove = false;}
 
     while (i--) {
         if( wakeup ) bodys[i].awake();
@@ -208,6 +216,9 @@ var update = function(){
         jointPos[n+5] =(p2.z*scale).toFixed(2); 
     }
 
+
+
+    world.step();
     worldInfo();
 
     self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
@@ -238,6 +249,15 @@ var userCamera = function(cam){
         ball.Phi(cam[1]);
     }
 }
+
+//--------------------------------------------------
+//   USER PLAYER
+//--------------------------------------------------
+
+/*var playerMove = function(data){
+    player.move(data.x, data.y, data.z, data.rot);
+}*/
+
 
 //--------------------------------------------------
 //   USER KEY
@@ -318,7 +338,9 @@ var clearWorld = function(){
     if(world !== null) world.clear();
     // Clear control object
     if(car !== null ) car = null;
+    if(van !== null ) van = null;
     if(ball !== null ) ball = null;
+    if(player !== null ) player = null;
 
     resetArray();
     // Clear three object
@@ -480,7 +502,10 @@ var addRigid = function(obj, OO){
         case "vanBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=14; break;
         case "vanwheel": shape = new SphereShape(sc, s[0] ); t=15; break;// fake cylinder
 
-        case "droid": shape = new SphereShape(sc, s[0]); t=16; break;// droid
+       // case "droid": shape=new BoxShape(sc, s[0], s[1], s[2]); t=16; break;// droid
+        case "droid": shape=new SphereShape(sc, s[0]); t=16; break;// droid
+        
+
     }
     var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     

@@ -8,7 +8,8 @@ var Interface = function (name) {
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
 	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
-	var buttonStyle = 'font-weight:bold; width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px;  box-shadow: 0 0 4px rgba(255,255,255,0.3); text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:20px; ';
+	var effect = 'border:1px solid rgba(255,255,255,0.3);';
+	var buttonStyle = effect+'font-weight:bold; width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:20px; ';
 	var bbStyle = 'font-weight:bold; width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 3px #000;';
 
 	//-----------------------------------------------------
@@ -32,7 +33,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#AAAAAA; top:120px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#AAAAAA; top:125px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -115,7 +116,7 @@ var Interface = function (name) {
 	//var finalFunction;
 
 	var loDiv = document.createElement( 'div' );
-	loDiv.style.cssText = 'position:absolute;left:20px; top:120px; width:30px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto; box-shadow: 0 0 4px rgba(255,255,255,0.3);';
+	loDiv.style.cssText = effect+ 'position:absolute;left:20px; top:120px; width:30px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto;';
 	container.appendChild( loDiv );
 
 	var loDiv2 = document.createElement( 'div' );
@@ -193,7 +194,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
 	var menu = document.createElement( 'div' );
-	menu.style.cssText ='position:absolute; height:600px;width:100%; overflow:hidden; bottom:0px; left:0px;  pointer-events:none;';
+	menu.style.cssText ='position:absolute; height:600px; width:100%; overflow:hidden; bottom:0px; left:0px; pointer-events:none;';
 	container.appendChild( menu );
 
     return {

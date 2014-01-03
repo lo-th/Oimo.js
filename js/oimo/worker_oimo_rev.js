@@ -59,6 +59,7 @@ var maxDemo = 7;
 // Controle by key
 var car = null;
 var ball = null;
+var player = null;
 
 var isTimout = false;
 var isNeedRemove = false;

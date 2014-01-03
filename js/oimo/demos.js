@@ -14,7 +14,7 @@ function demo0(n, t){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"ground", size:[5.5,4,5.5], pos:[0,-2,0]});
+    addRigid({type:"ground", size:[5.5,3,5.5], pos:[0,-1.5,0]});
 
     // wall
     addRigid({ type:"box", size:[4.5,10,0.5], pos:[0,5,-2.5] });
@@ -49,12 +49,12 @@ function demo1(){
     world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[20,10,20], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[20,3,20], pos:[0,-1.5,0] });
     // wall
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5,-10] });
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5,10] });
-    addRigid({ type:"box", size:[1,10,20], pos:[-10,5,0] });
-    addRigid({ type:"box", size:[1,10,20], pos:[ 10,5,0] });
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5,-9.5] });
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5,9.5] });
+    addRigid({ type:"box", size:[1,10,18], pos:[-9.5,5,0] });
+    addRigid({ type:"box", size:[1,10,18], pos:[ 9.5,5,0] });
 
     var body, px, pz, s;
     for (var i=0; i!==333; ++i ){
@@ -73,12 +73,12 @@ function demo2(){
 	world.gravity = new Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[25.4,10,12.7], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[25.4,3,12.7], pos:[0,-1.5,0] });
     // wall
     addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,-6.85] });
     addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,6.85] });
-    addRigid({ type:"box", size:[1,5,12.7], pos:[-13.2,2.5,0] });
-    addRigid({ type:"box", size:[1,5,12.7], pos:[ 13.2,2.5,0] });
+    addRigid({ type:"box", size:[1,5,14.7], pos:[-13.2,2.5,0] });
+    addRigid({ type:"box", size:[1,5,14.7], pos:[ 13.2,2.5,0] });
 
     // add dynamique object
     var body, px, pz, type = 1;
@@ -98,12 +98,12 @@ function demo3(){
 
     var dy=0.3;
     // ground
-    addRigid({ type:"ground", size:[20,10,20], pos:[0,-5+dy,0] });
+    addRigid({ type:"ground", size:[20,2,20], pos:[0,-1+dy,0] });
     // wall
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,-10] });
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy, 10] });
-    addRigid({ type:"box", size:[1,10,20], pos:[-10,5+dy,0] });
-    addRigid({ type:"box", size:[1,10,20], pos:[ 10,5+dy,0] });
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,-9.5] });
+    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,9.5] });
+    addRigid({ type:"box", size:[1,10,18], pos:[-9.5,5+dy,0] });
+    addRigid({ type:"box", size:[1,10,18], pos:[ 9.5,5+dy,0] });
 
     // add dynamique object
     dy+=1;
@@ -345,7 +345,7 @@ function demo9(){
     addRigid({ type:"ground", size:[1000,10,1000], pos:[0,-5,0] });
 
     var box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[2, 1, 6],  config:[1,0.5,0.5], move:true});
-    ball = new Ball([0, 2, 0], 2, 'droid');
+    player = new Player([0, 2, 0], 20, 'droid');
 
 
 }
