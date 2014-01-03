@@ -9,8 +9,8 @@ var Interface = function (name) {
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
 	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
 	var effect = 'border:1px solid rgba(255,255,255,0.3);';
-	var buttonStyle = effect+'font-weight:bold; width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:20px; ';
-	var bbStyle = 'font-weight:bold; width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 3px #000;';
+	var buttonStyle = effect+'font-weight:bold; width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
+	var bbStyle = 'font-weight:bold; width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 1px #000;';
 
 	//-----------------------------------------------------
     //  TITLE
@@ -22,9 +22,18 @@ var Interface = function (name) {
 	container.appendChild( titleLogo );
 
 	var title = document.createElement( 'div' );
-	title.style.cssText = 'font-weight:bold; position:absolute; color:#606060; top:17px; left:68px; text-align:left; pointer-events:none; font-size:28px; text-shadow: 1px 1px 3px #000; pointer-events:auto;';
-	if(name==='dev')title.innerHTML ="<a href='https://github.com/lo-th/Oimo.js' target='_blank' style='color:#c88458'>Oimo.js</a><p style='font-size:16px; display:inline; color:#c88458;'> DEV. <a href='index_rev.html' target='_self' style='color:#377ba7'>REV</a></p>";
-	else title.innerHTML ="<a href='https://github.com/lo-th/Oimo.js' target='_blank' style='color:#c88458'>Oimo.js</a><p style='font-size:16px; display:inline; color:#c88458;'> REV. <a href='index.html' target='_self' style='color:#377ba7'>DEV</a></p>";
+	title.style.cssText = 'font-weight:bold; position:absolute; color:#CCCCCC; top:17px; left:68px; text-align:left; pointer-events:none; font-size:26px; text-shadow: 1px 1px 2px #000; pointer-events:auto;';
+	title.innerHTML ="Oimo.js";
+	var linkColor = '#377ba7';
+	if(name==='dev') title.innerHTML +="<p style='font-size:14px; display:inline;'> | DEV |</p>";
+	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  | <a href='index.html' target='_self' style='color:"+linkColor+"'>DEV</a> |</p>";
+	if(name==='devlow') title.innerHTML +="<p style='font-size:14px; display:inline;'> DEV-low |</p>";
+	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  <a href='index_low.html' target='_self' style='color:"+linkColor+"'>DEV-low</a> |</p>";
+	if(name==='rev') title.innerHTML +="<p style='font-size:14px; display:inline;'> REV |</p>";
+	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  <a href='index_rev.html' target='_self' style='color:"+linkColor+"'>REV</a> |</p>";
+	if(name==='revlow') title.innerHTML +="<p style='font-size:14px; display:inline;'> REV-low |</p>";
+	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  <a href='index_rev_low.html' target='_self' style='color:"+linkColor+"'>REV-low</a> |</p>";
+	
 	container.appendChild( title );
 
 	//-----------------------------------------------------
@@ -82,7 +91,7 @@ var Interface = function (name) {
     //  MENU DEMO
     //-----------------------------------------------------
 
-    var bMenu = document.createElement( 'div' );
+    /*var bMenu = document.createElement( 'div' );
 	bMenu.style.cssText = 'right:10px; top:20px;  position:absolute; width:40px; display:block; text-align:center; ';
 	container.appendChild( bMenu );
 
@@ -100,7 +109,7 @@ var Interface = function (name) {
 	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.debug(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	
+	*/
 
 	/*bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('delete'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('drag'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
@@ -196,6 +205,15 @@ var Interface = function (name) {
 	var menu = document.createElement( 'div' );
 	menu.style.cssText ='position:absolute; height:600px; width:100%; overflow:hidden; bottom:0px; left:0px; pointer-events:none;';
 	container.appendChild( menu );
+
+	//-----------------------------------------------------
+    //  RIBBON
+    //-----------------------------------------------------
+
+	var ribbon = document.createElement( 'div' );
+	ribbon.style.cssText ='position: absolute; top: 0; right: 0; border: 0;  pointer-events:auto;';
+	ribbon.innerHTML ="<a href='https://github.com/lo-th/Oimo.js'><img  src='http://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png' alt='Fork me on GitHub' /></a>";
+	container.appendChild( ribbon );
 
     return {
 		domElement: container,

@@ -330,7 +330,7 @@ var ThreeEngine = function () {
 			sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
 		}else{
 			groundMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 } );
-			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x6f6f6f, side:THREE.BackSide, depthWrite: false} );
+			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x585858, side:THREE.BackSide, depthWrite: false} );
 		}
 
 		/*baseMaterial=new THREE.ShaderMaterial({
