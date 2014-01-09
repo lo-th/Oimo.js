@@ -13,19 +13,15 @@ OimoPhysics use international system units
 size and position x100 for three.js
 */
 'use strict';
-importScripts('runtime_min.js');
-importScripts('oimo_rev_min.js');
+importScripts('Oimo.r.min.js');
 importScripts('demos.js');
 
 importScripts('vehicle/ball.js');
 
 // main class
 var version = "10.REV";
-var World, RigidBody, BruteForceBroadPhase, SweepAndPruneBroadPhase, BroadPhase;
-var Shape, ShapeConfig, BoxShape, SphereShape, CylinderShape;
-var Joint, JointConfig, HingeJoint, Hinge2Joint, BallJoint, DistanceJoint;
-var Vec3, Quat, Mat33, Mat44;
-
+var Vec3;
+var ShapeConfig;
 // physics variable
 var world;
 var dt = 1/60;
@@ -167,7 +163,7 @@ var update = function(){
 
     if(Gravity!==newGravity){
         Gravity = newGravity;
-        world.gravity = new Vec3(0, Gravity, 0);
+        world.gravity = new OIMO.Vec3(0, Gravity, 0);
         wakeup = true;
     }
 
@@ -248,43 +244,18 @@ var userKey = function (key) {
 //--------------------------------------------------
 
 var initClass = function (){
-    joo.classLoader.import_("com.element.oimo.physics.OimoPhysics");
-    joo.classLoader.complete(function(imports){
-        World = com.element.oimo.physics.dynamics.World;
-        RigidBody = com.element.oimo.physics.dynamics.RigidBody;
-        BroadPhase = com.element.oimo.physics.collision.broad.BroadPhase;
-        BruteForceBroadPhase = com.element.oimo.physics.collision.broad.BruteForceBroadPhase;
-        SweepAndPruneBroadPhase = com.element.oimo.physics.collision.broad.SweepAndPruneBroadPhase;
-        // Shape
-        Shape = com.element.oimo.physics.collision.shape.Shape;
-        ShapeConfig = com.element.oimo.physics.collision.shape.ShapeConfig;
-        BoxShape = com.element.oimo.physics.collision.shape.BoxShape;
-        SphereShape = com.element.oimo.physics.collision.shape.SphereShape;
-        CylinderShape = com.element.oimo.physics.collision.shape.CylinderShape;
-        // Joint
-        Joint = com.element.oimo.physics.constraint.joint.Joint;
-        JointConfig = com.element.oimo.physics.constraint.joint.JointConfig;
-        HingeJoint = com.element.oimo.physics.constraint.joint.HingeJoint;
-        Hinge2Joint = com.element.oimo.physics.constraint.joint.Hinge2Joint;
-        BallJoint = com.element.oimo.physics.constraint.joint.BallJoint;
-        DistanceJoint = com.element.oimo.physics.constraint.joint.DistanceJoint;
-        // Math
-        Vec3 = com.element.oimo.math.Vec3;
-        Quat = com.element.oimo.math.Quat;
-        Mat33 = com.element.oimo.math.Mat33;
-        Mat44 = com.element.oimo.math.Mat44;
-
-        createWorld();
-    });
+    ShapeConfig = OIMO.ShapeConfig;
+    Vec3 = OIMO.Vec3;
+    createWorld();
 }
 
 var createWorld = function (){
     if(world==null){
-        world = new World();
+        world = new OIMO.World();
         world.numIterations = iterations;
         world.timeStep = dt;
         timerStep = dt * 1000;
-        world.gravity = new Vec3(0, Gravity, 0);
+        world.gravity = new OIMO.Vec3(0, Gravity, 0);
     }
     resetArray();
     lookIfNeedInfo();
@@ -321,7 +292,7 @@ var basicStart = function(data){
     if(data.G || data.G===0){
         Gravity = data.G;
         newGravity = Gravity;
-        world.gravity = new Vec3(0, Gravity, 0);
+        world.gravity = new OIMO.Vec3(0, Gravity, 0);
         self.postMessage({tell:"GRAVITY", G:Gravity});
     }
 
@@ -336,10 +307,10 @@ var basicStart = function(data){
         timerStep = dt * 1000;
     }
 
-    /*if(data.broadphase){
-        if(data.BroadPhase==="brute") world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
-        else world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
-    }*/
+    if(data.broadphase){
+        if(data.BroadPhase==="brute") world.broadphase = OIMO.BROAD_PHASE_BRUTE_FORCE;
+        else world.broadphase = OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
+    }
     // ground
     if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
 
@@ -414,7 +385,7 @@ var startDemo = function (){
 var addRigid = function (obj, OO){
     var notSaveSetting = OO || false;
 
-    var sc = obj.sc || new ShapeConfig();
+    var sc = obj.sc || new OIMO.ShapeConfig();
     if(obj.config){
         sc.density = obj.config[0] || 1;
         sc.friction = obj.config[1] || 0.5;
@@ -439,20 +410,20 @@ var addRigid = function (obj, OO){
     sc.position.init(p[0], p[1], p[2]);
     sc.rotation.init();
     switch(obj.type){
-        case "sphere": shape=new SphereShape(s[0], sc); t=1; break;
-        case "box": shape=new BoxShape(s[0], s[1], s[2], sc); t=2; break;
-        case "ground": shape=new BoxShape(s[0], s[1], s[2], sc); t=22; break;
-        case "bone": shape=new BoxShape(s[0], s[1], s[2], sc); t=10; break;
-        case "cylinder": shape=new CylinderShape(s[0], s[1], sc); t=3; break;
-        case "dice": shape=new BoxShape(s[0], s[1], s[2], sc); t=4; break;
-        case "column": shape = new CylinderShape(s[0], s[1], sc); t=7; break;
-        case "columnBase": shape = new BoxShape(s[0], s[1], s[2], sc); t=8; break;
-        case "columnTop": shape = new BoxShape(s[0], s[1], s[2], sc); t=9; break;
-        case "nball": shape = new SphereShape(s[0], sc); t=11; break;
-        case "gyro": shape = new SphereShape(s[0], sc); t=12; break;
-        case "droid": shape = new SphereShape(sc, s[0]); t=16; break;// droid
+        case "sphere": shape=new OIMO.SphereShape(sc, s[0]); t=1; break;
+        case "box": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2] ); t=2; break;
+        case "ground": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2] ); t=22; break;
+        case "bone": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2] ); t=10; break;
+        case "cylinder": shape=new OIMO.CylinderShape(sc, s[0], s[1] ); t=3; break;
+        case "dice": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=4; break;
+        case "column": shape = new OIMO.CylinderShape(sc, s[0], s[1]); t=7; break;
+        case "columnBase": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=8; break;
+        case "columnTop": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=9; break;
+        case "nball": shape = new OIMO.SphereShape(sc, s[0]); t=11; break;
+        case "gyro": shape = new OIMO.SphereShape(sc, s[0]); t=12; break;
+        case "droid": shape = new OIMO.SphereShape(sc, s[0]); t=16; break;// droid
     }
-    var body = new RigidBody(r[0], r[1], r[2], r[3]);
+    var body = new OIMO.RigidBody(r[0], r[1], r[2], r[3]);
     body.addShape(shape);
     
     if(move){ 
@@ -497,7 +468,7 @@ var getBodyByName = function(name){
 //--------------------------------------------------
 
 var addJoint = function (obj){
-    var jc = new JointConfig();
+    var jc = new OIMO.JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
@@ -516,8 +487,10 @@ var addJoint = function (obj){
 
     var joint;
     switch(type){
-        case "distance": case "jointDistance": joint = new DistanceJoint(obj.body1, obj.body2, maxDistance,jc); break;
-        case "hinge": case "jointHinge": joint = new HingeJoint(obj.body1, obj.body2, jc); break;
+        case "ball": case "jointBall": joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
+        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, maxDistance); break;
+        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
+        case "hinge2": case "jointHinge2": joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
     }
     
     //joint.limitMotor.setSpring(1, 10); // soften the joint
