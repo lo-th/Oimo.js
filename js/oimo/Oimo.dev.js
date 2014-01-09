@@ -41,9 +41,10 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
     this.performance=new OIMO.Performance();
     var numShapeTypes=3;
     this.detectors=[];
-    this.detectors.length = 3;
+    this.detectors.length = numShapeTypes;
     for(var i=0;i<numShapeTypes;i++){
         this.detectors[i]=[];
+        this.detectors[i].length = numShapeTypes;
     }
 
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_SPHERE]=new OIMO.SphereSphereCollisionDetector();
@@ -56,9 +57,12 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
     this.randB=123456789;
     this.maxIslandRigidBodies=64;
     this.islandRigidBodies=[];
+    this.islandRigidBodies.length = this.maxIslandRigidBodies;
     this.islandStack=[];
+    this.islandStack.length = this.maxIslandRigidBodies;
     this.maxIslandConstraints=128;
     this.islandConstraints=[];
+    this.islandConstraints.length = this.maxIslandConstraints;
     this.enableRandomizer=true;
 };
 
@@ -195,25 +199,25 @@ OIMO.World.prototype = {
                 s1=pair.shape2;
                 s2=pair.shape1;
             }
-          var link;
-          if(s1.numContacts<s2.numContacts){
-            link=s1.contactLink;
-          }else{
+            var link;
+            if(s1.numContacts<s2.numContacts){
+               link=s1.contactLink;
+            }else{
             link=s2.contactLink;
-          }
-          var exists=false;
-          while(link){
-          var contact=link.contact;
-          if(contact.shape1==s1&&contact.shape2==s2){
-            contact.persisting=true;
-            exists=true;
-          break;
-          }
-          link=link.next;
-          }
-          if(!exists){
-          this.addContact(s1,s2);
-          }
+            }
+            var exists=false;
+            while(link){
+            var contact=link.contact;
+            if(contact.shape1==s1&&contact.shape2==s2){
+                contact.persisting=true;
+                exists=true;
+            break;
+            }
+            link=link.next;
+            }
+            if(!exists){
+            this.addContact(s1,s2);
+            }
         }
         var time2=Date.now();
         this.performance.broadPhaseTime=time2-time1;
@@ -283,154 +287,177 @@ OIMO.World.prototype = {
         return true;
     },
     solveIslands:function(){
-    var invTimeStep=1/this.timeStep;
-    var body;
-    var joint;
-    var constraint;
-    var num;
-    for(joint=this.joints;joint!=null;joint=joint.next){
-        joint.addedToIsland=false;
-    }
-    if(this.maxIslandRigidBodies<this.numRigidBodies){
-        this.maxIslandRigidBodies=this.numRigidBodies<<1;
-        this.islandRigidBodies=[];
-        this.islandStack=[];
-    }
-    var numConstraints=this.numJoints+this.numContacts;
-    if(this.maxIslandConstraints<numConstraints){
-        this.maxIslandConstraints=numConstraints<<1;
-        this.islandConstraints=[];
-    }
-    var time1=Date.now();
-    this.numIslands=0;
-    for(var base=this.rigidBodies;base!=null;base=base.next){
-    if(base.addedToIsland||base.isStatic||base.sleeping){
-    continue;
-    }
-    if(base.isLonely()){
-    if(base.isDynamic){
-      base.linearVelocity.x+=this.gravity.x*this.timeStep;
-      base.linearVelocity.y+=this.gravity.y*this.timeStep;
-      base.linearVelocity.z+=this.gravity.z*this.timeStep;
-    }
-    if(this.calSleep(base)){
-      base.sleepTime+=this.timeStep;
-    if(base.sleepTime>0.5){
-      base.sleep();
-    }else{
-      base.updatePosition(this.timeStep);
-    }
-    }else{
-      base.sleepTime=0;
-      base.updatePosition(this.timeStep);
-    }
-    this.numIslands++;
-    continue;
-    }
-    var islandNumRigidBodies=0;
-    var islandNumConstraints=0;
-    var stackCount=1;
-    this.islandStack[0]=base;
-    base.addedToIsland=true;
-    do{
-    body=this.islandStack[--stackCount];
-    this.islandStack[stackCount]=null;
-    body.sleeping=false;
-    this.islandRigidBodies[islandNumRigidBodies++]=body;
-    if(body.isStatic){
-    continue;
-    }
-    for(var cs=body.contactLink;cs!=null;cs=cs.next){
-    var contact=cs.contact;
-    constraint=contact.constraint;
-    if(constraint.addedToIsland||!contact.touching){
-    continue;
-    }
-    this.islandConstraints[islandNumConstraints++]=constraint;
-    constraint.addedToIsland=true;
-    var next=cs.body;
-    if(next.addedToIsland){
-    continue;
-    }
-    this.islandStack[stackCount++]=next;
-    next.addedToIsland=true;
-    }
-    for(var js=body.jointLink;js!=null;js=js.next){
-    constraint=js.joint;
-    if(constraint.addedToIsland){
-    continue;
-    }
-    this.islandConstraints[islandNumConstraints++]=constraint;
-    constraint.addedToIsland=true;
-    next=js.body;
-    if(next.addedToIsland||!next.isDynamic){
-    continue;
-    }
-    this.islandStack[stackCount++]=next;
-    next.addedToIsland=true;
-    }
-    }while(stackCount!=0);
-    var gx=this.gravity.x*this.timeStep;
-    var gy=this.gravity.y*this.timeStep;
-    var gz=this.gravity.z*this.timeStep;
-    for(var j=0;j<islandNumRigidBodies;j++){
-      body=this.islandRigidBodies[j];
-      if(body.isDynamic){
-        body.linearVelocity.x+=gx;
-        body.linearVelocity.y+=gy;
-        body.linearVelocity.z+=gz;
-      }
-    }
-    if(this.enableRandomizer){
-      for(j=1;j<islandNumConstraints;j++){
-        var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
-        constraint=this.islandConstraints[j];
-        this.islandConstraints[j]=this.islandConstraints[swap];
-        this.islandConstraints[swap]=constraint;
-      }
-    }
-    for(j=0;j<islandNumConstraints;j++){
-      this.islandConstraints[j].preSolve(this.timeStep,invTimeStep);
-    }
-    for(var k=0;k<this.numIterations;k++){
-      for(j=0;j<islandNumConstraints;j++){
-        this.islandConstraints[j].solve();
-      }
-    }
-    for(j=0;j<islandNumConstraints;j++){
-      this.islandConstraints[j].postSolve();
-      this.islandConstraints[j]=null;
-    }
-    var sleepTime=10;
-    for(j=0;j<islandNumRigidBodies;j++){
-        body=this.islandRigidBodies[j];
-      if(this.calSleep(body)){
-        body.sleepTime+=this.timeStep;
-        if(body.sleepTime<sleepTime)sleepTime=body.sleepTime;
-      }else{
-        body.sleepTime=0;
-        sleepTime=0;
-        continue;
-      }
-    }
-    if(sleepTime>0.5){
-    for(j=0;j<islandNumRigidBodies;j++){
-        this.islandRigidBodies[j].sleep();
-        this.islandRigidBodies[j]=null;
-    }
-    }else{
-    for(j=0;j<islandNumRigidBodies;j++){
-        this.islandRigidBodies[j].updatePosition(this.timeStep);
-        this.islandRigidBodies[j]=null;
-    }
-    }
-    this.numIslands++;
-    }
+        var invTimeStep=1/this.timeStep;
+        var body;
+        var joint;
+        var constraint;
+        var num;
+        for(joint=this.joints;joint!=null;joint=joint.next){
+            joint.addedToIsland=false;
+        }
+        // expand island buffers
+        if(this.maxIslandRigidBodies<this.numRigidBodies){
+            this.maxIslandRigidBodies=this.numRigidBodies<<1;
+            this.islandRigidBodies=[];
+            this.islandStack=[];
+            this.islandRigidBodies.length = this.maxIslandRigidBodies;
+            this.islandStack.length = this.maxIslandRigidBodies;
+        }
+        var numConstraints=this.numJoints+this.numContacts;
+        if(this.maxIslandConstraints<numConstraints){
+            this.maxIslandConstraints=numConstraints<<1;
+            this.islandConstraints=[];
+            this.islandConstraints.length = this.maxIslandConstraints;
+        }
+        var time1=Date.now();
+        this.numIslands=0;
+        // build and solve simulation islands
+        for(var base=this.rigidBodies;base!=null;base=base.next){
+            if(base.addedToIsland||base.isStatic||base.sleeping){
+                    continue;// ignore
+            }
+            if(base.isLonely()){// update single body
+                if(base.isDynamic){
+                    base.linearVelocity.x+=this.gravity.x*this.timeStep;
+                    base.linearVelocity.y+=this.gravity.y*this.timeStep;
+                    base.linearVelocity.z+=this.gravity.z*this.timeStep;
+                }
+                if(this.calSleep(base)){
+                    base.sleepTime+=this.timeStep;
+                if(base.sleepTime>0.5){
+                    base.sleep();
+                }else{
+                    base.updatePosition(this.timeStep);
+                }
+                }else{
+                    base.sleepTime=0;
+                    base.updatePosition(this.timeStep);
+                }
+                this.numIslands++;
+                continue;
+            }
+            var islandNumRigidBodies=0;
+            var islandNumConstraints=0;
+            var stackCount=1;
+            // add rigid body to stack
+            this.islandStack[0]=base;
+            base.addedToIsland=true;
+            // build an island
+            do{
+                // get rigid body from stack
+                body=this.islandStack[--stackCount];
+                this.islandStack[stackCount]=null;
+                body.sleeping=false;
+                // add rigid body to the island
+                this.islandRigidBodies[islandNumRigidBodies++]=body;
+                if(body.isStatic){
+                continue;
+                }
+                // search connections
+                for(var cs=body.contactLink;cs!=null;cs=cs.next){
+                    var contact=cs.contact;
+                    constraint=contact.constraint;
+                    if(constraint.addedToIsland||!contact.touching){
+                        continue;// ignore
+                    }
+                    // add constraint to the island
+                    this.islandConstraints[islandNumConstraints++]=constraint;
+                    constraint.addedToIsland=true;
+                    var next=cs.body;
+                    if(next.addedToIsland){
+                    continue;
+                    }
+                    // add rigid body to stack
+                    this.islandStack[stackCount++]=next;
+                    next.addedToIsland=true;
+                }
+                for(var js=body.jointLink;js!=null;js=js.next){
+                    constraint=js.joint;
+                    if(constraint.addedToIsland){
+                    continue;// ignore
+                    }
+                    // add constraint to the island
+                    this.islandConstraints[islandNumConstraints++]=constraint;
+                    constraint.addedToIsland=true;
+                    next=js.body;
+                    if(next.addedToIsland||!next.isDynamic){
+                    continue;
+                    }
+                    // add rigid body to stack
+                    this.islandStack[stackCount++]=next;
+                    next.addedToIsland=true;
+                }
+            }while(stackCount!=0);
+
+            // update velocities
+            var gx=this.gravity.x*this.timeStep;
+            var gy=this.gravity.y*this.timeStep;
+            var gz=this.gravity.z*this.timeStep;
+            for(var j=0;j<islandNumRigidBodies;j++){
+              body=this.islandRigidBodies[j];
+              if(body.isDynamic){
+                body.linearVelocity.x+=gx;
+                body.linearVelocity.y+=gy;
+                body.linearVelocity.z+=gz;
+              }
+            }
+
+            // randomizing order
+            if(this.enableRandomizer){
+                for(j=1;j<islandNumConstraints;j++){
+                    var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
+                    constraint=this.islandConstraints[j];
+                    this.islandConstraints[j]=this.islandConstraints[swap];
+                    this.islandConstraints[swap]=constraint;
+                }
+            }
+
+            // solve contraints
+            for(j=0;j<islandNumConstraints;j++){
+                this.islandConstraints[j].preSolve(this.timeStep,invTimeStep);// pre-solve
+            }
+            for(var k=0;k<this.numIterations;k++){
+                for(j=0;j<islandNumConstraints;j++){
+                    this.islandConstraints[j].solve();// main-solve
+                }
+            }
+            for(j=0;j<islandNumConstraints;j++){
+                this.islandConstraints[j].postSolve();// post-solve
+                this.islandConstraints[j]=null;// gc
+            }
+
+            // sleeping check
+            var sleepTime=10;
+            for(j=0;j<islandNumRigidBodies;j++){
+                body=this.islandRigidBodies[j];
+                if(this.calSleep(body)){
+                    body.sleepTime+=this.timeStep;
+                    if(body.sleepTime<sleepTime)sleepTime=body.sleepTime;
+                }else{
+                    body.sleepTime=0;
+                    sleepTime=0;
+                    continue;
+                }
+            }
+            if(sleepTime>0.5){
+                // sleep the island
+                for(j=0;j<islandNumRigidBodies;j++){
+                    this.islandRigidBodies[j].sleep();
+                    this.islandRigidBodies[j]=null;// gc
+                }
+            }else{
+                // update positions
+                for(j=0;j<islandNumRigidBodies;j++){
+                    this.islandRigidBodies[j].updatePosition(this.timeStep);
+                    this.islandRigidBodies[j]=null;// gc
+                }
+            }
+            this.numIslands++;
+        }
         var time2=Date.now();
         this.performance.solvingTime=time2-time1;
     }
 }
-
 
 
 //------------------------------
@@ -444,8 +471,6 @@ OIMO.Performance = function(){
     this.updatingTime=0;
     this.totalTime=0;
 }
-
-
 
 
 //------------------------------
@@ -538,7 +563,7 @@ OIMO.RigidBody.prototype = {
         this.numShapes--;
     },
     setupMass:function(Type,AdjustPosition){
-        var adjustPosition = AdjustPosition || true; // !!!!!!!!!
+        var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
         var type = Type || this.BODY_DYNAMIC;
 
         this.type=type;
@@ -7498,10 +7523,6 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
 
 
 
-
-
-
-
 //----------------------------------
 //  MATH
 //----------------------------------
@@ -7509,31 +7530,31 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
 // MAT33
 
 OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-    this.e00=e00 || 1;
+    this.e00=( e00 !== undefined ) ? e00 : 1;
     this.e01=e01 || 0;
     this.e02=e02 || 0;
     this.e10=e10 || 0;
-    this.e11=e11 || 1;
+    this.e11=( e11 !== undefined ) ? e11 : 1;
     this.e12=e12 || 0;
     this.e20=e20 || 0;
     this.e21=e21 || 0;
-    this.e22=e22 || 1;
+    this.e22=( e22 !== undefined ) ? e22 : 1;
 };
 
 OIMO.Mat33.prototype = {
 
     constructor: OIMO.Mat33,
 
-    init: function( e00,e01,e02,e10,e11,e12,e20,e21,e22){
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
+    init: function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
+        this.e00=( e00 !== undefined ) ? e00 : 1;
+        this.e01=e01 || 0;
+        this.e02=e02 || 0;
+        this.e10=e10 || 0;
+        this.e11=( e11 !== undefined ) ? e11 : 1;
+        this.e12=e12 || 0;
+        this.e20=e20 || 0;
+        this.e21=e21 || 0;
+        this.e22=( e22 !== undefined ) ? e22 : 1;
         return this;
     },
     add: function(m1,m2){
@@ -7847,49 +7868,48 @@ OIMO.Mat33.prototype = {
 };
 
 
-
 // MAT44
 
-OIMO.Mat44 = function( e00,e01,e02,e03, e10,e11,e12,e13, e20,e21,e22,e23, e30,e31,e32,e33){
-    this.e00=e00 || 1;
+OIMO.Mat44 = function( e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){
+    this.e00=( e00 !== undefined ) ? e00 : 1;
     this.e01=e01 || 0;
     this.e02=e02 || 0;
     this.e03=e03 || 0;
     this.e10=e10 || 0;
-    this.e11=e11 || 1;
+    this.e11=( e11 !== undefined ) ? e11 : 1;
     this.e12=e12 || 0;
     this.e13=e13 || 0;
     this.e20=e20 || 0;
     this.e21=e21 || 0;
-    this.e22=e22 || 1;
+    this.e22=( e22 !== undefined ) ? e22 : 1;
     this.e23=e23 || 0;
     this.e30=e30 || 0;
     this.e31=e31 || 0;
     this.e32=e32 || 0;
-    this.e33=e33 || 1;
+    this.e33=( e33 !== undefined ) ? e33 : 1;
 };
 
 OIMO.Mat44.prototype = {
 
     constructor: OIMO.Mat44,
 
-    init: function( e00,e01,e02,e03, e10,e11,e12,e13, e20,e21,e22,e23, e30,e31,e32,e33){
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
+    init: function( e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){
+        this.e00=( e00 !== undefined ) ? e00 : 1;
+        this.e01=e01 || 0;
+        this.e02=e02 || 0;
+        this.e03=e03 || 0;
+        this.e10=e10 || 0;
+        this.e11=( e11 !== undefined ) ? e11 : 1;
+        this.e12=e12 || 0;
+        this.e13=e13 || 0;
+        this.e20=e20 || 0;
+        this.e21=e21 || 0;
+        this.e22=( e22 !== undefined ) ? e22 : 1;
+        this.e23=e23 || 0;
+        this.e30=e30 || 0;
+        this.e31=e31 || 0;
+        this.e32=e32 || 0;
+        this.e33=( e33 !== undefined ) ? e33 : 1;
         return this;
     },
     add: function(m1,m2){
@@ -8516,11 +8536,10 @@ OIMO.Mat44.prototype = {
 };
 
 
-
 // QUAT
 
 OIMO.Quat = function( s, x, y, z){
-    this.s=s || 1;
+    this.s=( s !== undefined ) ? s : 1;
     this.x=x || 0;
     this.y=y || 0;
     this.z=z || 0;
@@ -8531,10 +8550,10 @@ OIMO.Quat.prototype = {
     constructor: OIMO.Quat,
 
     init: function(s,x,y,z){
-        this.s=s;
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        this.s=( s !== undefined ) ? s : 1;
+        this.x=x || 0;
+        this.y=y || 0;
+        this.z=z || 0;
         return this;
     },
     add: function(q1,q2){
@@ -8633,7 +8652,6 @@ OIMO.Quat.prototype = {
 }
 
 
-
 // VEC3
 
 OIMO.Vec3 = function(x,y,z){
@@ -8647,9 +8665,9 @@ OIMO.Vec3.prototype = {
     constructor: OIMO.Vec3,
 
     init: function(x,y,z){
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        this.x=x || 0;
+        this.y=y || 0;
+        this.z=z || 0;
         return this;
     },
     add: function(v1,v2){

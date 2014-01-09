@@ -16,10 +16,10 @@ OIMO.SHAPE_CYLINDER = 0x3;
 
 OIMO.MAX_BODIES = 16384;
 OIMO.WORLD_MAX_SHAPES = 32768;
-OIMO.MAX_SHAPES = 64;
 OIMO.MAX_CONTACTS = 65536;
 OIMO.MAX_JOINTS = 16384;
 OIMO.MAX_CONSTRAINTS = OIMO.MAX_CONTACTS + OIMO.MAX_JOINTS;
+OIMO.MAX_SHAPES = 64;
 
 OIMO.BODY_DYNAMIC = 0x0;
 OIMO.BODY_STATIC = 0x1;
@@ -32,26 +32,35 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
     var stepPerSecond = StepPerSecond || 60;
     var broadPhaseType = BroadPhaseType || OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
     this.rigidBodies=[];
+    this.rigidBodies.length = OIMO.MAX_BODIES;
     this.numRigidBodies=0;
     this.shapes =[];
+    this.shapes.length = OIMO.WORLD_MAX_SHAPES;
     this.numShapes=0;
     this.contacts=null;
     this.prevContacts=null;
     this.contactPool1=[];
     this.contactPool2=[];
+    this.contactPool1.length = OIMO.MAX_CONTACTS;
+    this.contactPool2.length = OIMO.MAX_CONTACTS;
     this.numContacts=0;
     this.numPrevContacts1=0;
     this.numPrevContacts2=0;
     this.joints=[];
+    this.joints.length = OIMO.MAX_JOINTS;
     this.numJoints=0;
     this.numIslands=0;
     this.constraints=[];
+    this.constraints.length = OIMO.MAX_CONSTRAINTS;
     this.numConstraints=0;
     this.collisionResult=new OIMO.CollisionResult(OIMO.MAX_CONTACTS);
     this.islandStack=[];
+    this.islandStack.length = OIMO.MAX_BODIES;
     this.islandRigidBodies=[];
+    this.islandRigidBodies.length = OIMO.MAX_BODIES;
     this.islandNumRigidBodies=0;
     this.islandConstraints=[];
+    this.islandConstraints.length = OIMO.MAX_CONSTRAINTS;
     this.islandNumConstraints=0;
 
     switch(broadPhaseType){
@@ -67,9 +76,10 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
 
     var numShapeTypes=4;
     this.detectors=[];
-    //this.detectors.length = 4;
+    this.detectors.length = numShapeTypes;
     for(var i=0;i<numShapeTypes;i++){
         this.detectors[i]=[];
+        this.detectors[i].length = numShapeTypes;
     }
 
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_SPHERE]=new OIMO.SphereSphereCollisionDetector();
@@ -7625,7 +7635,6 @@ OIMO.Hinge2Joint.prototype.postSolve = function () {
 
 
 
-
 //----------------------------------
 //  MATH
 //----------------------------------
@@ -7633,31 +7642,31 @@ OIMO.Hinge2Joint.prototype.postSolve = function () {
 // MAT33
 
 OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-    this.e00=e00 || 1;
+    this.e00=( e00 !== undefined ) ? e00 : 1;
     this.e01=e01 || 0;
     this.e02=e02 || 0;
     this.e10=e10 || 0;
-    this.e11=e11 || 1;
+    this.e11=( e11 !== undefined ) ? e11 : 1;
     this.e12=e12 || 0;
     this.e20=e20 || 0;
     this.e21=e21 || 0;
-    this.e22=e22 || 1;
+    this.e22=( e22 !== undefined ) ? e22 : 1;
 };
 
 OIMO.Mat33.prototype = {
 
     constructor: OIMO.Mat33,
 
-    init:function(e00,e01,e02,e10,e11,e12,e20,e21,e22){if(arguments.length<9){if(arguments.length<8){if(arguments.length<7){if(arguments.length<6){if(arguments.length<5){if(arguments.length<4){if(arguments.length<3){if(arguments.length<2){if(arguments.length<1){e00=1;}e01=0;}e02=0;}e10=0;}e11=1;}e12=0;}e20=0;}e21=0;}e22=1;}
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
+    init:function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
+        this.e00=( e00 !== undefined ) ? e00 : 1;
+        this.e01=e01 || 0;;
+        this.e02=e02 || 0;;
+        this.e10=e10 || 0;;
+        this.e11=( e11 !== undefined ) ? e11 : 1;
+        this.e12=e12 || 0;;
+        this.e20=e20 || 0;;
+        this.e21=e21 || 0;;
+        this.e22=( e22 !== undefined ) ? e22 : 1;
         return this;
     },
     add:function(m1,m2){
@@ -7717,7 +7726,8 @@ OIMO.Mat33.prototype = {
         this.e22=e22;
         return this;
     },
-    mulScale:function(m,sx,sy,sz,prepend){if(arguments.length<5){prepend=false;}
+    mulScale:function(m,sx,sy,sz,Prepend){
+        var perpend = Prepend || false;
         var e00;
         var e01;
         var e02;
@@ -7768,7 +7778,8 @@ OIMO.Mat33.prototype = {
         }
         return this;
     },
-    mulRotate:function(m,rad,ax,ay,az,prepend){if(arguments.length<6){prepend=false;}
+    mulRotate:function(m,rad,ax,ay,az,Prepend){
+        var perpend = Prepend || false;
         var s=Math.sin(rad);
         var c=Math.cos(rad);
         var c1=1-c;
@@ -7937,49 +7948,48 @@ OIMO.Mat33.prototype = {
 };
 
 
-
 // MAT44
 
-OIMO.Mat44 = function( e00,e01,e02,e03, e10,e11,e12,e13, e20,e21,e22,e23, e30,e31,e32,e33){
-    this.e00=e00 || 1;
+OIMO.Mat44 = function(e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){
+    this.e00=( e00 !== undefined ) ? e00 : 1;
     this.e01=e01 || 0;
     this.e02=e02 || 0;
     this.e03=e03 || 0;
     this.e10=e10 || 0;
-    this.e11=e11 || 1;
+    this.e11=( e11 !== undefined ) ? e11 : 1;
     this.e12=e12 || 0;
     this.e13=e13 || 0;
     this.e20=e20 || 0;
     this.e21=e21 || 0;
-    this.e22=e22 || 1;
+    this.e22=( e22 !== undefined ) ? e22 : 1;
     this.e23=e23 || 0;
     this.e30=e30 || 0;
     this.e31=e31 || 0;
     this.e32=e32 || 0;
-    this.e33=e33 || 1;
+    this.e33=( e33 !== undefined ) ? e33 : 1;
 };
 
 OIMO.Mat44.prototype = {
 
     constructor: OIMO.Mat44,
 
-    init:function(e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){if(arguments.length<16){if(arguments.length<15){if(arguments.length<14){if(arguments.length<13){if(arguments.length<12){if(arguments.length<11){if(arguments.length<10){if(arguments.length<9){if(arguments.length<8){if(arguments.length<7){if(arguments.length<6){if(arguments.length<5){if(arguments.length<4){if(arguments.length<3){if(arguments.length<2){if(arguments.length<1){e00=1;}e01=0;}e02=0;}e03=0;}e10=0;}e11=1;}e12=0;}e13=0;}e20=0;}e21=0;}e22=1;}e23=0;}e30=0;}e31=0;}e32=0;}e33=1;}
-        this.e00=e00;
+    init:function(e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){
+        this.e00=( e00 !== undefined ) ? e00 : 1;
         this.e01=e01;
         this.e02=e02;
         this.e03=e03;
         this.e10=e10;
-        this.e11=e11;
+        this.e11=( e11 !== undefined ) ? e11 : 1;
         this.e12=e12;
         this.e13=e13;
         this.e20=e20;
         this.e21=e21;
-        this.e22=e22;
+        this.e22=( e22 !== undefined ) ? e22 : 1;
         this.e23=e23;
         this.e30=e30;
         this.e31=e31;
         this.e32=e32;
-        this.e33=e33;
+        this.e33=( e33 !== undefined ) ? e33 : 1;
         return this;
     },
     add:function(m1,m2){
@@ -8074,7 +8084,8 @@ OIMO.Mat44.prototype = {
         this.e33=e33;
         return this;
     },
-    mulScale:function(m,sx,sy,sz,prepend){if(arguments.length<5){prepend=false;}
+    mulScale:function(m,sx,sy,sz,Prepend){
+        var perpend = Prepend || false;
         var e00;
         var e01;
         var e02;
@@ -8160,7 +8171,8 @@ OIMO.Mat44.prototype = {
         }
         return this;
     },
-    mulRotate:function(m,rad,ax,ay,az,prepend){if(arguments.length<6){prepend=false;}
+    mulRotate:function(m,rad,ax,ay,az,Prepend){
+        var perpend = Prepend || false;
         var s=Math.sin(rad);
         var c=Math.cos(rad);
         var c1=1-c;
@@ -8258,7 +8270,8 @@ OIMO.Mat44.prototype = {
         }
         return this;
     },
-    mulTranslate:function(m,tx,ty,tz,Prepend){if(arguments.length<5){prepend=false;}
+    mulTranslate:function(m,tx,ty,tz,Prepend){
+        var perpend = Prepend || false;
         var e00;
         var e01;
         var e02;
@@ -8605,11 +8618,10 @@ OIMO.Mat44.prototype = {
 };
 
 
-
 // QUAT
 
 OIMO.Quat = function( s, x, y, z){
-    this.s=s || 1;
+    this.s=( s !== undefined ) ? s : 1;
     this.x=x || 0;
     this.y=y || 0;
     this.z=z || 0;
@@ -8619,11 +8631,11 @@ OIMO.Quat.prototype = {
 
     constructor: OIMO.Quat,
 
-    init:function(s,x,y,z){if(arguments.length<4){if(arguments.length<3){if(arguments.length<2){if(arguments.length<1){s=1;}x=0;}y=0;}z=0;}
-        this.s=s;
-        this.x=x;
-        this.y=y;
-        this.z=z;
+    init:function(s,x,y,z){
+        this.s=( s !== undefined ) ? s : 1;
+        this.x=x || 0;
+        this.y=y || 0;
+        this.z=z || 0;
         return this;
     },
     add:function(q1,q2){
@@ -8691,7 +8703,6 @@ OIMO.Quat.prototype = {
         return"Quat["+this.s.toFixed(4)+", ("+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+")]";
     }
 }
-
 
 
 // VEC3
