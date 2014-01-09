@@ -13,8 +13,7 @@ OimoPhysics use international system units
 size and position x100 for three.js
 */
 'use strict';
-importScripts('runtime_min.js');
-importScripts('oimo_dev_min.js');
+importScripts('Oimo.min.js');
 importScripts('demos.js');
 
 importScripts('vehicle/car.js');
@@ -24,13 +23,11 @@ importScripts('vehicle/player.js');
 
 // main class
 var version = "10.DEV";
-var World, RigidBody, BroadPhase;
-var Shape, ShapeConfig, BoxShape, SphereShape;
-var JointConfig, HingeJoint, WheelJoint, DistanceJoint, BallAndSocketJoint, PrismaticJoint, SliderJoint;
-var Vec3, Quat, Mat33, Mat44;
 
 // physics variable
 var world;
+var ShapeConfig;
+var Vec3;
 var dt = 1/60;
 
 var scale = 100;
@@ -180,7 +177,7 @@ var update = function(){
 
     if(Gravity!==newGravity){
         Gravity = newGravity;
-        world.gravity = new Vec3(0, Gravity, 0);
+        world.gravity = new OIMO.Vec3(0, Gravity, 0);
         wakeup = true;
     }
 
@@ -195,9 +192,9 @@ var update = function(){
             p = bodys[i].position;
             n = 12*i;
 
-            matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=(p.x*scale).toFixed(2);
-            matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=(p.y*scale).toFixed(2);
-            matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=(p.z*scale).toFixed(2);
+            matrix[n+0]=r.e00.toFixed(3); matrix[n+1]=r.e01.toFixed(3); matrix[n+2]=r.e02.toFixed(3); matrix[n+3]=(p.x*scale).toFixed(2);
+            matrix[n+4]=r.e10.toFixed(3); matrix[n+5]=r.e11.toFixed(3); matrix[n+6]=r.e12.toFixed(3); matrix[n+7]=(p.y*scale).toFixed(2);
+            matrix[n+8]=r.e20.toFixed(3); matrix[n+9]=r.e21.toFixed(3); matrix[n+10]=r.e22.toFixed(3); matrix[n+11]=(p.z*scale).toFixed(2);
         }
     }
 
@@ -282,47 +279,23 @@ var userKey = function(key){
 //--------------------------------------------------
 
 var initClass = function(){
-    joo.classLoader.import_("com.elementdev.oimo.physics.OimoPhysics");
-    joo.classLoader.complete(function(imports){
-        World = com.elementdev.oimo.physics.dynamics.World;
-        RigidBody = com.elementdev.oimo.physics.dynamics.RigidBody;
-        BroadPhase = com.elementdev.oimo.physics.collision.broadphase.BroadPhase;
-        // Shape
-        Shape = com.elementdev.oimo.physics.collision.shape.Shape;
-        ShapeConfig = com.elementdev.oimo.physics.collision.shape.ShapeConfig;
-        BoxShape = com.elementdev.oimo.physics.collision.shape.BoxShape;
-        SphereShape = com.elementdev.oimo.physics.collision.shape.SphereShape;
-        // Joint
-        JointConfig = com.elementdev.oimo.physics.constraint.joint.JointConfig;
-        HingeJoint = com.elementdev.oimo.physics.constraint.joint.HingeJoint;
-        WheelJoint = com.elementdev.oimo.physics.constraint.joint.WheelJoint;
-        DistanceJoint = com.elementdev.oimo.physics.constraint.joint.DistanceJoint;
-        BallAndSocketJoint = com.elementdev.oimo.physics.constraint.joint.BallAndSocketJoint;
-        PrismaticJoint = com.elementdev.oimo.physics.constraint.joint.PrismaticJoint;
-        SliderJoint = com.elementdev.oimo.physics.constraint.joint.SliderJoint;
-
-        // Math
-        Vec3 = com.elementdev.oimo.math.Vec3;
-        Quat = com.elementdev.oimo.math.Quat;
-        Mat33 = com.elementdev.oimo.math.Mat33;
-        Mat44 = com.elementdev.oimo.math.Mat44;
-
-        createWorld();
-    });
+    ShapeConfig = OIMO.ShapeConfig;
+    Vec3 = OIMO.Vec3;
+    createWorld();
 }
 
 var createWorld = function(){
     if(world==null){
-        world = new World();
+        world = new OIMO.World();
 
-        //world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
-        //world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
-        //world.broadphase = BroadPhase.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
+        //world.broadphase = OIMO.BROAD_PHASE_BRUTE_FORCE;
+        //world.broadphase = OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
+        //world.broadphase = OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
         
         world.numIterations = iterations;
         world.timeStep = dt;
         timerStep = dt * 1000;
-        world.gravity = new Vec3(0, Gravity, 0);
+        world.gravity = new OIMO.Vec3(0, Gravity, 0);
     }
     resetArray();
     lookIfNeedInfo();
@@ -358,7 +331,7 @@ var basicStart = function(data){
     if(data.G || data.G===0){
         Gravity = data.G;
         newGravity = Gravity;
-        world.gravity = new Vec3(0, Gravity, 0);
+        world.gravity = new OIMO.Vec3(0, Gravity, 0);
         self.postMessage({tell:"GRAVITY", G:Gravity});
     }
 
@@ -374,9 +347,9 @@ var basicStart = function(data){
     }
 
     if(data.broadphase){
-        if(data.broadphase==="brute") world.broadphase = BroadPhase.BROAD_PHASE_BRUTE_FORCE;
-        else if(data.broadphase==="sweep") world.broadphase = BroadPhase.BROAD_PHASE_SWEEP_AND_PRUNE;
-        else world.broadphase = BroadPhase.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
+        if(data.broadphase==="brute") world.broadphase = OIMO.BROAD_PHASE_BRUTE_FORCE;
+        else if(data.broadphase==="sweep") world.broadphase = OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
+        else world.broadphase = OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
     }
 
     // ground
@@ -457,7 +430,7 @@ var startDemo = function(){
 var addRigid = function(obj, OO){
     var notSaveSetting = OO || false;
 
-    var sc = obj.sc || new ShapeConfig();
+    var sc = obj.sc || new OIMO.ShapeConfig();
     if(obj.config){
         sc.density = obj.config[0] || 1;
         sc.friction = obj.config[1] || 0.4;
@@ -483,31 +456,31 @@ var addRigid = function(obj, OO){
     var shape, t;
     //var shape2 = null;
     switch(obj.type){
-        case "sphere": shape=new SphereShape(sc, s[0]); t=1; break;
-        case "box": shape=new BoxShape(sc, s[0], s[1], s[2]); t=2; break;
-        case "ground": shape=new BoxShape(sc, s[0], s[1], s[2]); t=22; break;
-        case "bone": shape=new BoxShape(sc, s[0], s[1], s[2]); t=10; break;
-        case "cylinder": shape = new SphereShape(sc, s[0] ); t=3; break;// fake cylinder
-        case "dice": shape=new BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
-        case "wheel": shape = new SphereShape(sc, s[0] ); t=5; break;// fake cylinder
-        case "wheelinv": shape = new SphereShape(sc, s[0] ); t=6; break;// fake cylinder
+        case "sphere": shape=new OIMO.SphereShape(sc, s[0]); t=1; break;
+        case "box": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=2; break;
+        case "ground": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=22; break;
+        case "bone": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=10; break;
+        case "cylinder": shape = new OIMO.SphereShape(sc, s[0] ); t=3; break;// fake cylinder
+        case "dice": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
+        case "wheel": shape = new OIMO.SphereShape(sc, s[0] ); t=5; break;// fake cylinder
+        case "wheelinv": shape = new OIMO.SphereShape(sc, s[0] ); t=6; break;// fake cylinder
 
-        case "column": shape = new BoxShape(sc, s[0]*2, s[1], s[2]*2);  t=7; break;// fake cylinder
-        case "columnBase": shape = new BoxShape(sc, s[0], s[1], s[2]); t=8; break;
-        case "columnTop": shape = new BoxShape(sc, s[0], s[1], s[2]); t=9; break;
-        case "nball": shape = new SphereShape(sc, s[0]); t=11; break;
-        case "gyro": shape = new SphereShape(sc, s[0]); t=12; break;
-        case "carBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=13; break;
+        case "column": shape = new OIMO.BoxShape(sc, s[0]*2, s[1], s[2]*2);  t=7; break;// fake cylinder
+        case "columnBase": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=8; break;
+        case "columnTop": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=9; break;
+        case "nball": shape = new OIMO.SphereShape(sc, s[0]); t=11; break;
+        case "gyro": shape = new OIMO.SphereShape(sc, s[0]); t=12; break;
+        case "carBody": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=13; break;
 
-        case "vanBody": shape=new BoxShape(sc, s[0], s[1], s[2]); t=14; break;
-        case "vanwheel": shape = new SphereShape(sc, s[0] ); t=15; break;// fake cylinder
+        case "vanBody": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=14; break;
+        case "vanwheel": shape = new OIMO.SphereShape(sc, s[0] ); t=15; break;// fake cylinder
 
        // case "droid": shape=new BoxShape(sc, s[0], s[1], s[2]); t=16; break;// droid
-        case "droid": shape=new SphereShape(sc, s[0]); t=16; break;// droid
+        case "droid": shape=new OIMO.SphereShape(sc, s[0]); t=16; break;// droid
         
 
     }
-    var body = new RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+    var body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
     body.addShape(shape);
     //if(shape2!=null)body.addShape(shape2);
@@ -555,7 +528,7 @@ var getBodyByName = function(name){
 //--------------------------------------------------
 
 var addJoint = function(obj){
-    var jc = new JointConfig();
+    var jc = new OIMO.JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
@@ -581,13 +554,13 @@ var addJoint = function(obj){
     jc.body2 = obj.body2;
     var joint;
     switch(type){
-        case "distance": case "jointDistance": joint = new DistanceJoint(jc, minDistance, maxDistance); break;
-        case "hinge": case "jointHinge": joint = new HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
-        case "prisme": case "jointPrisme": joint = new PrismaticJoint(jc, lowerTranslation, upperTranslation); break;
-        case "slide": case "jointSlide": joint = new SliderJoint(jc, lowerTranslation, upperTranslation); break;
-        case "ball": case "jointBall": joint = new BallAndSocketJoint(jc); break;
+        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, minDistance, maxDistance); break;
+        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
+        case "prisme": case "jointPrisme": joint = new OIMO.PrismaticJoint(jc, lowerTranslation, upperTranslation); break;
+        case "slide": case "jointSlide": joint = new OIMO.SliderJoint(jc, lowerTranslation, upperTranslation); break;
+        case "ball": case "jointBall": joint = new OIMO.BallAndSocketJoint(jc); break;
         case "wheel": case "jointWheel": 
-            joint = new WheelJoint(jc);  
+            joint = new OIMO.WheelJoint(jc);  
             if(limit !== null) 
                 joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
             if(spring !== null) 
@@ -687,7 +660,7 @@ var eulerToMatrix = function( x, y, z ) {
     var sa = Math.sin(z);
     var cb = Math.cos(x);//bank
     var sb = Math.sin(x);
-    var mtx = new Mat33();
+    var mtx = new OIMO.Mat33();
     mtx.e00 = ch * ca;
     mtx.e01 = sh*sb - ch*sa*cb;
     mtx.e02 = ch*sa*sb + sh*cb;
