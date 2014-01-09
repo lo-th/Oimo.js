@@ -1,17 +1,18 @@
-/*
-OimoPhysics alpha dev 10
-Copyright (c) 2012-2013 EL-EMENT saharan
+/**
+ * Oimo.js and Worker for three.js 2014
+ * @author LoTh / http://3dflashlo.wordpress.com/
+ * 
+ * OimoPhysics REV 1.0.0
+ * @author Saharan / http://el-ement.com/
+ * @Copyright (c) 2012-2013 EL-EMENT saharan
+ */
 
-@author Saharan _ http://el-ement.com
-@link https://github.com/saharan/OimoPhysics
-...
-oimo.js worker for three.js 
-@author Loth _ http://3dflashlo.wordpress.com/
+//---------------------------------------------------
+//   OimoPhysics use international system units
+//   0.1 to 10 meters max for dynamique body
+//   size and position x100 for three.js
+//---------------------------------------------------
 
-OimoPhysics use international system units
-0.1 to 10 meters max for dynamique body
-size and position x100 for three.js
-*/
 'use strict';
 importScripts('Oimo.rev.js');
 importScripts('demos.js');

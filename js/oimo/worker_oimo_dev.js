@@ -1,17 +1,18 @@
-/*
-OimoPhysics alpha dev 10
-Copyright (c) 2012-2013 EL-EMENT saharan
+/**
+ * Oimo.js and Worker for three.js 2014
+ * @author LoTh / http://3dflashlo.wordpress.com/
+ * 
+ * OimoPhysics DEV 1.1.0a
+ * @author Saharan / http://el-ement.com/
+ * @Copyright (c) 2012-2013 EL-EMENT saharan
+ */
 
-@author Saharan _ http://el-ement.com
-@link https://github.com/saharan/OimoPhysics
-...
-oimo.js worker for three.js 
-@author Loth _ http://3dflashlo.wordpress.com/
+//---------------------------------------------------
+//   OimoPhysics use international system units
+//   0.1 to 10 meters max for dynamique body
+//   size and position x100 for three.js
+//---------------------------------------------------
 
-OimoPhysics use international system units
-0.1 to 10 meters max for dynamique body
-size and position x100 for three.js
-*/
 'use strict';
 importScripts('Oimo.dev.js');
 importScripts('demos.js');
@@ -83,7 +84,7 @@ self.onmessage = function (e) {
     }
 
     if(phase === "ADD") ADD(e.data);
-    if(phase === "REMOVE"){ isNeedRemove = true; removeTemp = e.data} //REMOVE(e.data);
+    if(phase === "REMOVE"){ isNeedRemove = true; removeTemp = e.data};
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
 
@@ -157,11 +158,10 @@ var REMOVE = function(data){
 //--------------------------------------------------
 //   WORLD UPDATE
 //--------------------------------------------------
+
 var maxBody, maxJoint;
 
 var update = function(){
-    //if(infos.length) self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
-   
     if(isNeedRemove){REMOVE(removeTemp);}
     t01 = Date.now();
 
@@ -212,8 +212,6 @@ var update = function(){
         jointPos[n+4] =(p2.y*scale).toFixed(2); 
         jointPos[n+5] =(p2.z*scale).toFixed(2); 
     }
-
-
 
     world.step();
     worldInfo();
@@ -475,7 +473,7 @@ var addRigid = function(obj, OO){
         case "vanBody": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=14; break;
         case "vanwheel": shape = new OIMO.SphereShape(sc, s[0] ); t=15; break;// fake cylinder
 
-       // case "droid": shape=new BoxShape(sc, s[0], s[1], s[2]); t=16; break;// droid
+       // case "droid": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=16; break;// droid
         case "droid": shape=new OIMO.SphereShape(sc, s[0]); t=16; break;// droid
         
 
@@ -483,7 +481,6 @@ var addRigid = function(obj, OO){
     var body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
     body.addShape(shape);
-    //if(shape2!=null)body.addShape(shape2);
 
     if(move){
         if(noAdjust)body.setupMass(0x1, false);
@@ -533,7 +530,7 @@ var addJoint = function(obj){
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
-    var minDistance = 0.01;// obj.minDistance || 0.01;
+    var minDistance = 0.01;
     var maxDistance = obj.maxDistance || 0.1;
     var lowerAngleLimit = obj.lowerAngle || 1;
     var upperAngleLimit = obj.upperAngle || 0;

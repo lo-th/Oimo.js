@@ -1,10 +1,14 @@
 /**
- * @author saharan / http://el-ement.com/
- * @author lo-th / http://3dflashlo.wordpress.com/
+ * OimoPhysics DEV 1.1.0a
+ * @author Saharan / http://el-ement.com/
+ * @Copyright (c) 2012-2013 EL-EMENT saharan
+ * 
+ * Oimo.js 2014
+ * @author LoTh / http://3dflashlo.wordpress.com/
  */
 
 'use strict';
-var OIMO = { REVISION: 'DEV.1.1.0a', COPY:'Copyright (c) 2012-2013 EL-EMENT saharan' };
+var OIMO = { REVISION: 'DEV.1.1.0a' };
 
 OIMO.BROAD_PHASE_BRUTE_FORCE=1;
 OIMO.BROAD_PHASE_SWEEP_AND_PRUNE=2;
@@ -477,7 +481,6 @@ OIMO.Performance = function(){
 //  RIGIDBODY
 //------------------------------
 
-
 OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var rad = Rad || 0;
     var ax = Ax || 0;
@@ -508,7 +511,6 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     this.addedToIsland=false;
     this.sleeping=false;
     this.massInfo= new OIMO.MassInfo(); 
-
 
     var len=ax*ax+ay*ay+az*az;
     this.position=new OIMO.Vec3(x,y,z);
@@ -819,8 +821,6 @@ OIMO.RigidBody.prototype = {
 
 
 
-
-
 //------------------------------
 //  COLLISION BROADPHASE
 //------------------------------
@@ -925,8 +925,6 @@ OIMO.Proxy.prototype = {
 // BasicProxy
 
 OIMO.BasicProxy = function(shape){
-    //this.prototype = new OIMO.Proxy(shape);
-    //OIMO.Proxy.apply( this, arguments );
     OIMO.Proxy.call( this, shape);
 
 }
@@ -942,7 +940,7 @@ OIMO.BroadPhase = function(){
     this.numPairs=0;
     
     this.bufferSize=256;
-    this.pairs=[];//new Float32Array(256);//[]; // vector !!!!
+    this.pairs=[];// vector
     this.pairs.length = this.bufferSize;
     for(var i=0;i<this.bufferSize;i++){
         this.pairs[i]=new OIMO.Pair();
@@ -1003,7 +1001,7 @@ OIMO.BroadPhase.prototype = {
     addPair:function(s1,s2){
         if(this.numPairs==this.bufferSize){
             var newBufferSize=this.bufferSize<<1;
-            var newPairs=[];//new Float32Array(this.bufferSize);//[];// vector !!!!
+            var newPairs=[];// vector
             newPairs.length = this.bufferSize;
             for(var i=0;i<this.bufferSize;i++){
                 newPairs[i]=this.pairs[i];
@@ -1028,7 +1026,7 @@ OIMO.BruteForceBroadPhase = function(){
 
     this.numProxies=0;
     this.maxProxies = 256;
-    this.proxies = [];// Vector !!!!!!!
+    this.proxies = [];// Vector !
     this.proxies.length = 256;
 }
 
@@ -1082,7 +1080,6 @@ OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
 
 
 
-
 //------------------------------
 //  COLLISION BROADPHASE SAP
 //------------------------------
@@ -1095,8 +1092,8 @@ OIMO.SAPBroadPhase = function(){
     this.numElementsD = 0;
     this.numElementsS = 0;
 
-    this.axesD = [];//new Float32Array(3);//[];// Vector 3!!!!!!!
-    this.axesS = [];//new Float32Array(3);//[];// Vector 3!!!!!!!
+    this.axesD = [];// vector !
+    this.axesS = [];// vector !
     this.axesD.length = 3;
     this.axesS.length = 3;
 
@@ -1266,10 +1263,10 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
 
 OIMO.SAPAxis = function(){
     this.numElements=0;
-    this.stack=[];//new Float32Array(64);//[]; //vector 64 !!!!!!!
+    this.stack=[];// vector !
     this.stack.length = 64;
     this.bufferSize=256;
-    this.elements=[];//new Float32Array(256);//[]; //vector bufferSize !!!!!!!
+    this.elements=[];// vector !
     this.elements.length = this.bufferSize;
 
 };
@@ -1911,8 +1908,8 @@ OIMO.CollisionDetector.prototype = {
 OIMO.BoxBoxCollisionDetector = function(){
     OIMO.CollisionDetector.call( this );
 
-    this.clipVertices1=[];//new Float32Array(24);//[]; // vector 24 !!!!!!!!
-    this.clipVertices2=[];//new Float32Array(24);//[]; // vector 24 !!!!!!!!
+    this.clipVertices1=[];// vector 24
+    this.clipVertices2=[];// vector 24
     this.clipVertices1.length = 24;
     this.clipVertices2.length = 24;
     this.used=[];
@@ -3553,10 +3550,12 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
 
 }
 
+
 // SphereBoxCollisionDetector
 
 OIMO.SphereBoxCollisionDetector = function(flip){
     OIMO.CollisionDetector.call( this );
+
     this.flip=flip;
 }
 OIMO.SphereBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
@@ -3719,7 +3718,6 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
 
 OIMO.SphereSphereCollisionDetector = function(){
     OIMO.CollisionDetector.call( this );
-
 }
 OIMO.SphereSphereCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
 OIMO.SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
@@ -3746,21 +3744,15 @@ OIMO.SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,s
 
 
 
-
-
 //------------------------------
 //  COLLISION SHAPE
 //------------------------------
 
 OIMO.nextID = 0;
 
-
 // Shape
 
 OIMO.Shape = function(config){
-    //this.nextID=0;
-    //this.SHAPE_SPHERE=0x1;
-    //this.SHAPE_BOX=0x2;
     this.prev=null;
     this.next=null;
     this.type=0;
@@ -3769,7 +3761,7 @@ OIMO.Shape = function(config){
     this.contactLink=null;
     this.numContacts=0;
 
-    this.id=OIMO.nextID++;//++OIMO.Shape.nextID;
+    this.id=OIMO.nextID++;
     this.position=new OIMO.Vec3();
     this.relativePosition=new OIMO.Vec3().copy(config.relativePosition);
     this.rotation=new OIMO.Mat33();
@@ -3783,7 +3775,6 @@ OIMO.Shape = function(config){
 }
 
 OIMO.Shape.prototype = {
-
     constructor: OIMO.Shape,
 
     calculateMassInfo:function(out){
@@ -3840,8 +3831,6 @@ OIMO.BoxShape = function(config,Width,Height,Depth){
     this.vertex8=new OIMO.Vec3();
     this.type=OIMO.SHAPE_BOX;
 }
-
-
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.BoxShape.prototype.calculateMassInfo = function(out){
     var mass=this.width*this.height*this.depth*this.density;
@@ -3965,7 +3954,6 @@ OIMO.BoxShape.prototype.updateProxy = function(){
     }
 }
 
-
 // SphereShape
 
 OIMO.SphereShape = function(config,radius){
@@ -3998,9 +3986,6 @@ OIMO.SphereShape.prototype.updateProxy = function(){
 
 
 
-
-
-
 //------------------------------
 //  CONSTRAINT
 //------------------------------
@@ -4013,7 +3998,6 @@ OIMO.Constraint = function(){
 }
 
 OIMO.Constraint.prototype = {
-
     constructor: OIMO.Constraint,
 
     preSolve:function(timeStep,invTimeStep){
@@ -4027,10 +4011,11 @@ OIMO.Constraint.prototype = {
     }
 }
 
+
+
 //------------------------------
 //  CONSTRAINT CONTACT
 //------------------------------
-
 
 // ContactPointDataBuffer
 
@@ -4112,13 +4097,10 @@ OIMO.ContactPointDataBuffer = function(){
     this.norImp=NaN;
     this.tanImp=NaN;
     this.binImp=NaN;
-    
     this.norDen=NaN;
     this.tanDen=NaN;
     this.binDen=NaN;
-    
     this.norTar=NaN;
-    
     this.next=null;
     this.last=false;
 }
@@ -4171,7 +4153,7 @@ OIMO.ContactManifold = function(){
     this.body1 = null;
     this.body2 = null;
     this.numPoints = 0;
-    this.points = [];//new Float32Array(4);//[]; // vector 4 !!!!!!!!!!!!!
+    this.points = [];// vector 4
     this.points.length = 4;
     this.points[0] = new OIMO.ManifoldPoint();
     this.points[1] = new OIMO.ManifoldPoint();
@@ -4179,7 +4161,6 @@ OIMO.ContactManifold = function(){
     this.points[3] = new OIMO.ManifoldPoint();
 }
 OIMO.ContactManifold.prototype = {
-
     constructor: OIMO.ContactManifold,
 
     reset:function(shape1,shape2){
@@ -4208,13 +4189,13 @@ OIMO.ContactManifold.prototype = {
         p.localPoint2.z=rx*r.e02+ry*r.e12+rz*r.e22;
         p.normalImpulse=0;
         if(flip){
-        p.normal.x=-normalX;
-        p.normal.y=-normalY;
-        p.normal.z=-normalZ;
+            p.normal.x=-normalX;
+            p.normal.y=-normalY;
+            p.normal.z=-normalZ;
         }else{
-        p.normal.x=normalX;
-        p.normal.y=normalY;
-        p.normal.z=normalZ;
+            p.normal.x=normalX;
+            p.normal.y=normalY;
+            p.normal.z=normalZ;
         }
         p.penetration=penetration;
         p.warmStarted=false;
@@ -4241,7 +4222,8 @@ OIMO.Contact = function(){
     this.s1Link=new OIMO.ContactLink(this);
     this.s2Link=new OIMO.ContactLink(this);
     this.manifold=new OIMO.ContactManifold();
-    this.buffer=[];
+    this.buffer=[];// vector 4
+    this.buffer.length = 4;
     this.buffer[0]=new OIMO.ImpulseDataBuffer();
     this.buffer[1]=new OIMO.ImpulseDataBuffer();
     this.buffer[2]=new OIMO.ImpulseDataBuffer();
@@ -4249,9 +4231,7 @@ OIMO.Contact = function(){
     this.points=this.manifold.points;
     this.constraint=new OIMO.ContactConstraint(this.manifold);
 }
-
 OIMO.Contact.prototype = {
-
     constructor: OIMO.Contact,
 
     mixRestitution:function(restitution1,restitution2){
@@ -4466,7 +4446,6 @@ OIMO.ContactConstraint = function(manifold){
     this.cs.next.next.next=new OIMO.ContactPointDataBuffer();
 }
 OIMO.ContactConstraint.prototype = Object.create( OIMO.Constraint.prototype );
-
 OIMO.ContactConstraint.prototype.attach = function(){
     this.p1=this.body1.position;
     this.p2=this.body2.position;
@@ -4869,8 +4848,6 @@ OIMO.ContactConstraint.prototype.postSolve = function(){
         c=c.next;
     }
 }
-
-
 
 
 
@@ -6876,11 +6853,6 @@ OIMO.TranslationalConstraint.prototype = {
 
 
 
-
-
-
-
-
 //------------------------------
 //  JOINT
 //------------------------------
@@ -6922,7 +6894,6 @@ OIMO.LimitMotor = function(axis,fixed){
 }
 
 OIMO.LimitMotor.prototype = {
-
     constructor: OIMO.LimitMotor,
 
     setLimit:function(lowerLimit,upperLimit){
@@ -7047,10 +7018,6 @@ OIMO.Joint.prototype.solve = function () {
 OIMO.Joint.prototype.postSolve = function () {
 }
 
-
-
-
-
 // BallAndSocketJoint
 
 OIMO.BallAndSocketJoint = function(config){
@@ -7069,7 +7036,6 @@ OIMO.BallAndSocketJoint.prototype.solve = function () {
 }
 OIMO.BallAndSocketJoint.prototype.postSolve = function () {
 }
-
 
 // DistanceJoint
 
@@ -7099,7 +7065,6 @@ OIMO.DistanceJoint.prototype.solve = function () {
 }
 OIMO.DistanceJoint.prototype.postSolve = function () {
 }
-
 
 // HingeJoint
 
@@ -7520,6 +7485,7 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
     else if(cos<-1)return Math.PI;
     else return Math.acos(cos);
 }
+
 
 
 
