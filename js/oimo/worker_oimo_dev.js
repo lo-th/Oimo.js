@@ -13,7 +13,7 @@ OimoPhysics use international system units
 size and position x100 for three.js
 */
 'use strict';
-importScripts('Oimo.min.js');
+importScripts('Oimo.dev.min.js');
 importScripts('demos.js');
 
 importScripts('vehicle/car.js');
