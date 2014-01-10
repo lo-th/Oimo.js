@@ -1,0 +1,27 @@
+<meta charset="utf-8">
+<script>
+function CLEAR(o){};
+CLEAR({ground:false});
+// TOWER
+function initDemo(){
+    // ground
+    ADD({type:"ground", size:[2000,400,2000], pos:[0,-200,0]});
+
+    // add dynamique object
+    var angle;
+    var px, py, pz;
+    var height = 40;
+    var sx = 75, sy = 75, sz = 100;
+
+    for (var j = 0; j < height; j++) {
+        for (var i = 0; i < 10; i++) {
+            angle = (Math.PI * 2 / 10 * (i + (j & 1) * 0.5));
+            px = Math.cos(angle) * 250;
+            py = j * sy + sy * 0.5;
+            pz = - Math.sin(angle) * 250;
+
+            ADD({ type:"box", size:[sx,sy,sz], pos:[px,py,pz], rot:[0,angle,0], config:[1,0.4,0.2], move:true });
+        }
+    }
+}
+</script>

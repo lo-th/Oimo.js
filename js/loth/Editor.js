@@ -19,7 +19,7 @@ var Editor = function (Pos) {
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
 	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
-    var effect = 'border:1px solid rgba(255,255,255,0.3);';//'box-shadow: 0 0 4px rgba(255,255,255,0.3);';
+    var effect = 'border:1px solid rgba(255,255,255,0.3);';
 
 	var deco = document.createElement( 'div' );
 	deco.id = 'Editor-deco';
@@ -75,7 +75,7 @@ var Editor = function (Pos) {
 
 	var addEditor = function(){
 		bbMenu = [];
-		maxDemo = 6;
+		maxDemo = 8;
 		decoFrame = document.createElement( 'div' );
 		decoFrame.id = 'decoFrame';
 		decoFrame.style.cssText =unselect+'top:0px; position:relative; display:block; overflow:hidden; ';

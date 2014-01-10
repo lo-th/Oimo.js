@@ -43,7 +43,7 @@ Van = function (Pos) {
 	this.wheel3 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x - w, y, z + d], sc:sc, move:true});
 	this.wheel4 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x + w, y, z + d], sc:sc, move:true});
 */
-	sc = new ShapeConfig();
+	sc = new OIMO.ShapeConfig();
 	sc.relativePosition.init(0, (h*0.5)+rad, 0);
 	sc.density = 10;
 

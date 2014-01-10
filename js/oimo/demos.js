@@ -112,7 +112,7 @@ function demo3(){
     // bones
     var bone = [];
     for ( i = 0; i!==10; ++i){
-        bone[i] = addRigid({ type:"bone", size:[0.25,1,0.25], pos:[0,dy+0.5+(i*1.001),0], config:[10,0.4,0.4], move:true, rot:[0,0,0,0]});
+        bone[i] = addRigid({ type:"bone", size:[0.25,1,0.25], pos:[0,dy+0.5+(i*1.001),0], config:[10,0.4,0.4], move:true, rot:[0,0,0]});
     }
     //joints
     for ( i = 0; i!==9; ++i){
@@ -174,10 +174,10 @@ function demo5(){
                 z = (j - (depth - 1) * 0.5) * 4;
                 r1 = (Math.floor((Math.random()*16))*22.5)*ToRad;// rad
                 r2 = (Math.floor((Math.random()*4))*90)*ToRad;// rad
-                if(k===0)addRigid({ type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], config:[3,0.6,0.2], move:true, rotation:[0,r2,0] });
-                else if(k<7)addRigid({ type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rotation:[0,r1,0] });
-                else if (k===7)addRigid({ type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rotation:[0,r2,0] });
-                //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rotation:[0,0,0]});
+                if(k===0)addRigid({ type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], config:[3,0.6,0.2], move:true, rot:[0,r2,0] });
+                else if(k<7)addRigid({ type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rot:[0,r1,0] });
+                else if (k===7)addRigid({ type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rot:[0,r2,0] });
+                //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rot:[0,0,0]});
             }
         }
     }
