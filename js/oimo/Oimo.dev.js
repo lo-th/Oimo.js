@@ -1517,13 +1517,14 @@ OIMO.DBVTBroadPhase = function(){
     this.maxLeaves = 0;
     this.tree=new OIMO.DBVT();
     this.maxStack=256;
-    this.stack=[];
+
+    this.stack=[];// vector
+    this.stack.length = this.maxStack;
     this.maxLeaves=256;
-    this.leaves=[];
+    this.leaves=[];// vector
+    this.leaves.length = this.maxLeaves;
 }
-
 OIMO.DBVTBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
-
 OIMO.DBVTBroadPhase.prototype.createProxy = function (shape) {
     return new OIMO.DBVTProxy(shape);
 }
@@ -1532,7 +1533,8 @@ OIMO.DBVTBroadPhase.prototype.addProxy = function (proxy) {
     this.tree.insertLeaf(p.leaf);
     if(this.numLeaves==this.maxLeaves){
     this.maxLeaves<<=1;
-    var newLeaves=[];
+    var newLeaves=[];// vector
+    newLeaves.length = this.maxLeaves;
     for(var i=0;i<this.numLeaves;i++){
     newLeaves[i]=this.leaves[i];
     }
@@ -1612,7 +1614,8 @@ OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
     }
     if(stackCount+4>=this.maxStack){
     this.maxStack<<=1;
-    var newStack=[];
+    var newStack=[];// vector
+    newStack.length = this.maxStack;
     for(var i=0;i<stackCount;i++){
     newStack[i]=this.stack[i];
     }
@@ -1637,7 +1640,8 @@ OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
 
 OIMO.DBVT = function(){
     this.root=null;
-    this.freeNodes=[];
+    this.freeNodes=[];// vector
+    this.freeNodes.length = 16384;
     this.numFreeNodes=0;
     this.aabb=new OIMO.AABB();
 }
@@ -1659,50 +1663,50 @@ OIMO.DBVT.prototype = {
         var oldArea;
         var newArea;
         while(sibling.proxy==null){
-        var c1=sibling.child1;
-        var c2=sibling.child2;
-        var b=sibling.aabb;
-        var c1b=c1.aabb;
-        var c2b=c2.aabb;
-        oldArea=b.surfaceArea();
-        this.aabb.combine(lb,b);
-        newArea=this.aabb.surfaceArea();
-        var creatingCost=newArea*2;
-        var incrementalCost=(newArea-oldArea)*2;
-        var discendingCost1=incrementalCost;
-        this.aabb.combine(lb,c1b);
-        if(c1.proxy!=null){
-        discendingCost1+=this.aabb.surfaceArea();
-        }else{
-        discendingCost1+=this.aabb.surfaceArea()-c1b.surfaceArea();
-        }
-        var discendingCost2=incrementalCost;
-        this.aabb.combine(lb,c2b);
-        if(c2.proxy!=null){
-        discendingCost2+=this.aabb.surfaceArea();
-        }else{
-        discendingCost2+=this.aabb.surfaceArea()-c2b.surfaceArea();
-        }
-        if(discendingCost1<discendingCost2){
-        if(creatingCost<discendingCost1){
-        break;
-        }else{
-        sibling=c1;
-        }
-        }else{
-        if(creatingCost<discendingCost2){
-        break;
-        }else{
-        sibling=c2;
-        }
-        }
+            var c1=sibling.child1;
+            var c2=sibling.child2;
+            var b=sibling.aabb;
+            var c1b=c1.aabb;
+            var c2b=c2.aabb;
+            oldArea=b.surfaceArea();
+            this.aabb.combine(lb,b);
+            newArea=this.aabb.surfaceArea();
+            var creatingCost=newArea*2;
+            var incrementalCost=(newArea-oldArea)*2;
+            var discendingCost1=incrementalCost;
+            this.aabb.combine(lb,c1b);
+            if(c1.proxy!=null){
+                discendingCost1+=this.aabb.surfaceArea();
+            }else{
+                discendingCost1+=this.aabb.surfaceArea()-c1b.surfaceArea();
+            }
+            var discendingCost2=incrementalCost;
+            this.aabb.combine(lb,c2b);
+            if(c2.proxy!=null){
+                discendingCost2+=this.aabb.surfaceArea();
+            }else{
+                discendingCost2+=this.aabb.surfaceArea()-c2b.surfaceArea();
+            }
+            if(discendingCost1<discendingCost2){
+                if(creatingCost<discendingCost1){
+                    break;
+                }else{
+                    sibling=c1;
+                }
+            }else{
+                if(creatingCost<discendingCost2){
+                    break;
+                }else{
+                    sibling=c2;
+                }
+            }
         }
         var oldParent=sibling.parent;
         var newParent;
         if(this.numFreeNodes>0){
-        newParent=this.freeNodes[--this.numFreeNodes];
+            newParent=this.freeNodes[--this.numFreeNodes];
         }else{
-        newParent=new OIMO.DBVTNode();
+            newParent=new OIMO.DBVTNode();
         }
         newParent.parent=oldParent;
         newParent.child1=leaf;
@@ -1712,18 +1716,21 @@ OIMO.DBVT.prototype = {
         sibling.parent=newParent;
         leaf.parent=newParent;
         if(sibling==this.root){
-        this.root=newParent;
+            // replace root
+            this.root=newParent;
         }else{
-        if(oldParent.child1==sibling){
-        oldParent.child1=newParent;
-        }else{
-        oldParent.child2=newParent;
+            // replace child
+            if(oldParent.child1==sibling){
+                oldParent.child1=newParent;
+            }else{
+                oldParent.child2=newParent;
+            }
         }
-        }
+        // update whole tree
         do{
-        newParent=this.balance(newParent);
-        this.fix(newParent);
-        newParent=newParent.parent;
+            newParent=this.balance(newParent);
+            this.fix(newParent);
+            newParent=newParent.parent;
         }while(newParent!=null);
     },
     getBalance:function(node){
@@ -1734,7 +1741,7 @@ OIMO.DBVT.prototype = {
         var hasChild=node.proxy==null;
         if(hasChild)text=this.print(node.child1,indent+1,text);
         for(var i=indent*2;i>=0;i--){
-        text+=" ";
+            text+=" ";
         }
         text+=(hasChild?this.getBalance(node):"["+node.proxy.aabb.minX+"]")+"\n";
         if(hasChild)text=this.print(node.child2,indent+1,text);
@@ -1742,41 +1749,41 @@ OIMO.DBVT.prototype = {
     },
     deleteLeaf:function(leaf){
         if(leaf==this.root){
-        this.root=null;
-        return;
+            this.root=null;
+            return;
         }
         var parent=leaf.parent;
         var sibling;
         if(parent.child1==leaf){
-        sibling=parent.child2;
+            sibling=parent.child2;
         }else{
-        sibling=parent.child1;
+            sibling=parent.child1;
         }
         if(parent==this.root){
-        this.root=sibling;
-        sibling.parent=null;
-        return;
+            this.root=sibling;
+            sibling.parent=null;
+            return;
         }
         var grandParent=parent.parent;
         sibling.parent=grandParent;
         if(grandParent.child1==parent){
-        grandParent.child1=sibling;
+            grandParent.child1=sibling;
         }else{
-        grandParent.child2=sibling;
+            grandParent.child2=sibling;
         }
         if(this.numFreeNodes<16384){
-        this.freeNodes[this.numFreeNodes++]=parent;
+            this.freeNodes[this.numFreeNodes++]=parent;
         }
         do{
-        grandParent=this.balance(grandParent);
-        this.fix(grandParent);
-        grandParent=grandParent.parent;
+            grandParent=this.balance(grandParent);
+            this.fix(grandParent);
+            grandParent=grandParent.parent;
         }while(grandParent!=null);
     },
     balance:function(node){
         var nh=node.height;
         if(nh<2){
-        return node;
+            return node;
         }
         var p=node.parent;
         var l=node.child1;
@@ -1784,85 +1791,166 @@ OIMO.DBVT.prototype = {
         var lh=l.height;
         var rh=r.height;
         var balance=lh-rh;
-        var t;
+        var t;// for bit operation
+
+        //          [ N ]
+        //         /     \
+        //    [ L ]       [ R ]
+        //     / \         / \
+        // [L-L] [L-R] [R-L] [R-R]
+
+        // Is the tree balanced?
         if(balance>1){
-        var ll=l.child1;
-        var lr=l.child2;
-        var llh=ll.height;
-        var lrh=lr.height;
-        if(llh>lrh){
-        l.child2=node;
-        node.parent=l;
-        node.child1=lr;
-        lr.parent=node;
-        node.aabb.combine(lr.aabb,r.aabb);
-        t=lrh-rh;
-        node.height=lrh-(t&t>>31)+1;
-        l.aabb.combine(ll.aabb,node.aabb);
-        t=llh-nh;
-        l.height=llh-(t&t>>31)+1;
-        }else{
-        l.child1=node;
-        node.parent=l;
-        node.child1=ll;
-        ll.parent=node;
-        node.aabb.combine(ll.aabb,r.aabb);
-        t=llh-rh;
-        node.height=llh-(t&t>>31)+1;
-        l.aabb.combine(node.aabb,lr.aabb);
-        t=nh-lrh;
-        l.height=nh-(t&t>>31)+1;
-        }
-        if(p!=null){
-        if(p.child1==node){
-        p.child1=l;
-        }else{
-        p.child2=l;
-        }
-        }else{
-        this.root=l;
-        }
-        l.parent=p;
-        return l;
+            var ll=l.child1;
+            var lr=l.child2;
+            var llh=ll.height;
+            var lrh=lr.height;
+
+            // Is L-L higher than L-R?
+            if(llh>lrh){
+                l.child2=node;
+                node.parent=l;
+
+                //          [ L ]
+                //         /     \
+                //    [L-L]       [ N ]
+                //     / \         / \
+                // [...] [...] [ L ] [ R ]
+                
+                // set L-R
+                node.child1=lr;
+                lr.parent=node;
+
+                //          [ L ]
+                //         /     \
+                //    [L-L]       [ N ]
+                //     / \         / \
+                // [...] [...] [L-R] [ R ]
+                
+                // fix bounds and heights
+                node.aabb.combine(lr.aabb,r.aabb);
+                t=lrh-rh;
+                node.height=lrh-(t&t>>31)+1;
+                l.aabb.combine(ll.aabb,node.aabb);
+                t=llh-nh;
+                l.height=llh-(t&t>>31)+1;
+            }else{
+                // set N to L-L
+                l.child1=node;
+                node.parent=l;
+
+                //          [ L ]
+                //         /     \
+                //    [ N ]       [L-R]
+                //     / \         / \
+                // [ L ] [ R ] [...] [...]
+                
+                // set L-L
+                node.child1=ll;
+                ll.parent=node;
+
+                //          [ L ]
+                //         /     \
+                //    [ N ]       [L-R]
+                //     / \         / \
+                // [L-L] [ R ] [...] [...]
+                
+                // fix bounds and heights
+                node.aabb.combine(ll.aabb,r.aabb);
+                t=llh-rh;
+                node.height=llh-(t&t>>31)+1;
+
+                l.aabb.combine(node.aabb,lr.aabb);
+                t=nh-lrh;
+                l.height=nh-(t&t>>31)+1;
+            }
+            // set new parent of L
+            if(p!=null){
+                if(p.child1==node){
+                    p.child1=l;
+                }else{
+                    p.child2=l;
+                }
+            }else{
+                this.root=l;
+            }
+            l.parent=p;
+            return l;
         }else if(balance<-1){
-        var rl=r.child1;
-        var rr=r.child2;
-        var rlh=rl.height;
-        var rrh=rr.height;
-        if(rlh>rrh){
-        r.child2=node;
-        node.parent=r;
-        node.child2=rr;
-        rr.parent=node;
-        node.aabb.combine(l.aabb,rr.aabb);
-        t=lh-rrh;
-        node.height=lh-(t&t>>31)+1;
-        r.aabb.combine(rl.aabb,node.aabb);
-        t=rlh-nh;
-        r.height=rlh-(t&t>>31)+1;
-        }else{
-        r.child1=node;
-        node.parent=r;
-        node.child2=rl;
-        rl.parent=node;
-        node.aabb.combine(l.aabb,rl.aabb);
-        t=lh-rlh;
-        node.height=lh-(t&t>>31)+1;
-        r.aabb.combine(node.aabb,rr.aabb);
-        t=nh-rrh;
-        r.height=nh-(t&t>>31)+1;
-        }
-        if(p!=null){
-        if(p.child1==node){
-        p.child1=r;
-        }else{
-        p.child2=r;
-        }
-        }else{
-        this.root=r;
-        }
-        r.parent=p;
-        return r;
+            var rl=r.child1;
+            var rr=r.child2;
+            var rlh=rl.height;
+            var rrh=rr.height;
+
+            // Is R-L higher than R-R?
+            if(rlh>rrh){
+                // set N to R-R
+                r.child2=node;
+                node.parent=r;
+
+                //          [ R ]
+                //         /     \
+                //    [R-L]       [ N ]
+                //     / \         / \
+                // [...] [...] [ L ] [ R ]
+                
+                // set R-R
+                node.child2=rr;
+                rr.parent=node;
+
+                //          [ R ]
+                //         /     \
+                //    [R-L]       [ N ]
+                //     / \         / \
+                // [...] [...] [ L ] [R-R]
+                
+                // fix bounds and heights
+                node.aabb.combine(l.aabb,rr.aabb);
+                t=lh-rrh;
+                node.height=lh-(t&t>>31)+1;
+                r.aabb.combine(rl.aabb,node.aabb);
+                t=rlh-nh;
+                r.height=rlh-(t&t>>31)+1;
+            }else{
+                // set N to R-L
+                r.child1=node;
+                node.parent=r;
+                //          [ R ]
+                //         /     \
+                //    [ N ]       [R-R]
+                //     / \         / \
+                // [ L ] [ R ] [...] [...]
+                
+                // set R-L
+                node.child2=rl;
+                rl.parent=node;
+
+                //          [ R ]
+                //         /     \
+                //    [ N ]       [R-R]
+                //     / \         / \
+                // [ L ] [R-L] [...] [...]
+                
+                // fix bounds and heights
+                node.aabb.combine(l.aabb,rl.aabb);
+                t=lh-rlh;
+                node.height=lh-(t&t>>31)+1;
+                r.aabb.combine(node.aabb,rr.aabb);
+                t=nh-rrh;
+                r.height=nh-(t&t>>31)+1;
+            }
+            // set new parent of R
+            if(p!=null){
+                if(p.child1==node){
+                    p.child1=r;
+                }else{
+                    p.child2=r;
+                }
+            }else{
+                this.root=r;
+            }
+            r.parent=p;
+            return r;
         }
         return node;
     },
@@ -1882,7 +1970,6 @@ OIMO.DBVT.prototype = {
 
 
 
-
 //------------------------------
 //  COLLISION NARROWPHASE
 //------------------------------
@@ -1894,14 +1981,12 @@ OIMO.CollisionDetector = function(){
 }
 
 OIMO.CollisionDetector.prototype = {
-
     constructor: OIMO.CollisionDetector,
 
     detectCollision:function(shape1,shape2,manifold){
         throw new Error("Inheritance error.");
     }
 }
-
 
 // BoxBoxCollisionDetector
 
@@ -1912,7 +1997,8 @@ OIMO.BoxBoxCollisionDetector = function(){
     this.clipVertices2=[];// vector 24
     this.clipVertices1.length = 24;
     this.clipVertices2.length = 24;
-    this.used=[];
+    this.used=[];// vector 8
+    this.used.length = 8;
     this.INF = 1/0;
 }
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
