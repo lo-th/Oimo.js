@@ -11,7 +11,7 @@ function initDemo(){
     var angle;
     var px, py, pz;
     var height = 40;
-    var sx = 75, sy = 75, sz = 100;
+    var sx = 75, sy = 75, sz = 160;
 
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < 10; i++) {
@@ -20,7 +20,7 @@ function initDemo(){
             py = j * sy + sy * 0.5;
             pz = - Math.sin(angle) * 250;
 
-            ADD({ type:"box", size:[sx,sy,sz], pos:[px,py,pz], rot:[0,angle,0], config:[1,0.4,0.2], move:true });
+            ADD({ type:"box", size:[sx,sy,sz], pos:[px,py,pz], rot:[0,angle*(180 / Math.PI),0], config:[1,0.4,0.2], move:true });
         }
     }
 }
