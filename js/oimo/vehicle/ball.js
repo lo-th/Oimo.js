@@ -1,7 +1,7 @@
 /* Copyright (c) 2012-2013 EL-EMENT saharan */
 
 Ball = function (Pos, d, Name) {
-	var sc = new ShapeConfig();
+	var sc = new OIMO.ShapeConfig();
 	sc.density = d || 10;
 	sc.friction = 2;
 	this.speed = 0.2;
@@ -17,7 +17,7 @@ Ball.prototype.Phi =function (v) {
 }
 
 Ball.prototype.move =function (x,y,z) {
-	this.body.position = new Vec3(x,y,z);
+	this.body.position = new OIMO.Vec3(x,y,z);
 	this.update(0,0);
 }
 

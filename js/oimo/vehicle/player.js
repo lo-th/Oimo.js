@@ -1,7 +1,7 @@
 /* Copyright (c) 2012-2013 EL-EMENT saharan */
 
 Player = function (Pos, d, Name) {
-	var sc = new ShapeConfig();
+	var sc = new OIMO.ShapeConfig();
 	sc.density = d || 20;
 	sc.friction = 0.6;
 	this.sc = sc;
@@ -19,7 +19,7 @@ Player.prototype.Phi =function (v) {
 
 Player.prototype.move =function (x,y,z, rot) {
 	//this.body.rotation = eulerToMatrix(0,rot,0);
-	this.body.position = new Vec3(x,y+1,z);
+	this.body.position = new OIMO.Vec3(x,y+1,z);
 	//this.body.orientation = eulerToAxisAngle(0,rot,0);
 	/*this.body.orientation.x = 0;
 	this.body.orientation.y = 0;

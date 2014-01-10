@@ -7508,7 +7508,6 @@ OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
 };
 
 OIMO.Mat33.prototype = {
-
     constructor: OIMO.Mat33,
 
     init: function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
@@ -8722,4 +8721,82 @@ OIMO.Vec3.prototype = {
     toString: function(){
         return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
     }
+}
+
+
+
+//----------------------------------
+//  TOOLS
+//----------------------------------
+
+OIMO.EulerToAxis = function( x, y, z ){// angles in radians
+    var c1 = Math.cos(y*0.5);//heading
+    var s1 = Math.sin(y*0.5);
+    var c2 = Math.cos(z*0.5);//altitude
+    var s2 = Math.sin(z*0.5);
+    var c3 = Math.cos(x*0.5);//bank
+    var s3 = Math.sin(x*0.5);
+    var c1c2 = c1*c2;
+    var s1s2 = s1*s2;
+    var w =c1c2*c3 - s1s2*s3;
+    var x =c1c2*s3 + s1s2*c3;
+    var y =s1*c2*c3 + c1*s2*s3;
+    var z =c1*s2*c3 - s1*c2*s3;
+    var angle = 2 * Math.acos(w);
+    var norm = x*x+y*y+z*z;
+    if (norm < 0.001) {
+        x=1;
+        y=z=0;
+    } else {
+        norm = Math.sqrt(norm);
+        x /= norm;
+        y /= norm;
+        z /= norm;
+    }
+    return [angle, x, y, z];
+}
+
+OIMO.EulerToMatrix = function( x, y, z ) {// angles in radians
+    var ch = Math.cos(y);//heading
+    var sh = Math.sin(y);
+    var ca = Math.cos(z);//altitude
+    var sa = Math.sin(z);
+    var cb = Math.cos(x);//bank
+    var sb = Math.sin(x);
+    var mtx = new OIMO.Mat33();
+    mtx.e00 = ch * ca;
+    mtx.e01 = sh*sb - ch*sa*cb;
+    mtx.e02 = ch*sa*sb + sh*cb;
+    mtx.e10 = sa;
+    mtx.e11 = ca*cb;
+    mtx.e12 = -ca*sb;
+    mtx.e20 = -sh*ca;
+    mtx.e21 = sh*sa*cb + ch*sb;
+    mtx.e22 = -sh*sa*sb + ch*cb;
+    return mtx;
+}
+
+OIMO.MatrixToEuler = function(mtx){// angles in radians
+    var x, y, z;
+    if (mtx.e10 > 0.998) { // singularity at north pole
+        y = Math.atan2(mtx.e02,mtx.e22);
+        z = Math.PI/2;
+        x = 0;
+    } else if (mtx.e10 < -0.998) { // singularity at south pole
+        y = Math.atan2(mtx.e02,mtx.e22);
+        z = -Math.PI/2;
+        x = 0;
+    } else {
+        y = Math.atan2(-mtx.e20,mtx.e00);
+        x = Math.atan2(-mtx.e12,mtx.e11);
+        z = Math.asin(mtx.e10);
+    }
+    return [x, y, z];
+}
+
+OIMO.Distance3d = function(p1, p2){
+    var xd = p2[0]-p1[0];
+    var yd = p2[1]-p1[1];
+    var zd = p2[2]-p1[2];
+    return Math.sqrt(xd*xd + yd*yd + zd*zd);
 }

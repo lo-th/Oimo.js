@@ -23,7 +23,7 @@ Car = function (Pos, Config) {
 	var w = 0.5;
 	var d = 1;
 
-	var sc = new ShapeConfig();
+	var sc = new OIMO.ShapeConfig();
 	sc.relativePosition.init(0, (h*0.5)+rad, 0);
 	sc.density = this.config[0] || 10;
 	sc.friction = this.config[1] || 0.5;
@@ -49,17 +49,17 @@ Car = function (Pos, Config) {
 }
 
 Car.prototype.move =function (x,y,z) {
-	this.body.position = new Vec3(x,y,z);
-	this.wheel1.position = new Vec3(x-this.size.w,y,z-this.size.d);
-	this.wheel2.position = new Vec3(x+this.size.w,y,z-this.size.d);
-	this.wheel3.position = new Vec3(x-this.size.w,y,z+this.size.d);
-	this.wheel4.position = new Vec3(x+this.size.w,y,z+this.size.d);
+	this.body.position = new OIMO.Vec3(x,y,z);
+	this.wheel1.position = new OIMO.Vec3(x-this.size.w,y,z-this.size.d);
+	this.wheel2.position = new OIMO.Vec3(x+this.size.w,y,z-this.size.d);
+	this.wheel3.position = new OIMO.Vec3(x-this.size.w,y,z+this.size.d);
+	this.wheel4.position = new OIMO.Vec3(x+this.size.w,y,z+this.size.d);
 
 	this.update(0,0);
 }
 
 Car.prototype.update = function (accelSign, handleSign) {
-	var breaking = this.body.linearVelocity.dot(new Vec3(this.body.rotation.e02, this.body.rotation.e12, this.body.rotation.e22)) * accelSign > 0;
+	var breaking = this.body.linearVelocity.dot(new OIMO.Vec3(this.body.rotation.e02, this.body.rotation.e12, this.body.rotation.e22)) * accelSign > 0;
 	var ratio = 0;
 	var v = this.body.linearVelocity.length() * 3.6;
 	var maxSpeed = Math.PI * 2 / 60 * 1200; // 1200rpm
@@ -88,7 +88,7 @@ Car.prototype.update = function (accelSign, handleSign) {
 	this.joint1.rotationalLimitMotor1.setLimit(this.angle, this.angle);
 	this.joint2.rotationalLimitMotor1.setLimit(this.angle, this.angle);
 	
-	var axis = new Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21); // up axis
+	var axis = new OIMO.Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21); // up axis
 	
 	this.correctRotation(this.wheel1);
 	this.correctRotation(this.wheel2);
@@ -97,9 +97,9 @@ Car.prototype.update = function (accelSign, handleSign) {
 }
 	
 Car.prototype.correctRotation =	function (w) {
-	var axis1 = new Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21);
-	var axis2 = new Vec3(w.rotation.e00, w.rotation.e10, w.rotation.e20);
-	var axis3 = new Vec3().sub(axis2, axis1.scaleEqual(axis1.dot(axis2)));
+	var axis1 = new OIMO.Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21);
+	var axis2 = new OIMO.Vec3(w.rotation.e00, w.rotation.e10, w.rotation.e20);
+	var axis3 = new OIMO.Vec3().sub(axis2, axis1.scaleEqual(axis1.dot(axis2)));
 	w.orientation.mul(new Quat().arc(axis2, axis3.normalize(axis3)), w.orientation);
 	w.orientation.normalize(w.orientation);
 }
