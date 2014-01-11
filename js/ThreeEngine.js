@@ -4,8 +4,9 @@
     |_\___/\__|_||_|
     http://3dflashlo.wordpress.com/
 */
-'use strict';
+
 var ThreeEngine = function () {
+	'use strict';
 	// containe background object
 	var back = new THREE.Object3D();
 	// containe all object from simulation
@@ -23,8 +24,9 @@ var ThreeEngine = function () {
 	var materials = [];
 
 	var renderer, scene, sceneBG, camera, cameraBG, renderLoop ;
+
+	var vsize = { x:0, y:0, z:0 };
 	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false, phi:0, theta:0 };
-	var vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
 	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
 	var center = new THREE.Vector3(0,150,0);
 
@@ -120,27 +122,30 @@ var ThreeEngine = function () {
 			//renderer.physicallyBasedShading = true;
 			//renderer.gammaOutput = true;
 			//renderer.gammaInput = true;
-			renderer.autoClear = false;
+			//renderer.autoClear = false;
 			//sceneBG = new THREE.Scene();
 			//cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
 			//sceneBG.add(cameraBG);
 
 		    renderer.shadowMapEnabled = true;
-		    renderer.shadowMapType = THREE.PCFSoftShadowMap;
-		    renderer.shadowMapSoft = true;
+		    //renderer.shadowMapType = THREE.PCFSoftShadowMap;
+		    //renderer.shadowMapSoft = true;
 
 		    isShadow = true;
 
 			initLights();
 			initObject();
 		}else {
-			addShereBackgroud();
+			//addShereBackgroud();
 			addGroundShadow();
 			MaxAnistropy = 1;
 			//initBackPlane();
-			//renderer.clearStencil = true;
-			renderer.autoClear = false;
-			//renderer.setClearColor( 0x505050);
+
+			/*renderer.autoClear = false;
+			renderer.autoClearColor = false;
+			renderer.autoClearDepth = false;
+			renderer.autoClearStencil = false;*/
+			renderer.setClearColor( 0x555555);
 		}
 
 		initSea3DMesh();
@@ -329,8 +334,8 @@ var ThreeEngine = function () {
 			});
 			sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
 		}else{
-			groundMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 } );
-			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x585858, side:THREE.BackSide, depthWrite: false} );
+			groundMaterial = new THREE.MeshBasicMaterial( { color: 0x555555 } );
+			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x555555, side:THREE.BackSide, depthWrite: false} );
 		}
 
 		/*baseMaterial=new THREE.ShaderMaterial({
@@ -1490,7 +1495,8 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 
 	var viewResize = function () {
-		vsize = { x:window.innerWidth, y:window.innerHeight, z:window.innerWidth/window.innerHeight };
+		vsize = { x:window.innerWidth, y:window.innerHeight, z:0 };
+		vsize.z = vsize.x/vsize.y;
 		camera.aspect = vsize.z;
 		camera.updateProjectionMatrix();
 		renderer.setSize( vsize.x, vsize.y );
@@ -1538,7 +1544,11 @@ var ThreeEngine = function () {
 	}
 
 
+
+	// public methode
+
 	return {
+
 		domElement: container,
 
 		init:init,
@@ -1580,9 +1590,7 @@ var ThreeEngine = function () {
 			if(selected) return selected.name;
 		},
 		getAnistropy: function (name) {
-
 			return MaxAnistropy;
-
 		},
 	}
 

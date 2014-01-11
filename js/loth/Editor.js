@@ -23,14 +23,14 @@ var Editor = function (Pos) {
 
 	var deco = document.createElement( 'div' );
 	deco.id = 'Editor-deco';
-	deco.style.cssText = unselect+borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;pointer-events:none;';
+	deco.style.cssText = unselect+borderL+borderR+effect+' width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden; pointer-events:none;';
 	deco.style.transform='translateY('+(startHeight-30)+'px)';
 	deco.style.webkitTransform='translateY('+(startHeight-30)+'px)';
 	container.appendChild( deco );
 
 	//----------------------------------------------
 
-	var bstyle =unselect+ 'text-shadow: 1px 1px 1px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
+	var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
 	var bcenter = document.createElement( 'div' );
@@ -97,7 +97,7 @@ var Editor = function (Pos) {
 			bbMenu[i].name = 'demo0'+i;
 			if(i===0) bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+maxWidth/maxDemo+"px; ";
 			else bbMenu[i].style.cssText = bstyle+buttonActif + " width:"+ (maxWidth/maxDemo-1) +"px; border-left:1px solid rgba(1,1,1,0.3);";
-			bbMenu[i].textContent = 'DEMO 0'+i;
+			bbMenu[i].textContent = 'demo 0'+i;
 			bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
 			bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 			bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );

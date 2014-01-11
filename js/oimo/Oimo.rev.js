@@ -7,7 +7,6 @@
  * @author LoTh / http://3dflashlo.wordpress.com/
  */
 
-'use strict';
 var OIMO = { REVISION: 'REV.1.0.0' };
 
 OIMO.BROAD_PHASE_BRUTE_FORCE=1;
@@ -1131,48 +1130,44 @@ OIMO.SweepAndPruneBroadPhase.prototype.sweepX = function (proxyPool) {
     var sumZ2=0;
     var invNum=1/this.numProxies;
     var bodyStatic=OIMO.BODY_STATIC;
-    for(var i=0;i<this.numProxies;i++){
-    var p1=proxyPool[i];
-    center=p1.minX+p1.maxX;
-    sumX+=center;
-    sumX2+=center*center;
-    center=p1.minY+p1.maxY;
-    sumY+=center;
-    sumY2+=center*center;
-    center=p1.minZ+p1.maxZ;
-    sumZ+=center;
-    sumZ2+=center*center;
-    var s1=p1.parent;
-    for(var j=i+1;j<this.numProxies;j++){
-    var p2=proxyPool[j];
-    this.numPairChecks++;
-    if(p1.maxX<p2.minX){
-    break;
-    }
-    var s2=p2.parent;
-    if(
-    p1.maxY<p2.minY||p1.minY>p2.maxY||
-    p1.maxZ<p2.minZ||p1.minZ>p2.maxZ||
-    !this.isAvailablePair(s1,s2)
-    ){
-    continue;
-    }
-    this.addPair(s1,s2);
-    }
+    for(var i=0, l=this.numProxies;i<l;i++){
+        var p1=proxyPool[i];
+        center=p1.minX+p1.maxX;
+        sumX+=center;
+        sumX2+=center*center;
+        center=p1.minY+p1.maxY;
+        sumY+=center;
+        sumY2+=center*center;
+        center=p1.minZ+p1.maxZ;
+        sumZ+=center;
+        sumZ2+=center*center;
+        var s1=p1.parent;
+        for(var j=i+1;j<l;j++){
+            var p2=proxyPool[j];
+            this.numPairChecks++;
+            if(p1.maxX<p2.minX){
+                break;
+            }
+            var s2=p2.parent;
+            if( p1.maxY<p2.minY||p1.minY>p2.maxY||p1.maxZ<p2.minZ||p1.minZ>p2.maxZ||!this.isAvailablePair(s1,s2) ){
+                continue;
+            }
+            this.addPair(s1,s2);
+        }
     }
     sumX=sumX2-sumX*sumX*invNum;
     sumY=sumY2-sumY*sumY*invNum;
     sumZ=sumZ2-sumZ*sumZ*invNum;
     if(sumX>sumY){
-    if(sumX>sumZ){
-    this.sortAxis=0;
-    }else{
-    this.sortAxis=2;
-    }
+        if(sumX>sumZ){
+            this.sortAxis=0;
+        }else{
+            this.sortAxis=2;
+        }
     }else if(sumY>sumZ){
-    this.sortAxis=1;
+        this.sortAxis=1;
     }else{
-    this.sortAxis=2;
+        this.sortAxis=2;
     }
 }
 OIMO.SweepAndPruneBroadPhase.prototype.sweepY = function (proxyPool) {
@@ -1185,48 +1180,44 @@ OIMO.SweepAndPruneBroadPhase.prototype.sweepY = function (proxyPool) {
     var sumZ2=0;
     var invNum=1/this.numProxies;
     var bodyStatic=OIMO.BODY_STATIC;
-    for(var i=0;i<this.numProxies;i++){
-    var p1=proxyPool[i];
-    center=p1.minX+p1.maxX;
-    sumX+=center;
-    sumX2+=center*center;
-    center=p1.minY+p1.maxY;
-    sumY+=center;
-    sumY2+=center*center;
-    center=p1.minZ+p1.maxZ;
-    sumZ+=center;
-    sumZ2+=center*center;
-    var s1=p1.parent;
-    for(var j=i+1;j<this.numProxies;j++){
-    var p2=proxyPool[j];
-    this.numPairChecks++;
-    if(p1.maxY<p2.minY){
-    break;
-    }
-    var s2=p2.parent;
-    if(
-    p1.maxX<p2.minX||p1.minX>p2.maxX||
-    p1.maxZ<p2.minZ||p1.minZ>p2.maxZ||
-    !this.isAvailablePair(s1,s2)
-    ){
-    continue;
-    }
-    this.addPair(s1,s2);
-    }
+    for(var i=0, l=this.numProxies;i<l;i++){
+        var p1=proxyPool[i];
+        center=p1.minX+p1.maxX;
+        sumX+=center;
+        sumX2+=center*center;
+        center=p1.minY+p1.maxY;
+        sumY+=center;
+        sumY2+=center*center;
+        center=p1.minZ+p1.maxZ;
+        sumZ+=center;
+        sumZ2+=center*center;
+        var s1=p1.parent;
+        for(var j=i+1;j<l;j++){
+            var p2=proxyPool[j];
+            this.numPairChecks++;
+            if(p1.maxY<p2.minY){
+                break;
+            }
+            var s2=p2.parent;
+            if( p1.maxX<p2.minX||p1.minX>p2.maxX||p1.maxZ<p2.minZ||p1.minZ>p2.maxZ||!this.isAvailablePair(s1,s2)){
+                continue;
+            }
+            this.addPair(s1,s2);
+        }
     }
     sumX=sumX2-sumX*sumX*invNum;
     sumY=sumY2-sumY*sumY*invNum;
     sumZ=sumZ2-sumZ*sumZ*invNum;
     if(sumX>sumY){
-    if(sumX>sumZ){
-    this.sortAxis=0;
-    }else{
-    this.sortAxis=2;
-    }
+        if(sumX>sumZ){
+            this.sortAxis=0;
+        }else{
+            this.sortAxis=2;
+        }
     }else if(sumY>sumZ){
-    this.sortAxis=1;
+        this.sortAxis=1;
     }else{
-    this.sortAxis=2;
+        this.sortAxis=2;
     }
 }
 OIMO.SweepAndPruneBroadPhase.prototype.sweepZ = function (proxyPool) {
@@ -1239,109 +1230,102 @@ OIMO.SweepAndPruneBroadPhase.prototype.sweepZ = function (proxyPool) {
     var sumZ2=0;
     var invNum=1/this.numProxies;
     var bodyStatic=OIMO.BODY_STATIC;
-    for(var i=0;i<this.numProxies;i++){
-    var p1=proxyPool[i];
-    center=p1.minX+p1.maxX;
-    sumX+=center;
-    sumX2+=center*center;
-    center=p1.minY+p1.maxY;
-    sumY+=center;
-    sumY2+=center*center;
-    center=p1.minZ+p1.maxZ;
-    sumZ+=center;
-    sumZ2+=center*center;
-    var s1=p1.parent;
-    for(var j=i+1;j<this.numProxies;j++){
-    var p2=proxyPool[j];
-    this.numPairChecks++;
-    if(p1.maxZ<p2.minZ){
-    break;
-    }
-    var s2=p2.parent;
-    if(
-    p1.maxX<p2.minX||p1.minX>p2.maxX||
-    p1.maxY<p2.minY||p1.minY>p2.maxY||
-    !this.isAvailablePair(s1,s2)
-    ){
-    continue;
-    }
-    this.addPair(s1,s2);
-    }
+    for(var i=0, l=this.numProxies;i<l;i++){
+        var p1=proxyPool[i];
+        center=p1.minX+p1.maxX;
+        sumX+=center;
+        sumX2+=center*center;
+        center=p1.minY+p1.maxY;
+        sumY+=center;
+        sumY2+=center*center;
+        center=p1.minZ+p1.maxZ;
+        sumZ+=center;
+        sumZ2+=center*center;
+        var s1=p1.parent;
+        for(var j=i+1;j<l;j++){
+            var p2=proxyPool[j];
+            this.numPairChecks++;
+            if(p1.maxZ<p2.minZ){
+                break;
+            }
+            var s2=p2.parent;
+            if( p1.maxX<p2.minX||p1.minX>p2.maxX||p1.maxY<p2.minY||p1.minY>p2.maxY||!this.isAvailablePair(s1,s2)){
+                continue;
+            }
+            this.addPair(s1,s2);
+        }
     }
     sumX=sumX2-sumX*sumX*invNum;
     sumY=sumY2-sumY*sumY*invNum;
     sumZ=sumZ2-sumZ*sumZ*invNum;
     if(sumX>sumY){
-    if(sumX>sumZ){
-    this.sortAxis=0;
-    }else{
-    this.sortAxis=2;
-    }
+        if(sumX>sumZ){
+            this.sortAxis=0;
+        }else{
+            this.sortAxis=2;
+        }
     }else if(sumY>sumZ){
-    this.sortAxis=1;
+        this.sortAxis=1;
     }else{
-    this.sortAxis=2;
+        this.sortAxis=2;
     }
 }
 OIMO.SweepAndPruneBroadPhase.prototype.removeProxyAxis = function (proxy,proxyPool) {
     var idx=-1;
-    for(var i=0;i<this.numProxies;i++){
-    if(proxyPool[i]==proxy){
-    idx=i;
-    break;
-    }
+    for(var i=0, l=this.numProxies; i<l; i++){
+        if(proxyPool[i]==proxy){
+        idx=i;
+        break;
+        }
     }
     if(idx==-1){
-    return;
+        return;
     }
-    for(var j=idx;j<this.numProxies-1;j++){
-    proxyPool[j]=proxyPool[j+1];
+    for(var j=idx; j<l-1; j++){
+        proxyPool[j]=proxyPool[j+1];
     }
     proxyPool[this.numProxies]=null;
 }
 OIMO.SweepAndPruneBroadPhase.prototype.insertionSortX = function (proxyPool) {
-    if(this.numProxies==1)
-    return;
-    for(var i=1;i<this.numProxies;i++){
-    var insert=proxyPool[i];
-    if(proxyPool[i-1].minX>insert.minX){
-    var j=i;
-    do{
-    proxyPool[j]=proxyPool[j-1];
-    j--;
-    }while(j>0&&proxyPool[j-1].minX>insert.minX);
-    proxyPool[j]=insert;
-    }
+    if(this.numProxies==1) return;
+    for(var i=1, l=this.numProxies; i<l; i++){
+        var insert=proxyPool[i];
+        if(proxyPool[i-1].minX>insert.minX){
+            var j=i;
+            do{
+                proxyPool[j]=proxyPool[j-1];
+                j--;
+            }while(j>0&&proxyPool[j-1].minX>insert.minX);
+            proxyPool[j]=insert;
+        }
     }
 }
 OIMO.SweepAndPruneBroadPhase.prototype.insertionSortY = function (proxyPool) {
-    if(this.numProxies==1)
-    return;
-    for(var i=1;i<this.numProxies;i++){
-    var insert=proxyPool[i];
-    if(proxyPool[i-1].minY>insert.minY){
-    var j=i;
-    do{
-    proxyPool[j]=proxyPool[j-1];
-    j--;
-    }while(j>0&&proxyPool[j-1].minY>insert.minY);
-    proxyPool[j]=insert;
-    }
+    if(this.numProxies==1) return;
+    for(var i=1, l=this.numProxies; i<l; i++){
+        var insert=proxyPool[i];
+        if(proxyPool[i-1].minY>insert.minY){
+            var j=i;
+            do{
+                proxyPool[j]=proxyPool[j-1];
+                j--;
+            }while(j>0&&proxyPool[j-1].minY>insert.minY);
+            proxyPool[j]=insert;
+        }
     }
 }
 OIMO.SweepAndPruneBroadPhase.prototype.insertionSortZ = function (proxyPool) {
-    if(this.numProxies==1)
-    return;
-    for(var i=1;i<this.numProxies;i++){
-    var insert=proxyPool[i];
-    if(proxyPool[i-1].minZ>insert.minZ){
-    var j=i;
-    do{
-    proxyPool[j]=proxyPool[j-1];
-    j--;
-    }while(j>0&&proxyPool[j-1].minZ>insert.minZ);
-    proxyPool[j]=insert;
-    }
+    if(this.numProxies==1) return;
+    for(var i=1, l=this.numProxies; i<l; i++){
+        var insert=proxyPool[i];
+        if(proxyPool[i-1].minZ>insert.minZ){
+            var j=i;
+            do{
+                proxyPool[j]=proxyPool[j-1];
+                j--;
+            }while(j>0&&proxyPool[j-1].minZ>insert.minZ);
+            proxyPool[j]=insert;
+        }
     }
 }
 

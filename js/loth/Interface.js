@@ -5,36 +5,49 @@
 var Interface = function (name) {
 	var container = document.createElement( 'div' );
 	container.id = 'interface';
-	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
+	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
 	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
 	var effect = 'border:1px solid rgba(255,255,255,0.3);';
-	var buttonStyle = effect+'font-weight:bold; width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; text-shadow: 1px 1px 3px #000;background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
-	var bbStyle = 'font-weight:bold; width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:20px; text-shadow: 1px 1px 1px #000;';
+	var buttonStyle = effect+'width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
+	var bbStyle = 'width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:18px; ';
 
 	//-----------------------------------------------------
     //  TITLE
     //-----------------------------------------------------
 
     var titleLogo = document.createElement( 'div' );
-	titleLogo.style.cssText = 'position:absolute; top:10px; left:10px; width:48px; height:48px;';
-	titleLogo.innerHTML ="<img id='logo' src='images/logo48.png'/>";
-	container.appendChild( titleLogo );
+	titleLogo.style.cssText = 'position:absolute; top:5px; left:5px; width:36x; height:48px;';
+	titleLogo.innerHTML ="<img id='logo' src='images/logo36.png'/>";
 
 	var title = document.createElement( 'div' );
-	title.style.cssText = 'font-weight:bold; position:absolute; color:#CCCCCC; top:17px; left:68px; text-align:left; pointer-events:none; font-size:26px; text-shadow: 1px 1px 2px #000; pointer-events:auto;';
+	title.style.cssText = 'position:absolute; color:#CCCCCC; top:8px; left:50px; text-align:left; font-size:22px; pointer-events:none;';
 	title.innerHTML ="Oimo.js";
-	var linkColor = '#377ba7';
-	if(name==='dev') title.innerHTML +="<p style='font-size:14px; display:inline;'> | DEV |</p>";
-	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  | <a href='index.html' target='_self' style='color:"+linkColor+"'>DEV</a> |</p>";
-	if(name==='devlow') title.innerHTML +="<p style='font-size:14px; display:inline;'> DEV-low |</p>";
-	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  <a href='index_low.html' target='_self' style='color:"+linkColor+"'>DEV-low</a> |</p>";
-	if(name==='rev') title.innerHTML +="<p style='font-size:14px; display:inline;'> REV |</p>";
-	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  <a href='index_rev.html' target='_self' style='color:"+linkColor+"'>REV</a> |</p>";
-	if(name==='revlow') title.innerHTML +="<p style='font-size:14px; display:inline;'> REV-low |</p>";
-	else title.innerHTML +="<p style='font-size:14px; display:inline;'>  <a href='index_rev_low.html' target='_self' style='color:"+linkColor+"'>REV-low</a> |</p>";
+
+	var titleLink = document.createElement( 'div' );
+	titleLink.style.cssText = 'position:absolute; color:#CCCCCC; top:16px; left:170px; text-align:left; pointer-events:auto; font-size:14px;';
+
+	var linkStyle = "color:#dbae77; cursor:pointer;";
+	var sep = " . ";
 	
+	var txt = "";
+	if(name==='dev') txt +="DEV";
+	else txt += "<a href='index.html' target='_self' style='"+linkStyle+"'>DEV</a>";
+	txt += sep;
+	if(name==='devlow') txt +="DEV-low";
+	else txt += "<a href='index_low.html' target='_self' style='"+linkStyle+"'>DEV-low</a>";
+	txt += sep;
+	if(name==='rev') txt +="REV";
+	else txt += "<a href='index_rev.html' target='_self' style='"+linkStyle+"'>REV</a>";
+	txt += sep;
+	if(name==='revlow')txt +="REV-low";
+	else txt += "<a href='index_rev_low.html' target='_self' style='"+linkStyle+"'>REV-low</a>";
+	
+	titleLink.innerHTML = txt;
+
+	container.appendChild( titleLogo );
 	container.appendChild( title );
+	container.appendChild( titleLink );
 
 	//-----------------------------------------------------
     //  OUTPUT
@@ -42,7 +55,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:-1px; position:absolute; color:#808080; top:125px; width:300px; height:400px; left:70px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:#808080; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -59,7 +72,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var aMenu = document.createElement( 'div' );
-	aMenu.style.cssText = 'left:20px; top:74px;  position:absolute; display:block; text-align:center;';
+	aMenu.style.cssText = 'left:10px; top:60px; position:absolute; display:block; text-align:center;';
 	container.appendChild( aMenu );
 
 	var bnext = document.createElement( 'div' );
@@ -125,7 +138,7 @@ var Interface = function (name) {
 	//var finalFunction;
 
 	var loDiv = document.createElement( 'div' );
-	loDiv.style.cssText = effect+ 'position:absolute;left:20px; top:120px; width:30px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto;';
+	loDiv.style.cssText = effect+ 'position:absolute; left:10px; top:110px; width:30px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto;';
 	container.appendChild( loDiv );
 
 	var loDiv2 = document.createElement( 'div' );

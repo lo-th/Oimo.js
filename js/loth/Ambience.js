@@ -21,7 +21,7 @@ var Ambience = function (Pos) {
     var effect = 'border:1px solid rgba(255,255,255,0.3);';//'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
 
 	var deco = document.createElement( 'div' );
-	deco.style.cssText = borderL+borderR+effect+'font-weight:bold; width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
+	deco.style.cssText = borderL+borderR+effect+'width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
 	deco.style.transform='translateY('+(startHeight-30)+'px)';
 	deco.style.webkitTransform='translateY('+(startHeight-30)+'px)';
 	container.appendChild( deco );
@@ -36,7 +36,7 @@ var Ambience = function (Pos) {
 	var buttonStyle = 'width:20px; position:relative;padding:4px 2px;margin:2px 2px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.2); background-color: rgba(1,1,1,0.1); display:inline-block; text-decoration:none; cursor:pointer;';
 	*/
 
-	var bstyle = 'text-shadow: 1px 1px 1px #000; font-weight:bold; font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
+	var bstyle = 'font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
 	var bnext = document.createElement( 'div' );
