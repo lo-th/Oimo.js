@@ -14,7 +14,8 @@
 //---------------------------------------------------
 
 'use strict';
-importScripts('Oimo.dev.new.js');
+//importScripts('Oimo.dev.new.js');
+importScripts('../../build/Oimo.js');
 importScripts('demos.js');
 
 importScripts('vehicle/car.js');
@@ -462,6 +463,7 @@ var addRigid = function(obj, OO){
         case "ground": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=22; break;
         case "bone": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=10; break;
         case "cylinder": shape = new OIMO.SphereShape(sc, s[0] ); t=3; break;// fake cylinder
+        //case "cylinder": shape=new OIMO.CylinderShape(sc, s[0], s[1] ); t=3; break;
         case "dice": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=4; break;  
         case "wheel": shape = new OIMO.SphereShape(sc, s[0] ); t=5; break;// fake cylinder
         case "wheelinv": shape = new OIMO.SphereShape(sc, s[0] ); t=6; break;// fake cylinder

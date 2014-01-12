@@ -15,87 +15,7 @@ OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE=3;
 
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;
-
-OIMO.WORLD_SCALE = 100;
-OIMO.INV_WORLD_SCALE = 0.01;
-
-
-//------------------------------
-//  BODY
-//------------------------------
-
-OIMO.ResizeVec = function (ar){
-    return [ar[0]*OIMO.INV_WORLD_SCALE, ar[1]*OIMO.INV_WORLD_SCALE, ar[2]*OIMO.INV_WORLD_SCALE];
-}
-
-OIMO.Body = function(Obj){
-    var obj = Obj || {};
-    var sc = obj.sc || new OIMO.ShapeConfig();
-    if(obj.config){
-        sc.density = obj.config[0] || 1;
-        sc.friction = obj.config[1] || 0.4;
-        sc.restitution = obj.config[2] || 0.2;
-        sc.belongsTo = obj.config[3] || 1;
-        sc.collidesWith = obj.config[4] || 0xffffffff;
-    }
-    if(obj.configPos){
-        sc.relativePosition.set(obj.configPos[0], obj.configPos[1], obj.configPos[2]);
-    }
-    if(obj.configRot){
-        sc.relativeRotation = OIMO.EulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
-    }
-    var name = obj.name || '';
-    var p = obj.pos || [0,0,0];
-    var s = obj.size || [1,1,1];
-    p=OIMO.ResizeVec(p);
-    s=OIMO.ResizeVec(s); 
-    var rot = obj.rot || [];
-    var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
-    var move = obj.move || false;
-    var noSleep  = obj.noSleep || false; 
-    var noAdjust = obj.noAdjust || false;
-
-    var shape;
-    switch(obj.type){
-        case "sphere": shape = new OIMO.SphereShape(sc, s[0]); break;
-        default: case "box": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); break;
-    }
-
-    this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
-    this.body.addShape(shape);
-
-    if(move){
-        if(noAdjust)this.body.setupMass(0x1, false);
-        else this.body.setupMass(0x1, true);
-        if(noSleep) this.body.allowSleep = false;
-        else this.body.allowSleep = true;
-    } else {
-        this.body.setupMass(0x2);
-    }
-    this.body.name = name;
-
-    if(obj.world)obj.world.addRigidBody(this.body);
-}
-
-OIMO.Body.prototype = {
-    constructor: OIMO.Body,
-    
-    getMatrix:function(){
-        var r = this.body.rotation.elements;
-        var p = this.body.position;
-        var m = [
-            r[0], r[1], r[2], p.x*OIMO.WORLD_SCALE,
-            r[3], r[4], r[5], p.y*OIMO.WORLD_SCALE,
-            r[6], r[7], r[8], p.z*OIMO.WORLD_SCALE
-        ];
-        return m;
-    },
-    sleep:function(){
-        return this.body.sleeping;
-    }
-}
-
-
+OIMO.SHAPE_CYLINDER = 0x3;
 
 //------------------------------
 //  WORLD
@@ -123,7 +43,7 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
     this.numIterations=8;
     this.gravity=new OIMO.Vec3(0,-9.80665,0);
     this.performance=new OIMO.Performance();
-    var numShapeTypes=3;
+    var numShapeTypes=4;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
     for(var i=0, l=numShapeTypes; i<l; i++){
@@ -133,8 +53,13 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
 
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_SPHERE]=new OIMO.SphereSphereCollisionDetector();
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_BOX]=new OIMO.SphereBoxCollisionDetector(false);
+    this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_CYLINDER]=new OIMO.SphereCylinderCollisionDetector(false);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_SPHERE]=new OIMO.SphereBoxCollisionDetector(true);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_BOX]=new OIMO.BoxBoxCollisionDetector();
+    this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_SPHERE]=new OIMO.SphereCylinderCollisionDetector(true);
+    this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_CYLINDER]=new OIMO.BoxCylinderCollisionDetector(false);
+    this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_BOX]=new OIMO.BoxCylinderCollisionDetector(true);
+    this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_CYLINDER]=new OIMO.CylinderCylinderCollisionDetector();
  
     this.randX=65535;
     this.randA=98765;
@@ -2049,7 +1974,64 @@ OIMO.CollisionDetector.prototype = {
         throw new Error("Inheritance error.");
     }
 }
+/*
+// CollisionResult
 
+OIMO.CollisionResult = function(maxContactInfos){
+    this.numContactInfos = 0;
+    this.maxContactInfos=maxContactInfos;
+    this.contactInfos=[];
+}
+OIMO.CollisionResult.prototype = {
+    constructor: OIMO.CollisionResult,
+
+    addContactInfo:function(positionX,positionY,positionZ,normalX,normalY,normalZ,overlap,shape1,shape2,data1,data2,flip){
+        if(this.numContactInfos==this.maxContactInfos)return;
+        if(!this.contactInfos[this.numContactInfos]){
+            this.contactInfos[this.numContactInfos]=new OIMO.ContactInfo();
+        }
+        var c=this.contactInfos[this.numContactInfos++];
+        c.position.x=positionX;
+        c.position.y=positionY;
+        c.position.z=positionZ;
+        c.normal.x=normalX;
+        c.normal.y=normalY;
+        c.normal.z=normalZ;
+        c.overlap=overlap;
+        c.shape1=shape1;
+        c.shape2=shape2;
+        c.id.data1=data1;
+        c.id.data2=data2;
+        c.id.flip=flip;
+    }
+}
+
+// ContactInfo
+
+OIMO.ContactInfo = function(){
+    this.overlap=NaN;
+    this.shape1=null;
+    this.shape2=null;
+    this.position=new OIMO.Vec3();
+    this.normal=new OIMO.Vec3();
+    this.id=new OIMO.ContactID();
+}
+
+// ContactID
+
+OIMO.ContactID = function(){
+    this.data1=0;
+    this.data2=0;
+    this.flip=false;
+}
+OIMO.ContactID.prototype = {
+    constructor: OIMO.ContactID,
+
+    equals:function(id){
+        return this.flip==id.flip?this.data1==id.data1&&this.data2==id.data2:this.data2==id.data1&&this.data1==id.data2;
+    }
+}
+*/
 // BoxBoxCollisionDetector
 
 OIMO.BoxBoxCollisionDetector = function(){
@@ -3889,6 +3871,1915 @@ OIMO.SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,s
     }
 }
 
+// BoxCylinderCollisionDetector
+
+OIMO.BoxCylinderCollisionDetector = function(flip){
+    OIMO.CollisionDetector.call( this );
+    this.flip=flip;
+}
+OIMO.BoxCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
+OIMO.BoxCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep){
+    var t1x;
+    var t1y;
+    var t1z;
+    var t2x;
+    var t2y;
+    var t2z;
+    var sup=new OIMO.Vec3();
+    var len;
+    var p1x;
+    var p1y;
+    var p1z;
+    var p2x;
+    var p2y;
+    var p2z;
+    var v01x=c1.position.x;
+    var v01y=c1.position.y;
+    var v01z=c1.position.z;
+    var v02x=c2.position.x;
+    var v02y=c2.position.y;
+    var v02z=c2.position.z;
+    var v0x=v02x-v01x;
+    var v0y=v02y-v01y;
+    var v0z=v02z-v01z;
+    if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
+    var nx=-v0x;
+    var ny=-v0y;
+    var nz=-v0z;
+    this.supportPointB(c1,-nx,-ny,-nz,sup);
+    var v11x=sup.x;
+    var v11y=sup.y;
+    var v11z=sup.z;
+    this.supportPointC(c2,nx,ny,nz,sup);
+    var v12x=sup.x;
+    var v12y=sup.y;
+    var v12z=sup.z;
+    var v1x=v12x-v11x;
+    var v1y=v12y-v11y;
+    var v1z=v12z-v11z;
+    if(v1x*nx+v1y*ny+v1z*nz<=0){
+    return false;
+    }
+    nx=v1y*v0z-v1z*v0y;
+    ny=v1z*v0x-v1x*v0z;
+    nz=v1x*v0y-v1y*v0x;
+    if(nx*nx+ny*ny+nz*nz==0){
+    sep.init(v1x-v0x,v1y-v0y,v1z-v0z);
+    sep.normalize(sep);
+    pos.init((v11x+v12x)*0.5,(v11y+v12y)*0.5,(v11z+v12z)*0.5);
+    return true;
+    }
+    this.supportPointB(c1,-nx,-ny,-nz,sup);
+    var v21x=sup.x;
+    var v21y=sup.y;
+    var v21z=sup.z;
+    this.supportPointC(c2,nx,ny,nz,sup);
+    var v22x=sup.x;
+    var v22y=sup.y;
+    var v22z=sup.z;
+    var v2x=v22x-v21x;
+    var v2y=v22y-v21y;
+    var v2z=v22z-v21z;
+    if(v2x*nx+v2y*ny+v2z*nz<=0){
+    return false;
+    }
+    t1x=v1x-v0x;
+    t1y=v1y-v0y;
+    t1z=v1z-v0z;
+    t2x=v2x-v0x;
+    t2y=v2y-v0y;
+    t2z=v2z-v0z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    if(nx*v0x+ny*v0y+nz*v0z>0){
+    t1x=v1x;
+    t1y=v1y;
+    t1z=v1z;
+    v1x=v2x;
+    v1y=v2y;
+    v1z=v2z;
+    v2x=t1x;
+    v2y=t1y;
+    v2z=t1z;
+    t1x=v11x;
+    t1y=v11y;
+    t1z=v11z;
+    v11x=v21x;
+    v11y=v21y;
+    v11z=v21z;
+    v21x=t1x;
+    v21y=t1y;
+    v21z=t1z;
+    t1x=v12x;
+    t1y=v12y;
+    t1z=v12z;
+    v12x=v22x;
+    v12y=v22y;
+    v12z=v22z;
+    v22x=t1x;
+    v22y=t1y;
+    v22z=t1z;
+    nx=-nx;
+    ny=-ny;
+    nz=-nz;
+    }
+    var iterations=0;
+    while(true){
+    if(++iterations>100){
+    return false;
+    }
+    this.supportPointB(c1,-nx,-ny,-nz,sup);
+    var v31x=sup.x;
+    var v31y=sup.y;
+    var v31z=sup.z;
+    this.supportPointC(c2,nx,ny,nz,sup);
+    var v32x=sup.x;
+    var v32y=sup.y;
+    var v32z=sup.z;
+    var v3x=v32x-v31x;
+    var v3y=v32y-v31y;
+    var v3z=v32z-v31z;
+    if(v3x*nx+v3y*ny+v3z*nz<=0){
+    return false;
+    }
+    if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
+    v2x=v3x;
+    v2y=v3y;
+    v2z=v3z;
+    v21x=v31x;
+    v21y=v31y;
+    v21z=v31z;
+    v22x=v32x;
+    v22y=v32y;
+    v22z=v32z;
+    t1x=v1x-v0x;
+    t1y=v1y-v0y;
+    t1z=v1z-v0z;
+    t2x=v3x-v0x;
+    t2y=v3y-v0y;
+    t2z=v3z-v0z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    continue;
+    }
+    if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
+    v1x=v3x;
+    v1y=v3y;
+    v1z=v3z;
+    v11x=v31x;
+    v11y=v31y;
+    v11z=v31z;
+    v12x=v32x;
+    v12y=v32y;
+    v12z=v32z;
+    t1x=v3x-v0x;
+    t1y=v3y-v0y;
+    t1z=v3z-v0z;
+    t2x=v2x-v0x;
+    t2y=v2y-v0y;
+    t2z=v2z-v0z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    continue;
+    }
+    var hit=false;
+    while(true){
+    t1x=v2x-v1x;
+    t1y=v2y-v1y;
+    t1z=v2z-v1z;
+    t2x=v3x-v1x;
+    t2y=v3y-v1y;
+    t2z=v3z-v1z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    len=1/Math.sqrt(nx*nx+ny*ny+nz*nz);
+    nx*=len;
+    ny*=len;
+    nz*=len;
+    if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
+    var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
+    var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
+    var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
+    var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
+    var sum=b0+b1+b2+b3;
+    if(sum<=0){
+    b0=0;
+    b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
+    b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
+    b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
+    sum=b1+b2+b3;
+    }
+    var inv=1/sum;
+    p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
+    p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
+    p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
+    p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
+    p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
+    p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
+    hit=true;
+    }
+    this.supportPointB(c1,-nx,-ny,-nz,sup);
+    var v41x=sup.x;
+    var v41y=sup.y;
+    var v41z=sup.z;
+    this.supportPointC(c2,nx,ny,nz,sup);
+    var v42x=sup.x;
+    var v42y=sup.y;
+    var v42z=sup.z;
+    var v4x=v42x-v41x;
+    var v4y=v42y-v41y;
+    var v4z=v42z-v41z;
+    var separation=-(v4x*nx+v4y*ny+v4z*nz);
+    if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
+    if(hit){
+    sep.init(-nx,-ny,-nz);
+    pos.init((p1x+p2x)*0.5,(p1y+p2y)*0.5,(p1z+p2z)*0.5);
+    dep.x=separation;
+    return true;
+    }
+    return false;
+    }
+    if(
+    (v4y*v1z-v4z*v1y)*v0x+
+    (v4z*v1x-v4x*v1z)*v0y+
+    (v4x*v1y-v4y*v1x)*v0z<0
+    ){
+    if(
+    (v4y*v2z-v4z*v2y)*v0x+
+    (v4z*v2x-v4x*v2z)*v0y+
+    (v4x*v2y-v4y*v2x)*v0z<0
+    ){
+    v1x=v4x;
+    v1y=v4y;
+    v1z=v4z;
+    v11x=v41x;
+    v11y=v41y;
+    v11z=v41z;
+    v12x=v42x;
+    v12y=v42y;
+    v12z=v42z;
+    }else{
+    v3x=v4x;
+    v3y=v4y;
+    v3z=v4z;
+    v31x=v41x;
+    v31y=v41y;
+    v31z=v41z;
+    v32x=v42x;
+    v32y=v42y;
+    v32z=v42z;
+    }
+    }else{
+    if(
+    (v4y*v3z-v4z*v3y)*v0x+
+    (v4z*v3x-v4x*v3z)*v0y+
+    (v4x*v3y-v4y*v3x)*v0z<0
+    ){
+    v2x=v4x;
+    v2y=v4y;
+    v2z=v4z;
+    v21x=v41x;
+    v21y=v41y;
+    v21z=v41z;
+    v22x=v42x;
+    v22y=v42y;
+    v22z=v42z;
+    }else{
+    v1x=v4x;
+    v1y=v4y;
+    v1z=v4z;
+    v11x=v41x;
+    v11y=v41y;
+    v11z=v41z;
+    v12x=v42x;
+    v12y=v42y;
+    v12z=v42z;
+}
+}
+}
+}
+return false;
+}
+OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,out){
+    var rot=c.rotation;
+    var ldx=rot.e00*dx+rot.e10*dy+rot.e20*dz;
+    var ldy=rot.e01*dx+rot.e11*dy+rot.e21*dz;
+    var ldz=rot.e02*dx+rot.e12*dy+rot.e22*dz;
+    var w=c.halfWidth;
+    var h=c.halfHeight;
+    var d=c.halfDepth;
+    var ox;
+    var oy;
+    var oz;
+    if(ldx<0)ox=-w;
+    else ox=w;
+    if(ldy<0)oy=-h;
+    else oy=h;
+    if(ldz<0)oz=-d;
+    else oz=d;
+    ldx=rot.e00*ox+rot.e01*oy+rot.e02*oz+c.position.x;
+    ldy=rot.e10*ox+rot.e11*oy+rot.e12*oz+c.position.y;
+    ldz=rot.e20*ox+rot.e21*oy+rot.e22*oz+c.position.z;
+    out.init(ldx,ldy,ldz);
+}
+OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,out){
+    var rot=c.rotation;
+    var ldx=rot.e00*dx+rot.e10*dy+rot.e20*dz;
+    var ldy=rot.e01*dx+rot.e11*dy+rot.e21*dz;
+    var ldz=rot.e02*dx+rot.e12*dy+rot.e22*dz;
+    var radx=ldx;
+    var radz=ldz;
+    var len=radx*radx+radz*radz;
+    var rad=c.radius;
+    var hh=c.halfHeight;
+    var ox;
+    var oy;
+    var oz;
+    if(len==0){
+    if(ldy<0){
+    ox=rad;
+    oy=-hh;
+    oz=0;
+    }else{
+    ox=rad;
+    oy=hh;
+    oz=0;
+    }
+    }else{
+    len=c.radius/Math.sqrt(len);
+    if(ldy<0){
+    ox=radx*len;
+    oy=-hh;
+    oz=radz*len;
+    }else{
+    ox=radx*len;
+    oy=hh;
+    oz=radz*len;
+    }
+    }
+    ldx=rot.e00*ox+rot.e01*oy+rot.e02*oz+c.position.x;
+    ldy=rot.e10*ox+rot.e11*oy+rot.e12*oz+c.position.y;
+    ldz=rot.e20*ox+rot.e21*oy+rot.e22*oz+c.position.z;
+    out.init(ldx,ldy,ldz);
+}
+OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+    var b;
+    var c;
+    if(this.flip){
+    b=shape2;
+    c=shape1;
+    }else{
+    b=shape1;
+    c=shape2;
+    }
+    var sep=new OIMO.Vec3();
+    var pos=new OIMO.Vec3();
+    var dep=new OIMO.Vec3();
+    var co;
+    if(!this.getSep(b,c,sep,pos,dep))return;
+    var pbx=b.position.x;
+    var pby=b.position.y;
+    var pbz=b.position.z;
+    var pcx=c.position.x;
+    var pcy=c.position.y;
+    var pcz=c.position.z;
+    var bw=b.halfWidth;
+    var bh=b.halfHeight;
+    var bd=b.halfDepth;
+    var ch=c.halfHeight;
+    var r=c.radius;
+    var nwx=b.normalDirectionWidth.x;
+    var nwy=b.normalDirectionWidth.y;
+    var nwz=b.normalDirectionWidth.z;
+    var nhx=b.normalDirectionHeight.x;
+    var nhy=b.normalDirectionHeight.y;
+    var nhz=b.normalDirectionHeight.z;
+    var ndx=b.normalDirectionDepth.x;
+    var ndy=b.normalDirectionDepth.y;
+    var ndz=b.normalDirectionDepth.z;
+    var dwx=b.halfDirectionWidth.x;
+    var dwy=b.halfDirectionWidth.y;
+    var dwz=b.halfDirectionWidth.z;
+    var dhx=b.halfDirectionHeight.x;
+    var dhy=b.halfDirectionHeight.y;
+    var dhz=b.halfDirectionHeight.z;
+    var ddx=b.halfDirectionDepth.x;
+    var ddy=b.halfDirectionDepth.y;
+    var ddz=b.halfDirectionDepth.z;
+    var ncx=c.normalDirection.x;
+    var ncy=c.normalDirection.y;
+    var ncz=c.normalDirection.z;
+    var dcx=c.halfDirection.x;
+    var dcy=c.halfDirection.y;
+    var dcz=c.halfDirection.z;
+    var nx=sep.x;
+    var ny=sep.y;
+    var nz=sep.z;
+    var dotw=nx*nwx+ny*nwy+nz*nwz;
+    var doth=nx*nhx+ny*nhy+nz*nhz;
+    var dotd=nx*ndx+ny*ndy+nz*ndz;
+    var dotc=nx*ncx+ny*ncy+nz*ncz;
+    var right1=dotw>0;
+    var right2=doth>0;
+    var right3=dotd>0;
+    var right4=dotc>0;
+    if(!right1)dotw=-dotw;
+    if(!right2)doth=-doth;
+    if(!right3)dotd=-dotd;
+    if(!right4)dotc=-dotc;
+    var state=0;
+    if(dotc>0.999){
+    if(dotw>0.999){
+    if(dotw>dotc)state=1;
+    else state=4;
+    }else if(doth>0.999){
+    if(doth>dotc)state=2;
+    else state=4;
+    }else if(dotd>0.999){
+    if(dotd>dotc)state=3;
+    else state=4;
+    }else state=4;
+    }else{
+    if(dotw>0.999)state=1;
+    else if(doth>0.999)state=2;
+    else if(dotd>0.999)state=3;
+    }
+    var cbx;
+    var cby;
+    var cbz;
+    var ccx;
+    var ccy;
+    var ccz;
+    var r00;
+    var r01;
+    var r02;
+    var r10;
+    var r11;
+    var r12;
+    var r20;
+    var r21;
+    var r22;
+    var px;
+    var py;
+    var pz;
+    var pd;
+    var dot;
+    var len;
+    var tx;
+    var ty;
+    var tz;
+    var td;
+    var dx;
+    var dy;
+    var dz;
+    var d1x;
+    var d1y;
+    var d1z;
+    var d2x;
+    var d2y;
+    var d2z;
+    var sx;
+    var sy;
+    var sz;
+    var sd;
+    var ex;
+    var ey;
+    var ez;
+    var ed;
+    var dot1;
+    var dot2;
+    var t1;
+    var t2;
+    var dir1x;
+    var dir1y;
+    var dir1z;
+    var dir2x;
+    var dir2y;
+    var dir2z;
+    var dir1l;
+    var dir2l;
+    if(state==0){
+    //manifold.addContactInfo(pos.x,pos.y,pos.z,nx,ny,nz,dep.x,b,c,0,0,false);
+    manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,dep.x,false);
+    }else if(state==4){
+    if(right4){
+    ccx=pcx-dcx;
+    ccy=pcy-dcy;
+    ccz=pcz-dcz;
+    nx=-ncx;
+    ny=-ncy;
+    nz=-ncz;
+    }else{
+    ccx=pcx+dcx;
+    ccy=pcy+dcy;
+    ccz=pcz+dcz;
+    nx=ncx;
+    ny=ncy;
+    nz=ncz;
+    }
+    var v1x;
+    var v1y;
+    var v1z;
+    var v2x;
+    var v2y;
+    var v2z;
+    var v3x;
+    var v3y;
+    var v3z;
+    var v4x;
+    var v4y;
+    var v4z;
+    var v;
+    dot=1;
+    state=0;
+    dot1=nwx*nx+nwy*ny+nwz*nz;
+    if(dot1<dot){
+    dot=dot1;
+    state=0;
+    }
+    if(-dot1<dot){
+    dot=-dot1;
+    state=1;
+    }
+    dot1=nhx*nx+nhy*ny+nhz*nz;
+    if(dot1<dot){
+    dot=dot1;
+    state=2;
+    }
+    if(-dot1<dot){
+    dot=-dot1;
+    state=3;
+    }
+    dot1=ndx*nx+ndy*ny+ndz*nz;
+    if(dot1<dot){
+    dot=dot1;
+    state=4;
+    }
+    if(-dot1<dot){
+    dot=-dot1;
+    state=5;
+    }
+    switch(state){
+    case 0:
+    v=b.vertex1;
+    v1x=v.x;
+    v1y=v.y;
+    v1z=v.z;
+    v=b.vertex3;
+    v2x=v.x;
+    v2y=v.y;
+    v2z=v.z;
+    v=b.vertex4;
+    v3x=v.x;
+    v3y=v.y;
+    v3z=v.z;
+    v=b.vertex2;
+    v4x=v.x;
+    v4y=v.y;
+    v4z=v.z;
+    break;
+    case 1:
+    v=b.vertex6;
+    v1x=v.x;
+    v1y=v.y;
+    v1z=v.z;
+    v=b.vertex8;
+    v2x=v.x;
+    v2y=v.y;
+    v2z=v.z;
+    v=b.vertex7;
+    v3x=v.x;
+    v3y=v.y;
+    v3z=v.z;
+    v=b.vertex5;
+    v4x=v.x;
+    v4y=v.y;
+    v4z=v.z;
+    break;
+    case 2:
+    v=b.vertex5;
+    v1x=v.x;
+    v1y=v.y;
+    v1z=v.z;
+    v=b.vertex1;
+    v2x=v.x;
+    v2y=v.y;
+    v2z=v.z;
+    v=b.vertex2;
+    v3x=v.x;
+    v3y=v.y;
+    v3z=v.z;
+    v=b.vertex6;
+    v4x=v.x;
+    v4y=v.y;
+    v4z=v.z;
+    break;
+    case 3:
+    v=b.vertex8;
+    v1x=v.x;
+    v1y=v.y;
+    v1z=v.z;
+    v=b.vertex4;
+    v2x=v.x;
+    v2y=v.y;
+    v2z=v.z;
+    v=b.vertex3;
+    v3x=v.x;
+    v3y=v.y;
+    v3z=v.z;
+    v=b.vertex7;
+    v4x=v.x;
+    v4y=v.y;
+    v4z=v.z;
+    break;
+    case 4:
+    v=b.vertex5;
+    v1x=v.x;
+    v1y=v.y;
+    v1z=v.z;
+    v=b.vertex7;
+    v2x=v.x;
+    v2y=v.y;
+    v2z=v.z;
+    v=b.vertex3;
+    v3x=v.x;
+    v3y=v.y;
+    v3z=v.z;
+    v=b.vertex1;
+    v4x=v.x;
+    v4y=v.y;
+    v4z=v.z;
+    break;
+    case 5:
+    v=b.vertex2;
+    v1x=v.x;
+    v1y=v.y;
+    v1z=v.z;
+    v=b.vertex4;
+    v2x=v.x;
+    v2y=v.y;
+    v2z=v.z;
+    v=b.vertex8;
+    v3x=v.x;
+    v3y=v.y;
+    v3z=v.z;
+    v=b.vertex6;
+    v4x=v.x;
+    v4y=v.y;
+    v4z=v.z;
+    break;
+    }
+    pd=nx*(v1x-ccx)+ny*(v1y-ccy)+nz*(v1z-ccz);
+     if(pd<=0)manifold.addPoint(v1x,v1y,v1z,-nx,-ny,-nz,pd,false);
+    pd=nx*(v2x-ccx)+ny*(v2y-ccy)+nz*(v2z-ccz);
+    if(pd<=0)manifold.addPoint(v2x,v2y,v2z,-nx,-ny,-nz,pd,false);
+    pd=nx*(v3x-ccx)+ny*(v3y-ccy)+nz*(v3z-ccz);
+    if(pd<=0)manifold.addPoint(v3x,v3y,v3z,-nx,-ny,-nz,pd,false);
+    pd=nx*(v4x-ccx)+ny*(v4y-ccy)+nz*(v4z-ccz);
+    if(pd<=0)manifold.addPoint(v4x,v4y,v4z,-nx,-ny,-nz,pd,false);
+    /*if(pd<=0)manifold.addContactInfo(v1x,v1y,v1z,-nx,-ny,-nz,pd,b,c,5,0,false);
+    pd=nx*(v2x-ccx)+ny*(v2y-ccy)+nz*(v2z-ccz);
+    if(pd<=0)manifold.addContactInfo(v2x,v2y,v2z,-nx,-ny,-nz,pd,b,c,6,0,false);
+    pd=nx*(v3x-ccx)+ny*(v3y-ccy)+nz*(v3z-ccz);
+    if(pd<=0)manifold.addContactInfo(v3x,v3y,v3z,-nx,-ny,-nz,pd,b,c,7,0,false);
+    pd=nx*(v4x-ccx)+ny*(v4y-ccy)+nz*(v4z-ccz);
+    if(pd<=0)manifold.addContactInfo(v4x,v4y,v4z,-nx,-ny,-nz,pd,b,c,8,0,false);*/
+    }else{
+    switch(state){
+    case 1:
+    if(right1){
+    cbx=pbx+dwx;
+    cby=pby+dwy;
+    cbz=pbz+dwz;
+    nx=nwx;
+    ny=nwy;
+    nz=nwz;
+    }else{
+    cbx=pbx-dwx;
+    cby=pby-dwy;
+    cbz=pbz-dwz;
+    nx=-nwx;
+    ny=-nwy;
+    nz=-nwz;
+    }
+    dir1x=nhx;
+    dir1y=nhy;
+    dir1z=nhz;
+    dir1l=bh;
+    dir2x=ndx;
+    dir2y=ndy;
+    dir2z=ndz;
+    dir2l=bd;
+    break;
+    case 2:
+    if(right2){
+    cbx=pbx+dhx;
+    cby=pby+dhy;
+    cbz=pbz+dhz;
+    nx=nhx;
+    ny=nhy;
+    nz=nhz;
+    }else{
+    cbx=pbx-dhx;
+    cby=pby-dhy;
+    cbz=pbz-dhz;
+    nx=-nhx;
+    ny=-nhy;
+    nz=-nhz;
+    }
+    dir1x=nwx;
+    dir1y=nwy;
+    dir1z=nwz;
+    dir1l=bw;
+    dir2x=ndx;
+    dir2y=ndy;
+    dir2z=ndz;
+    dir2l=bd;
+    break;
+    case 3:
+    if(right3){
+    cbx=pbx+ddx;
+    cby=pby+ddy;
+    cbz=pbz+ddz;
+    nx=ndx;
+    ny=ndy;
+    nz=ndz;
+    }else{
+    cbx=pbx-ddx;
+    cby=pby-ddy;
+    cbz=pbz-ddz;
+    nx=-ndx;
+    ny=-ndy;
+    nz=-ndz;
+    }
+    dir1x=nwx;
+    dir1y=nwy;
+    dir1z=nwz;
+    dir1l=bw;
+    dir2x=nhx;
+    dir2y=nhy;
+    dir2z=nhz;
+    dir2l=bh;
+    break;
+    }
+    dot=nx*ncx+ny*ncy+nz*ncz;
+    if(dot<0)len=ch;
+    else len=-ch;
+    ccx=pcx+len*ncx;
+    ccy=pcy+len*ncy;
+    ccz=pcz+len*ncz;
+    if(dotc>=0.999999){
+    tx=-ny;
+    ty=nz;
+    tz=nx;
+    }else{
+    tx=nx;
+    ty=ny;
+    tz=nz;
+    }
+    len=tx*ncx+ty*ncy+tz*ncz;
+    dx=len*ncx-tx;
+    dy=len*ncy-ty;
+    dz=len*ncz-tz;
+    len=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(len==0)return;
+    len=r/len;
+    dx*=len;
+    dy*=len;
+    dz*=len;
+    tx=ccx+dx;
+    ty=ccy+dy;
+    tz=ccz+dz;
+    if(dot<-0.96||dot>0.96){
+    r00=ncx*ncx*1.5-0.5;
+    r01=ncx*ncy*1.5-ncz*0.866025403;
+    r02=ncx*ncz*1.5+ncy*0.866025403;
+    r10=ncy*ncx*1.5+ncz*0.866025403;
+    r11=ncy*ncy*1.5-0.5;
+    r12=ncy*ncz*1.5-ncx*0.866025403;
+    r20=ncz*ncx*1.5-ncy*0.866025403;
+    r21=ncz*ncy*1.5+ncx*0.866025403;
+    r22=ncz*ncz*1.5-0.5;
+    px=tx;
+    py=ty;
+    pz=tz;
+    pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
+    tx=px-pd*nx-cbx;
+    ty=py-pd*ny-cby;
+    tz=pz-pd*nz-cbz;
+    sd=dir1x*tx+dir1y*ty+dir1z*tz;
+    ed=dir2x*tx+dir2y*ty+dir2z*tz;
+    if(sd<-dir1l)sd=-dir1l;
+    else if(sd>dir1l)sd=dir1l;
+    if(ed<-dir2l)ed=-dir2l;
+    else if(ed>dir2l)ed=dir2l;
+    tx=sd*dir1x+ed*dir2x;
+    ty=sd*dir1y+ed*dir2y;
+    tz=sd*dir1z+ed*dir2z;
+    px=cbx+tx;
+    py=cby+ty;
+    pz=cbz+tz;
+    //manifold.addContactInfo(px,py,pz,nx,ny,nz,pd,b,c,1,0,false);
+    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+    px=dx*r00+dy*r01+dz*r02;
+    py=dx*r10+dy*r11+dz*r12;
+    pz=dx*r20+dy*r21+dz*r22;
+    px=(dx=px)+ccx;
+    py=(dy=py)+ccy;
+    pz=(dz=pz)+ccz;
+    pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
+    if(pd<=0){
+    tx=px-pd*nx-cbx;
+    ty=py-pd*ny-cby;
+    tz=pz-pd*nz-cbz;
+    sd=dir1x*tx+dir1y*ty+dir1z*tz;
+    ed=dir2x*tx+dir2y*ty+dir2z*tz;
+    if(sd<-dir1l)sd=-dir1l;
+    else if(sd>dir1l)sd=dir1l;
+    if(ed<-dir2l)ed=-dir2l;
+    else if(ed>dir2l)ed=dir2l;
+    tx=sd*dir1x+ed*dir2x;
+    ty=sd*dir1y+ed*dir2y;
+    tz=sd*dir1z+ed*dir2z;
+    px=cbx+tx;
+    py=cby+ty;
+    pz=cbz+tz;
+    //manifold.addContactInfo(px,py,pz,nx,ny,nz,pd,b,c,2,0,false);
+    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+    }
+    px=dx*r00+dy*r01+dz*r02;
+    py=dx*r10+dy*r11+dz*r12;
+    pz=dx*r20+dy*r21+dz*r22;
+    px=(dx=px)+ccx;
+    py=(dy=py)+ccy;
+    pz=(dz=pz)+ccz;
+    pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
+    if(pd<=0){
+    tx=px-pd*nx-cbx;
+    ty=py-pd*ny-cby;
+    tz=pz-pd*nz-cbz;
+    sd=dir1x*tx+dir1y*ty+dir1z*tz;
+    ed=dir2x*tx+dir2y*ty+dir2z*tz;
+    if(sd<-dir1l)sd=-dir1l;
+    else if(sd>dir1l)sd=dir1l;
+    if(ed<-dir2l)ed=-dir2l;
+    else if(ed>dir2l)ed=dir2l;
+    tx=sd*dir1x+ed*dir2x;
+    ty=sd*dir1y+ed*dir2y;
+    tz=sd*dir1z+ed*dir2z;
+    px=cbx+tx;
+    py=cby+ty;
+    pz=cbz+tz;
+    //manifold.addContactInfo(px,py,pz,nx,ny,nz,pd,b,c,3,0,false);
+    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+    }
+    }else{
+    sx=tx;
+    sy=ty;
+    sz=tz;
+    sd=nx*(sx-cbx)+ny*(sy-cby)+nz*(sz-cbz);
+    sx-=sd*nx;
+    sy-=sd*ny;
+    sz-=sd*nz;
+    if(dot>0){
+    ex=tx+dcx*2;
+    ey=ty+dcy*2;
+    ez=tz+dcz*2;
+    }else{
+    ex=tx-dcx*2;
+    ey=ty-dcy*2;
+    ez=tz-dcz*2;
+    }
+    ed=nx*(ex-cbx)+ny*(ey-cby)+nz*(ez-cbz);
+    ex-=ed*nx;
+    ey-=ed*ny;
+    ez-=ed*nz;
+    d1x=sx-cbx;
+    d1y=sy-cby;
+    d1z=sz-cbz;
+    d2x=ex-cbx;
+    d2y=ey-cby;
+    d2z=ez-cbz;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    dotw=d1x*dir1x+d1y*dir1y+d1z*dir1z;
+    doth=d2x*dir1x+d2y*dir1y+d2z*dir1z;
+    dot1=dotw-dir1l;
+    dot2=doth-dir1l;
+    if(dot1>0){
+    if(dot2>0)return;
+    t1=dot1/(dot1-dot2);
+    sx=sx+tx*t1;
+    sy=sy+ty*t1;
+    sz=sz+tz*t1;
+    sd=sd+td*t1;
+    d1x=sx-cbx;
+    d1y=sy-cby;
+    d1z=sz-cbz;
+    dotw=d1x*dir1x+d1y*dir1y+d1z*dir1z;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    }else if(dot2>0){
+    t1=dot1/(dot1-dot2);
+    ex=sx+tx*t1;
+    ey=sy+ty*t1;
+    ez=sz+tz*t1;
+    ed=sd+td*t1;
+    d2x=ex-cbx;
+    d2y=ey-cby;
+    d2z=ez-cbz;
+    doth=d2x*dir1x+d2y*dir1y+d2z*dir1z;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    }
+    dot1=dotw+dir1l;
+    dot2=doth+dir1l;
+    if(dot1<0){
+    if(dot2<0)return;
+    t1=dot1/(dot1-dot2);
+    sx=sx+tx*t1;
+    sy=sy+ty*t1;
+    sz=sz+tz*t1;
+    sd=sd+td*t1;
+    d1x=sx-cbx;
+    d1y=sy-cby;
+    d1z=sz-cbz;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    }else if(dot2<0){
+    t1=dot1/(dot1-dot2);
+    ex=sx+tx*t1;
+    ey=sy+ty*t1;
+    ez=sz+tz*t1;
+    ed=sd+td*t1;
+    d2x=ex-cbx;
+    d2y=ey-cby;
+    d2z=ez-cbz;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    }
+    dotw=d1x*dir2x+d1y*dir2y+d1z*dir2z;
+    doth=d2x*dir2x+d2y*dir2y+d2z*dir2z;
+    dot1=dotw-dir2l;
+    dot2=doth-dir2l;
+    if(dot1>0){
+    if(dot2>0)return;
+    t1=dot1/(dot1-dot2);
+    sx=sx+tx*t1;
+    sy=sy+ty*t1;
+    sz=sz+tz*t1;
+    sd=sd+td*t1;
+    d1x=sx-cbx;
+    d1y=sy-cby;
+    d1z=sz-cbz;
+    dotw=d1x*dir2x+d1y*dir2y+d1z*dir2z;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    }else if(dot2>0){
+    t1=dot1/(dot1-dot2);
+    ex=sx+tx*t1;
+    ey=sy+ty*t1;
+    ez=sz+tz*t1;
+    ed=sd+td*t1;
+    d2x=ex-cbx;
+    d2y=ey-cby;
+    d2z=ez-cbz;
+    doth=d2x*dir2x+d2y*dir2y+d2z*dir2z;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    td=ed-sd;
+    }
+    dot1=dotw+dir2l;
+    dot2=doth+dir2l;
+    if(dot1<0){
+    if(dot2<0)return;
+    t1=dot1/(dot1-dot2);
+    sx=sx+tx*t1;
+    sy=sy+ty*t1;
+    sz=sz+tz*t1;
+    sd=sd+td*t1;
+    }else if(dot2<0){
+    t1=dot1/(dot1-dot2);
+    ex=sx+tx*t1;
+    ey=sy+ty*t1;
+    ez=sz+tz*t1;
+    ed=sd+td*t1;
+    }
+    if(sd<0){
+    //manifold.addContactInfo(sx,sy,sz,nx,ny,nz,sd,b,c,1,0,false);
+    manifold.addPoint(sx,sy,sz,nx,ny,nz,sd,false);
+    }
+    if(ed<0){
+    //manifold.addContactInfo(ex,ey,ez,nx,ny,nz,ed,b,c,4,0,false);
+    manifold.addPoint(ex,ey,ez,nx,ny,nz,ed,false);
+    }
+    }
+    }
+}
+
+// CylinderCylinderCollisionDetector
+
+OIMO.CylinderCylinderCollisionDetector = function(){
+    OIMO.CollisionDetector.call( this );
+}
+OIMO.CylinderCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
+OIMO.CylinderCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep){
+    var t1x;
+    var t1y;
+    var t1z;
+    var t2x;
+    var t2y;
+    var t2z;
+    var sup=new OIMO.Vec3();
+    var len;
+    var p1x;
+    var p1y;
+    var p1z;
+    var p2x;
+    var p2y;
+    var p2z;
+    var v01x=c1.position.x;
+    var v01y=c1.position.y;
+    var v01z=c1.position.z;
+    var v02x=c2.position.x;
+    var v02y=c2.position.y;
+    var v02z=c2.position.z;
+    var v0x=v02x-v01x;
+    var v0y=v02y-v01y;
+    var v0z=v02z-v01z;
+    if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
+    var nx=-v0x;
+    var ny=-v0y;
+    var nz=-v0z;
+    this.supportPoint(c1,-nx,-ny,-nz,sup);
+    var v11x=sup.x;
+    var v11y=sup.y;
+    var v11z=sup.z;
+    this.supportPoint(c2,nx,ny,nz,sup);
+    var v12x=sup.x;
+    var v12y=sup.y;
+    var v12z=sup.z;
+    var v1x=v12x-v11x;
+    var v1y=v12y-v11y;
+    var v1z=v12z-v11z;
+    if(v1x*nx+v1y*ny+v1z*nz<=0){
+    return false;
+    }
+    nx=v1y*v0z-v1z*v0y;
+    ny=v1z*v0x-v1x*v0z;
+    nz=v1x*v0y-v1y*v0x;
+    if(nx*nx+ny*ny+nz*nz==0){
+    sep.init(v1x-v0x,v1y-v0y,v1z-v0z);
+    sep.normalize(sep);
+    pos.init((v11x+v12x)*0.5,(v11y+v12y)*0.5,(v11z+v12z)*0.5);
+    return true;
+    }
+    this.supportPoint(c1,-nx,-ny,-nz,sup);
+    var v21x=sup.x;
+    var v21y=sup.y;
+    var v21z=sup.z;
+    this.supportPoint(c2,nx,ny,nz,sup);
+    var v22x=sup.x;
+    var v22y=sup.y;
+    var v22z=sup.z;
+    var v2x=v22x-v21x;
+    var v2y=v22y-v21y;
+    var v2z=v22z-v21z;
+    if(v2x*nx+v2y*ny+v2z*nz<=0){
+    return false;
+    }
+    t1x=v1x-v0x;
+    t1y=v1y-v0y;
+    t1z=v1z-v0z;
+    t2x=v2x-v0x;
+    t2y=v2y-v0y;
+    t2z=v2z-v0z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    if(nx*v0x+ny*v0y+nz*v0z>0){
+    t1x=v1x;
+    t1y=v1y;
+    t1z=v1z;
+    v1x=v2x;
+    v1y=v2y;
+    v1z=v2z;
+    v2x=t1x;
+    v2y=t1y;
+    v2z=t1z;
+    t1x=v11x;
+    t1y=v11y;
+    t1z=v11z;
+    v11x=v21x;
+    v11y=v21y;
+    v11z=v21z;
+    v21x=t1x;
+    v21y=t1y;
+    v21z=t1z;
+    t1x=v12x;
+    t1y=v12y;
+    t1z=v12z;
+    v12x=v22x;
+    v12y=v22y;
+    v12z=v22z;
+    v22x=t1x;
+    v22y=t1y;
+    v22z=t1z;
+    nx=-nx;
+    ny=-ny;
+    nz=-nz;
+    }
+    var iterations=0;
+    while(true){
+    if(++iterations>100){
+    return false;
+    }
+    this.supportPoint(c1,-nx,-ny,-nz,sup);
+    var v31x=sup.x;
+    var v31y=sup.y;
+    var v31z=sup.z;
+    this.supportPoint(c2,nx,ny,nz,sup);
+    var v32x=sup.x;
+    var v32y=sup.y;
+    var v32z=sup.z;
+    var v3x=v32x-v31x;
+    var v3y=v32y-v31y;
+    var v3z=v32z-v31z;
+    if(v3x*nx+v3y*ny+v3z*nz<=0){
+    return false;
+    }
+    if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
+    v2x=v3x;
+    v2y=v3y;
+    v2z=v3z;
+    v21x=v31x;
+    v21y=v31y;
+    v21z=v31z;
+    v22x=v32x;
+    v22y=v32y;
+    v22z=v32z;
+    t1x=v1x-v0x;
+    t1y=v1y-v0y;
+    t1z=v1z-v0z;
+    t2x=v3x-v0x;
+    t2y=v3y-v0y;
+    t2z=v3z-v0z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    continue;
+    }
+    if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
+    v1x=v3x;
+    v1y=v3y;
+    v1z=v3z;
+    v11x=v31x;
+    v11y=v31y;
+    v11z=v31z;
+    v12x=v32x;
+    v12y=v32y;
+    v12z=v32z;
+    t1x=v3x-v0x;
+    t1y=v3y-v0y;
+    t1z=v3z-v0z;
+    t2x=v2x-v0x;
+    t2y=v2y-v0y;
+    t2z=v2z-v0z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    continue;
+    }
+    var hit=false;
+    while(true){
+    t1x=v2x-v1x;
+    t1y=v2y-v1y;
+    t1z=v2z-v1z;
+    t2x=v3x-v1x;
+    t2y=v3y-v1y;
+    t2z=v3z-v1z;
+    nx=t1y*t2z-t1z*t2y;
+    ny=t1z*t2x-t1x*t2z;
+    nz=t1x*t2y-t1y*t2x;
+    len=1/Math.sqrt(nx*nx+ny*ny+nz*nz);
+    nx*=len;
+    ny*=len;
+    nz*=len;
+    if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
+    var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
+    var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
+    var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
+    var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
+    var sum=b0+b1+b2+b3;
+    if(sum<=0){
+    b0=0;
+    b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
+    b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
+    b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
+    sum=b1+b2+b3;
+    }
+    var inv=1/sum;
+    p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
+    p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
+    p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
+    p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
+    p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
+    p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
+    hit=true;
+    }
+    this.supportPoint(c1,-nx,-ny,-nz,sup);
+    var v41x=sup.x;
+    var v41y=sup.y;
+    var v41z=sup.z;
+    this.supportPoint(c2,nx,ny,nz,sup);
+    var v42x=sup.x;
+    var v42y=sup.y;
+    var v42z=sup.z;
+    var v4x=v42x-v41x;
+    var v4y=v42y-v41y;
+    var v4z=v42z-v41z;
+    var separation=-(v4x*nx+v4y*ny+v4z*nz);
+    if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
+    if(hit){
+    sep.init(-nx,-ny,-nz);
+    pos.init((p1x+p2x)*0.5,(p1y+p2y)*0.5,(p1z+p2z)*0.5);
+    dep.x=separation;
+    return true;
+    }
+    return false;
+    }
+    if(
+    (v4y*v1z-v4z*v1y)*v0x+
+    (v4z*v1x-v4x*v1z)*v0y+
+    (v4x*v1y-v4y*v1x)*v0z<0
+    ){
+    if(
+    (v4y*v2z-v4z*v2y)*v0x+
+    (v4z*v2x-v4x*v2z)*v0y+
+    (v4x*v2y-v4y*v2x)*v0z<0
+    ){
+    v1x=v4x;
+    v1y=v4y;
+    v1z=v4z;
+    v11x=v41x;
+    v11y=v41y;
+    v11z=v41z;
+    v12x=v42x;
+    v12y=v42y;
+    v12z=v42z;
+    }else{
+    v3x=v4x;
+    v3y=v4y;
+    v3z=v4z;
+    v31x=v41x;
+    v31y=v41y;
+    v31z=v41z;
+    v32x=v42x;
+    v32y=v42y;
+    v32z=v42z;
+    }
+    }else{
+    if(
+    (v4y*v3z-v4z*v3y)*v0x+
+    (v4z*v3x-v4x*v3z)*v0y+
+    (v4x*v3y-v4y*v3x)*v0z<0
+    ){
+    v2x=v4x;
+    v2y=v4y;
+    v2z=v4z;
+    v21x=v41x;
+    v21y=v41y;
+    v21z=v41z;
+    v22x=v42x;
+    v22y=v42y;
+    v22z=v42z;
+    }else{
+    v1x=v4x;
+    v1y=v4y;
+    v1z=v4z;
+    v11x=v41x;
+    v11y=v41y;
+    v11z=v41z;
+    v12x=v42x;
+    v12y=v42y;
+    v12z=v42z;
+    }
+    }
+    }
+    }
+    return false;
+}
+OIMO.CylinderCylinderCollisionDetector.prototype.supportPoint = function(c,dx,dy,dz,out){
+    var rot=c.rotation;
+    var ldx=rot.e00*dx+rot.e10*dy+rot.e20*dz;
+    var ldy=rot.e01*dx+rot.e11*dy+rot.e21*dz;
+    var ldz=rot.e02*dx+rot.e12*dy+rot.e22*dz;
+    var radx=ldx;
+    var radz=ldz;
+    var len=radx*radx+radz*radz;
+    var rad=c.radius;
+    var hh=c.halfHeight;
+    var ox;
+    var oy;
+    var oz;
+    if(len==0){
+    if(ldy<0){
+    ox=rad;
+    oy=-hh;
+    oz=0;
+    }else{
+    ox=rad;
+    oy=hh;
+    oz=0;
+    }
+    }else{
+    len=c.radius/Math.sqrt(len);
+    if(ldy<0){
+    ox=radx*len;
+    oy=-hh;
+    oz=radz*len;
+    }else{
+    ox=radx*len;
+    oy=hh;
+    oz=radz*len;
+    }
+    }
+    ldx=rot.e00*ox+rot.e01*oy+rot.e02*oz+c.position.x;
+    ldy=rot.e10*ox+rot.e11*oy+rot.e12*oz+c.position.y;
+    ldz=rot.e20*ox+rot.e21*oy+rot.e22*oz+c.position.z;
+    out.init(ldx,ldy,ldz);
+}
+OIMO.CylinderCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+    var c1;
+    var c2;
+    if(shape1.id<shape2.id){
+    c1=shape1;
+    c2=shape2;
+    }else{
+    c1=shape2;
+    c2=shape1;
+    }
+    var p1=c1.position;
+    var p2=c2.position;
+    var p1x=p1.x;
+    var p1y=p1.y;
+    var p1z=p1.z;
+    var p2x=p2.x;
+    var p2y=p2.y;
+    var p2z=p2.z;
+    var h1=c1.halfHeight;
+    var h2=c2.halfHeight;
+    var n1=c1.normalDirection;
+    var n2=c2.normalDirection;
+    var d1=c1.halfDirection;
+    var d2=c2.halfDirection;
+    var r1=c1.radius;
+    var r2=c2.radius;
+    var n1x=n1.x;
+    var n1y=n1.y;
+    var n1z=n1.z;
+    var n2x=n2.x;
+    var n2y=n2.y;
+    var n2z=n2.z;
+    var d1x=d1.x;
+    var d1y=d1.y;
+    var d1z=d1.z;
+    var d2x=d2.x;
+    var d2y=d2.y;
+    var d2z=d2.z;
+    var dx=p1x-p2x;
+    var dy=p1y-p2y;
+    var dz=p1z-p2z;
+    var len;
+    var len1;
+    var len2;
+    var c;
+    var c1x;
+    var c1y;
+    var c1z;
+    var c2x;
+    var c2y;
+    var c2z;
+    var tx;
+    var ty;
+    var tz;
+    var sx;
+    var sy;
+    var sz;
+    var ex;
+    var ey;
+    var ez;
+    var depth1;
+    var depth2;
+    var dot;
+    var t1;
+    var t2;
+    var sep=new OIMO.Vec3();
+    var pos=new OIMO.Vec3();
+    var dep=new OIMO.Vec3();
+    if(!this.getSep(c1,c2,sep,pos,dep))return;
+    var dot1=sep.x*n1x+sep.y*n1y+sep.z*n1z;
+    var dot2=sep.x*n2x+sep.y*n2y+sep.z*n2z;
+    var right1=dot1>0;
+    var right2=dot2>0;
+    if(!right1)dot1=-dot1;
+    if(!right2)dot2=-dot2;
+    var state=0;
+    if(dot1>0.999||dot2>0.999){
+    if(dot1>dot2)state=1;
+    else state=2;
+    }
+    var nx;
+    var ny;
+    var nz;
+    var depth=dep.x;
+    var r00;
+    var r01;
+    var r02;
+    var r10;
+    var r11;
+    var r12;
+    var r20;
+    var r21;
+    var r22;
+    var px;
+    var py;
+    var pz;
+    var pd;
+    var a;
+    var b;
+    var e;
+    var f;
+    nx=sep.x;
+    ny=sep.y;
+    nz=sep.z;
+    switch(state){
+    case 0:
+   //manifold.addContactInfo(pos.x,pos.y,pos.z,nx,ny,nz,depth,c1,c2,0,0,false);
+    manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,depth,false);
+    break;
+    case 1:
+    if(right1){
+    c1x=p1x+d1x;
+    c1y=p1y+d1y;
+    c1z=p1z+d1z;
+    nx=n1x;
+    ny=n1y;
+    nz=n1z;
+    }else{
+    c1x=p1x-d1x;
+    c1y=p1y-d1y;
+    c1z=p1z-d1z;
+    nx=-n1x;
+    ny=-n1y;
+    nz=-n1z;
+    }
+    dot=nx*n2x+ny*n2y+nz*n2z;
+    if(dot<0)len=h2;
+    else len=-h2;
+    c2x=p2x+len*n2x;
+    c2y=p2y+len*n2y;
+    c2z=p2z+len*n2z;
+    if(dot2>=0.999999){
+    tx=-ny;
+    ty=nz;
+    tz=nx;
+    }else{
+    tx=nx;
+    ty=ny;
+    tz=nz;
+    }
+    len=tx*n2x+ty*n2y+tz*n2z;
+    dx=len*n2x-tx;
+    dy=len*n2y-ty;
+    dz=len*n2z-tz;
+    len=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(len==0)break;
+    len=r2/len;
+    dx*=len;
+    dy*=len;
+    dz*=len;
+    tx=c2x+dx;
+    ty=c2y+dy;
+    tz=c2z+dz;
+    if(dot<-0.96||dot>0.96){
+    r00=n2x*n2x*1.5-0.5;
+    r01=n2x*n2y*1.5-n2z*0.866025403;
+    r02=n2x*n2z*1.5+n2y*0.866025403;
+    r10=n2y*n2x*1.5+n2z*0.866025403;
+    r11=n2y*n2y*1.5-0.5;
+    r12=n2y*n2z*1.5-n2x*0.866025403;
+    r20=n2z*n2x*1.5-n2y*0.866025403;
+    r21=n2z*n2y*1.5+n2x*0.866025403;
+    r22=n2z*n2z*1.5-0.5;
+    px=tx;
+    py=ty;
+    pz=tz;
+    pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+    tx=px-pd*nx-c1x;
+    ty=py-pd*ny-c1y;
+    tz=pz-pd*nz-c1z;
+    len=tx*tx+ty*ty+tz*tz;
+    if(len>r1*r1){
+    len=r1/Math.sqrt(len);
+    tx*=len;
+    ty*=len;
+    tz*=len;
+    }
+    px=c1x+tx;
+    py=c1y+ty;
+    pz=c1z+tz;
+    //manifold.addContactInfo(px,py,pz,nx,ny,nz,pd,c1,c2,1,0,false);
+    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+    px=dx*r00+dy*r01+dz*r02;
+    py=dx*r10+dy*r11+dz*r12;
+    pz=dx*r20+dy*r21+dz*r22;
+    px=(dx=px)+c2x;
+    py=(dy=py)+c2y;
+    pz=(dz=pz)+c2z;
+    pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+    if(pd<=0){
+    tx=px-pd*nx-c1x;
+    ty=py-pd*ny-c1y;
+    tz=pz-pd*nz-c1z;
+    len=tx*tx+ty*ty+tz*tz;
+    if(len>r1*r1){
+    len=r1/Math.sqrt(len);
+    tx*=len;
+    ty*=len;
+    tz*=len;
+    }
+    px=c1x+tx;
+    py=c1y+ty;
+    pz=c1z+tz;
+    //manifold.addContactInfo(px,py,pz,nx,ny,nz,pd,c1,c2,2,0,false);
+    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+    }
+    px=dx*r00+dy*r01+dz*r02;
+    py=dx*r10+dy*r11+dz*r12;
+    pz=dx*r20+dy*r21+dz*r22;
+    px=(dx=px)+c2x;
+    py=(dy=py)+c2y;
+    pz=(dz=pz)+c2z;
+    pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+    if(pd<=0){
+    tx=px-pd*nx-c1x;
+    ty=py-pd*ny-c1y;
+    tz=pz-pd*nz-c1z;
+    len=tx*tx+ty*ty+tz*tz;
+    if(len>r1*r1){
+    len=r1/Math.sqrt(len);
+    tx*=len;
+    ty*=len;
+    tz*=len;
+    }
+    px=c1x+tx;
+    py=c1y+ty;
+    pz=c1z+tz;
+    //manifold.addContactInfo(px,py,pz,nx,ny,nz,pd,c1,c2,3,0,false);
+    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+    }
+    }else{
+    sx=tx;
+    sy=ty;
+    sz=tz;
+    depth1=nx*(sx-c1x)+ny*(sy-c1y)+nz*(sz-c1z);
+    sx-=depth1*nx;
+    sy-=depth1*ny;
+    sz-=depth1*nz;
+    if(dot>0){
+    ex=tx+n2x*h2*2;
+    ey=ty+n2y*h2*2;
+    ez=tz+n2z*h2*2;
+    }else{
+    ex=tx-n2x*h2*2;
+    ey=ty-n2y*h2*2;
+    ez=tz-n2z*h2*2;
+    }
+    depth2=nx*(ex-c1x)+ny*(ey-c1y)+nz*(ez-c1z);
+    ex-=depth2*nx;
+    ey-=depth2*ny;
+    ez-=depth2*nz;
+    dx=c1x-sx;
+    dy=c1y-sy;
+    dz=c1z-sz;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    a=dx*dx+dy*dy+dz*dz;
+    b=dx*tx+dy*ty+dz*tz;
+    e=tx*tx+ty*ty+tz*tz;
+    f=b*b-e*(a-r1*r1);
+    if(f<0)break;
+    f=Math.sqrt(f);
+    t1=(b+f)/e;
+    t2=(b-f)/e;
+    if(t2<t1){
+    len=t1;
+    t1=t2;
+    t2=len;
+    }
+    if(t2>1)t2=1;
+    if(t1<0)t1=0;
+    tx=sx+(ex-sx)*t1;
+    ty=sy+(ey-sy)*t1;
+    tz=sz+(ez-sz)*t1;
+    ex=sx+(ex-sx)*t2;
+    ey=sy+(ey-sy)*t2;
+    ez=sz+(ez-sz)*t2;
+    sx=tx;
+    sy=ty;
+    sz=tz;
+    len=depth1+(depth2-depth1)*t1;
+    depth2=depth1+(depth2-depth1)*t2;
+    depth1=len;
+    if(depth1<0){
+    //manifold.addContactInfo(sx,sy,sz,nx,ny,nz,pd,c1,c2,1,0,false);
+    manifold.addPoint(sx,sy,sz,nx,ny,nz,pd,false);
+    }
+    if(depth2<0){
+    //manifold.addContactInfo(ex,ey,ez,nx,ny,nz,pd,c1,c2,4,0,false);
+    manifold.addPoint(ex,ey,ez,nx,ny,nz,pd,false);
+    }
+    }
+    break;
+    case 2:
+    if(right2){
+    c2x=p2x-d2x;
+    c2y=p2y-d2y;
+    c2z=p2z-d2z;
+    nx=-n2x;
+    ny=-n2y;
+    nz=-n2z;
+    }else{
+    c2x=p2x+d2x;
+    c2y=p2y+d2y;
+    c2z=p2z+d2z;
+    nx=n2x;
+    ny=n2y;
+    nz=n2z;
+    }
+    dot=nx*n1x+ny*n1y+nz*n1z;
+    if(dot<0)len=h1;
+    else len=-h1;
+    c1x=p1x+len*n1x;
+    c1y=p1y+len*n1y;
+    c1z=p1z+len*n1z;
+    if(dot1>=0.999999){
+    tx=-ny;
+    ty=nz;
+    tz=nx;
+    }else{
+    tx=nx;
+    ty=ny;
+    tz=nz;
+    }
+    len=tx*n1x+ty*n1y+tz*n1z;
+    dx=len*n1x-tx;
+    dy=len*n1y-ty;
+    dz=len*n1z-tz;
+    len=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(len==0)break;
+    len=r1/len;
+    dx*=len;
+    dy*=len;
+    dz*=len;
+    tx=c1x+dx;
+    ty=c1y+dy;
+    tz=c1z+dz;
+    if(dot<-0.96||dot>0.96){
+    r00=n1x*n1x*1.5-0.5;
+    r01=n1x*n1y*1.5-n1z*0.866025403;
+    r02=n1x*n1z*1.5+n1y*0.866025403;
+    r10=n1y*n1x*1.5+n1z*0.866025403;
+    r11=n1y*n1y*1.5-0.5;
+    r12=n1y*n1z*1.5-n1x*0.866025403;
+    r20=n1z*n1x*1.5-n1y*0.866025403;
+    r21=n1z*n1y*1.5+n1x*0.866025403;
+    r22=n1z*n1z*1.5-0.5;
+    px=tx;
+    py=ty;
+    pz=tz;
+    pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+    tx=px-pd*nx-c2x;
+    ty=py-pd*ny-c2y;
+    tz=pz-pd*nz-c2z;
+    len=tx*tx+ty*ty+tz*tz;
+    if(len>r2*r2){
+    len=r2/Math.sqrt(len);
+    tx*=len;
+    ty*=len;
+    tz*=len;
+    }
+    px=c2x+tx;
+    py=c2y+ty;
+    pz=c2z+tz;
+    //manifold.addContactInfo(px,py,pz,-nx,-ny,-nz,pd,c1,c2,1,0,false);
+    manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+    px=dx*r00+dy*r01+dz*r02;
+    py=dx*r10+dy*r11+dz*r12;
+    pz=dx*r20+dy*r21+dz*r22;
+    px=(dx=px)+c1x;
+    py=(dy=py)+c1y;
+    pz=(dz=pz)+c1z;
+    pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+    if(pd<=0){
+    tx=px-pd*nx-c2x;
+    ty=py-pd*ny-c2y;
+    tz=pz-pd*nz-c2z;
+    len=tx*tx+ty*ty+tz*tz;
+    if(len>r2*r2){
+    len=r2/Math.sqrt(len);
+    tx*=len;
+    ty*=len;
+    tz*=len;
+    }
+    px=c2x+tx;
+    py=c2y+ty;
+    pz=c2z+tz;
+    //manifold.addContactInfo(px,py,pz,-nx,-ny,-nz,pd,c1,c2,2,0,false);
+    manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+    }
+    px=dx*r00+dy*r01+dz*r02;
+    py=dx*r10+dy*r11+dz*r12;
+    pz=dx*r20+dy*r21+dz*r22;
+    px=(dx=px)+c1x;
+    py=(dy=py)+c1y;
+    pz=(dz=pz)+c1z;
+    pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+    if(pd<=0){
+    tx=px-pd*nx-c2x;
+    ty=py-pd*ny-c2y;
+    tz=pz-pd*nz-c2z;
+    len=tx*tx+ty*ty+tz*tz;
+    if(len>r2*r2){
+    len=r2/Math.sqrt(len);
+    tx*=len;
+    ty*=len;
+    tz*=len;
+    }
+    px=c2x+tx;
+    py=c2y+ty;
+    pz=c2z+tz;
+    //manifold.addContactInfo(px,py,pz,-nx,-ny,-nz,pd,c1,c2,3,0,false);
+    manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+    }
+    }else{
+    sx=tx;
+    sy=ty;
+    sz=tz;
+    depth1=nx*(sx-c2x)+ny*(sy-c2y)+nz*(sz-c2z);
+    sx-=depth1*nx;
+    sy-=depth1*ny;
+    sz-=depth1*nz;
+    if(dot>0){
+    ex=tx+n1x*h1*2;
+    ey=ty+n1y*h1*2;
+    ez=tz+n1z*h1*2;
+    }else{
+    ex=tx-n1x*h1*2;
+    ey=ty-n1y*h1*2;
+    ez=tz-n1z*h1*2;
+    }
+    depth2=nx*(ex-c2x)+ny*(ey-c2y)+nz*(ez-c2z);
+    ex-=depth2*nx;
+    ey-=depth2*ny;
+    ez-=depth2*nz;
+    dx=c2x-sx;
+    dy=c2y-sy;
+    dz=c2z-sz;
+    tx=ex-sx;
+    ty=ey-sy;
+    tz=ez-sz;
+    a=dx*dx+dy*dy+dz*dz;
+    b=dx*tx+dy*ty+dz*tz;
+    e=tx*tx+ty*ty+tz*tz;
+    f=b*b-e*(a-r2*r2);
+    if(f<0)break;
+    f=Math.sqrt(f);
+    t1=(b+f)/e;
+    t2=(b-f)/e;
+    if(t2<t1){
+    len=t1;
+    t1=t2;
+    t2=len;
+    }
+    if(t2>1)t2=1;
+    if(t1<0)t1=0;
+    tx=sx+(ex-sx)*t1;
+    ty=sy+(ey-sy)*t1;
+    tz=sz+(ez-sz)*t1;
+    ex=sx+(ex-sx)*t2;
+    ey=sy+(ey-sy)*t2;
+    ez=sz+(ez-sz)*t2;
+    sx=tx;
+    sy=ty;
+    sz=tz;
+    len=depth1+(depth2-depth1)*t1;
+    depth2=depth1+(depth2-depth1)*t2;
+    depth1=len;
+    if(depth1<0){
+    //manifold.addContactInfo(sx,sy,sz,-nx,-ny,-nz,depth1,c1,c2,1,0,false);
+    manifold.addPoint(sx,sy,sz,-nx,-ny,-nz,depth1,false);
+    }
+    if(depth2<0){
+    //manifold.addContactInfo(ex,ey,ez,-nx,-ny,-nz,depth2,c1,c2,4,0,false);
+    manifold.addPoint(ex,ey,ez,-nx,-ny,-nz,depth2,false);
+    }
+    }
+    break;
+    }
+}
+
+// SphereCylinderCollisionDetector
+
+OIMO.SphereCylinderCollisionDetector = function(flip){
+    OIMO.CollisionDetector.call( this );
+    this.flip=flip;
+}
+OIMO.SphereCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
+OIMO.SphereCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+    var s;
+    var c;
+    if(this.flip){
+    s=shape2;
+    c=shape1;
+    }else{
+    s=shape1;
+    c=shape2;
+    }
+    var ps=s.position;
+    var psx=ps.x;
+    var psy=ps.y;
+    var psz=ps.z;
+    var pc=c.position;
+    var pcx=pc.x;
+    var pcy=pc.y;
+    var pcz=pc.z;
+    var dirx=c.normalDirection.x;
+    var diry=c.normalDirection.y;
+    var dirz=c.normalDirection.z;
+    var rads=s.radius;
+    var radc=c.radius;
+    var rad2=rads+radc;
+    var halfh=c.halfHeight;
+    var dx=psx-pcx;
+    var dy=psy-pcy;
+    var dz=psz-pcz;
+    var dot=dx*dirx+dy*diry+dz*dirz;
+    if(dot<-halfh-rads||dot>halfh+rads)return;
+    var cx=pcx+dot*dirx;
+    var cy=pcy+dot*diry;
+    var cz=pcz+dot*dirz;
+    var d2x=psx-cx;
+    var d2y=psy-cy;
+    var d2z=psz-cz;
+    var len=d2x*d2x+d2y*d2y+d2z*d2z;
+    if(len>rad2*rad2)return;
+    if(len>radc*radc){
+    len=radc/Math.sqrt(len);
+    d2x*=len;
+    d2y*=len;
+    d2z*=len;
+    }
+    if(dot<-halfh)dot=-halfh;
+    else if(dot>halfh)dot=halfh;
+    cx=pcx+dot*dirx+d2x;
+    cy=pcy+dot*diry+d2y;
+    cz=pcz+dot*dirz+d2z;
+    dx=cx-psx;
+    dy=cy-psy;
+    dz=cz-psz;
+    len=dx*dx+dy*dy+dz*dz;
+    var invLen;
+    if(len>0&&len<rads*rads){
+    len=Math.sqrt(len);
+    invLen=1/len;
+    dx*=invLen;
+    dy*=invLen;
+    dz*=invLen;
+    //manifold.addContactInfo(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,s,c,0,0,false);
+    manifold.addPoint(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,false);
+    }
+}
+
 
 
 //------------------------------
@@ -4131,6 +6022,92 @@ OIMO.SphereShape.prototype.updateProxy = function(){
     if(this.proxy!=null){
         this.proxy.update();
     }
+}
+
+
+// CylinderShape
+
+OIMO.CylinderShape = function(config,radius,height){
+    OIMO.Shape.call( this, config );
+
+    this.radius=radius;
+    this.height=height;
+    this.halfHeight=height*0.5;
+    this.normalDirection=new OIMO.Vec3();
+    this.halfDirection=new OIMO.Vec3();
+    this.type=OIMO.SHAPE_CYLINDER;
+}
+OIMO.CylinderShape.prototype = Object.create( OIMO.Shape.prototype );
+OIMO.CylinderShape.prototype.calculateMassInfo = function(out){
+    var mass=Math.PI*this.radius*this.radius*this.height*this.density;
+    out.mass=mass;
+    var inertiaXZ=(1/4*this.radius*this.radius+1/12*this.height*this.height)*mass;
+    var inertiaY=1/2*this.radius*this.radius;
+    out.inertia.init(
+        inertiaXZ,0,0,
+        0,inertiaY,0,
+        0,0,inertiaXZ
+    );
+}
+OIMO.CylinderShape.prototype.updateProxy = function(){
+    var len;
+    var wx;
+    var hy;
+    var dz;
+    var te = this.rotation.elements;
+    var dirX=te[1];
+    var dirY=te[4];
+    var dirZ=te[7];
+    var xx=dirX*dirX;
+    var yy=dirY*dirY;
+    var zz=dirZ*dirZ;
+    this.normalDirection.x=dirX;
+    this.normalDirection.y=dirY;
+    this.normalDirection.z=dirZ;
+    this.halfDirection.x=dirX*this.halfHeight;
+    this.halfDirection.y=dirY*this.halfHeight;
+    this.halfDirection.z=dirZ*this.halfHeight;
+    wx=1-dirX*dirX;
+    len=Math.sqrt(wx*wx+xx*yy+xx*zz);
+    if(len>0)len=this.radius/len;
+    wx*=len;
+    hy=1-dirY*dirY;
+    len=Math.sqrt(yy*xx+hy*hy+yy*zz);
+    if(len>0)len=this.radius/len;
+    hy*=len;
+    dz=1-dirZ*dirZ;
+    len=Math.sqrt(zz*xx+zz*yy+dz*dz);
+    if(len>0)len=this.radius/len;
+    dz*=len;
+    var w;
+    var h;
+    var d;
+    if(this.halfDirection.x<0)w=-this.halfDirection.x;
+    else w=this.halfDirection.x;
+    if(this.halfDirection.y<0)h=-this.halfDirection.y;
+    else h=this.halfDirection.y;
+    if(this.halfDirection.z<0)d=-this.halfDirection.z;
+    else d=this.halfDirection.z;
+    if(wx<0)w-=wx;
+    else w+=wx;
+    if(hy<0)h-=hy;
+    else h+=hy;
+    if(dz<0)d-=dz;
+    else d+=dz;
+
+    this.aabb.init(
+        this.position.x-w,this.position.x+w,
+        this.position.y-h,this.position.y+h,
+        this.position.z-d,this.position.z+d
+    );
+    if(this.proxy!=null){
+        this.proxy.update();
+    }
+    /*this.proxy.init(
+    this.position.x-w,this.position.x+w,
+    this.position.y-h,this.position.y+h,
+    this.position.z-d,this.position.z+d
+    );*/
 }
 
 
