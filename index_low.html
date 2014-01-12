@@ -13,7 +13,8 @@
 		</style>
 	</head>
 	<body>
-		<script type="text/javascript" src="js/three.min.js"></script>
+		<script type="text/javascript" src="js/three.dev.min.js"></script>
+		<script type="text/javascript" src="js/TransformControls.js"></script>
 		<script type="text/javascript" src="js/BufferGeometryUtils.js"></script>
 		<script type="text/javascript" src="js/tweenLite.min.js"></script>
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3D.js"></script>
@@ -75,7 +76,7 @@
             //-----------------------------------------------------
             //  OIMO ON MESSAGE MAIN
             //-----------------------------------------------------
-
+            
     	    OimoWorker.onmessage = function(e) {
     	    	var phase = e.data.tell;
 
@@ -107,12 +108,13 @@
             	    			n = 12*i;
 	            	    		mtx = new THREE.Matrix4(
 	            	    			m[n+0], m[n+1], m[n+2], m[n+3],
-	            	    			m[n+4], m[n+5], m[n+6], m[n+7], 
-	            	    			m[n+8], m[n+9], m[n+10], m[n+11], 
+	            	    			m[n+4], m[n+5], m[n+6], m[n+7],
+	            	    			m[n+8], m[n+9], m[n+10], m[n+11],
 	            	    			0, 0, 0, 1
 	            	    		);
-	            	    		mesh.position.setFromMatrixPosition( mtx )
+	            	    		mesh.position.setFromMatrixPosition( mtx );
 						    	mesh.rotation.setFromRotationMatrix( mtx );
+
 						    	if(mesh.material){
 							    	if(mesh.material.name == "mat01sleep") mesh.material = TE.materials[0];
 						    		else if(mesh.material.name == "mat02sleep") mesh.material = TE.materials[1];

@@ -23,7 +23,7 @@ var ThreeEngine = function () {
 	// containe all material reference
 	var materials = [];
 
-	var renderer, scene, sceneBG, camera, cameraBG, renderLoop ;
+	var renderer, scene, sceneBG, camera, cameraBG, renderLoop, control;
 
 	var vsize = { x:0, y:0, z:0 };
 	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false, phi:0, theta:0 };
@@ -108,6 +108,8 @@ var ThreeEngine = function () {
 		scene.add(contentDebug);
 		scene.add(contentJoint);
 		scene.add(contentSpecial);
+
+		//addControl();
 
 		// marker for mouse position
 		markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
@@ -194,6 +196,20 @@ var ThreeEngine = function () {
 		viewResize();
 	}
 
+	//-----------------------------------------------------
+	//  MESH CONTROL TEST
+	//-----------------------------------------------------
+	
+	/*var addControl = function(){
+		control = new THREE.TransformControls( camera, renderer.domElement );
+		scene.add( control );
+		//control.addEventListener( 'change', render );
+	}
+
+	var attachControl = function(mesh){
+		if(control) control.attach( mesh );
+	}*/
+	
 	//-----------------------------------------------------
 	//  OPTION ON/OFF
 	//-----------------------------------------------------
@@ -1340,6 +1356,8 @@ var ThreeEngine = function () {
 					marker.position.copy( point );
 					selected = intersects[0].object;
 					selectedCenter = point;
+
+					//attachControl(selected);
 
 					if(mouseMode==='delete') delSelected();
 					else if(mouseMode==='drag'){

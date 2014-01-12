@@ -14,7 +14,7 @@
 //---------------------------------------------------
 
 'use strict';
-importScripts('Oimo.dev.js');
+importScripts('Oimo.dev.new.js');
 importScripts('demos.js');
 
 importScripts('vehicle/car.js');
@@ -187,13 +187,23 @@ var update = function(){
         if( bodys[i].sleeping ){ sleeps[i] = 1; }
         else{ 
             sleeps[i] = 0;
-            r = bodys[i].rotation;
+            //r = bodys[i].rotation;
+            r = bodys[i].rotation.elements;
             p = bodys[i].position;
             n = 12*i;
 
-            matrix[n+0]=r.e00.toFixed(3); matrix[n+1]=r.e01.toFixed(3); matrix[n+2]=r.e02.toFixed(3); matrix[n+3]=(p.x*scale).toFixed(2);
+            /*matrix[n+0]=r.e00.toFixed(3); matrix[n+1]=r.e01.toFixed(3); matrix[n+2]=r.e02.toFixed(3); matrix[n+3]=(p.x*scale).toFixed(2);
             matrix[n+4]=r.e10.toFixed(3); matrix[n+5]=r.e11.toFixed(3); matrix[n+6]=r.e12.toFixed(3); matrix[n+7]=(p.y*scale).toFixed(2);
-            matrix[n+8]=r.e20.toFixed(3); matrix[n+9]=r.e21.toFixed(3); matrix[n+10]=r.e22.toFixed(3); matrix[n+11]=(p.z*scale).toFixed(2);
+            matrix[n+8]=r.e20.toFixed(3); matrix[n+9]=r.e21.toFixed(3); matrix[n+10]=r.e22.toFixed(3); matrix[n+11]=(p.z*scale).toFixed(2);*/
+
+
+            /*matrix[n+0]=r[0].toFixed(3); matrix[n+1]=r[1].toFixed(3); matrix[n+2]=r[2].toFixed(3); matrix[n+3]=(p.x*scale).toFixed(2);
+            matrix[n+4]=r[3].toFixed(3); matrix[n+5]=r[4].toFixed(3); matrix[n+6]=r[5].toFixed(3); matrix[n+7]=(p.y*scale).toFixed(2);
+            matrix[n+8]=r[6].toFixed(3); matrix[n+9]=r[7].toFixed(3); matrix[n+10]=r[8].toFixed(3); matrix[n+11]=(p.z*scale).toFixed(2);*/
+
+            matrix[n+0]=r[0]; matrix[n+1]=r[1]; matrix[n+2]=r[2]; matrix[n+3]=(p.x*scale).toFixed(2);
+            matrix[n+4]=r[3]; matrix[n+5]=r[4]; matrix[n+6]=r[5]; matrix[n+7]=(p.y*scale).toFixed(2);
+            matrix[n+8]=r[6]; matrix[n+9]=r[7]; matrix[n+10]=r[8]; matrix[n+11]=(p.z*scale).toFixed(2);
         }
     }
 
