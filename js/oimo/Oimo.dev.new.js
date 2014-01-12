@@ -3622,7 +3622,6 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
 
 OIMO.SphereBoxCollisionDetector = function(flip){
     OIMO.CollisionDetector.call( this );
-
     this.flip=flip;
 }
 OIMO.SphereBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
@@ -3664,98 +3663,98 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
     var invLen;
     var overlap=0;
     if(sx>hw){
-    sx=hw;
+        sx=hw;
     }else if(sx<-hw){
-    sx=-hw;
+        sx=-hw;
     }else{
-    overlap=1;
+        overlap=1;
     }
     if(sy>hh){
-    sy=hh;
+        sy=hh;
     }else if(sy<-hh){
-    sy=-hh;
+        sy=-hh;
     }else{
-    overlap|=2;
+        overlap|=2;
     }
     if(sz>hd){
-    sz=hd;
+        sz=hd;
     }else if(sz<-hd){
-    sz=-hd;
+        sz=-hd;
     }else{
-    overlap|=4;
+        overlap|=4;
     }
     if(overlap==7){
-    if(sx<0){
-    dx=hw+sx;
-    }else{
-    dx=hw-sx;
-    }
-    if(sy<0){
-    dy=hh+sy;
-    }else{
-    dy=hh-sy;
-    }
-    if(sz<0){
-    dz=hd+sz;
-    }else{
-    dz=hd-sz;
-    }
-    if(dx<dy){
-    if(dx<dz){
-    len=dx-hw;
-    if(sx<0){
-    sx=-hw;
-    dx=nw.x;
-    dy=nw.y;
-    dz=nw.z;
-    }else{
-    sx=hw;
-    dx=-nw.x;
-    dy=-nw.y;
-    dz=-nw.z;
-    }
-    }else{
-    len=dz-hd;
-    if(sz<0){
-    sz=-hd;
-    dx=nd.x;
-    dy=nd.y;
-    dz=nd.z;
-    }else{
-    sz=hd;
-    dx=-nd.x;
-    dy=-nd.y;
-    dz=-nd.z;
-    }
-    }
-    }else{
-    if(dy<dz){
-    len=dy-hh;
-    if(sy<0){
-    sy=-hh;
-    dx=nh.x;
-    dy=nh.y;
-    dz=nh.z;
-    }else{
-    sy=hh;
-    dx=-nh.x;
-    dy=-nh.y;
-    dz=-nh.z;
-    }
-    }else{
-    len=dz-hd;
-    if(sz<0){
-    sz=-hd;
-    dx=nd.x;
-    dy=nd.y;
-    dz=nd.z;
-    }else{
-    sz=hd;
-    dx=-nd.x;
-    dy=-nd.y;
-    dz=-nd.z;
-    }
-    }
+        if(sx<0){
+            dx=hw+sx;
+        }else{
+            dx=hw-sx;
+        }
+        if(sy<0){
+            dy=hh+sy;
+        }else{
+            dy=hh-sy;
+        }
+        if(sz<0){
+            dz=hd+sz;
+        }else{
+            dz=hd-sz;
+        }
+        if(dx<dy){
+            if(dx<dz){
+                len=dx-hw;
+            if(sx<0){
+                sx=-hw;
+                dx=nw.x;
+                dy=nw.y;
+                dz=nw.z;
+            }else{
+                sx=hw;
+                dx=-nw.x;
+                dy=-nw.y;
+                dz=-nw.z;
+            }
+        }else{
+            len=dz-hd;
+            if(sz<0){
+                sz=-hd;
+                dx=nd.x;
+                dy=nd.y;
+                dz=nd.z;
+            }else{
+                sz=hd;
+                dx=-nd.x;
+                dy=-nd.y;
+                dz=-nd.z;
+            }
+        }
+        }else{
+            if(dy<dz){
+                len=dy-hh;
+                if(sy<0){
+                    sy=-hh;
+                    dx=nh.x;
+                    dy=nh.y;
+                    dz=nh.z;
+                }else{
+                    sy=hh;
+                    dx=-nh.x;
+                    dy=-nh.y;
+                    dz=-nh.z;
+                }
+            }else{
+                len=dz-hd;
+                if(sz<0){
+                    sz=-hd;
+                    dx=nd.x;
+                    dy=nd.y;
+                    dz=nd.z;
+                }else{
+                    sz=hd;
+                    dx=-nd.x;
+                    dy=-nd.y;
+                    dz=-nd.z;
+            }
+        }
     }
     cx=pbx+sx*nw.x+sy*nh.x+sz*nd.x;
     cy=pby+sx*nw.y+sy*nh.y+sz*nd.y;
@@ -3770,12 +3769,12 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         dz=cz-ps.z;
         len=dx*dx+dy*dy+dz*dz;
         if(len>0&&len<rad*rad){
-        len=Math.sqrt(len);
-        invLen=1/len;
-        dx*=invLen;
-        dy*=invLen;
-        dz*=invLen;
-        manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
+            len=Math.sqrt(len);
+            invLen=1/len;
+            dx*=invLen;
+            dy*=invLen;
+            dz*=invLen;
+            manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
         }
     }
 
@@ -4317,66 +4316,66 @@ OIMO.Contact.prototype = {
         this.constraint.friction=this.mixFriction(this.shape1.friction,this.shape2.friction);
         var numBuffers=this.manifold.numPoints;
         for(var i=0;i<numBuffers;i++){
-        var b=this.buffer[i];
-        var p=this.points[i];
-        b.lp1X=p.localPoint1.x;
-        b.lp1Y=p.localPoint1.y;
-        b.lp1Z=p.localPoint1.z;
-        b.lp2X=p.localPoint2.x;
-        b.lp2Y=p.localPoint2.y;
-        b.lp2Z=p.localPoint2.z;
-        b.impulse=p.normalImpulse;
+            var b=this.buffer[i];
+            var p=this.points[i];
+            b.lp1X=p.localPoint1.x;
+            b.lp1Y=p.localPoint1.y;
+            b.lp1Z=p.localPoint1.z;
+            b.lp2X=p.localPoint2.x;
+            b.lp2Y=p.localPoint2.y;
+            b.lp2Z=p.localPoint2.z;
+            b.impulse=p.normalImpulse;
         }
         this.manifold.numPoints=0;
         this.detector.detectCollision(this.shape1,this.shape2,this.manifold);
         var num=this.manifold.numPoints;
         if(num==0){
-        this.touching=false;
-        return;
+            this.touching=false;
+            return;
         }
         this.touching=true;
-        for(i=0;i<num;i++){
-        p=this.points[i];
-        var lp1x=p.localPoint1.x;
-        var lp1y=p.localPoint1.y;
-        var lp1z=p.localPoint1.z;
-        var lp2x=p.localPoint2.x;
-        var lp2y=p.localPoint2.y;
-        var lp2z=p.localPoint2.z;
-        var index=-1;
-        var minDistance=0.0004;
-        for(var j=0;j<numBuffers;j++){
-        b=this.buffer[j];
-        var dx=b.lp1X-lp1x;
-        var dy=b.lp1Y-lp1y;
-        var dz=b.lp1Z-lp1z;
-        var distance1=dx*dx+dy*dy+dz*dz;
-        dx=b.lp2X-lp2x;
-        dy=b.lp2Y-lp2y;
-        dz=b.lp2Z-lp2z;
-        var distance2=dx*dx+dy*dy+dz*dz;
-        if(distance1<distance2){
-        if(distance1<minDistance){
-        minDistance=distance1;
-        index=j;
-        }
-        }else{
-        if(distance2<minDistance){
-        minDistance=distance2;
-        index=j;
-        }
-        }
-        }
-        if(index!=-1){
-        var tmp=this.buffer[index];
-        this.buffer[index]=this.buffer[--numBuffers];
-        this.buffer[numBuffers]=tmp;
-        p.normalImpulse=tmp.impulse;
-        p.warmStarted=true;
-        }else{
-        p.normalImpulse=0;
-        p.warmStarted=false;
-        }
+        for(i=0; i<num; i++){
+            p=this.points[i];
+            var lp1x=p.localPoint1.x;
+            var lp1y=p.localPoint1.y;
+            var lp1z=p.localPoint1.z;
+            var lp2x=p.localPoint2.x;
+            var lp2y=p.localPoint2.y;
+            var lp2z=p.localPoint2.z;
+            var index=-1;
+            var minDistance=0.0004;
+            for(var j=0;j<numBuffers;j++){
+                b=this.buffer[j];
+                var dx=b.lp1X-lp1x;
+                var dy=b.lp1Y-lp1y;
+                var dz=b.lp1Z-lp1z;
+                var distance1=dx*dx+dy*dy+dz*dz;
+                dx=b.lp2X-lp2x;
+                dy=b.lp2Y-lp2y;
+                dz=b.lp2Z-lp2z;
+                var distance2=dx*dx+dy*dy+dz*dz;
+                if(distance1<distance2){
+                    if(distance1<minDistance){
+                    minDistance=distance1;
+                    index=j;
+                    }
+                }else{
+                    if(distance2<minDistance){
+                    minDistance=distance2;
+                    index=j;
+                    }
+                }
+            }
+            if(index!=-1){
+                var tmp=this.buffer[index];
+                this.buffer[index]=this.buffer[--numBuffers];
+                this.buffer[numBuffers]=tmp;
+                p.normalImpulse=tmp.impulse;
+                p.warmStarted=true;
+            }else{
+                p.normalImpulse=0;
+                p.warmStarted=false;
+            }
         }
     },
     attach:function(shape1,shape2){
@@ -7046,8 +7045,6 @@ OIMO.Joint.prototype = Object.create( OIMO.Constraint.prototype );
 OIMO.Joint.prototype.updateAnchorPoints = function () {
     var p1=this.body1.position;
     var p2=this.body2.position;
-    //var r1=this.body1.rotation;
-    //var r2=this.body2.rotation;
 
     var tr1 = this.body1.rotation.elements;
     var tr2 = this.body2.rotation.elements;
@@ -7065,12 +7062,6 @@ OIMO.Joint.prototype.updateAnchorPoints = function () {
     var r2x=l2x*tr2[0]+l2y*tr2[1]+l2z*tr2[2];
     var r2y=l2x*tr2[3]+l2y*tr2[4]+l2z*tr2[5];
     var r2z=l2x*tr2[6]+l2y*tr2[7]+l2z*tr2[8];
-    /*var r1x=l1x*r1.e00+l1y*r1.e01+l1z*r1.e02;
-    var r1y=l1x*r1.e10+l1y*r1.e11+l1z*r1.e12;
-    var r1z=l1x*r1.e20+l1y*r1.e21+l1z*r1.e22;
-    var r2x=l2x*r2.e00+l2y*r2.e01+l2z*r2.e02;
-    var r2y=l2x*r2.e10+l2y*r2.e11+l2z*r2.e12;
-    var r2z=l2x*r2.e20+l2y*r2.e21+l2z*r2.e22;*/
     this.relativeAnchorPoint1.x=r1x;
     this.relativeAnchorPoint1.y=r1y;
     this.relativeAnchorPoint1.z=r1z;
@@ -7614,7 +7605,6 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
 
 
 
-
 //----------------------------------
 //  MATH
 //----------------------------------
@@ -7622,8 +7612,7 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
 // MAT33
 
 OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-    this.elements = new Float32Array(9);//new Float64Array(9);//new Float32Array(9);
-    //this.elements.length = 9;
+    this.elements = new Float32Array(9);//new Float64Array(9);
     this.init(
         ( e00 !== undefined ) ? e00 : 1, e01 || 0, e02 || 0,
         e10 || 0, ( e11 !== undefined ) ? e11 : 1, e12 || 0,
@@ -8040,10 +8029,6 @@ OIMO.Vec3.prototype = {
         var x=te[0]*v.x+te[1]*v.y+te[2]*v.z;
         var y=te[3]*v.x+te[4]*v.y+te[5]*v.z;
         var z=te[6]*v.x+te[7]*v.y+te[8]*v.z;
-        /*
-        var x=m.e00*v.x+m.e01*v.y+m.e02*v.z;
-        var y=m.e10*v.x+m.e11*v.y+m.e12*v.z;
-        var z=m.e20*v.x+m.e21*v.y+m.e22*v.z;*/
         this.x=x;
         this.y=y;
         this.z=z;
@@ -8132,37 +8117,28 @@ OIMO.EulerToMatrix = function( x, y, z ) {// angles in radians
     te[6] = -sh*ca;
     te[7] = sh*sa*cb + ch*sb;
     te[8] = -sh*sa*sb + ch*cb;
-
-    /*mtx.e00 = ch * ca;
-    mtx.e01 = sh*sb - ch*sa*cb;
-    mtx.e02 = ch*sa*sb + sh*cb;
-    mtx.e10 = sa;
-    mtx.e11 = ca*cb;
-    mtx.e12 = -ca*sb;
-    mtx.e20 = -sh*ca;
-    mtx.e21 = sh*sa*cb + ch*sb;
-    mtx.e22 = -sh*sa*sb + ch*cb;*/
     return mtx;
 }
 
-/*OIMO.MatrixToEuler = function(mtx){// angles in radians
+OIMO.MatrixToEuler = function(mtx){// angles in radians
+    var te = mtx.elements;
     var x, y, z;
     if (mtx.e10 > 0.998) { // singularity at north pole
-        y = Math.atan2(mtx.e02,mtx.e22);
+        y = Math.atan2(te[2],te[8]);
         z = Math.PI/2;
         x = 0;
     } else if (mtx.e10 < -0.998) { // singularity at south pole
-        y = Math.atan2(mtx.e02,mtx.e22);
+        y = Math.atan2(te[2],te[8]);
         z = -Math.PI/2;
         x = 0;
     } else {
-        y = Math.atan2(-mtx.e20,mtx.e00);
-        x = Math.atan2(-mtx.e12,mtx.e11);
-        z = Math.asin(mtx.e10);
+        y = Math.atan2(-te[6],te[0]);
+        x = Math.atan2(-te[5],te[4]);
+        z = Math.asin(te[3]);
     }
     return [x, y, z];
 }
-*/
+
 OIMO.Distance3d = function(p1, p2){
     var xd = p2[0]-p1[0];
     var yd = p2[1]-p1[1];

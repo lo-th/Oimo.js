@@ -17,7 +17,7 @@ function initDemo(){
             for (var k = 0; k < depth; k++) {
                 px = (j - i * 0.5 - (height - 1) * 0.5) * (sx * 1.05);
                 py = i * (sy + 0.01) + sy * 0.6;
-                pz = (k - (sz - 1) * 0.5) * 5;
+                pz = (k - (sz - 1) * 0.5) + (k*sz);
 
                 ADD({ type:"box", size:[sx,sy,sz], pos:[px,py,pz], config:[1,0.5,0.1], move:true });
             }
