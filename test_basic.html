@@ -40,7 +40,7 @@
 	<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
 
 		<script src="js/three.min.js"></script>
-		<script src="build/Oimo.js"></script>
+		<script src="build/Oimo.min.js"></script>
 
 		<script>
 
@@ -176,9 +176,10 @@
 				
 				world.step();
 
-				var m, mtx;
+				var m, mtx, x, y, z;
 
 				for (var i=0, l=bodys.length; i<l; i++){
+
 					
 					if(!bodys[i].sleep()){
 
@@ -191,6 +192,14 @@
 		            	    		);
 						meshs[i].position.setFromMatrixPosition( mtx );
 						meshs[i].rotation.setFromRotationMatrix( mtx );
+
+						// reset position
+						if(m[7]<-100){
+							x = -100 + Math.random()*200;
+							z = -100 + Math.random()*200;
+							y = 100 + Math.random()*1000;
+							bodys[i].setPosition(x,y,z);
+						}
 				    }
 				}
 

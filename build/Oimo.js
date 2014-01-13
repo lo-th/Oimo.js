@@ -93,6 +93,11 @@ OIMO.Body.prototype = {
     getPosition:function(){
         return this.body.position;//.scaleEqual(OIMO.WORLD_SCALE);
     },
+    setPosition:function(x,y,z){
+        this.body.linearVelocity.init();
+        this.body.angularVelocity.init();
+        this.body.position.init(x*OIMO.INV_WORLD_SCALE,y*OIMO.INV_WORLD_SCALE,z*OIMO.INV_WORLD_SCALE);
+    },
     getRotation:function(){
         return this.body.rotation.toEuler();
     },
