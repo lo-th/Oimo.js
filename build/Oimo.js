@@ -90,6 +90,12 @@ OIMO.Body.prototype = {
         ];
         return m;
     },
+    getPosition:function(){
+        return this.body.position;//.scaleEqual(OIMO.WORLD_SCALE);
+    },
+    getRotation:function(){
+        return this.body.rotation.toEuler();
+    },
     sleep:function(){
         return this.body.sleeping;
     }
@@ -7889,7 +7895,7 @@ OIMO.Mat33.prototype = {
         te[6] = tem[6]; te[7] = tem[7]; te[8] = tem[8];
         return this;
     },
-    copyMat44: function(m){
+    /*copyMat44: function(m){
         var te = this.elements;
         var tm = m.elements;
         te[0] = tm[0];
@@ -7902,7 +7908,25 @@ OIMO.Mat33.prototype = {
         te[7] = tm[7];
         te[8] = tm[8];
         return this;
-    },
+    },*/
+    /*toEuler: function(){
+        var te = this.elements;
+        var x, y, z;
+        if (te[3] > 0.998) { // singularity at north pole
+            y = Math.atan2(te[2],te[8]);
+            z = Math.PI/2;
+            x = 0;
+        } else if (te[3] < -0.998) { // singularity at south pole
+            y = Math.atan2(te[2],te[8]);
+            z = -Math.PI/2;
+            x = 0;
+        } else {
+            y = Math.atan2(-te[6],te[0]);
+            x = Math.atan2(-te[5],te[4]);
+            z = Math.asin(te[3]);
+        }
+        return new OIMO.Vec3(x, y, z);//[x, y, z];
+    },*/
     clone: function(){
         var te = this.elements;
 
@@ -8204,11 +8228,11 @@ OIMO.EulerToMatrix = function( x, y, z ) {// angles in radians
 OIMO.MatrixToEuler = function(mtx){// angles in radians
     var te = mtx.elements;
     var x, y, z;
-    if (mtx.e10 > 0.998) { // singularity at north pole
+    if (te[3] > 0.998) { // singularity at north pole
         y = Math.atan2(te[2],te[8]);
         z = Math.PI/2;
         x = 0;
-    } else if (mtx.e10 < -0.998) { // singularity at south pole
+    } else if (te[3] < -0.998) { // singularity at south pole
         y = Math.atan2(te[2],te[8]);
         z = -Math.PI/2;
         x = 0;
