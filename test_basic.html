@@ -30,6 +30,7 @@
 
 <script src="js/three.js"></script>
 <script src="build/Oimo.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
 
 </head>
 <body>
@@ -49,10 +50,10 @@
 <script>
 
     // three var
-    var camera, scene, renderer, container;
+    var camera, scene, light, renderer, container, cameraControls;
     var meshs = [];
     var geoBox, geoSphere;
-    var matBox, matSphere;
+    var matBox, matSphere, matBoxSleep, matSphereSleep;
 
     //oimo var
     var world;
@@ -70,24 +71,30 @@
         // three init
         renderer = new THREE.WebGLRenderer();
         renderer.setClearColor( 0x585858, 1 );
+
         renderer.setSize( window.innerWidth, window.innerHeight );
         container = document.getElementById("container");
         container.appendChild( renderer.domElement );
 
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-        camera.position.z = 400;
-        camera.position.y =100;
+        camera.position.set( 0, 100, 400 );
+
+        cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+        cameraControls.target.set( 0, 40, 0);
+        cameraControls.maxDistance = 800;
+        cameraControls.minDistance = 10;
+        cameraControls.update();
 
         scene = new THREE.Scene();
 
         scene.add( new THREE.AmbientLight( 0x585858 ) );
 
-        var light = new THREE.PointLight( 0xffffff, 2, 1000 );
-        light.position.set( 0, 500, 400 );
+        light = new THREE.DirectionalLight( 0xffffff );
+        light.position.set( 0, 1, 0.5 );
         scene.add( light );
 
         //add ground mesh
-        var mat = new THREE.MeshPhongMaterial( { color: 0x585858 } );
+        var mat = new THREE.MeshLambertMaterial( { color: 0x585858 } );
         var geo0 = new THREE.CubeGeometry( 100, 40, 400 );
         var geo1 = new THREE.CubeGeometry( 400, 40, 400 );
         
@@ -98,12 +105,13 @@
         mground1.position.y = -50;
         scene.add( mground1 );
 
-        geoSphere = new THREE.SphereGeometry( 1 );
-        matSphere = new THREE.MeshPhongMaterial( { color: 0x00ff88 } );
+        geoSphere = new THREE.SphereGeometry( 1 , 20, 10 );
+        matSphere = new THREE.MeshLambertMaterial( { color: 0x00ff88, name:'sph' } );
         geoBox = new THREE.CubeGeometry( 1, 1, 1 );
-        matBox = new THREE.MeshPhongMaterial( { color: 0x88ff00 } );
+        matBox = new THREE.MeshLambertMaterial( { color: 0x88ff00, name:'box' } );
 
-        matSleep = new THREE.MeshPhongMaterial( { color: 0x585858 } );
+        matSphereSleep = new THREE.MeshLambertMaterial( { color: 0x589060, name:'ssph' } );
+        matBoxSleep = new THREE.MeshLambertMaterial( { color: 0x609058, name:'sbox' } );
 
         // oimo init
         world = new OIMO.World();
@@ -113,9 +121,6 @@
         //
 
         window.addEventListener( 'resize', onWindowResize, false );
-
-        //setInterval(animate, 17);
-
     }
 
     function populate(n) {
@@ -185,13 +190,21 @@
         var p, r, m, x, y, z;
         var mtx = new THREE.Matrix4();
         var i = bodys.length;
+        var mesh;
 
-        while (i--){      
+        while (i--){
+
+            mesh = meshs[i];
+
             if(!bodys[i].sleep()){
                 m = bodys[i].getMatrix();
                 mtx.fromArray(m);
-                meshs[i].position.setFromMatrixPosition( mtx );
-                meshs[i].rotation.setFromRotationMatrix( mtx );
+                mesh.position.setFromMatrixPosition( mtx );
+                mesh.rotation.setFromRotationMatrix( mtx );
+
+                // change material
+                if(mesh.material.name === 'sbox') mesh.material = matBox;
+                if(mesh.material.name === 'ssph') mesh.material = matSphere; 
 
                 // reset position
                 if(m[13]<-100){
@@ -200,8 +213,13 @@
                         y = 100 + Math.random()*1000;
                         bodys[i].setPosition(x,y,z);
                 }
+            } else {
+                if(mesh.material.name === 'box') mesh.material = matBoxSleep;
+                if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
+
+        cameraControls.update();
 
         renderer.render( scene, camera );
 

@@ -25,7 +25,8 @@ var ThreeEngine = function () {
 
 	var renderer, scene, sceneBG, camera, cameraBG, renderLoop, control;
 
-	var vsize = { x:0, y:0, z:0 };
+	var vsize = { x:0, y:0, z:0};
+	var vmid = { x:1, y:1, mode:'no' };
 	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false, phi:0, theta:0 };
 	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
 	var center = new THREE.Vector3(0,150,0);
@@ -1513,7 +1514,7 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 
 	var viewResize = function () {
-		vsize = { x:window.innerWidth, y:window.innerHeight, z:0 };
+		vsize = { x:window.innerWidth*vmid.x, y:window.innerHeight*vmid.y, z:0 };
 		vsize.z = vsize.x/vsize.y;
 		camera.aspect = vsize.z;
 		camera.updateProjectionMatrix();
@@ -1522,6 +1523,18 @@ var ThreeEngine = function () {
 		if(!isOptimized){
 			if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
 		}
+	}
+
+	var viewDivid = function () {
+		if(vmid.mode==='no'){
+			if(window.innerWidth < window.innerHeight){ vmid.y = 0.5; vmid.x = 1; vmid.mod = 'h';
+			} else { vmid.x = 0.5; vmid.y = 1; vmid.mod = 'v';}
+	    } else {
+	    	vmid.x = 1;
+	    	vmid.y = 1;
+	    	vmid.mod = 'no';
+	    }
+		viewResize();
 	}
 
 	//-----------------------------------------------------
@@ -1592,6 +1605,8 @@ var ThreeEngine = function () {
 		ADD:ADD,
 		REMOVE:REMOVE,
 		removeObject:removeObject,
+
+		viewDivid:viewDivid,
 
 		//options
 		reflection:reflection,
