@@ -3,6 +3,8 @@
 <head>
 <title>Oimo.js Basic</title>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=11" />
 
 <style>
     body {
@@ -19,7 +21,7 @@
         top:10px;
     }
     #info{
-    	pointer-events:none;
+        pointer-events:none;
         position: absolute;
         left:10px;
         top:50px;
@@ -106,12 +108,12 @@
         scene.add( mground1 );
 
         geoSphere = new THREE.SphereGeometry( 1 , 20, 10 );
-        matSphere = new THREE.MeshLambertMaterial( { color: 0x00ff88, name:'sph' } );
         geoBox = new THREE.CubeGeometry( 1, 1, 1 );
-        matBox = new THREE.MeshLambertMaterial( { color: 0x88ff00, name:'box' } );
 
-        matSphereSleep = new THREE.MeshLambertMaterial( { color: 0x589060, name:'ssph' } );
-        matBoxSleep = new THREE.MeshLambertMaterial( { color: 0x609058, name:'sbox' } );
+        matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
+        matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
+        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
+        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
 
         // oimo init
         world = new OIMO.World();
@@ -141,7 +143,7 @@
 
         //add object
         var x, y, z, w, h, d;
-        var i=max;
+        var i = max;
 
         while (i--){
             if(type===3) t = Math.floor(Math.random()*2)+1;
@@ -154,13 +156,13 @@
             d = 10 + Math.random()*10;
 
             if(t===1){
-                    bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
-                    meshs[i] = new THREE.Mesh( geoSphere, matSphere );
-                    meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
+                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+                meshs[i] = new THREE.Mesh( geoSphere, matSphere );
+                meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
-                    bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
-                    meshs[i] = new THREE.Mesh( geoBox, matBox );
-                    meshs[i].scale.set( w, h, d );
+                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+                meshs[i] = new THREE.Mesh( geoBox, matBox );
+                meshs[i].scale.set( w, h, d );
             }
             scene.add( meshs[i] );
         }
@@ -208,10 +210,10 @@
 
                 // reset position
                 if(m[13]<-100){
-                        x = -100 + Math.random()*200;
-                        z = -100 + Math.random()*200;
-                        y = 100 + Math.random()*1000;
-                        bodys[i].setPosition(x,y,z);
+                    x = -100 + Math.random()*200;
+                    z = -100 + Math.random()*200;
+                    y = 100 + Math.random()*1000;
+                    bodys[i].setPosition(x,y,z);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
@@ -247,7 +249,40 @@
             "Updating Time: " + world.performance.updatingTime + " ms<br>",
             "Total Time: " + world.performance.totalTime + " ms "
         ].join("\n");
-    document.getElementById("info").innerHTML = info;
+        document.getElementById("info").innerHTML = info;
+    }
+
+    function basicTexture(n){
+        var canvas = document.createElement( 'canvas' );
+        canvas.width = canvas.height = 64;
+        var ctx = canvas.getContext( '2d' );
+        var colors = [];
+        if(n===0){ // sphere
+            colors[0] = "#58AA80";
+            colors[1] = "#58FFAA";
+        }
+        if(n===1){ // sphere sleep
+            colors[0] = "#383838";
+            colors[1] = "#38AA80";
+        }
+        if(n===2){ // box
+            colors[0] = "#AA8058";
+            colors[1] = "#FFAA58";
+        }
+        if(n===3){ // box sleep
+            colors[0] = "#383838";
+            colors[1] = "#AA8038";
+        }
+        ctx.fillStyle = colors[0];
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillStyle = colors[1];
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.fillRect(32, 32, 32, 32);
+
+        var tx = new THREE.Texture(canvas);
+        tx.needsUpdate = true;
+        return tx;
+
     }
 
 </script>
