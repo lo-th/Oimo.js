@@ -43,6 +43,7 @@ var ToRad = Math.PI / 180;
 // array variable
 var bodys = [];
 var matrix = [];
+var matrixs = [];
 var sleeps = [];
 var types = [];
 var sizes = [];
@@ -165,7 +166,7 @@ var update = function(){
     if(isNeedRemove){REMOVE(removeTemp);}
     t01 = Date.now();
 
-    //world.step();
+    world.step();
     
     var r, p, t, n;
     var p1, p2;
@@ -184,14 +185,23 @@ var update = function(){
     if(isPlayerMove && player!==null){player.move(playerSet.x, playerSet.y, playerSet.z, playerSet.rot); isPlayerMove = false;}
 
     while (i--) {
+
         if( wakeup ) bodys[i].awake();
         if( bodys[i].sleeping ){ sleeps[i] = 1; }
         else{ 
             sleeps[i] = 0;
             //r = bodys[i].rotation;
-            r = bodys[i].rotation.elements;
-            p = bodys[i].position;
-            n = 12*i;
+            //r = bodys[i].rotation.elements;
+            //p = bodys[i].position;
+           // m = bodys[i].matrix;
+           // n = 12*i;
+
+            matrix[i] = bodys[i].getMatrix();
+           //matrix.concat(bodys[i].getMatrix())
+
+            //var arr2 = bodys[i].getMatrix();
+            //var x = arr2.length;
+           // while (x--) {matrix.unshift(arr2[x])}
 
             /*matrix[n+0]=r.e00.toFixed(3); matrix[n+1]=r.e01.toFixed(3); matrix[n+2]=r.e02.toFixed(3); matrix[n+3]=(p.x*scale).toFixed(2);
             matrix[n+4]=r.e10.toFixed(3); matrix[n+5]=r.e11.toFixed(3); matrix[n+6]=r.e12.toFixed(3); matrix[n+7]=(p.y*scale).toFixed(2);
@@ -202,9 +212,9 @@ var update = function(){
             matrix[n+4]=r[3].toFixed(3); matrix[n+5]=r[4].toFixed(3); matrix[n+6]=r[5].toFixed(3); matrix[n+7]=(p.y*scale).toFixed(2);
             matrix[n+8]=r[6].toFixed(3); matrix[n+9]=r[7].toFixed(3); matrix[n+10]=r[8].toFixed(3); matrix[n+11]=(p.z*scale).toFixed(2);*/
 
-            matrix[n+0]=r[0]; matrix[n+1]=r[1]; matrix[n+2]=r[2]; matrix[n+3]=(p.x*scale).toFixed(2);
+            /*matrix[n+0]=r[0]; matrix[n+1]=r[1]; matrix[n+2]=r[2]; matrix[n+3]=(p.x*scale).toFixed(2);
             matrix[n+4]=r[3]; matrix[n+5]=r[4]; matrix[n+6]=r[5]; matrix[n+7]=(p.y*scale).toFixed(2);
-            matrix[n+8]=r[6]; matrix[n+9]=r[7]; matrix[n+10]=r[8]; matrix[n+11]=(p.z*scale).toFixed(2);
+            matrix[n+8]=r[6]; matrix[n+9]=r[7]; matrix[n+10]=r[8]; matrix[n+11]=(p.z*scale).toFixed(2);*/
         }
     }
 
@@ -223,7 +233,7 @@ var update = function(){
         jointPos[n+5] =(p2.z*scale).toFixed(2); 
     }
 
-    world.step();
+   
     worldInfo();
 
     self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxB:maxBody, maxJ:maxJoint })
@@ -233,6 +243,10 @@ var update = function(){
         timer = setTimeout(update, delay);
     }
 }
+
+/*Array.prototype.extend_forEach = function (ar) {
+    ar.forEach(function(x) {this.push(x)}, this);    
+}*/
 
 //--------------------------------------------------
 //   GET BONES STUCTURE

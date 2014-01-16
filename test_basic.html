@@ -1,239 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>Oimo.js Basic</title>
-		<meta charset="utf-8">
-		<style>
-			body {
-				margin: 0px;
-				background-color: #000000;
-				overflow: hidden;
-				color: #eeeeee;
-				font-family: monospace;
-				font-size: 14px;
+<head>
+<title>Oimo.js Basic</title>
+<meta charset="utf-8">
 
-			}
-			#interface{
-				position: absolute;
-				left:10px;
-				top:10px;
-			}
-			#info{
-				position: absolute;
-				left:10px;
-				top:50px;
-				width: 200px;
-				height: 200px;
-			}
-		</style>
-	</head>
-	<body>
-	<div id='container'></div>
-	<div id='interface'>
-		<input type="button" value="sphere" onClick=populate(1)>
-		<input type="button" value="boxe" onClick=populate(2)>
-		<input type="button" value="mix" onClick=populate(3)>
-		<input type="number" name="quantity" min="10" max="2000" value="500"  id='MaxNumber'>
-		<input type="submit" onClick=populate()>
-	</div>
-	<div id='info'></div>
-	<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+<style>
+    body {
+        margin: 0px;
+        background-color: #000000;
+        overflow: hidden;
+        color: #eeeeee;
+        font-family: monospace;
+        font-size: 14px;
+    }
+    #interface{
+        position: absolute;
+        left:10px;
+        top:10px;
+    }
+    #info{
+    	pointer-events:none;
+        position: absolute;
+        left:10px;
+        top:50px;
+        width: 400px;
+        height: 400px;
+    }
+</style>
 
-		<script src="js/three.min.js"></script>
-		<script src="build/Oimo.min.js"></script>
+<script src="js/three.js"></script>
+<script src="build/Oimo.js"></script>
 
-		<script>
+</head>
+<body>
+<div id='container'></div>
+<div id='interface'>
+        <input type="button" value="sphere" onClick=populate(1)>
+        <input type="button" value="boxe" onClick=populate(2)>
+        <input type="button" value="mix" onClick=populate(3)>
+        <input type="number" name="quantity" min="10" max="2000" value="500"  id='MaxNumber'>
+        <input type="submit" onClick=populate()>
+</div>
+<div id='info'></div>
+<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>
 
-		    // three var
-			var camera, scene, renderer, container;
-			var meshs = [];
-			var geoBox, geoSphere;
-			var matBox, matSphere;
+</body>        
 
-			//oimo var
-			var world;
-			var bodys = [];
+<script>
 
-			var fps=0, time, time_prev=0, fpsint = 0, ms, timeStart;
+    // three var
+    var camera, scene, renderer, container;
+    var meshs = [];
+    var geoBox, geoSphere;
+    var matBox, matSphere;
 
-			var type=1;
+    //oimo var
+    var world;
+    var bodys = [];
 
-			init();
-			animate();
+    var fps=0, time, time_prev=0, fpsint = 0;
 
-			function init() {
+    var type=1;
 
-				// three init
-				renderer = new THREE.WebGLRenderer();
-				renderer.setClearColor( 0x585858, 1 );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container = document.getElementById("container");
-				container.appendChild( renderer.domElement );
+    init();
+    animate();
 
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.z = 400;
-				camera.position.y =100;
+    function init() {
 
-				scene = new THREE.Scene();
+        // three init
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( 0x585858, 1 );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container = document.getElementById("container");
+        container.appendChild( renderer.domElement );
 
-				scene.add( new THREE.AmbientLight( 0x585858 ) );
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+        camera.position.z = 400;
+        camera.position.y =100;
 
-				var light = new THREE.PointLight( 0xffffff, 2, 1000 );
-				light.position.set( 0, 500, 400 );
-				scene.add( light );
+        scene = new THREE.Scene();
 
-				//add ground mesh
-				var mat = new THREE.MeshPhongMaterial( { color: 0x585858 } );
-				var geo0 = new THREE.CubeGeometry( 100, 40, 400 );
-				var geo1 = new THREE.CubeGeometry( 400, 40, 400 );
-				
-				var mground0 = new THREE.Mesh( geo0, mat );
-				mground0.position.y = -20;
-				scene.add( mground0 );
-				var mground1 = new THREE.Mesh( geo1, mat );
-				mground1.position.y = -50;
-				scene.add( mground1 );
+        scene.add( new THREE.AmbientLight( 0x585858 ) );
 
-				geoSphere = new THREE.SphereGeometry( 1 );
-				matSphere = new THREE.MeshPhongMaterial( { color: 0x00ff88 } );
-				geoBox = new THREE.CubeGeometry( 1, 1, 1 );
-				matBox = new THREE.MeshPhongMaterial( { color: 0x88ff00 } );
+        var light = new THREE.PointLight( 0xffffff, 2, 1000 );
+        light.position.set( 0, 500, 400 );
+        scene.add( light );
 
-				// oimo init
-				world = new OIMO.World();
+        //add ground mesh
+        var mat = new THREE.MeshPhongMaterial( { color: 0x585858 } );
+        var geo0 = new THREE.CubeGeometry( 100, 40, 400 );
+        var geo1 = new THREE.CubeGeometry( 400, 40, 400 );
+        
+        var mground0 = new THREE.Mesh( geo0, mat );
+        mground0.position.y = -20;
+        scene.add( mground0 );
+        var mground1 = new THREE.Mesh( geo1, mat );
+        mground1.position.y = -50;
+        scene.add( mground1 );
 
-				populate(1);
+        geoSphere = new THREE.SphereGeometry( 1 );
+        matSphere = new THREE.MeshPhongMaterial( { color: 0x00ff88 } );
+        geoBox = new THREE.CubeGeometry( 1, 1, 1 );
+        matBox = new THREE.MeshPhongMaterial( { color: 0x88ff00 } );
 
-				//
+        matSleep = new THREE.MeshPhongMaterial( { color: 0x585858 } );
 
-				window.addEventListener( 'resize', onWindowResize, false );
+        // oimo init
+        world = new OIMO.World();
 
-			}
+        populate(1);
 
-			function populate(n) {
+        //
 
-				var max = document.getElementById("MaxNumber").value;
+        window.addEventListener( 'resize', onWindowResize, false );
 
-				if(n===1) type = 1
-				else if(n===2) type = 2;
-				else if(n===3) type = 3;
+        //setInterval(animate, 17);
 
-				// reset old
-				clearMesh();
-				world.clear();
+    }
 
-				//add ground
-				var ground = new OIMO.Body({size:[100, 40, 400], pos:[0,-20,0], world:world});
-				var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-50,0], world:world});
+    function populate(n) {
 
-				//add object
-				var x, y, z, w, h, d;
+        var max = document.getElementById("MaxNumber").value;
 
-				for (var i=0; i<max; i++){
+        if(n===1) type = 1
+        else if(n===2) type = 2;
+        else if(n===3) type = 3;
 
-					if(type===3) t = Math.floor(Math.random()*2)+1;
-					else t = type;
-					x = -100 + Math.random()*200;
-					z = -100 + Math.random()*200;
-					y = 100 + Math.random()*1000;
-					w = 10 + Math.random()*10;
-					h = 10 + Math.random()*10;
-					d = 10 + Math.random()*10;
+        // reset old
+        clearMesh();
+        world.clear();
 
-					if(t===1){
-						bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
-						meshs[i] = new THREE.Mesh( geoSphere, matSphere );
-						meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
-					} else if(t===2){
-						bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
-						meshs[i] = new THREE.Mesh( geoBox, matBox );
-						meshs[i].scale.set( w, h, d );
-					}
-					scene.add( meshs[i] );
-				}
-			}
+        //add ground
+        var ground = new OIMO.Body({size:[100, 40, 400], pos:[0,-20,0], world:world});
+        var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-50,0], world:world});
 
-			function clearMesh(){
+        //add object
+        var x, y, z, w, h, d;
+        var i=max;
 
-				var i=meshs.length;
-				while (i--)scene.remove(meshs[ i ]);
+        while (i--){
+            if(type===3) t = Math.floor(Math.random()*2)+1;
+            else t = type;
+            x = -100 + Math.random()*200;
+            z = -100 + Math.random()*200;
+            y = 100 + Math.random()*1000;
+            w = 10 + Math.random()*10;
+            h = 10 + Math.random()*10;
+            d = 10 + Math.random()*10;
 
-			}
+            if(t===1){
+                    bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+                    meshs[i] = new THREE.Mesh( geoSphere, matSphere );
+                    meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
+            } else if(t===2){
+                    bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+                    meshs[i] = new THREE.Mesh( geoBox, matBox );
+                    meshs[i].scale.set( w, h, d );
+            }
+            scene.add( meshs[i] );
+        }
+    }
 
-			function onWindowResize() {
+    function clearMesh(){
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-				renderer.setSize( window.innerWidth, window.innerHeight );
+        var i=meshs.length;
+        while (i--)scene.remove(meshs[ i ]);
 
-			}
+    }
 
-			function animate() {
+    function onWindowResize() {
 
-				requestAnimationFrame( animate );
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
 
-				timeStart = Date.now();
-				
-				world.step();
+    }
 
-				var m, mtx, x, y, z;
+    function animate() {
 
-				for (var i=0, l=bodys.length; i<l; i++){
+        requestAnimationFrame( animate );
+        
+        world.step();
 
-					
-					if(!bodys[i].sleep()){
+        var p, r, m, x, y, z;
+        var mtx = new THREE.Matrix4();
+        var i = bodys.length;
 
-						m = bodys[i].getMatrix();
-						mtx = new THREE.Matrix4(
-		            	    			m[0], m[1], m[2], m[3],
-		            	    			m[4], m[5], m[6], m[7],
-		            	    			m[8], m[9], m[10], m[11],
-		            	    			0, 0, 0, 1
-		            	    		);
-						meshs[i].position.setFromMatrixPosition( mtx );
-						meshs[i].rotation.setFromRotationMatrix( mtx );
+        while (i--){      
+            if(!bodys[i].sleep()){
+                m = bodys[i].getMatrix();
+                mtx.fromArray(m);
+                meshs[i].position.setFromMatrixPosition( mtx );
+                meshs[i].rotation.setFromRotationMatrix( mtx );
 
-						// reset position
-						if(m[7]<-100){
-							x = -100 + Math.random()*200;
-							z = -100 + Math.random()*200;
-							y = 100 + Math.random()*1000;
-							bodys[i].setPosition(x,y,z);
-						}
-				    }
-				}
+                // reset position
+                if(m[13]<-100){
+                        x = -100 + Math.random()*200;
+                        z = -100 + Math.random()*200;
+                        y = 100 + Math.random()*1000;
+                        bodys[i].setPosition(x,y,z);
+                }
+            }
+        }
 
-				renderer.render( scene, camera );
+        renderer.render( scene, camera );
 
-				displayInfo();
+        displayInfo();
 
-			}
+    }
 
-			function displayInfo(){
-				time = Date.now();
-			    ms = time - timeStart;
-			    if (time - 1000 > time_prev) {
-			        time_prev = time; fpsint = fps; fps = 0;
-			    } fps++;
+    function displayInfo(){
+        time = Date.now();
+        if (time - 1000 > time_prev) {
+            time_prev = time; fpsint = fps; fps = 0;
+        } fps++;
 
-			    var info =[
-			        "Oimo.js DEV.1.1.0a<br><br>",
-			        "FPS: " + fpsint +" fps / "+ms+" ms<br><br>",
-	        	    "Rigidbody: "+world.numRigidBodies+"<br>",
-	        	    "Contact: "+world.numContacts+"<br>",
-	        	    "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
-	        	    "Contact Point: "+world.numContactPoints+"<br>",
-	        	    "Island: " + world.numIslands +"<br><br>",
-	        	    "Broad-Phase Time: " + world.performance.broadPhaseTime + " ms<br>",
-	        	    "Narrow-Phase Time: " + world.performance.narrowPhaseTime + " ms<br>",
-	        	    "Solving Time: " + world.performance.solvingTime + " ms<br>",
-	        	    "Updating Time: " + world.performance.updatingTime + " ms<br>",
-	        	    "Total Time: " + world.performance.totalTime + " ms"
-			    ].join("\n");
-	        	document.getElementById("info").innerHTML = info;
-	        }
+        var info =[
+            "Oimo.js DEV.1.1.0a<br><br>",
+            "FPS: " + fpsint +" fps<br><br>",
+            "Rigidbody: "+world.numRigidBodies+"<br>",
+            "Contact: "+world.numContacts+"<br>",
+            "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
+            "Contact Point: "+world.numContactPoints+"<br>",
+            "Island: " + world.numIslands +"<br><br>",
+            "Broad-Phase Time: " + world.performance.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: " + world.performance.narrowPhaseTime + " ms<br>",
+            "Solving Time: " + world.performance.solvingTime + " ms<br>",
+            "Updating Time: " + world.performance.updatingTime + " ms<br>",
+            "Total Time: " + world.performance.totalTime + " ms "
+        ].join("\n");
+    document.getElementById("info").innerHTML = info;
+    }
 
-		</script>
-
-	</body>
+</script>
 </html>
