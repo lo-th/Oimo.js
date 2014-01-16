@@ -96,8 +96,8 @@
 				// update three object
     	    	if(phase === "RUN"){
     	    		var demo = e.data.infos[0];
-    	    		var max = e.data.matrix.length;//.data.maxB;
-    	    		var i = max;//e.data.maxB;
+    	    		var max = e.data.maxBody;
+    	    		var i = max;
     	    		var m = e.data.matrix;
         	    	var mesh;
 
@@ -109,7 +109,6 @@
             	    		if( e.data.sleeps[i]===0){
 
 	            	    		tempMtx.fromArray(m[i]);
-
 	            	    		mesh.position.setFromMatrixPosition( tempMtx );
 						    	mesh.rotation.setFromRotationMatrix( tempMtx );
 

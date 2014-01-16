@@ -38,11 +38,11 @@
 <body>
 <div id='container'></div>
 <div id='interface'>
-        <input type="button" value="sphere" onClick=populate(1)>
-        <input type="button" value="boxe" onClick=populate(2)>
-        <input type="button" value="mix" onClick=populate(3)>
-        <input type="number" name="quantity" min="10" max="2000" value="500"  id='MaxNumber'>
-        <input type="submit" onClick=populate()>
+    <input type="button" value="sphere" onClick=populate(1)>
+    <input type="button" value="boxe" onClick=populate(2)>
+    <input type="button" value="mix" onClick=populate(3)>
+    <input type="number" name="quantity" min="10" max="2000" value="500"  id='MaxNumber'>
+    <input type="submit" onClick=populate()>
 </div>
 <div id='info'></div>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>
@@ -71,8 +71,9 @@
     function init() {
 
         // three init
-        renderer = new THREE.WebGLRenderer();
-        renderer.setClearColor( 0x585858, 1 );
+        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false, clearColor: 0x585858, clearAlpha: 0});
+        this.renderer.autoClear = false;
+        //renderer.setClearColor( 0x585858, 1 );
 
         renderer.setSize( window.innerWidth, window.innerHeight );
         container = document.getElementById("container");
@@ -89,14 +90,14 @@
 
         scene = new THREE.Scene();
 
-        scene.add( new THREE.AmbientLight( 0x585858 ) );
+        scene.add( new THREE.AmbientLight( 0x383838 ) );
 
-        light = new THREE.DirectionalLight( 0xffffff );
-        light.position.set( 0, 1, 0.5 );
+        light = new THREE.DirectionalLight( 0xffffff , 1.3);
+        light.position.set( 0.3, 1, 0.5 ).normalize();
         scene.add( light );
 
         //add ground mesh
-        var mat = new THREE.MeshLambertMaterial( { color: 0x585858 } );
+        var mat = new THREE.MeshLambertMaterial( { color: 0x151515 } );
         var geo0 = new THREE.CubeGeometry( 100, 40, 400 );
         var geo1 = new THREE.CubeGeometry( 400, 40, 400 );
         
@@ -230,6 +231,7 @@
     }
 
     function displayInfo(){
+
         time = Date.now();
         if (time - 1000 > time_prev) {
             time_prev = time; fpsint = fps; fps = 0;
@@ -250,9 +252,11 @@
             "Total Time: " + world.performance.totalTime + " ms "
         ].join("\n");
         document.getElementById("info").innerHTML = info;
+
     }
 
     function basicTexture(n){
+
         var canvas = document.createElement( 'canvas' );
         canvas.width = canvas.height = 64;
         var ctx = canvas.getContext( '2d' );

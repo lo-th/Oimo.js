@@ -17,19 +17,16 @@ OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;
 
 OIMO.WORLD_SCALE = 100;
-OIMO.INV_WORLD_SCALE = 0.01;
+OIMO.INV_SCALE = 0.01;
 
 
 //------------------------------
 //  BODY
 //------------------------------
 
-OIMO.ResizeVec = function (ar){
-    return [ar[0]*OIMO.INV_WORLD_SCALE, ar[1]*OIMO.INV_WORLD_SCALE, ar[2]*OIMO.INV_WORLD_SCALE];
-}
-
 OIMO.Body = function(Obj){
     var obj = Obj || {};
+    var name = obj.name || '';
     var sc = obj.sc || new OIMO.ShapeConfig();
     if(obj.config){
         sc.density = obj.config[0] || 1;
@@ -44,14 +41,13 @@ OIMO.Body = function(Obj){
     if(obj.configRot){
         sc.relativeRotation = OIMO.EulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
     }
-    var name = obj.name || '';
+    
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
+    // rescale for oimo world
+    p = [p[0]*OIMO.INV_SCALE, p[1]*OIMO.INV_SCALE, p[2]*OIMO.INV_SCALE];
+    s = [s[0]*OIMO.INV_SCALE, s[1]*OIMO.INV_SCALE, s[2]*OIMO.INV_SCALE];
 
-
-
-    p=OIMO.ResizeVec(p);
-    s=OIMO.ResizeVec(s); 
     var rot = obj.rot || [];
     var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
     var move = obj.move || false;
@@ -80,26 +76,17 @@ OIMO.Body = function(Obj){
     if(obj.world)obj.world.addRigidBody(this.body);
 }
 
-
 OIMO.Body.prototype = {
     constructor: OIMO.Body,
 
     getMatrix:function(){
         return this.body.getMatrix();
     },
-    getSize:function(){
+    /*getSize:function(){
         return new OIMO.Vec3().scale(this.size, OIMO.WORLD_SCALE);
-    },
-    getPosition:function(){
-        return new OIMO.Vec3().scale(this.body.position, OIMO.WORLD_SCALE);
-    },
+    },*/
     setPosition:function(x,y,z){
-        this.body.linearVelocity.init();
-        this.body.angularVelocity.init();
-        this.body.position.init(x*OIMO.INV_WORLD_SCALE,y*OIMO.INV_WORLD_SCALE,z*OIMO.INV_WORLD_SCALE);
-    },
-    getRotation:function(){
-        return this.body.rotation.toEuler();
+        this.body.setPosition(x,y,z);
     },
     sleep:function(){
         return this.body.sleeping;
@@ -907,6 +894,11 @@ OIMO.RigidBody.prototype = {
     },
 
     // for three js
+    setPosition:function(x,y,z){
+        this.linearVelocity.init();
+        this.angularVelocity.init();
+        this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
+    },
     getMatrix:function(){
         var m = this.matrix.elements;
         var r = this.rotation.elements;
@@ -7151,6 +7143,7 @@ OIMO.LimitMotor.prototype = {
 }
 
 // Joint
+
 
 OIMO.Joint = function(config){
     OIMO.Constraint.call( this );
