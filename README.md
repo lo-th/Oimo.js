@@ -1,7 +1,7 @@
 <img src="http://lo-th.github.io/Oimo.js/images/logo.svg"/>  Oimo.js 
 =========
 
-Oimo.js is the lightest 3d physics engine for javascript.
+Oimo.js is a lightweight 3d physics engine for javascript.
 It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/OimoPhysics) created by Saharan for ActionScript 3.0.<br>
 
 
