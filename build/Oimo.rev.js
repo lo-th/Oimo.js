@@ -3,7 +3,7 @@
  * @author Saharan / http://el-ement.com/
  * @Copyright (c) 2012-2013 EL-EMENT saharan
  *
- * Oimo.js 2014
+ * Oimo.rev.js 2014
  * @author LoTh / http://3dflashlo.wordpress.com/
  */
 
@@ -26,6 +26,84 @@ OIMO.MAX_SHAPES = 64;
 
 OIMO.BODY_DYNAMIC = 0x0;
 OIMO.BODY_STATIC = 0x1;
+
+OIMO.WORLD_SCALE = 100;
+OIMO.INV_SCALE = 0.01;
+
+//------------------------------
+//  BODY
+//------------------------------
+
+OIMO.Body = function(Obj){
+    var obj = Obj || {};
+    var name = obj.name || '';
+    var sc = obj.sc || new OIMO.ShapeConfig();
+    if(obj.config){
+        sc.density = obj.config[0] || 1;
+        sc.friction = obj.config[1] || 0.4;
+        sc.restitution = obj.config[2] || 0.2;
+        sc.belongsTo = obj.config[3] || 1;
+        sc.collidesWith = obj.config[4] || 0xffffffff;
+    }
+    if(obj.configPos){
+        sc.relativePosition.set(obj.configPos[0], obj.configPos[1], obj.configPos[2]);
+    }
+    if(obj.configRot){
+        sc.relativeRotation = OIMO.EulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
+    }
+    
+    var p = obj.pos || [0,0,0];
+    var s = obj.size || [1,1,1];
+    // rescale for oimo world
+    p = [p[0]*OIMO.INV_SCALE, p[1]*OIMO.INV_SCALE, p[2]*OIMO.INV_SCALE];
+    s = [s[0]*OIMO.INV_SCALE, s[1]*OIMO.INV_SCALE, s[2]*OIMO.INV_SCALE];
+
+    var rot = obj.rot || [];
+    var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
+    var move = obj.move || false;
+    var noSleep  = obj.noSleep || false; 
+    var noAdjust = obj.noAdjust || false;
+
+    var shape;
+    switch(obj.type){
+        case "sphere": shape = new OIMO.SphereShape(sc, s[0]); break;
+        default: case "box": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); break;
+    }
+
+    this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+    this.body.addShape(shape);
+
+    if(move){
+        if(noAdjust)this.body.setupMass(0x1, false);
+        else this.body.setupMass(0x1, true);
+        if(noSleep) this.body.allowSleep = false;
+        else this.body.allowSleep = true;
+    } else {
+        this.body.setupMass(0x2);
+    }
+    this.body.name = name;
+
+    if(obj.world)obj.world.addRigidBody(this.body);
+}
+
+OIMO.Body.prototype = {
+    constructor: OIMO.Body,
+
+    getMatrix:function(){
+        return this.body.getMatrix();
+    },
+    /*getSize:function(){
+        return new OIMO.Vec3().scale(this.size, OIMO.WORLD_SCALE);
+    },*/
+    setPosition:function(x,y,z){
+        this.body.setPosition(x,y,z);
+    },
+    sleep:function(){
+        return this.body.sleeping;
+    }
+}
+
+
 
 //------------------------------
 //  WORLD
@@ -582,6 +660,9 @@ OIMO.RigidBody = function(Rad,Ax,Ay,Az){
     this.invertInertia=new OIMO.Mat33();
     this.localInertia=new OIMO.Mat33();
     this.invertLocalInertia=new OIMO.Mat33();
+
+    this.matrix = new OIMO.Mat44();
+
     this.allowSleep=true;
     this.sleepTime=0;
 }
@@ -628,10 +709,13 @@ OIMO.RigidBody.prototype = {
         this.position.init();
         this.mass=0;
         this.localInertia.init(0,0,0,0,0,0,0,0,0);
+        var te = this.localInertia.elements;
         var invRot=new OIMO.Mat33();
         invRot.transpose(this.rotation);
         var tmpM=new OIMO.Mat33();
+        //mpM.init(0,0,0,0,0,0,0,0,0);
         var tmpV=new OIMO.Vec3();
+        
         var denom=0;
         for(var i=0;i<this.numShapes;i++){
             var shape=this.shapes[i];
@@ -644,6 +728,7 @@ OIMO.RigidBody.prototype = {
         }
         this.position.scale(this.position,1/denom);
         this.invertMass=1/this.mass;
+
         var xy=0;
         var yz=0;
         var zx=0;
@@ -652,42 +737,46 @@ OIMO.RigidBody.prototype = {
         var relPos=shape.localRelativePosition;
         relPos.sub(shape.position,this.position).mulMat(invRot,relPos);
         shape.updateProxy();
-        this.localInertia.e00+=shape.mass*(relPos.y*relPos.y+relPos.z*relPos.z);
-        this.localInertia.e11+=shape.mass*(relPos.x*relPos.x+relPos.z*relPos.z);
-        this.localInertia.e22+=shape.mass*(relPos.x*relPos.x+relPos.y*relPos.y);
+        
+        te[0]+=shape.mass*(relPos.y*relPos.y+relPos.z*relPos.z);
+        te[4]+=shape.mass*(relPos.x*relPos.x+relPos.z*relPos.z);
+        te[8]+=shape.mass*(relPos.x*relPos.x+relPos.y*relPos.y);
         xy-=shape.mass*relPos.x*relPos.y;
         yz-=shape.mass*relPos.y*relPos.z;
         zx-=shape.mass*relPos.z*relPos.x;
         }
-        this.localInertia.e01=xy;
-        this.localInertia.e10=xy;
-        this.localInertia.e02=zx;
-        this.localInertia.e20=zx;
-        this.localInertia.e12=yz;
-        this.localInertia.e21=yz;
+        te[1]=xy;
+        te[3]=xy;
+        te[2]=zx;
+        te[6]=zx;
+        te[5]=yz;
+        te[7]=yz;
         this.invertLocalInertia.invert(this.localInertia);
         if(type==OIMO.BODY_STATIC){
             this.invertMass=0;
             this.invertLocalInertia.init(0,0,0,0,0,0,0,0,0);
         }
-        var r00=this.rotation.e00;
-        var r01=this.rotation.e01;
-        var r02=this.rotation.e02;
-        var r10=this.rotation.e10;
-        var r11=this.rotation.e11;
-        var r12=this.rotation.e12;
-        var r20=this.rotation.e20;
-        var r21=this.rotation.e21;
-        var r22=this.rotation.e22;
-        var i00=this.invertLocalInertia.e00;
-        var i01=this.invertLocalInertia.e01;
-        var i02=this.invertLocalInertia.e02;
-        var i10=this.invertLocalInertia.e10;
-        var i11=this.invertLocalInertia.e11;
-        var i12=this.invertLocalInertia.e12;
-        var i20=this.invertLocalInertia.e20;
-        var i21=this.invertLocalInertia.e21;
-        var i22=this.invertLocalInertia.e22;
+        var tr = this.rotation.elements;
+        var ti = this.invertLocalInertia.elements;
+        
+        var r00=tr[0];
+        var r01=tr[1];
+        var r02=tr[2];
+        var r10=tr[3];
+        var r11=tr[4];
+        var r12=tr[5];
+        var r20=tr[6];
+        var r21=tr[7];
+        var r22=tr[8];
+        var i00=ti[0];
+        var i01=ti[1];
+        var i02=ti[2];
+        var i10=ti[3];
+        var i11=ti[4];
+        var i12=ti[5];
+        var i20=ti[6];
+        var i21=ti[7];
+        var i22=ti[8];
         var e00=r00*i00+r01*i10+r02*i20;
         var e01=r00*i01+r01*i11+r02*i21;
         var e02=r00*i02+r01*i12+r02*i22;
@@ -697,15 +786,17 @@ OIMO.RigidBody.prototype = {
         var e20=r20*i00+r21*i10+r22*i20;
         var e21=r20*i01+r21*i11+r22*i21;
         var e22=r20*i02+r21*i12+r22*i22;
-        this.invertInertia.e00=e00*r00+e01*r01+e02*r02;
-        this.invertInertia.e01=e00*r10+e01*r11+e02*r12;
-        this.invertInertia.e02=e00*r20+e01*r21+e02*r22;
-        this.invertInertia.e10=e10*r00+e11*r01+e12*r02;
-        this.invertInertia.e11=e10*r10+e11*r11+e12*r12;
-        this.invertInertia.e12=e10*r20+e11*r21+e12*r22;
-        this.invertInertia.e20=e20*r00+e21*r01+e22*r02;
-        this.invertInertia.e21=e20*r10+e21*r11+e22*r12;
-        this.invertInertia.e22=e20*r20+e21*r21+e22*r22;
+
+        var tf = this.invertInertia.elements;
+        tf[0]=e00*r00+e01*r01+e02*r02;
+        tf[1]=e00*r10+e01*r11+e02*r12;
+        tf[2]=e00*r20+e01*r21+e02*r22;
+        tf[3]=e10*r00+e11*r01+e12*r02;
+        tf[4]=e10*r10+e11*r11+e12*r12;
+        tf[5]=e10*r20+e11*r21+e12*r22;
+        tf[6]=e20*r00+e21*r01+e22*r02;
+        tf[7]=e20*r10+e21*r11+e22*r12;
+        tf[8]=e20*r20+e21*r21+e22*r22;
         this.syncShapes();
         this.awake();
     },
@@ -807,33 +898,39 @@ OIMO.RigidBody.prototype = {
         var sx=s*x2;
         var sy=s*y2;
         var sz=s*z2;
-        this.rotation.e00=1-yy-zz;
-        this.rotation.e01=xy-sz;
-        this.rotation.e02=xz+sy;
-        this.rotation.e10=xy+sz;
-        this.rotation.e11=1-xx-zz;
-        this.rotation.e12=yz-sx;
-        this.rotation.e20=xz-sy;
-        this.rotation.e21=yz+sx;
-        this.rotation.e22=1-xx-yy;
-        var r00=this.rotation.e00;
-        var r01=this.rotation.e01;
-        var r02=this.rotation.e02;
-        var r10=this.rotation.e10;
-        var r11=this.rotation.e11;
-        var r12=this.rotation.e12;
-        var r20=this.rotation.e20;
-        var r21=this.rotation.e21;
-        var r22=this.rotation.e22;
-        var i00=this.invertLocalInertia.e00;
-        var i01=this.invertLocalInertia.e01;
-        var i02=this.invertLocalInertia.e02;
-        var i10=this.invertLocalInertia.e10;
-        var i11=this.invertLocalInertia.e11;
-        var i12=this.invertLocalInertia.e12;
-        var i20=this.invertLocalInertia.e20;
-        var i21=this.invertLocalInertia.e21;
-        var i22=this.invertLocalInertia.e22;
+
+        var tr = this.rotation.elements;
+        var ti = this.invertLocalInertia.elements;
+
+        tr[0]=1-yy-zz;
+        tr[1]=xy-sz;
+        tr[2]=xz+sy;
+        tr[3]=xy+sz;
+        tr[4]=1-xx-zz;
+        tr[5]=yz-sx;
+        tr[6]=xz-sy;
+        tr[7]=yz+sx;
+        tr[8]=1-xx-yy;
+
+        //var tr = this.rotation.elements;
+        var r00=tr[0];
+        var r01=tr[1];
+        var r02=tr[2];
+        var r10=tr[3];
+        var r11=tr[4];
+        var r12=tr[5];
+        var r20=tr[6];
+        var r21=tr[7];
+        var r22=tr[8];
+        var i00=ti[0];
+        var i01=ti[1];
+        var i02=ti[2];
+        var i10=ti[3];
+        var i11=ti[4];
+        var i12=ti[5];
+        var i20=ti[6];
+        var i21=ti[7];
+        var i22=ti[8];
         var e00=r00*i00+r01*i10+r02*i20;
         var e01=r00*i01+r01*i11+r02*i21;
         var e02=r00*i02+r01*i12+r02*i22;
@@ -843,21 +940,24 @@ OIMO.RigidBody.prototype = {
         var e20=r20*i00+r21*i10+r22*i20;
         var e21=r20*i01+r21*i11+r22*i21;
         var e22=r20*i02+r21*i12+r22*i22;
-        this.invertInertia.e00=e00*r00+e01*r01+e02*r02;
-        this.invertInertia.e01=e00*r10+e01*r11+e02*r12;
-        this.invertInertia.e02=e00*r20+e01*r21+e02*r22;
-        this.invertInertia.e10=e10*r00+e11*r01+e12*r02;
-        this.invertInertia.e11=e10*r10+e11*r11+e12*r12;
-        this.invertInertia.e12=e10*r20+e11*r21+e12*r22;
-        this.invertInertia.e20=e20*r00+e21*r01+e22*r02;
-        this.invertInertia.e21=e20*r10+e21*r11+e22*r12;
-        this.invertInertia.e22=e20*r20+e21*r21+e22*r22;
+
+        var tf = this.invertInertia.elements;
+        tf[0]=e00*r00+e01*r01+e02*r02;
+        tf[1]=e00*r10+e01*r11+e02*r12;
+        tf[2]=e00*r20+e01*r21+e02*r22;
+        tf[3]=e10*r00+e11*r01+e12*r02;
+        tf[4]=e10*r10+e11*r11+e12*r12;
+        tf[5]=e10*r20+e11*r21+e12*r22;
+        tf[6]=e20*r00+e21*r01+e22*r02;
+        tf[7]=e20*r10+e21*r11+e22*r12;
+        tf[8]=e20*r20+e21*r21+e22*r22;
+
         for(var i=0;i<this.numShapes;i++){
             var shape=this.shapes[i];
             var relPos=shape.relativePosition;
             var lRelPos=shape.localRelativePosition;
-            var relRot=shape.relativeRotation;
-            var rot=shape.rotation;
+            var relRot=shape.relativeRotation.elements;
+            var rot=shape.rotation.elements;
             var lx=lRelPos.x;
             var ly=lRelPos.y;
             var lz=lRelPos.z;
@@ -867,24 +967,24 @@ OIMO.RigidBody.prototype = {
             shape.position.x=this.position.x+relPos.x;
             shape.position.y=this.position.y+relPos.y;
             shape.position.z=this.position.z+relPos.z;
-            e00=relRot.e00;
-            e01=relRot.e01;
-            e02=relRot.e02;
-            e10=relRot.e10;
-            e11=relRot.e11;
-            e12=relRot.e12;
-            e20=relRot.e20;
-            e21=relRot.e21;
-            e22=relRot.e22;
-            rot.e00=r00*e00+r01*e10+r02*e20;
-            rot.e01=r00*e01+r01*e11+r02*e21;
-            rot.e02=r00*e02+r01*e12+r02*e22;
-            rot.e10=r10*e00+r11*e10+r12*e20;
-            rot.e11=r10*e01+r11*e11+r12*e21;
-            rot.e12=r10*e02+r11*e12+r12*e22;
-            rot.e20=r20*e00+r21*e10+r22*e20;
-            rot.e21=r20*e01+r21*e11+r22*e21;
-            rot.e22=r20*e02+r21*e12+r22*e22;
+            e00=relRot[0];
+            e01=relRot[1];
+            e02=relRot[2];
+            e10=relRot[3];
+            e11=relRot[4];
+            e12=relRot[5];
+            e20=relRot[6];
+            e21=relRot[7];
+            e22=relRot[8];
+            rot[0]=r00*e00+r01*e10+r02*e20;
+            rot[1]=r00*e01+r01*e11+r02*e21;
+            rot[2]=r00*e02+r01*e12+r02*e22;
+            rot[3]=r10*e00+r11*e10+r12*e20;
+            rot[4]=r10*e01+r11*e11+r12*e21;
+            rot[5]=r10*e02+r11*e12+r12*e22;
+            rot[6]=r20*e00+r21*e10+r22*e20;
+            rot[7]=r20*e01+r21*e11+r22*e21;
+            rot[8]=r20*e02+r21*e12+r22*e22;
             shape.updateProxy();
         }
     },
@@ -897,6 +997,41 @@ OIMO.RigidBody.prototype = {
         this.angularVelocity.x+=rel.x;
         this.angularVelocity.y+=rel.y;
         this.angularVelocity.z+=rel.z;
+    },
+
+    
+    // for three js
+    setPosition:function(x,y,z){
+        this.linearVelocity.init();
+        this.angularVelocity.init();
+        this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
+    },
+    getMatrix:function(){
+        var m = this.matrix.elements;
+        var r = this.rotation.elements;
+        var p = this.position;
+        
+        m[0] = r[0];
+        m[1] = r[3];
+        m[2] = r[6];
+        m[3] = 0;
+
+        m[4] = r[1];
+        m[5] = r[4];
+        m[6] = r[7];
+        m[7] = 0;
+
+        m[8] = r[2];
+        m[9] = r[5];
+        m[10] = r[8];
+        m[11] = 0;
+
+        m[12] = p.x*OIMO.WORLD_SCALE;
+        m[13] = p.y*OIMO.WORLD_SCALE;
+        m[14] = p.z*OIMO.WORLD_SCALE;
+        m[15] = 0;
+
+        return m;
     }
 }
 
@@ -3508,10 +3643,10 @@ OIMO.BoxCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep)
 return false;
 }
 OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,out){
-    var rot=c.rotation;
-    var ldx=rot.e00*dx+rot.e10*dy+rot.e20*dz;
-    var ldy=rot.e01*dx+rot.e11*dy+rot.e21*dz;
-    var ldz=rot.e02*dx+rot.e12*dy+rot.e22*dz;
+    var rot=c.rotation.elements;
+    var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+    var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+    var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
     var w=c.halfWidth;
     var h=c.halfHeight;
     var d=c.halfDepth;
@@ -3524,16 +3659,16 @@ OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,
     else oy=h;
     if(ldz<0)oz=-d;
     else oz=d;
-    ldx=rot.e00*ox+rot.e01*oy+rot.e02*oz+c.position.x;
-    ldy=rot.e10*ox+rot.e11*oy+rot.e12*oz+c.position.y;
-    ldz=rot.e20*ox+rot.e21*oy+rot.e22*oz+c.position.z;
+    ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+    ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+    ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
 }
 OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,out){
-    var rot=c.rotation;
-    var ldx=rot.e00*dx+rot.e10*dy+rot.e20*dz;
-    var ldy=rot.e01*dx+rot.e11*dy+rot.e21*dz;
-    var ldz=rot.e02*dx+rot.e12*dy+rot.e22*dz;
+    var rot=c.rotation.elements;
+    var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+    var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+    var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
     var radx=ldx;
     var radz=ldz;
     var len=radx*radx+radz*radz;
@@ -3564,9 +3699,9 @@ OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,
     oz=radz*len;
     }
     }
-    ldx=rot.e00*ox+rot.e01*oy+rot.e02*oz+c.position.x;
-    ldy=rot.e10*ox+rot.e11*oy+rot.e12*oz+c.position.y;
-    ldz=rot.e20*ox+rot.e21*oy+rot.e22*oz+c.position.z;
+    ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+    ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+    ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
 }
 OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,result){
@@ -4517,10 +4652,10 @@ OIMO.CylinderCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos
     return false;
 }
 OIMO.CylinderCylinderCollisionDetector.prototype.supportPoint = function(c,dx,dy,dz,out){
-    var rot=c.rotation;
-    var ldx=rot.e00*dx+rot.e10*dy+rot.e20*dz;
-    var ldy=rot.e01*dx+rot.e11*dy+rot.e21*dz;
-    var ldz=rot.e02*dx+rot.e12*dy+rot.e22*dz;
+    var rot=c.rotation.elements;
+    var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+    var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+    var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
     var radx=ldx;
     var radz=ldz;
     var len=radx*radx+radz*radz;
@@ -4551,20 +4686,20 @@ OIMO.CylinderCylinderCollisionDetector.prototype.supportPoint = function(c,dx,dy
     oz=radz*len;
     }
     }
-    ldx=rot.e00*ox+rot.e01*oy+rot.e02*oz+c.position.x;
-    ldy=rot.e10*ox+rot.e11*oy+rot.e12*oz+c.position.y;
-    ldz=rot.e20*ox+rot.e21*oy+rot.e22*oz+c.position.z;
+    ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+    ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+    ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
 }
 OIMO.CylinderCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,result){
     var c1;
     var c2;
     if(shape1.id<shape2.id){
-    c1=shape1;
-    c2=shape2;
+        c1=shape1;
+        c2=shape2;
     }else{
-    c1=shape2;
-    c2=shape1;
+        c1=shape2;
+        c2=shape1;
     }
     var p1=c1.position;
     var p2=c2.position;
@@ -5149,9 +5284,11 @@ OIMO.Shape = function(){
     this.position=new OIMO.Vec3();
     this.relativePosition=new OIMO.Vec3();
     this.localRelativePosition=new OIMO.Vec3();
+
     this.rotation=new OIMO.Mat33();
     this.relativeRotation=new OIMO.Mat33();
     this.localInertia=new OIMO.Mat33();
+
     this.proxy=new OIMO.Proxy();
     this.proxy.parent=this;
 }
@@ -5179,6 +5316,7 @@ OIMO.ShapeConfig = function(){
 OIMO.MassInfo = function(){
     this.mass=0;
     this.inertia=new OIMO.Mat33();
+    //this.inertia.init(0,0,0,0,0,0,0,0,0);
 }
 
 // BoxShape
@@ -5221,24 +5359,25 @@ OIMO.BoxShape = function(config,width,height,depth){
 }
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.BoxShape.prototype.updateProxy = function(){
-    this.normalDirectionWidth.x=this.rotation.e00;
-    this.normalDirectionWidth.y=this.rotation.e10;
-    this.normalDirectionWidth.z=this.rotation.e20;
-    this.normalDirectionHeight.x=this.rotation.e01;
-    this.normalDirectionHeight.y=this.rotation.e11;
-    this.normalDirectionHeight.z=this.rotation.e21;
-    this.normalDirectionDepth.x=this.rotation.e02;
-    this.normalDirectionDepth.y=this.rotation.e12;
-    this.normalDirectionDepth.z=this.rotation.e22;
-    this.halfDirectionWidth.x=this.rotation.e00*this.halfWidth;
-    this.halfDirectionWidth.y=this.rotation.e10*this.halfWidth;
-    this.halfDirectionWidth.z=this.rotation.e20*this.halfWidth;
-    this.halfDirectionHeight.x=this.rotation.e01*this.halfHeight;
-    this.halfDirectionHeight.y=this.rotation.e11*this.halfHeight;
-    this.halfDirectionHeight.z=this.rotation.e21*this.halfHeight;
-    this.halfDirectionDepth.x=this.rotation.e02*this.halfDepth;
-    this.halfDirectionDepth.y=this.rotation.e12*this.halfDepth;
-    this.halfDirectionDepth.z=this.rotation.e22*this.halfDepth;
+    var te = this.rotation.elements;
+    this.normalDirectionWidth.x=te[0];
+    this.normalDirectionWidth.y=te[3];
+    this.normalDirectionWidth.z=te[6];
+    this.normalDirectionHeight.x=te[1];
+    this.normalDirectionHeight.y=te[4];
+    this.normalDirectionHeight.z=te[7];
+    this.normalDirectionDepth.x=te[2];
+    this.normalDirectionDepth.y=te[5];
+    this.normalDirectionDepth.z=te[8];
+    this.halfDirectionWidth.x=te[0]*this.halfWidth;
+    this.halfDirectionWidth.y=te[3]*this.halfWidth;
+    this.halfDirectionWidth.z=te[6]*this.halfWidth;
+    this.halfDirectionHeight.x=te[1]*this.halfHeight;
+    this.halfDirectionHeight.y=te[4]*this.halfHeight;
+    this.halfDirectionHeight.z=te[7]*this.halfHeight;
+    this.halfDirectionDepth.x=te[2]*this.halfDepth;
+    this.halfDirectionDepth.y=te[5]*this.halfDepth;
+    this.halfDirectionDepth.z=te[8]*this.halfDepth;
     var wx=this.halfDirectionWidth.x;
     var wy=this.halfDirectionWidth.y;
     var wz=this.halfDirectionWidth.z;
@@ -5356,13 +5495,14 @@ OIMO.CylinderShape = function(config,radius,height){
 }
 OIMO.CylinderShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.CylinderShape.prototype.updateProxy = function(){
+    var te = this.rotation.elements;
     var len;
     var wx;
     var hy;
     var dz;
-    var dirX=this.rotation.e01;
-    var dirY=this.rotation.e11;
-    var dirZ=this.rotation.e21;
+    var dirX=te[1];
+    var dirY=te[4];
+    var dirZ=te[7];
     var xx=dirX*dirX;
     var yy=dirY*dirY;
     var zz=dirZ*dirZ;
@@ -5621,26 +5761,26 @@ OIMO.Contact.prototype.setupFromContactInfo = function(contactInfo){
     this.invM1=this.body1.invertMass;
     this.invM2=this.body2.invertMass;
     var tmpI;
-    tmpI=this.body1.invertInertia;
-    this.invI1e00=tmpI.e00;
-    this.invI1e01=tmpI.e01;
-    this.invI1e02=tmpI.e02;
-    this.invI1e10=tmpI.e10;
-    this.invI1e11=tmpI.e11;
-    this.invI1e12=tmpI.e12;
-    this.invI1e20=tmpI.e20;
-    this.invI1e21=tmpI.e21;
-    this.invI1e22=tmpI.e22;
-    tmpI=this.body2.invertInertia;
-    this.invI2e00=tmpI.e00;
-    this.invI2e01=tmpI.e01;
-    this.invI2e02=tmpI.e02;
-    this.invI2e10=tmpI.e10;
-    this.invI2e11=tmpI.e11;
-    this.invI2e12=tmpI.e12;
-    this.invI2e20=tmpI.e20;
-    this.invI2e21=tmpI.e21;
-    this.invI2e22=tmpI.e22;
+    tmpI=this.body1.invertInertia.elements;
+    this.invI1e00=tmpI[0];
+    this.invI1e01=tmpI[1];
+    this.invI1e02=tmpI[2];
+    this.invI1e10=tmpI[3];
+    this.invI1e11=tmpI[4];
+    this.invI1e12=tmpI[5];
+    this.invI1e20=tmpI[6];
+    this.invI1e21=tmpI[7];
+    this.invI1e22=tmpI[8];
+    tmpI=this.body2.invertInertia.elements;
+    this.invI2e00=tmpI[0];
+    this.invI2e01=tmpI[1];
+    this.invI2e02=tmpI[2];
+    this.invI2e10=tmpI[3];
+    this.invI2e11=tmpI[4];
+    this.invI2e12=tmpI[5];
+    this.invI2e20=tmpI[6];
+    this.invI2e21=tmpI[7];
+    this.invI2e22=tmpI[8];
     this.id.data1=contactInfo.id.data1;
     this.id.data2=contactInfo.id.data2;
     this.id.flip=contactInfo.id.flip;
@@ -6063,46 +6203,46 @@ OIMO.BallJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var u20;
     var u21;
     var u22;
-    tmpM=this.body1.rotation;
+    tmpM=this.body1.rotation.elements;
     tmp1X=this.localRelativeAnchorPosition1.x;
     tmp1Y=this.localRelativeAnchorPosition1.y;
     tmp1Z=this.localRelativeAnchorPosition1.z;
-    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
-    tmpM=this.body2.rotation;
+    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
+    tmpM=this.body2.rotation.elements;
     tmp1X=this.localRelativeAnchorPosition2.x;
     tmp1Y=this.localRelativeAnchorPosition2.y;
     tmp1Z=this.localRelativeAnchorPosition2.z;
-    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
+    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
     this.anchorPosition1.x=this.relPos1X+this.body1.position.x;
     this.anchorPosition1.y=this.relPos1Y+this.body1.position.y;
     this.anchorPosition1.z=this.relPos1Z+this.body1.position.z;
     this.anchorPosition2.x=this.relPos2X+this.body2.position.x;
     this.anchorPosition2.y=this.relPos2Y+this.body2.position.y;
     this.anchorPosition2.z=this.relPos2Z+this.body2.position.z;
-    tmpM=this.body1.invertInertia;
-    this.invI1e00=tmpM.e00;
-    this.invI1e01=tmpM.e01;
-    this.invI1e02=tmpM.e02;
-    this.invI1e10=tmpM.e10;
-    this.invI1e11=tmpM.e11;
-    this.invI1e12=tmpM.e12;
-    this.invI1e20=tmpM.e20;
-    this.invI1e21=tmpM.e21;
-    this.invI1e22=tmpM.e22;
-    tmpM=this.body2.invertInertia;
-    this.invI2e00=tmpM.e00;
-    this.invI2e01=tmpM.e01;
-    this.invI2e02=tmpM.e02;
-    this.invI2e10=tmpM.e10;
-    this.invI2e11=tmpM.e11;
-    this.invI2e12=tmpM.e12;
-    this.invI2e20=tmpM.e20;
-    this.invI2e21=tmpM.e21;
-    this.invI2e22=tmpM.e22;
+    tmpM=this.body1.invertInertia.elements;
+    this.invI1e00=tmpM[0];
+    this.invI1e01=tmpM[1];
+    this.invI1e02=tmpM[2];
+    this.invI1e10=tmpM[3];
+    this.invI1e11=tmpM[4];
+    this.invI1e12=tmpM[5];
+    this.invI1e20=tmpM[6];
+    this.invI1e21=tmpM[7];
+    this.invI1e22=tmpM[8];
+    tmpM=this.body2.invertInertia.elements;
+    this.invI2e00=tmpM[0];
+    this.invI2e01=tmpM[1];
+    this.invI2e02=tmpM[2];
+    this.invI2e10=tmpM[3];
+    this.invI2e11=tmpM[4];
+    this.invI2e12=tmpM[5];
+    this.invI2e20=tmpM[6];
+    this.invI2e21=tmpM[7];
+    this.invI2e22=tmpM[8];
     this.xTorqueUnit1X=this.relPos1Z*this.invI1e01-this.relPos1Y*this.invI1e02;
     this.xTorqueUnit1Y=this.relPos1Z*this.invI1e11-this.relPos1Y*this.invI1e12;
     this.xTorqueUnit1Z=this.relPos1Z*this.invI1e21-this.relPos1Y*this.invI1e22;
@@ -6333,20 +6473,20 @@ OIMO.DistanceJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var tmp2X;
     var tmp2Y;
     var tmp2Z;
-    tmpM=this.body1.rotation;
+    tmpM=this.body1.rotation.elements;
     tmp1X=this.localRelativeAnchorPosition1.x;
     tmp1Y=this.localRelativeAnchorPosition1.y;
     tmp1Z=this.localRelativeAnchorPosition1.z;
-    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
-    tmpM=this.body2.rotation;
+    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
+    tmpM=this.body2.rotation.elements;
     tmp1X=this.localRelativeAnchorPosition2.x;
     tmp1Y=this.localRelativeAnchorPosition2.y;
     tmp1Z=this.localRelativeAnchorPosition2.z;
-    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
+    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
     this.norX=(this.anchorPosition2.x=this.relPos2X+this.body2.position.x)-(this.anchorPosition1.x=this.relPos1X+this.body1.position.x);
     this.norY=(this.anchorPosition2.y=this.relPos2Y+this.body2.position.y)-(this.anchorPosition1.y=this.relPos1Y+this.body1.position.y);
     this.norZ=(this.anchorPosition2.z=this.relPos2Z+this.body2.position.z)-(this.anchorPosition1.z=this.relPos1Z+this.body1.position.z);
@@ -6356,26 +6496,26 @@ OIMO.DistanceJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     this.norX*=tmp1X;
     this.norY*=tmp1X;
     this.norZ*=tmp1X;
-    tmpM=this.body1.invertInertia;
-    this.invI1e00=tmpM.e00;
-    this.invI1e01=tmpM.e01;
-    this.invI1e02=tmpM.e02;
-    this.invI1e10=tmpM.e10;
-    this.invI1e11=tmpM.e11;
-    this.invI1e12=tmpM.e12;
-    this.invI1e20=tmpM.e20;
-    this.invI1e21=tmpM.e21;
-    this.invI1e22=tmpM.e22;
-    tmpM=this.body2.invertInertia;
-    this.invI2e00=tmpM.e00;
-    this.invI2e01=tmpM.e01;
-    this.invI2e02=tmpM.e02;
-    this.invI2e10=tmpM.e10;
-    this.invI2e11=tmpM.e11;
-    this.invI2e12=tmpM.e12;
-    this.invI2e20=tmpM.e20;
-    this.invI2e21=tmpM.e21;
-    this.invI2e22=tmpM.e22;
+    tmpM=this.body1.invertInertia.elements;
+    this.invI1e00=tmpM[0];
+    this.invI1e01=tmpM[1];
+    this.invI1e02=tmpM[2];
+    this.invI1e10=tmpM[3];
+    this.invI1e11=tmpM[4];
+    this.invI1e12=tmpM[5];
+    this.invI1e20=tmpM[6];
+    this.invI1e21=tmpM[7];
+    this.invI1e22=tmpM[8];
+    tmpM=this.body2.invertInertia.elements;
+    this.invI2e00=tmpM[0];
+    this.invI2e01=tmpM[1];
+    this.invI2e02=tmpM[2];
+    this.invI2e10=tmpM[3];
+    this.invI2e11=tmpM[4];
+    this.invI2e12=tmpM[5];
+    this.invI2e20=tmpM[6];
+    this.invI2e21=tmpM[7];
+    this.invI2e22=tmpM[8];
     this.norTorque1X=this.relPos1Y*this.norZ-this.relPos1Z*this.norY;
     this.norTorque1Y=this.relPos1Z*this.norX-this.relPos1X*this.norZ;
     this.norTorque1Z=this.relPos1X*this.norY-this.relPos1Y*this.norX;
@@ -6632,32 +6772,32 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var u20;
     var u21;
     var u22;
-    tmpM=this.body1.rotation;
-    this.axis1X=this.localAxis1X*tmpM.e00+this.localAxis1Y*tmpM.e01+this.localAxis1Z*tmpM.e02;
-    this.axis1Y=this.localAxis1X*tmpM.e10+this.localAxis1Y*tmpM.e11+this.localAxis1Z*tmpM.e12;
-    this.axis1Z=this.localAxis1X*tmpM.e20+this.localAxis1Y*tmpM.e21+this.localAxis1Z*tmpM.e22;
-    this.angAxis1X=this.localAngAxis1X*tmpM.e00+this.localAngAxis1Y*tmpM.e01+this.localAngAxis1Z*tmpM.e02;
-    this.angAxis1Y=this.localAngAxis1X*tmpM.e10+this.localAngAxis1Y*tmpM.e11+this.localAngAxis1Z*tmpM.e12;
-    this.angAxis1Z=this.localAngAxis1X*tmpM.e20+this.localAngAxis1Y*tmpM.e21+this.localAngAxis1Z*tmpM.e22;
+    tmpM=this.body1.rotation.elements;
+    this.axis1X=this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
+    this.axis1Y=this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
+    this.axis1Z=this.localAxis1X*tmpM[6]+this.localAxis1Y*tmpM[7]+this.localAxis1Z*tmpM[8];
+    this.angAxis1X=this.localAngAxis1X*tmpM[0]+this.localAngAxis1Y*tmpM[1]+this.localAngAxis1Z*tmpM[2];
+    this.angAxis1Y=this.localAngAxis1X*tmpM[3]+this.localAngAxis1Y*tmpM[4]+this.localAngAxis1Z*tmpM[5];
+    this.angAxis1Z=this.localAngAxis1X*tmpM[6]+this.localAngAxis1Y*tmpM[7]+this.localAngAxis1Z*tmpM[8];
     tmp1X=this.localRelativeAnchorPosition1.x;
     tmp1Y=this.localRelativeAnchorPosition1.y;
     tmp1Z=this.localRelativeAnchorPosition1.z;
-    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
-    tmpM=this.body2.rotation;
-    this.axis2X=this.localAxis2X*tmpM.e00+this.localAxis2Y*tmpM.e01+this.localAxis2Z*tmpM.e02;
-    this.axis2Y=this.localAxis2X*tmpM.e10+this.localAxis2Y*tmpM.e11+this.localAxis2Z*tmpM.e12;
-    this.axis2Z=this.localAxis2X*tmpM.e20+this.localAxis2Y*tmpM.e21+this.localAxis2Z*tmpM.e22;
-    this.angAxis2X=this.localAngAxis2X*tmpM.e00+this.localAngAxis2Y*tmpM.e01+this.localAngAxis2Z*tmpM.e02;
-    this.angAxis2Y=this.localAngAxis2X*tmpM.e10+this.localAngAxis2Y*tmpM.e11+this.localAngAxis2Z*tmpM.e12;
-    this.angAxis2Z=this.localAngAxis2X*tmpM.e20+this.localAngAxis2Y*tmpM.e21+this.localAngAxis2Z*tmpM.e22;
+    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
+    tmpM=this.body2.rotation.elements;
+    this.axis2X=this.localAxis2X*tmpM[0]+this.localAxis2Y*tmpM[1]+this.localAxis2Z*tmpM[2];
+    this.axis2Y=this.localAxis2X*tmpM[3]+this.localAxis2Y*tmpM[4]+this.localAxis2Z*tmpM[5];
+    this.axis2Z=this.localAxis2X*tmpM[6]+this.localAxis2Y*tmpM[7]+this.localAxis2Z*tmpM[8];
+    this.angAxis2X=this.localAngAxis2X*tmpM[0]+this.localAngAxis2Y*tmpM[1]+this.localAngAxis2Z*tmpM[2];
+    this.angAxis2Y=this.localAngAxis2X*tmpM[3]+this.localAngAxis2Y*tmpM[4]+this.localAngAxis2Z*tmpM[5];
+    this.angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
     tmp1X=this.localRelativeAnchorPosition2.x;
     tmp1Y=this.localRelativeAnchorPosition2.y;
     tmp1Z=this.localRelativeAnchorPosition2.z;
-    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
+    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
     this.anchorPosition1.x=this.relPos1X+this.body1.position.x;
     this.anchorPosition1.y=this.relPos1Y+this.body1.position.y;
     this.anchorPosition1.z=this.relPos1Z+this.body1.position.z;
@@ -6692,26 +6832,26 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     }else{
     this.hingeAngle=Math.acos(this.angAxis1X*this.angAxis2X+this.angAxis1Y*this.angAxis2Y+this.angAxis1Z*this.angAxis2Z);
     }
-    tmpM=this.body1.invertInertia;
-    this.invI1e00=tmpM.e00;
-    this.invI1e01=tmpM.e01;
-    this.invI1e02=tmpM.e02;
-    this.invI1e10=tmpM.e10;
-    this.invI1e11=tmpM.e11;
-    this.invI1e12=tmpM.e12;
-    this.invI1e20=tmpM.e20;
-    this.invI1e21=tmpM.e21;
-    this.invI1e22=tmpM.e22;
-    tmpM=this.body2.invertInertia;
-    this.invI2e00=tmpM.e00;
-    this.invI2e01=tmpM.e01;
-    this.invI2e02=tmpM.e02;
-    this.invI2e10=tmpM.e10;
-    this.invI2e11=tmpM.e11;
-    this.invI2e12=tmpM.e12;
-    this.invI2e20=tmpM.e20;
-    this.invI2e21=tmpM.e21;
-    this.invI2e22=tmpM.e22;
+    tmpM=this.body1.invertInertia.elements;
+    this.invI1e00=tmpM[0];
+    this.invI1e01=tmpM[1];
+    this.invI1e02=tmpM[2];
+    this.invI1e10=tmpM[3];
+    this.invI1e11=tmpM[4];
+    this.invI1e12=tmpM[5];
+    this.invI1e20=tmpM[6];
+    this.invI1e21=tmpM[7];
+    this.invI1e22=tmpM[8];
+    tmpM=this.body2.invertInertia.elements;
+    this.invI2e00=tmpM[0];
+    this.invI2e01=tmpM[1];
+    this.invI2e02=tmpM[2];
+    this.invI2e10=tmpM[3];
+    this.invI2e11=tmpM[4];
+    this.invI2e12=tmpM[5];
+    this.invI2e20=tmpM[6];
+    this.invI2e21=tmpM[7];
+    this.invI2e22=tmpM[8];
     this.xTorqueUnit1X=this.relPos1Z*this.invI1e01-this.relPos1Y*this.invI1e02;
     this.xTorqueUnit1Y=this.relPos1Z*this.invI1e11-this.relPos1Y*this.invI1e12;
     this.xTorqueUnit1Z=this.relPos1Z*this.invI1e21-this.relPos1Y*this.invI1e22;
@@ -7179,32 +7319,32 @@ OIMO.Hinge2Joint.prototype.preSolve = function (timeStep,invTimeStep) {
     var u20;
     var u21;
     var u22;
-    tmpM=this.body1.rotation;
-    this.tanX=this.localAxis1X*tmpM.e00+this.localAxis1Y*tmpM.e01+this.localAxis1Z*tmpM.e02;
-    this.tanY=this.localAxis1X*tmpM.e10+this.localAxis1Y*tmpM.e11+this.localAxis1Z*tmpM.e12;
-    this.tanZ=this.localAxis1X*tmpM.e20+this.localAxis1Y*tmpM.e21+this.localAxis1Z*tmpM.e22;
-    this.angAxis1X=this.localAngAxis1X*tmpM.e00+this.localAngAxis1Y*tmpM.e01+this.localAngAxis1Z*tmpM.e02;
-    this.angAxis1Y=this.localAngAxis1X*tmpM.e10+this.localAngAxis1Y*tmpM.e11+this.localAngAxis1Z*tmpM.e12;
-    this.angAxis1Z=this.localAngAxis1X*tmpM.e20+this.localAngAxis1Y*tmpM.e21+this.localAngAxis1Z*tmpM.e22;
+    tmpM=this.body1.rotation.elements;
+    this.tanX=this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
+    this.tanY=this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
+    this.tanZ=this.localAxis1X*tmpM[6]+this.localAxis1Y*tmpM[7]+this.localAxis1Z*tmpM[8];
+    this.angAxis1X=this.localAngAxis1X*tmpM[0]+this.localAngAxis1Y*tmpM[1]+this.localAngAxis1Z*tmpM[2];
+    this.angAxis1Y=this.localAngAxis1X*tmpM[3]+this.localAngAxis1Y*tmpM[4]+this.localAngAxis1Z*tmpM[5];
+    this.angAxis1Z=this.localAngAxis1X*tmpM[6]+this.localAngAxis1Y*tmpM[7]+this.localAngAxis1Z*tmpM[8];
     tmp1X=this.localRelativeAnchorPosition1.x;
     tmp1Y=this.localRelativeAnchorPosition1.y;
     tmp1Z=this.localRelativeAnchorPosition1.z;
-    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
-    tmpM=this.body2.rotation;
-    this.binX=this.localAxis2X*tmpM.e00+this.localAxis2Y*tmpM.e01+this.localAxis2Z*tmpM.e02;
-    this.binY=this.localAxis2X*tmpM.e10+this.localAxis2Y*tmpM.e11+this.localAxis2Z*tmpM.e12;
-    this.binZ=this.localAxis2X*tmpM.e20+this.localAxis2Y*tmpM.e21+this.localAxis2Z*tmpM.e22;
-    this.angAxis2X=this.localAngAxis2X*tmpM.e00+this.localAngAxis2Y*tmpM.e01+this.localAngAxis2Z*tmpM.e02;
-    this.angAxis2Y=this.localAngAxis2X*tmpM.e10+this.localAngAxis2Y*tmpM.e11+this.localAngAxis2Z*tmpM.e12;
-    this.angAxis2Z=this.localAngAxis2X*tmpM.e20+this.localAngAxis2Y*tmpM.e21+this.localAngAxis2Z*tmpM.e22;
+    this.relPos1X=this.relativeAnchorPosition1.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos1Y=this.relativeAnchorPosition1.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos1Z=this.relativeAnchorPosition1.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
+    tmpM=this.body2.rotation.elements;
+    this.binX=this.localAxis2X*tmpM[0]+this.localAxis2Y*tmpM[1]+this.localAxis2Z*tmpM[2];
+    this.binY=this.localAxis2X*tmpM[3]+this.localAxis2Y*tmpM[4]+this.localAxis2Z*tmpM[5];
+    this.binZ=this.localAxis2X*tmpM[6]+this.localAxis2Y*tmpM[7]+this.localAxis2Z*tmpM[8];
+    this.angAxis2X=this.localAngAxis2X*tmpM[0]+this.localAngAxis2Y*tmpM[1]+this.localAngAxis2Z*tmpM[2];
+    this.angAxis2Y=this.localAngAxis2X*tmpM[3]+this.localAngAxis2Y*tmpM[4]+this.localAngAxis2Z*tmpM[5];
+    this.angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
     tmp1X=this.localRelativeAnchorPosition2.x;
     tmp1Y=this.localRelativeAnchorPosition2.y;
     tmp1Z=this.localRelativeAnchorPosition2.z;
-    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM.e00+tmp1Y*tmpM.e01+tmp1Z*tmpM.e02;
-    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM.e10+tmp1Y*tmpM.e11+tmp1Z*tmpM.e12;
-    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM.e20+tmp1Y*tmpM.e21+tmp1Z*tmpM.e22;
+    this.relPos2X=this.relativeAnchorPosition2.x=tmp1X*tmpM[0]+tmp1Y*tmpM[1]+tmp1Z*tmpM[2];
+    this.relPos2Y=this.relativeAnchorPosition2.y=tmp1X*tmpM[3]+tmp1Y*tmpM[4]+tmp1Z*tmpM[5];
+    this.relPos2Z=this.relativeAnchorPosition2.z=tmp1X*tmpM[6]+tmp1Y*tmpM[7]+tmp1Z*tmpM[8];
     this.anchorPosition1.x=this.relPos1X+this.body1.position.x;
     this.anchorPosition1.y=this.relPos1Y+this.body1.position.y;
     this.anchorPosition1.z=this.relPos1Z+this.body1.position.z;
@@ -7237,26 +7377,26 @@ OIMO.Hinge2Joint.prototype.preSolve = function (timeStep,invTimeStep) {
     }else{
     this.angle2=-Math.acos(this.angAxis2X*this.tanX+this.angAxis2Y*this.tanY+this.angAxis2Z*this.tanZ);
     }
-    tmpM=this.body1.invertInertia;
-    this.invI1e00=tmpM.e00;
-    this.invI1e01=tmpM.e01;
-    this.invI1e02=tmpM.e02;
-    this.invI1e10=tmpM.e10;
-    this.invI1e11=tmpM.e11;
-    this.invI1e12=tmpM.e12;
-    this.invI1e20=tmpM.e20;
-    this.invI1e21=tmpM.e21;
-    this.invI1e22=tmpM.e22;
-    tmpM=this.body2.invertInertia;
-    this.invI2e00=tmpM.e00;
-    this.invI2e01=tmpM.e01;
-    this.invI2e02=tmpM.e02;
-    this.invI2e10=tmpM.e10;
-    this.invI2e11=tmpM.e11;
-    this.invI2e12=tmpM.e12;
-    this.invI2e20=tmpM.e20;
-    this.invI2e21=tmpM.e21;
-    this.invI2e22=tmpM.e22;
+    tmpM=this.body1.invertInertia.elements;
+    this.invI1e00=tmpM[0];
+    this.invI1e01=tmpM[1];
+    this.invI1e02=tmpM[2];
+    this.invI1e10=tmpM[3];
+    this.invI1e11=tmpM[4];
+    this.invI1e12=tmpM[5];
+    this.invI1e20=tmpM[6];
+    this.invI1e21=tmpM[7];
+    this.invI1e22=tmpM[8];
+    tmpM=this.body2.invertInertia.elements;
+    this.invI2e00=tmpM[0];
+    this.invI2e01=tmpM[1];
+    this.invI2e02=tmpM[2];
+    this.invI2e10=tmpM[3];
+    this.invI2e11=tmpM[4];
+    this.invI2e12=tmpM[5];
+    this.invI2e20=tmpM[6];
+    this.invI2e21=tmpM[7];
+    this.invI2e22=tmpM[8];
     this.xTorqueUnit1X=this.relPos1Z*this.invI1e01-this.relPos1Y*this.invI1e02;
     this.xTorqueUnit1Y=this.relPos1Z*this.invI1e11-this.relPos1Y*this.invI1e12;
     this.xTorqueUnit1Z=this.relPos1Z*this.invI1e21-this.relPos1Y*this.invI1e22;
@@ -7584,540 +7724,158 @@ OIMO.Hinge2Joint.prototype.postSolve = function () {
 //  MATH
 //----------------------------------
 
-// MAT33
-
-OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-    this.e00=( e00 !== undefined ) ? e00 : 1;
-    this.e01=e01 || 0;
-    this.e02=e02 || 0;
-    this.e10=e10 || 0;
-    this.e11=( e11 !== undefined ) ? e11 : 1;
-    this.e12=e12 || 0;
-    this.e20=e20 || 0;
-    this.e21=e21 || 0;
-    this.e22=( e22 !== undefined ) ? e22 : 1;
-};
-
-OIMO.Mat33.prototype = {
-
-    constructor: OIMO.Mat33,
-
-    init:function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-        this.e00=( e00 !== undefined ) ? e00 : 1;
-        this.e01=e01 || 0;;
-        this.e02=e02 || 0;;
-        this.e10=e10 || 0;;
-        this.e11=( e11 !== undefined ) ? e11 : 1;
-        this.e12=e12 || 0;;
-        this.e20=e20 || 0;;
-        this.e21=e21 || 0;;
-        this.e22=( e22 !== undefined ) ? e22 : 1;
-        return this;
-    },
-    add:function(m1,m2){
-        this.e00=m1.e00+m2.e00;
-        this.e01=m1.e01+m2.e01;
-        this.e02=m1.e02+m2.e02;
-        this.e10=m1.e10+m2.e10;
-        this.e11=m1.e11+m2.e11;
-        this.e12=m1.e12+m2.e12;
-        this.e20=m1.e20+m2.e20;
-        this.e21=m1.e21+m2.e21;
-        this.e22=m1.e22+m2.e22;
-        return this;
-    },
-    sub:function(m1,m2){
-        this.e00=m1.e00-m2.e00;
-        this.e01=m1.e01-m2.e01;
-        this.e02=m1.e02-m2.e02;
-        this.e10=m1.e10-m2.e10;
-        this.e11=m1.e11-m2.e11;
-        this.e12=m1.e12-m2.e12;
-        this.e20=m1.e20-m2.e20;
-        this.e21=m1.e21-m2.e21;
-        this.e22=m1.e22-m2.e22;
-        return this;
-    },
-    scale:function(m,s){
-        this.e00=m.e00*s;
-        this.e01=m.e01*s;
-        this.e02=m.e02*s;
-        this.e10=m.e10*s;
-        this.e11=m.e11*s;
-        this.e12=m.e12*s;
-        this.e20=m.e20*s;
-        this.e21=m.e21*s;
-        this.e22=m.e22*s;
-        return this;
-    },
-    mul:function(m1,m2){
-        var e00=m1.e00*m2.e00+m1.e01*m2.e10+m1.e02*m2.e20;
-        var e01=m1.e00*m2.e01+m1.e01*m2.e11+m1.e02*m2.e21;
-        var e02=m1.e00*m2.e02+m1.e01*m2.e12+m1.e02*m2.e22;
-        var e10=m1.e10*m2.e00+m1.e11*m2.e10+m1.e12*m2.e20;
-        var e11=m1.e10*m2.e01+m1.e11*m2.e11+m1.e12*m2.e21;
-        var e12=m1.e10*m2.e02+m1.e11*m2.e12+m1.e12*m2.e22;
-        var e20=m1.e20*m2.e00+m1.e21*m2.e10+m1.e22*m2.e20;
-        var e21=m1.e20*m2.e01+m1.e21*m2.e11+m1.e22*m2.e21;
-        var e22=m1.e20*m2.e02+m1.e21*m2.e12+m1.e22*m2.e22;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        return this;
-    },
-    mulScale:function(m,sx,sy,sz,Prepend){
-        var perpend = Prepend || false;
-        var e00;
-        var e01;
-        var e02;
-        var e10;
-        var e11;
-        var e12;
-        var e20;
-        var e21;
-        var e22;
-        if(prepend){
-        e00=sx*m.e00;
-        e01=sx*m.e01;
-        e02=sx*m.e02;
-        e10=sy*m.e10;
-        e11=sy*m.e11;
-        e12=sy*m.e12;
-        e20=sz*m.e20;
-        e21=sz*m.e21;
-        e22=sz*m.e22;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        }else{
-        e00=m.e00*sx;
-        e01=m.e01*sy;
-        e02=m.e02*sz;
-        e10=m.e10*sx;
-        e11=m.e11*sy;
-        e12=m.e12*sz;
-        e20=m.e20*sx;
-        e21=m.e21*sy;
-        e22=m.e22*sz;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        }
-        return this;
-    },
-    mulRotate:function(m,rad,ax,ay,az,Prepend){
-        var perpend = Prepend || false;
-        var s=Math.sin(rad);
-        var c=Math.cos(rad);
-        var c1=1-c;
-        var r00=ax*ax*c1+c;
-        var r01=ax*ay*c1-az*s;
-        var r02=ax*az*c1+ay*s;
-        var r10=ay*ax*c1+az*s;
-        var r11=ay*ay*c1+c;
-        var r12=ay*az*c1-ax*s;
-        var r20=az*ax*c1-ay*s;
-        var r21=az*ay*c1+ax*s;
-        var r22=az*az*c1+c;
-        var e00;
-        var e01;
-        var e02;
-        var e10;
-        var e11;
-        var e12;
-        var e20;
-        var e21;
-        var e22;
-        if(prepend){
-        e00=r00*m.e00+r01*m.e10+r02*m.e20;
-        e01=r00*m.e01+r01*m.e11+r02*m.e21;
-        e02=r00*m.e02+r01*m.e12+r02*m.e22;
-        e10=r10*m.e00+r11*m.e10+r12*m.e20;
-        e11=r10*m.e01+r11*m.e11+r12*m.e21;
-        e12=r10*m.e02+r11*m.e12+r12*m.e22;
-        e20=r20*m.e00+r21*m.e10+r22*m.e20;
-        e21=r20*m.e01+r21*m.e11+r22*m.e21;
-        e22=r20*m.e02+r21*m.e12+r22*m.e22;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        }else{
-        e00=m.e00*r00+m.e01*r10+m.e02*r20;
-        e01=m.e00*r01+m.e01*r11+m.e02*r21;
-        e02=m.e00*r02+m.e01*r12+m.e02*r22;
-        e10=m.e10*r00+m.e11*r10+m.e12*r20;
-        e11=m.e10*r01+m.e11*r11+m.e12*r21;
-        e12=m.e10*r02+m.e11*r12+m.e12*r22;
-        e20=m.e20*r00+m.e21*r10+m.e22*r20;
-        e21=m.e20*r01+m.e21*r11+m.e22*r21;
-        e22=m.e20*r02+m.e21*r12+m.e22*r22;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        }
-        return this;
-    },
-    transpose:function(m){
-        var e01=m.e10;
-        var e02=m.e20;
-        var e10=m.e01;
-        var e12=m.e21;
-        var e20=m.e02;
-        var e21=m.e12;
-        this.e00=m.e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e10=e10;
-        this.e11=m.e11;
-        this.e12=e12;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=m.e22;
-        return this;
-    },
-    setQuat:function(q){
-        var x2=2*q.x;
-        var y2=2*q.y;
-        var z2=2*q.z;
-        var xx=q.x*x2;
-        var yy=q.y*y2;
-        var zz=q.z*z2;
-        var xy=q.x*y2;
-        var yz=q.y*z2;
-        var xz=q.x*z2;
-        var sx=q.s*x2;
-        var sy=q.s*y2;
-        var sz=q.s*z2;
-        this.e00=1-yy-zz;
-        this.e01=xy-sz;
-        this.e02=xz+sy;
-        this.e10=xy+sz;
-        this.e11=1-xx-zz;
-        this.e12=yz-sx;
-        this.e20=xz-sy;
-        this.e21=yz+sx;
-        this.e22=1-xx-yy;
-        return this;
-    },
-    invert:function(m){
-        var det=
-        m.e00*(m.e11*m.e22-m.e21*m.e12)+
-        m.e10*(m.e21*m.e02-m.e01*m.e22)+
-        m.e20*(m.e01*m.e12-m.e11*m.e02)
-        ;
-        if(det!=0)det=1/det;
-        var t00=m.e11*m.e22-m.e12*m.e21;
-        var t01=m.e02*m.e21-m.e01*m.e22;
-        var t02=m.e01*m.e12-m.e02*m.e11;
-        var t10=m.e12*m.e20-m.e10*m.e22;
-        var t11=m.e00*m.e22-m.e02*m.e20;
-        var t12=m.e02*m.e10-m.e00*m.e12;
-        var t20=m.e10*m.e21-m.e11*m.e20;
-        var t21=m.e01*m.e20-m.e00*m.e21;
-        var t22=m.e00*m.e11-m.e01*m.e10;
-        this.e00=det*t00;
-        this.e01=det*t01;
-        this.e02=det*t02;
-        this.e10=det*t10;
-        this.e11=det*t11;
-        this.e12=det*t12;
-        this.e20=det*t20;
-        this.e21=det*t21;
-        this.e22=det*t22;
-        return this;
-    },
-    copy:function(m){
-        this.e00=m.e00;
-        this.e01=m.e01;
-        this.e02=m.e02;
-        this.e10=m.e10;
-        this.e11=m.e11;
-        this.e12=m.e12;
-        this.e20=m.e20;
-        this.e21=m.e21;
-        this.e22=m.e22;
-        return this;
-    },
-    copyMat44:function(m){
-        this.e00=m.e00;
-        this.e01=m.e01;
-        this.e02=m.e02;
-        this.e10=m.e10;
-        this.e11=m.e11;
-        this.e12=m.e12;
-        this.e20=m.e20;
-        this.e21=m.e21;
-        this.e22=m.e22;
-        return this;
-    },
-    clone:function(){
-        return new com.element.oimo.math.Mat33(this.e00,this.e01,this.e02,this.e10,this.e11,this.e12,this.e20,this.e21,this.e22);
-    },
-    toString:function(){
-        var text=
-        "Mat33|"+this.e00.toFixed(4)+", "+this.e01.toFixed(4)+", "+this.e02.toFixed(4)+"|\n"+
-        "     |"+this.e10.toFixed(4)+", "+this.e11.toFixed(4)+", "+this.e12.toFixed(4)+"|\n"+
-        "     |"+this.e20.toFixed(4)+", "+this.e21.toFixed(4)+", "+this.e22.toFixed(4)+"|";
-    return text;
-    }
-};
-
-
 // MAT44
 
-OIMO.Mat44 = function(e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){
-    this.e00=( e00 !== undefined ) ? e00 : 1;
-    this.e01=e01 || 0;
-    this.e02=e02 || 0;
-    this.e03=e03 || 0;
-    this.e10=e10 || 0;
-    this.e11=( e11 !== undefined ) ? e11 : 1;
-    this.e12=e12 || 0;
-    this.e13=e13 || 0;
-    this.e20=e20 || 0;
-    this.e21=e21 || 0;
-    this.e22=( e22 !== undefined ) ? e22 : 1;
-    this.e23=e23 || 0;
-    this.e30=e30 || 0;
-    this.e31=e31 || 0;
-    this.e32=e32 || 0;
-    this.e33=( e33 !== undefined ) ? e33 : 1;
+OIMO.Mat44 = function(n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44){
+    this.elements = new Float32Array(16);
+    var te = this.elements;
+    te[0] = ( n11 !== undefined ) ? n11 : 1; te[4] = n12 || 0; te[8] = n13 || 0; te[12] = n14 || 0;
+    te[1] = n21 || 0; te[5] = ( n22 !== undefined ) ? n22 : 1; te[9] = n23 || 0; te[13] = n24 || 0;
+    te[2] = n31 || 0; te[6] = n32 || 0; te[10] = ( n33 !== undefined ) ? n33 : 1; te[14] = n34 || 0;
+    te[3] = n41 || 0; te[7] = n42 || 0; te[11] = n43 || 0; te[15] = ( n44 !== undefined ) ? n44 : 1;
 };
 
 OIMO.Mat44.prototype = {
-
     constructor: OIMO.Mat44,
 
-    init:function(e00,e01,e02,e03,e10,e11,e12,e13,e20,e21,e22,e23,e30,e31,e32,e33){
-        this.e00=( e00 !== undefined ) ? e00 : 1;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=( e11 !== undefined ) ? e11 : 1;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=( e22 !== undefined ) ? e22 : 1;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=( e33 !== undefined ) ? e33 : 1;
+    set: function ( n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44 ) {
+
+        var te = this.elements;
+
+        te[0] = n11; te[4] = n12; te[8] = n13; te[12] = n14;
+        te[1] = n21; te[5] = n22; te[9] = n23; te[13] = n24;
+        te[2] = n31; te[6] = n32; te[10] = n33; te[14] = n34;
+        te[3] = n41; te[7] = n42; te[11] = n43; te[15] = n44;
+
+        return this;
+    }
+}
+
+// MAT33
+
+OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
+    this.elements = new Float32Array(9);//[];//new Float32Array(9);//new Float64Array(9);
+    var te = this.elements;
+
+    /*te[0] =  ( e00 !== undefined ) ? e00 : 1; te[1] = e01 || 0; te[2] = e02 || 0;
+    te[3] = e10 || 0; te[4] =  ( e11 !== undefined ) ? e11 : 1; te[5] = e12 || 0;
+    te[6] = e20 || 0; te[7] = e21 || 0; te[8] =  ( e22 !== undefined ) ? e22 : 1;*/
+
+    this.init(
+        ( e00 !== undefined ) ? e00 : 1, e01 || 0, e02 || 0,
+        e10 || 0, ( e11 !== undefined ) ? e11 : 1, e12 || 0,
+        e20 || 0, e21 || 0, ( e22 !== undefined ) ? e22 : 1
+    );
+};
+
+OIMO.Mat33.prototype = {
+    constructor: OIMO.Mat33,
+
+    init: function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
+        //this.elements = [];
+        var te = this.elements;
+        te[0] =  ( e00 !== undefined ) ? e00 : 1; te[1] = e01 || 0; te[2] = e02 || 0;
+        te[3] = e10 || 0; te[4] =  ( e11 !== undefined ) ? e11 : 1; te[5] = e12 || 0;
+        te[6] = e20 || 0; te[7] = e21 || 0; te[8] =  ( e22 !== undefined ) ? e22 : 1;
+
+
+        /*te[0] = e00; te[1] = e01; te[2] = e02;
+        te[3] = e10; te[4] = e11; te[5] = e12;
+        te[6] = e20; te[7] = e21; te[8] = e22;*/
         return this;
     },
-    add:function(m1,m2){
-        this.e00=m1.e00+m2.e00;
-        this.e01=m1.e01+m2.e01;
-        this.e02=m1.e02+m2.e02;
-        this.e03=m1.e03+m2.e03;
-        this.e10=m1.e10+m2.e10;
-        this.e11=m1.e11+m2.e11;
-        this.e12=m1.e12+m2.e12;
-        this.e13=m1.e13+m2.e13;
-        this.e20=m1.e20+m2.e20;
-        this.e21=m1.e21+m2.e21;
-        this.e22=m1.e22+m2.e22;
-        this.e23=m1.e23+m2.e23;
-        this.e30=m1.e30+m2.e30;
-        this.e31=m1.e31+m2.e31;
-        this.e32=m1.e32+m2.e32;
-        this.e33=m1.e33+m2.e33;
+    add: function(m1,m2){
+        var te = this.elements;
+        var tem1 = m1.elements;
+        var tem2 = m2.elements;
+        te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
+        te[3] = tem1[3] + tem2[3]; te[4] = tem1[4] + tem2[4]; te[5] = tem1[5] + tem2[5];
+        te[6] = tem1[6] + tem2[6]; te[7] = tem1[7] + tem2[7]; te[8] = tem1[8] + tem2[8];
         return this;
     },
-    sub:function(m1,m2){
-        this.e00=m1.e00-m2.e00;
-        this.e01=m1.e01-m2.e01;
-        this.e02=m1.e02-m2.e02;
-        this.e03=m1.e03-m2.e03;
-        this.e10=m1.e10-m2.e10;
-        this.e11=m1.e11-m2.e11;
-        this.e12=m1.e12-m2.e12;
-        this.e13=m1.e13-m2.e13;
-        this.e20=m1.e20-m2.e20;
-        this.e21=m1.e21-m2.e21;
-        this.e22=m1.e22-m2.e22;
-        this.e23=m1.e23-m2.e23;
-        this.e30=m1.e30-m2.e30;
-        this.e31=m1.e31-m2.e31;
-        this.e32=m1.e32-m2.e32;
-        this.e33=m1.e33-m2.e33;
+    addEqual: function(m){
+        var te = this.elements;
+        var tem = m.elements;
+        te[0] += tem[0]; te[1] += tem[1]; te[2] += tem[2];
+        te[3] += tem[3]; te[4] += tem[4]; te[5] += tem[5];
+        te[6] += tem[6]; te[7] += tem[7]; te[8] += tem[8];
         return this;
     },
-    scale:function(m,s){
-        this.e00=m.e00*s;
-        this.e01=m.e01*s;
-        this.e02=m.e02*s;
-        this.e03=m.e03*s;
-        this.e10=m.e10*s;
-        this.e11=m.e11*s;
-        this.e12=m.e12*s;
-        this.e13=m.e13*s;
-        this.e20=m.e20*s;
-        this.e21=m.e21*s;
-        this.e22=m.e22*s;
-        this.e23=m.e23*s;
-        this.e30=m.e30*s;
-        this.e31=m.e31*s;
-        this.e32=m.e32*s;
-        this.e33=m.e33*s;
+    sub: function(m1,m2){
+        var te = this.elements;
+        var tem1 = m1.elements;
+        var tem2 = m2.elements;
+
+        te[0] = tem1[0] - tem2[0]; te[1] = tem1[1] - tem2[1]; te[2] = tem1[2] - tem2[2];
+        te[3] = tem1[3] - tem2[3]; te[4] = tem1[4] - tem2[4]; te[5] = tem1[5] - tem2[5];
+        te[6] = tem1[6] - tem2[6]; te[7] = tem1[7] - tem2[7]; te[8] = tem1[8] - tem2[8];
         return this;
     },
-    mul:function(m1,m2){
-        var e00=m1.e00*m2.e00+m1.e01*m2.e10+m1.e02*m2.e20+m1.e03*m2.e30;
-        var e01=m1.e00*m2.e01+m1.e01*m2.e11+m1.e02*m2.e21+m1.e03*m2.e31;
-        var e02=m1.e00*m2.e02+m1.e01*m2.e12+m1.e02*m2.e22+m1.e03*m2.e32;
-        var e03=m1.e00*m2.e03+m1.e01*m2.e13+m1.e02*m2.e23+m1.e03*m2.e33;
-        var e10=m1.e10*m2.e00+m1.e11*m2.e10+m1.e12*m2.e20+m1.e13*m2.e30;
-        var e11=m1.e10*m2.e01+m1.e11*m2.e11+m1.e12*m2.e21+m1.e13*m2.e31;
-        var e12=m1.e10*m2.e02+m1.e11*m2.e12+m1.e12*m2.e22+m1.e13*m2.e32;
-        var e13=m1.e10*m2.e03+m1.e11*m2.e13+m1.e12*m2.e23+m1.e13*m2.e33;
-        var e20=m1.e20*m2.e00+m1.e21*m2.e10+m1.e22*m2.e20+m1.e23*m2.e30;
-        var e21=m1.e20*m2.e01+m1.e21*m2.e11+m1.e22*m2.e21+m1.e23*m2.e31;
-        var e22=m1.e20*m2.e02+m1.e21*m2.e12+m1.e22*m2.e22+m1.e23*m2.e32;
-        var e23=m1.e20*m2.e03+m1.e21*m2.e13+m1.e22*m2.e23+m1.e23*m2.e33;
-        var e30=m1.e30*m2.e00+m1.e31*m2.e10+m1.e32*m2.e20+m1.e33*m2.e30;
-        var e31=m1.e30*m2.e01+m1.e31*m2.e11+m1.e32*m2.e21+m1.e33*m2.e31;
-        var e32=m1.e30*m2.e02+m1.e31*m2.e12+m1.e32*m2.e22+m1.e33*m2.e32;
-        var e33=m1.e30*m2.e03+m1.e31*m2.e13+m1.e32*m2.e23+m1.e33*m2.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
+    subEqual:function(m){
+        var te = this.elements;
+        var tem = m.elements;
+        te[0] -= tem[0]; te[1] -= tem[1]; te[2] -= tem[2];
+        te[3] -= tem[3]; te[4] -= tem[4]; te[5] -= tem[5];
+        te[6] -= tem[6]; te[7] -= tem[7]; te[8] -= tem[8];
         return this;
     },
-    mulScale:function(m,sx,sy,sz,Prepend){
-        var perpend = Prepend || false;
-        var e00;
-        var e01;
-        var e02;
-        var e03;
-        var e10;
-        var e11;
-        var e12;
-        var e13;
-        var e20;
-        var e21;
-        var e22;
-        var e23;
-        var e30;
-        var e31;
-        var e32;
-        var e33;
+    scale: function(m,s){
+        var te = this.elements;
+        var tm = m.elements;
+        te[0] = tm[0] * s; te[1] = tm[1] * s; te[2] = tm[2] * s;
+        te[3] = tm[3] * s; te[4] = tm[4] * s; te[5] = tm[5] * s;
+        te[6] = tm[6] * s; te[7] = tm[7] * s; te[8] = tm[8] * s;
+        return this;
+    },
+    scaleEqual: function(s){
+        var te = this.elements;
+        te[0] *= s; te[1] *= s; te[2] *= s;
+        te[3] *= s; te[4] *= s; te[5] *= s;
+        te[6] *= s; te[7] *= s; te[8] *= s;
+        return this;
+    },
+    mul: function(m1,m2){
+        var te = this.elements;
+        var tm1 = m1.elements;
+        var tm2 = m2.elements;
+
+        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
+        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
+        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+
+        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
+        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
+        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+
+        te[0] = a0*b0 + a1*b3 + a2*b6;
+        te[1] = a0*b1 + a1*b4 + a2*b7;
+        te[2] = a0*b2 + a1*b5 + a2*b8;
+        te[3] = a3*b0 + a4*b3 + a5*b6;
+        te[4] = a3*b1 + a4*b4 + a5*b7;
+        te[5] = a3*b2 + a4*b5 + a5*b8;
+        te[6] = a6*b0 + a7*b3 + a8*b6;
+        te[7] = a6*b1 + a7*b4 + a8*b7;
+        te[8] = a6*b2 + a7*b5 + a8*b8;
+
+        return this;
+    },
+    mulScale: function(m,sx,sy,sz,Prepend){
+        var prepend = Prepend || false;
+        var te = this.elements;
+        var tm = m.elements;
         if(prepend){
-        e00=sx*m.e00;
-        e01=sx*m.e01;
-        e02=sx*m.e02;
-        e03=sx*m.e03;
-        e10=sy*m.e10;
-        e11=sy*m.e11;
-        e12=sy*m.e12;
-        e13=sy*m.e13;
-        e20=sz*m.e20;
-        e21=sz*m.e21;
-        e22=sz*m.e22;
-        e23=sz*m.e23;
-        e30=m.e30;
-        e31=m.e31;
-        e32=m.e32;
-        e33=m.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
+            te[0] = sx*tm[0]; te[1] = sx*tm[1]; te[2] = sx*tm[2];
+            te[3] = sy*tm[3]; te[4] = sy*tm[4]; te[5] = sy*tm[5];
+            te[6] = sz*tm[6]; te[7] = sz*tm[7]; te[8] = sz*tm[8];
         }else{
-        e00=m.e00*sx;
-        e01=m.e01*sy;
-        e02=m.e02*sz;
-        e03=m.e03;
-        e10=m.e10*sx;
-        e11=m.e11*sy;
-        e12=m.e12*sz;
-        e13=m.e13;
-        e20=m.e20*sx;
-        e21=m.e21*sy;
-        e22=m.e22*sz;
-        e23=m.e23;
-        e30=m.e30*sx;
-        e31=m.e31*sy;
-        e32=m.e32*sz;
-        e33=m.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
+            te[0] = tm[0]*sx; te[1] = tm[1]*sy; te[2] = tm[2]*sz;
+            te[3] = tm[3]*sx; te[4] = tm[4]*sy; te[5] = tm[5]*sz;
+            te[6] = tm[6]*sx; te[7] = tm[7]*sy; te[8] = tm[8]*sz;
         }
         return this;
     },
-    mulRotate:function(m,rad,ax,ay,az,Prepend){
-        var perpend = Prepend || false;
+    mulRotate: function(m,rad,ax,ay,az,Prepend){
+        var prepend = Prepend || false;
         var s=Math.sin(rad);
         var c=Math.cos(rad);
         var c1=1-c;
@@ -8130,210 +7888,47 @@ OIMO.Mat44.prototype = {
         var r20=az*ax*c1-ay*s;
         var r21=az*ay*c1+ax*s;
         var r22=az*az*c1+c;
-        var e00;
-        var e01;
-        var e02;
-        var e03;
-        var e10;
-        var e11;
-        var e12;
-        var e13;
-        var e20;
-        var e21;
-        var e22;
-        var e23;
-        var e30;
-        var e31;
-        var e32;
-        var e33;
+
+        var tm = m.elements;
+
+        var a0 = tm[0], a3 = tm[3], a6 = tm[6];
+        var a1 = tm[1], a4 = tm[4], a7 = tm[7];
+        var a2 = tm[2], a5 = tm[5], a8 = tm[8];
+
+        var te = this.elements;
+        
         if(prepend){
-        e00=r00*m.e00+r01*m.e10+r02*m.e20;
-        e01=r00*m.e01+r01*m.e11+r02*m.e21;
-        e02=r00*m.e02+r01*m.e12+r02*m.e22;
-        e03=r00*m.e03+r01*m.e13+r02*m.e23;
-        e10=r10*m.e00+r11*m.e10+r12*m.e20;
-        e11=r10*m.e01+r11*m.e11+r12*m.e21;
-        e12=r10*m.e02+r11*m.e12+r12*m.e22;
-        e13=r10*m.e03+r11*m.e13+r12*m.e23;
-        e20=r20*m.e00+r21*m.e10+r22*m.e20;
-        e21=r20*m.e01+r21*m.e11+r22*m.e21;
-        e22=r20*m.e02+r21*m.e12+r22*m.e22;
-        e23=r20*m.e03+r21*m.e13+r22*m.e23;
-        e30=m.e30;
-        e31=m.e31;
-        e32=m.e32;
-        e33=m.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
+            te[0]=r00*a0+r01*a3+r02*a6;
+            te[1]=r00*a1+r01*a4+r02*a7;
+            te[2]=r00*a2+r01*a5+r02*a8;
+            te[3]=r10*a0+r11*a3+r12*a6;
+            te[4]=r10*a1+r11*a4+r12*a7;
+            te[5]=r10*a2+r11*a5+r12*a8;
+            te[6]=r20*a0+r21*a3+r22*a6;
+            te[7]=r20*a1+r21*a4+r22*a7;
+            te[8]=r20*a2+r21*a5+r22*a8;
         }else{
-        e00=m.e00*r00+m.e01*r10+m.e02*r20;
-        e01=m.e00*r01+m.e01*r11+m.e02*r21;
-        e02=m.e00*r02+m.e01*r12+m.e02*r22;
-        e03=m.e03;
-        e10=m.e10*r00+m.e11*r10+m.e12*r20;
-        e11=m.e10*r01+m.e11*r11+m.e12*r21;
-        e12=m.e10*r02+m.e11*r12+m.e12*r22;
-        e13=m.e13;
-        e20=m.e20*r00+m.e21*r10+m.e22*r20;
-        e21=m.e20*r01+m.e21*r11+m.e22*r21;
-        e22=m.e20*r02+m.e21*r12+m.e22*r22;
-        e23=m.e23;
-        e30=m.e30*r00+m.e31*r10+m.e32*r20;
-        e31=m.e30*r01+m.e31*r11+m.e32*r21;
-        e32=m.e30*r02+m.e31*r12+m.e32*r22;
-        e33=m.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
+            te[0]=a0*r00+a1*r10+a2*r20;
+            te[1]=a0*r01+a1*r11+a2*r21;
+            te[2]=a0*r02+a1*r12+a2*r22;
+            te[3]=a3*r00+a4*r10+a5*r20;
+            te[4]=a3*r01+a4*r11+a5*r21;
+            te[5]=a3*r02+a4*r12+a5*r22;
+            te[6]=a6*r00+a7*r10+a8*r20;
+            te[7]=a6*r01+a7*r11+a8*r21;
+            te[8]=a6*r02+a7*r12+a8*r22;
         }
         return this;
     },
-    mulTranslate:function(m,tx,ty,tz,Prepend){
-        var perpend = Prepend || false;
-        var e00;
-        var e01;
-        var e02;
-        var e03;
-        var e10;
-        var e11;
-        var e12;
-        var e13;
-        var e20;
-        var e21;
-        var e22;
-        var e23;
-        var e30;
-        var e31;
-        var e32;
-        var e33;
-        if(prepend){
-        e00=m.e00+tx*m.e30;
-        e01=m.e01+tx*m.e31;
-        e02=m.e02+tx*m.e32;
-        e03=m.e03+tx*m.e33;
-        e10=m.e10+ty*m.e30;
-        e11=m.e11+ty*m.e31;
-        e12=m.e12+ty*m.e32;
-        e13=m.e13+ty*m.e33;
-        e20=m.e20+tz*m.e30;
-        e21=m.e21+tz*m.e31;
-        e22=m.e22+tz*m.e32;
-        e23=m.e23+tz*m.e33;
-        e30=m.e30;
-        e31=m.e31;
-        e32=m.e32;
-        e33=m.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
-        }else{
-        e00=m.e00;
-        e01=m.e01;
-        e02=m.e02;
-        e03=m.e00*tx+m.e01*ty+m.e02*tz+m.e03;
-        e10=m.e10;
-        e11=m.e11;
-        e12=m.e12;
-        e13=m.e10*tx+m.e11*ty+m.e12*tz+m.e13;
-        e20=m.e20;
-        e21=m.e21;
-        e22=m.e22;
-        e23=m.e20*tx+m.e21*ty+m.e22*tz+m.e23;
-        e30=m.e30;
-        e31=m.e31;
-        e32=m.e32;
-        e33=m.e30*tx+m.e31*ty+m.e32*tz+m.e33;
-        this.e00=e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=e33;
-        }
+    transpose: function(m){
+        var te = this.elements;
+        var tm = m.elements;
+        te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
+        te[3] = tm[1]; te[4] = tm[4]; te[5] = tm[7];
+        te[6] = tm[2]; te[7] = tm[5]; te[8] = tm[8];
         return this;
     },
-    transpose:function(m){
-        var e01=m.e10;
-        var e02=m.e20;
-        var e03=m.e30;
-        var e10=m.e01;
-        var e12=m.e21;
-        var e13=m.e31;
-        var e20=m.e02;
-        var e21=m.e12;
-        var e23=m.e32;
-        var e30=m.e03;
-        var e31=m.e13;
-        var e32=m.e23;
-        this.e00=m.e00;
-        this.e01=e01;
-        this.e02=e02;
-        this.e03=e03;
-        this.e10=e10;
-        this.e11=m.e11;
-        this.e12=e12;
-        this.e13=e13;
-        this.e20=e20;
-        this.e21=e21;
-        this.e22=m.e22;
-        this.e23=e23;
-        this.e30=e30;
-        this.e31=e31;
-        this.e32=e32;
-        this.e33=m.e33;
-        return this;
-    },
-    setQuat:function(q){
+    setQuat: function(q){
         var x2=2*q.x;
         var y2=2*q.y;
         var z2=2*q.z;
@@ -8346,218 +7941,87 @@ OIMO.Mat44.prototype = {
         var sx=q.s*x2;
         var sy=q.s*y2;
         var sz=q.s*z2;
-        this.e00=1-yy-zz;
-        this.e01=xy-sz;
-        this.e02=xz+sy;
-        this.e03=0;
-        this.e10=xy+sz;
-        this.e11=1-xx-zz;
-        this.e12=yz-sx;
-        this.e13=0;
-        this.e20=xz-sy;
-        this.e21=yz+sx;
-        this.e22=1-xx-yy;
-        this.e23=0;
-        this.e30=0;
-        this.e31=0;
-        this.e32=0;
-        this.e33=1;
+        var te = this.elements;
+        te[0]=1-yy-zz;
+        te[1]=xy-sz;
+        te[2]=xz+sy;
+        te[3]=xy+sz;
+        te[4]=1-xx-zz;
+        te[5]=yz-sx;
+        te[6]=xz-sy;
+        te[7]=yz+sx;
+        te[8]=1-xx-yy;
         return this;
     },
-    invert:function(m){
-        var e1021_1120=m.e10*m.e21-m.e11*m.e20;
-        var e1022_1220=m.e10*m.e22-m.e12*m.e20;
-        var e1023_1320=m.e10*m.e23-m.e13*m.e20;
-        var e1031_1130=m.e10*m.e31-m.e11*m.e30;
-        var e1032_1230=m.e10*m.e32-m.e12*m.e30;
-        var e1033_1330=m.e10*m.e33-m.e13*m.e30;
-        var e1122_1221=m.e11*m.e22-m.e12*m.e21;
-        var e1123_1321=m.e11*m.e23-m.e13*m.e21;
-        var e1132_1231=m.e11*m.e32-m.e12*m.e31;
-        var e1133_1331=m.e11*m.e33-m.e13*m.e31;
-        var e1220_2022=m.e12*m.e20-m.e20*m.e22;
-        var e1223_1322=m.e12*m.e23-m.e13*m.e22;
-        var e1223_2223=m.e12*m.e33-m.e22*m.e23;
-        var e1233_1332=m.e12*m.e33-m.e13*m.e32;
-        var e2031_2130=m.e20*m.e31-m.e21*m.e30;
-        var e2032_2033=m.e20*m.e32-m.e20*m.e33;
-        var e2032_2230=m.e20*m.e32-m.e22*m.e30;
-        var e2033_2330=m.e20*m.e33-m.e23*m.e30;
-        var e2132_2231=m.e21*m.e32-m.e22*m.e31;
-        var e2133_2331=m.e21*m.e33-m.e23*m.e31;
-        var e2230_2330=m.e22*m.e30-m.e23*m.e30;
-        var e2233_2332=m.e22*m.e33-m.e23*m.e32;
-        var det=
-        m.e00*(m.e11*e2233_2332-m.e12*e2133_2331+m.e13*e2132_2231)+
-        m.e01*(-m.e10*e2233_2332-m.e12*e2032_2033+m.e13*e2230_2330)+
-        m.e02*(m.e10*e2133_2331-m.e11*e2033_2330+m.e13*e2031_2130)+
-        m.e03*(-m.e10*e2132_2231+m.e11*e2032_2230-m.e12*e2031_2130)
-        ;
-        if(det!=0)det=1/det;
-        var t00=m.e11*e2233_2332-m.e12*e2133_2331+m.e13*e2132_2231;
-        var t01=-m.e01*e2233_2332+m.e02*e2133_2331-m.e03*e2132_2231;
-        var t02=m.e01*e1233_1332-m.e02*e1133_1331+m.e03*e1132_1231;
-        var t03=-m.e01*e1223_2223+m.e02*e1123_1321-m.e03*e1122_1221;
-        var t10=-m.e10*e2233_2332+m.e12*e2033_2330-m.e13*e2032_2230;
-        var t11=m.e00*e2233_2332-m.e02*e2033_2330+m.e03*e2032_2230;
-        var t12=-m.e00*e1233_1332+m.e02*e1033_1330-m.e03*e1032_1230;
-        var t13=m.e00*e1223_1322-m.e02*e1023_1320-m.e03*e1220_2022;
-        var t20=m.e10*e2133_2331-m.e11*e2033_2330+m.e13*e2031_2130;
-        var t21=-m.e00*e2133_2331+m.e01*e2033_2330-m.e03*e2031_2130;
-        var t22=m.e00*e1133_1331-m.e01*e1033_1330+m.e03*e1031_1130;
-        var t23=-m.e00*e1123_1321+m.e01*e1023_1320-m.e03*e1021_1120;
-        var t30=-m.e10*e2132_2231+m.e11*e2032_2230-m.e12*e2031_2130;
-        var t31=m.e00*e2132_2231-m.e01*e2032_2230+m.e02*e2031_2130;
-        var t32=-m.e00*e1132_1231+m.e01*e1032_1230-m.e02*e1031_1130;
-        var t33=m.e00*e1122_1221-m.e01*e1022_1220+m.e02*e1021_1120;
-        this.e00=det*t00;
-        this.e01=det*t01;
-        this.e02=det*t02;
-        this.e03=det*t03;
-        this.e10=det*t10;
-        this.e11=det*t11;
-        this.e12=det*t12;
-        this.e13=det*t13;
-        this.e20=det*t20;
-        this.e21=det*t21;
-        this.e22=det*t22;
-        this.e23=det*t23;
-        this.e30=det*t30;
-        this.e31=det*t31;
-        this.e32=det*t32;
-        this.e33=det*t33;
+    invert: function(m){
+        var te = this.elements;
+
+        var tm = m.elements;
+        var a0 = tm[0], a3 = tm[3], a6 = tm[6];
+        var a1 = tm[1], a4 = tm[4], a7 = tm[7];
+        var a2 = tm[2], a5 = tm[5], a8 = tm[8];
+
+        var dt= a0 * (a4*a8-a7*a5) + a3 * (a7*a2-a1*a8) + a6 * (a1*a5-a4*a2);
+        if(dt!==0)dt=1/dt;
+        te[0] = dt*(a4*a8 - a5*a7);
+        te[1] = dt*(a2*a7 - a1*a8);
+        te[2] = dt*(a1*a5 - a2*a4);
+        te[3] = dt*(a5*a6 - a3*a8);
+        te[4] = dt*(a0*a8 - a2*a6);
+        te[5] = dt*(a2*a3 - a0*a5);
+        te[6] = dt*(a3*a7 - a4*a6);
+        te[7] = dt*(a1*a6 - a0*a7);
+        te[8] = dt*(a0*a4 - a1*a3);
         return this;
     },
-    lookAt:function(eyeX,eyeY,eyeZ,atX,atY,atZ,upX,upY,upZ){
-        var zx=eyeX-atX;
-        var zy=eyeY-atY;
-        var zz=eyeZ-atZ;
-        var tmp=1/Math.sqrt(zx*zx+zy*zy+zz*zz);
-        zx*=tmp;
-        zy*=tmp;
-        zz*=tmp;
-        var xx=upY*zz-upZ*zy;
-        var xy=upZ*zx-upX*zz;
-        var xz=upX*zy-upY*zx;
-        tmp=1/Math.sqrt(xx*xx+xy*xy+xz*xz);
-        xx*=tmp;
-        xy*=tmp;
-        xz*=tmp;
-        var yx=zy*xz-zz*xy;
-        var yy=zz*xx-zx*xz;
-        var yz=zx*xy-zy*xx;
-        this.e00=xx;
-        this.e01=xy;
-        this.e02=xz;
-        this.e03=-(xx*eyeX+xy*eyeY+xz*eyeZ);
-        this.e10=yx;
-        this.e11=yy;
-        this.e12=yz;
-        this.e13=-(yx*eyeX+yy*eyeY+yz*eyeZ);
-        this.e20=zx;
-        this.e21=zy;
-        this.e22=zz;
-        this.e23=-(zx*eyeX+zy*eyeY+zz*eyeZ);
-        this.e30=0;
-        this.e31=0;
-        this.e32=0;
-        this.e33=1;
+    copy: function(m){
+        var te = this.elements;
+        var tem = m.elements;
+        te[0] = tem[0]; te[1] = tem[1]; te[2] = tem[2];
+        te[3] = tem[3]; te[4] = tem[4]; te[5] = tem[5];
+        te[6] = tem[6]; te[7] = tem[7]; te[8] = tem[8];
         return this;
     },
-    perspective:function(fovY,aspect,near,far){
-        var h=1/Math.tan(fovY*0.5);
-        var fnf=far/(near-far);
-        this.e00=h/aspect;
-        this.e01=0;
-        this.e02=0;
-        this.e03=0;
-        this.e10=0;
-        this.e11=h;
-        this.e12=0;
-        this.e13=0;
-        this.e20=0;
-        this.e21=0;
-        this.e22=fnf;
-        this.e23=near*fnf;
-        this.e30=0;
-        this.e31=0;
-        this.e32=-1;
-        this.e33=0;
-        return this;
+    toEuler: function(){ // not work !!
+        function clamp( x ) {
+            return Math.min( Math.max( x, -1 ), 1 );
+        }
+        var te = this.elements;
+        var m11 = te[0], m12 = te[3], m13 = te[6];
+        var m21 = te[1], m22 = te[4], m23 = te[7];
+        var m31 = te[2], m32 = te[5], m33 = te[8];
+
+        var p = new OIMO.Vec3();
+        var d = new OIMO.Quat();
+        var s;
+
+        p.y = Math.asin( clamp( m13 ) );
+
+        if ( Math.abs( m13 ) < 0.99999 ) {
+            p.x = Math.atan2( - m23, m33 );
+            p.z = Math.atan2( - m12, m11 );
+        } else {
+            p.x = Math.atan2( m32, m22 );
+            p.z = 0;
+        }
+        
+        return p;
     },
-    ortho:function(width,height,near,far){
-        var nf=1/(near-far);
-        this.e00=2/width;
-        this.e01=0;
-        this.e02=0;
-        this.e03=0;
-        this.e10=0;
-        this.e11=2/height;
-        this.e12=0;
-        this.e13=0;
-        this.e20=0;
-        this.e21=0;
-        this.e22=nf;
-        this.e23=near*nf;
-        this.e30=0;
-        this.e31=0;
-        this.e32=0;
-        this.e33=0;
-        return this;
-    },
-    copy:function(m){
-        this.e00=m.e00;
-        this.e01=m.e01;
-        this.e02=m.e02;
-        this.e03=m.e03;
-        this.e10=m.e10;
-        this.e11=m.e11;
-        this.e12=m.e12;
-        this.e13=m.e13;
-        this.e20=m.e20;
-        this.e21=m.e21;
-        this.e22=m.e22;
-        this.e23=m.e23;
-        this.e30=m.e30;
-        this.e31=m.e31;
-        this.e32=m.e32;
-        this.e33=m.e33;
-        return this;
-    },
-    copyMat33:function(m){
-        this.e00=m.e00;
-        this.e01=m.e01;
-        this.e02=m.e02;
-        this.e03=0;
-        this.e10=m.e10;
-        this.e11=m.e11;
-        this.e12=m.e12;
-        this.e13=0;
-        this.e20=m.e20;
-        this.e21=m.e21;
-        this.e22=m.e22;
-        this.e23=0;
-        this.e30=0;
-        this.e31=0;
-        this.e32=0;
-        this.e33=1;
-        return this;
-    },
-    clone:function(){
-        return new OIMO.Mat44(
-        this.e00,this.e01,this.e02,this.e03,
-        this.e10,this.e11,this.e12,this.e13,
-        this.e20,this.e21,this.e22,this.e23,
-        this.e30,this.e31,this.e32,this.e33
+    clone: function(){
+        var te = this.elements;
+
+        return new OIMO.Mat33(
+            te[0], te[1], te[2],
+            te[3], te[4], te[5],
+            te[6], te[7], te[8]
         );
     },
-    toString:function(){
+    toString: function(){
+        var te = this.elements;
         var text=
-        "Mat44|"+this.e00.toFixed(4)+", "+this.e01.toFixed(4)+", "+this.e02.toFixed(4)+", "+this.e03.toFixed(4)+"|\n"+
-        "     |"+this.e10.toFixed(4)+", "+this.e11.toFixed(4)+", "+this.e12.toFixed(4)+", "+this.e13.toFixed(4)+"|\n"+
-        "     |"+this.e20.toFixed(4)+", "+this.e21.toFixed(4)+", "+this.e22.toFixed(4)+", "+this.e23.toFixed(4)+"|\n"+
-        "     |"+this.e30.toFixed(4)+", "+this.e31.toFixed(4)+", "+this.e32.toFixed(4)+", "+this.e33.toFixed(4)+"|\n"
-        ;
+        "Mat33|"+te[0].toFixed(4)+", "+te[1].toFixed(4)+", "+te[2].toFixed(4)+"|\n"+
+        "     |"+te[3].toFixed(4)+", "+te[4].toFixed(4)+", "+te[5].toFixed(4)+"|\n"+
+        "     |"+te[6].toFixed(4)+", "+te[7].toFixed(4)+", "+te[8].toFixed(4)+"|" ;
         return text;
     }
 };
@@ -8699,9 +8163,10 @@ OIMO.Vec3.prototype = {
         return this;
     },
     mulMat:function(m,v){
-        var x=m.e00*v.x+m.e01*v.y+m.e02*v.z;
-        var y=m.e10*v.x+m.e11*v.y+m.e12*v.z;
-        var z=m.e20*v.x+m.e21*v.y+m.e22*v.z;
+        var te = m.elements;
+        var x=te[0]*v.x+te[1]*v.y+te[2]*v.z;
+        var y=te[3]*v.x+te[4]*v.y+te[5]*v.z;
+        var z=te[6]*v.x+te[7]*v.y+te[8]*v.z;
         this.x=x;
         this.y=y;
         this.z=z;
@@ -8778,32 +8243,35 @@ OIMO.EulerToMatrix = function( x, y, z ) {// angles in radians
     var cb = Math.cos(x);//bank
     var sb = Math.sin(x);
     var mtx = new OIMO.Mat33();
-    mtx.e00 = ch * ca;
-    mtx.e01 = sh*sb - ch*sa*cb;
-    mtx.e02 = ch*sa*sb + sh*cb;
-    mtx.e10 = sa;
-    mtx.e11 = ca*cb;
-    mtx.e12 = -ca*sb;
-    mtx.e20 = -sh*ca;
-    mtx.e21 = sh*sa*cb + ch*sb;
-    mtx.e22 = -sh*sa*sb + ch*cb;
+
+    var te = mtx.elements;
+    te[0] = ch * ca;
+    te[1] = sh*sb - ch*sa*cb;
+    te[2] = ch*sa*sb + sh*cb;
+    te[3] = sa;
+    te[4] = ca*cb;
+    te[5] = -ca*sb;
+    te[6] = -sh*ca;
+    te[7] = sh*sa*cb + ch*sb;
+    te[8] = -sh*sa*sb + ch*cb;
     return mtx;
 }
 
 OIMO.MatrixToEuler = function(mtx){// angles in radians
+    var te = mtx.elements;
     var x, y, z;
-    if (mtx.e10 > 0.998) { // singularity at north pole
-        y = Math.atan2(mtx.e02,mtx.e22);
+    if (te[3] > 0.998) { // singularity at north pole
+        y = Math.atan2(te[2],te[8]);
         z = Math.PI/2;
         x = 0;
-    } else if (mtx.e10 < -0.998) { // singularity at south pole
-        y = Math.atan2(mtx.e02,mtx.e22);
+    } else if (te[3] < -0.998) { // singularity at south pole
+        y = Math.atan2(te[2],te[8]);
         z = -Math.PI/2;
         x = 0;
     } else {
-        y = Math.atan2(-mtx.e20,mtx.e00);
-        x = Math.atan2(-mtx.e12,mtx.e11);
-        z = Math.asin(mtx.e10);
+        y = Math.atan2(-te[6],te[0]);
+        x = Math.atan2(-te[5],te[4]);
+        z = Math.asin(te[3]);
     }
     return [x, y, z];
 }

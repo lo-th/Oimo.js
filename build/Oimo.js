@@ -654,6 +654,7 @@ OIMO.RigidBody.prototype = {
         this.isStatic=type==this.BODY_STATIC;
         this.mass=0;
         this.localInertia.init(0,0,0,0,0,0,0,0,0);
+        var te = this.localInertia.elements;
         //
         var tmpM=new OIMO.Mat33();
         var tmpV=new OIMO.Vec3();
@@ -669,7 +670,7 @@ OIMO.RigidBody.prototype = {
             this.mass+=shapeMass;
             this.rotateInertia(shape.relativeRotation,this.massInfo.inertia,tmpM);
             this.localInertia.addEqual(tmpM);
-            var te = this.localInertia.elements;
+            
             te[0]+=shapeMass*(relY*relY+relZ*relZ);
             te[4]+=shapeMass*(relX*relX+relZ*relZ);
             te[8]+=shapeMass*(relX*relX+relY*relY);
@@ -693,7 +694,7 @@ OIMO.RigidBody.prototype = {
             relX=tmpV.x;
             relY=tmpV.y;
             relZ=tmpV.z;
-            var te = this.localInertia.elements;
+            //var te = this.localInertia.elements;
             te[0]-=this.mass*(relY*relY+relZ*relZ);
             te[4]-=this.mass*(relX*relX+relZ*relZ);
             te[8]-=this.mass*(relX*relX+relY*relY);

@@ -14,14 +14,13 @@
 //---------------------------------------------------
 
 'use strict';
-importScripts('Oimo.rev.js');
+importScripts('../../build/Oimo.rev.js');
 importScripts('demos.js');
 
 importScripts('vehicle/ball.js');
 
 // main class
 var version = "10.REV";
-
 // physics variable
 var world;
 var dt = 1/60;
@@ -155,8 +154,7 @@ var update = function(){
 
     world.step();
 
-    var r, p, t, n;
-    var p1, p2;
+    var p1, p2, n;
     var i = bodys.length;
     var maxBody = i;
     var wakeup = false;
@@ -172,13 +170,7 @@ var update = function(){
         if( bodys[i].sleeping) sleeps[i] = 1;
         else{ 
             sleeps[i] = 0;
-            r = bodys[i].rotation;
-            p = bodys[i].position;
-            n = 12*i;
-
-            matrix[n+0]=r.e00; matrix[n+1]=r.e01; matrix[n+2]=r.e02; matrix[n+3]=(p.x*scale).toFixed(2);
-            matrix[n+4]=r.e10; matrix[n+5]=r.e11; matrix[n+6]=r.e12; matrix[n+7]=(p.y*scale).toFixed(2);
-            matrix[n+8]=r.e20; matrix[n+9]=r.e21; matrix[n+10]=r.e22; matrix[n+11]=(p.z*scale).toFixed(2);
+            matrix[i] = bodys[i].getMatrix();
         }
     }
 
@@ -188,12 +180,12 @@ var update = function(){
         p1 = joints[i].anchorPosition1;
         p2 = joints[i].anchorPosition2;
         n = 6*i;
-        jointPos[n+0] =(p1.x*scale).toFixed(2);
-        jointPos[n+1] =(p1.y*scale).toFixed(2); 
-        jointPos[n+2] =(p1.z*scale).toFixed(2); 
-        jointPos[n+3] =(p2.x*scale).toFixed(2); 
-        jointPos[n+4] =(p2.y*scale).toFixed(2); 
-        jointPos[n+5] =(p2.z*scale).toFixed(2); 
+        jointPos[n+0] = p1.x*scale;
+        jointPos[n+1] = p1.y*scale; 
+        jointPos[n+2] = p1.z*scale; 
+        jointPos[n+3] = p2.x*scale; 
+        jointPos[n+4] = p2.y*scale; 
+        jointPos[n+5] = p2.z*scale; 
     }
 
     worldInfo();
@@ -435,9 +427,10 @@ var addRigid = function (obj, OO){
         if(!notSaveSetting){
             staticTypes.push(t);
             staticSizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
-            var sr = body.rotation;
+            var sr = body.rotation.elements;
             var sp = body.position;
-            staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
+            //staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
+            staticMatrix.push([sr[0], sr[1], sr[2], (sp.x*scale).toFixed(2), sr[3], sr[4], sr[5], (sp.y*scale).toFixed(2), sr[6], sr[7], sr[8], (sp.z*scale).toFixed(2)]);
         }
     }
     body.name = name;

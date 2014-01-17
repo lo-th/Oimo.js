@@ -47,6 +47,7 @@
         	var threeEngine, TE;
         	var Interface;
         	var Editor;
+        	var tempMtx = new THREE.Matrix4();
             var OimoWorker = new Worker('js/oimo/worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -95,24 +96,20 @@
     	    	if( phase === "RUN"){
     	    		var demo = e.data.infos[0];
     	    		var max = e.data.maxB;
-    	    		var i=e.data.maxB;
+    	    		var i = max;
     	    		var m = e.data.matrix;
-        	    	var mtx, n, mesh;
+        	    	var mesh;
 
         	    	// Update rendering meshes
         	    	while (i--) {
         	    		if( TE.content.children[i] ){
             	    		mesh = TE.content.children[i];
             	    		if( e.data.sleeps[i]===0){
-            	    			n = 12*i;
-	            	    		mtx = new THREE.Matrix4(
-	            	    			m[n+0], m[n+1], m[n+2], m[n+3],
-	            	    			m[n+4], m[n+5], m[n+6], m[n+7], 
-	            	    			m[n+8], m[n+9], m[n+10], m[n+11], 
-	            	    			0, 0, 0, 1
-	            	    		);
-	            	    		mesh.position.setFromMatrixPosition( mtx )
-						    	mesh.rotation.setFromRotationMatrix( mtx );
+            	    			
+						    	tempMtx.fromArray(m[i]);
+	            	    		mesh.position.setFromMatrixPosition( tempMtx );
+						    	mesh.rotation.setFromRotationMatrix( tempMtx );
+
 						    	if(mesh.material){
 							    	if(mesh.material.name == "mat01sleep") mesh.material = TE.materials[0];
 						    		else if(mesh.material.name == "mat02sleep") mesh.material = TE.materials[1];
