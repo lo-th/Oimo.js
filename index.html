@@ -7,13 +7,14 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<link rel="shortcut icon" href="images/favicon.ico">
 		<style>
-			body { background-color: #555; margin:0; padding:0; overflow: hidden; }
+			body { background-color: #555; margin:0; padding:0; overflow: hidden; height:100%;width: 100%; }
 			@font-face { font-family: 'SourceCode'; src: url('images/SourceCodePro.woff') format('woff');}
+			
 			a { text-decoration:none; }
 		</style>
 	</head>
 	<body>
-		<script type="text/javascript" src="js/three.min.js"></script>
+		<script type="text/javascript" src="js/three.js"></script>
 		<script type="text/javascript" src="js/BufferGeometryUtils.js"></script>
 		<script type="text/javascript" src="js/tweenLite.min.js"></script>
 		<script type="text/javascript" src="js/loaders/sea3d/SEA3D.js"></script>
@@ -29,11 +30,6 @@
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
 		<script type="text/javascript" src="js/loth/Editor.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
-
-		<script type="text/javascript" src="js/materialShader/SphereShader.js"></script>
-		<script type="text/javascript" src="js/materialShader/SpShader.js"></script>
-		<script type="text/javascript" src='js/materialShader/HdrShader.js'></script>
-
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 
 		<script type="text/javascript">
@@ -47,7 +43,7 @@
         	var Ambience;
         	var Interface;
         	var Editor;
-        	var tempMtx = new THREE.Matrix4();
+        	
             var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -64,7 +60,7 @@
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
 				Interface.menu.appendChild( Editor.domElement );
-				threeEngine.init({optimized:false, notReflected:false});
+				threeEngine.init();
 				TE = threeEngine;
             }
 
@@ -96,30 +92,22 @@
 				// update three object
     	    	if( phase === "RUN"){
     	    		var demo = e.data.infos[0];
-    	    		//var i=0;
-    	    		var max = e.data.matrix.length;//e.data.maxB;
+    	    		var max = e.data.maxBody;
     	    		var i = max;
     	    		var m = e.data.matrix;
-        	    	//var mtx, n, 
+        	    	var mtx = new THREE.Matrix4();
         	    	var mesh;
 
         	    	// Update rendering meshes
-        	    	//for(i=0; i!==max; i++){
         	    	while (i--) {
         	    		if( threeEngine.content.children[i] ){
             	    		mesh = threeEngine.content.children[i];
             	    		if( e.data.sleeps[i]===0){
-            	    			/*n = 12*i;
-	            	    		mtx = new THREE.Matrix4(
-	            	    			m[n+0], m[n+1], m[n+2], m[n+3],
-	            	    			m[n+4], m[n+5], m[n+6], m[n+7], 
-	            	    			m[n+8], m[n+9], m[n+10], m[n+11], 
-	            	    			0, 0, 0, 1
-	            	    		);*/
-                                tempMtx.fromArray(m[i]);
 
-	            	    		mesh.position.setFromMatrixPosition( tempMtx )
-						    	mesh.rotation.setFromRotationMatrix( tempMtx );
+                                mtx.fromArray( m[i] );
+	            	    		mesh.position.setFromMatrixPosition( mtx )
+						    	mesh.rotation.setFromRotationMatrix( mtx );
+
 						    	if(mesh.material){
 							    	if(mesh.material.name == "mat01sleep") mesh.material = threeEngine.materials[0];
 						    		else if(mesh.material.name == "mat02sleep") mesh.material = threeEngine.materials[1];

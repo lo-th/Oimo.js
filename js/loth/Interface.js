@@ -16,16 +16,33 @@ var Interface = function (name) {
     //  TITLE
     //-----------------------------------------------------
 
-    var titleLogo = document.createElement( 'div' );
-	titleLogo.style.cssText = 'position:absolute; top:5px; left:5px; width:36x; height:48px;';
-	titleLogo.innerHTML ="<img id='logo' src='images/logo36.png'/>";
+    var titleLogo = document.createElement( 'svg' );
+	titleLogo.style.cssText = 'position:absolute; top:5px; left:5px; width:48x; height:48px;';
+	//var ll = document.createElement( 'img' );
+	//titleLogo.innerHTML ="<img id='logo' src='images/logo36.png'/>";
+	
+	//titleLogo.innerHTML ="<img id='logo' src='images/logo_b.svg' style='width:48px; height:48px;'/>"
+
+	var logos ="<svg version='1.1' id='oimo' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'"
+	logos +="width='48px' height='48px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'>"
+    logos +="<path fill='none' stroke='#FFFFFF' stroke-width='40' stroke-miterlimit='10' d='M310.215,82.307"
+	logos +="c-40.867-12.279-86.859-5.284-105.407,6.843c-45.29,29.612-34.695,57.513-63.106,107.836"
+	logos +="c-28.035,49.658-46.876,76.344-40.464,124.752c6.61,49.901,24.723,98.776,121.386,116.684s145.224-25.592,159.089-65.439"
+	logos +="c17.737-50.974-1.591-91.972-6.908-134.5c-4.861-38.877,17.96-77.561-3.27-112.521C350.714,91.678,310.215,82.307,310.215,82.307z'/>"
+    logos +="<circle fill='#FFFFFF' stroke='none' cx='245.424' cy='153.905' r='16'/>"
+    logos +="<circle fill='#FFFFFF' stroke='none' cx='302.593' cy='168.211' r='10'/>"
+    logos +="</svg>"
+
+    titleLogo.innerHTML = logos
 
 	var title = document.createElement( 'div' );
-	title.style.cssText = 'position:absolute; color:#CCCCCC; top:8px; left:50px; text-align:left; font-size:22px; pointer-events:none;';
+	title.style.cssText = 'position:absolute; color:#FFFFFF; top:12px; left:60px; text-align:left; font-weight:bold; font-size:22px; pointer-events:none;';
 	title.innerHTML ="Oimo.js";
 
+
+
 	var titleLink = document.createElement( 'div' );
-	titleLink.style.cssText = 'position:absolute; color:#CCCCCC; top:16px; left:170px; text-align:left; pointer-events:auto; font-size:14px;';
+	titleLink.style.cssText = 'position:absolute; color:#CCCCCC; top:20px; left:170px; text-align:left; pointer-events:auto; font-size:14px;';
 
 	var linkStyle = "color:#dbae77; cursor:pointer;";
 	var sep = " . ";
@@ -34,14 +51,14 @@ var Interface = function (name) {
 	if(name==='dev') txt +="DEV";
 	else txt += "<a href='index.html' target='_self' style='"+linkStyle+"'>DEV</a>";
 	txt += sep;
-	if(name==='devlow') txt +="DEV-low";
+	/*if(name==='devlow') txt +="DEV-low";
 	else txt += "<a href='index_low.html' target='_self' style='"+linkStyle+"'>DEV-low</a>";
-	txt += sep;
+	txt += sep;*/
 	if(name==='rev') txt +="REV";
 	else txt += "<a href='index_rev.html' target='_self' style='"+linkStyle+"'>REV</a>";
-	txt += sep;
+	/*txt += sep;
 	if(name==='revlow')txt +="REV-low";
-	else txt += "<a href='index_rev_low.html' target='_self' style='"+linkStyle+"'>REV-low</a>";
+	else txt += "<a href='index_rev_low.html' target='_self' style='"+linkStyle+"'>REV-low</a>";*/
 	
 	titleLink.innerHTML = txt;
 
@@ -104,25 +121,29 @@ var Interface = function (name) {
     //  MENU DEMO
     //-----------------------------------------------------
 
-    /*var bMenu = document.createElement( 'div' );
-	bMenu.style.cssText = 'right:10px; top:20px;  position:absolute; width:40px; display:block; text-align:center; ';
+    var bMenu = document.createElement( 'div' );
+	bMenu.style.cssText = 'right:10px; top:160px;  position:absolute; width:40px; display:block; text-align:center; ';
 	container.appendChild( bMenu );
 
 	var bbMenu = [];
 
 	for(var i=0;i!==3;i++){
 		bbMenu[i] = document.createElement( 'div' );
-		bbMenu[i].style.cssText = buttonStyle + " height:30px; margin-bottom:6px;";
+		bbMenu[i].style.cssText = buttonStyle + " height:40px; margin-bottom:6px;";
 		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
 		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
 		bMenu.appendChild( bbMenu[i] );
 	}
 
-	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.debug(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[0].innerHTML = "M";
+	bbMenu[1].innerHTML = "R";
+	bbMenu[2].innerHTML = "S";
+
+	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.changeMaterialType(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	*/
+	
 
 	/*bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('delete'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('drag'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );

@@ -1,4 +1,4 @@
-<img src="http://lo-th.github.io/Oimo.js/images/logo64.png"/>  Oimo.js 
+<img src="http://lo-th.github.io/Oimo.js/images/logo.svg"/>  Oimo.js 
 =========
 
 Oimo.js is the lightest 3d physics engine for javascript.
@@ -10,13 +10,6 @@ Demo with three.js and worker:
 [oimo.js dev](http://lo-th.github.io/Oimo.js/index.html)
 
 [oimo.js rev](http://lo-th.github.io/Oimo.js/index_rev.html)
-
-Demo for lower gpu:
-
-[oimo.js dev low](http://lo-th.github.io/Oimo.js/index_low.html)
-
-[oimo.js rev low](http://lo-th.github.io/Oimo.js/index_rev_low.html)
-
 
 Basic demo no worker
 

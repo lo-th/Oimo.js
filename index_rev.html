@@ -30,10 +30,6 @@
 		<script type="text/javascript" src="js/loth/Editor.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
 
-		<script type="text/javascript" src="js/materialShader/SphereShader.js"></script>
-		<script type="text/javascript" src="js/materialShader/SpShader.js"></script>
-		<script type="text/javascript" src='js/materialShader/HdrShader.js'></script>
-
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 		
 		<script type="text/javascript">
@@ -47,7 +43,6 @@
         	var threeEngine, TE;
         	var Interface;
         	var Editor;
-        	var tempMtx = new THREE.Matrix4();
             var OimoWorker = new Worker('js/oimo/worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -63,7 +58,7 @@
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
 				Interface.menu.appendChild( Editor.domElement );
-				threeEngine.init({optimized:false, notReflected:false});
+				threeEngine.init();
 				TE = threeEngine;
             }
 
@@ -98,6 +93,7 @@
     	    		var max = e.data.maxB;
     	    		var i = max;
     	    		var m = e.data.matrix;
+    	    		var mtx = new THREE.Matrix4();
         	    	var mesh;
 
         	    	// Update rendering meshes
@@ -106,9 +102,9 @@
             	    		mesh = TE.content.children[i];
             	    		if( e.data.sleeps[i]===0){
 
-            	    			tempMtx.fromArray(m[i]);
-	            	    		mesh.position.setFromMatrixPosition( tempMtx );
-						    	mesh.rotation.setFromRotationMatrix( tempMtx );
+            	    			mtx.fromArray( m[i] );
+	            	    		mesh.position.setFromMatrixPosition( mtx );
+						    	mesh.rotation.setFromRotationMatrix( mtx );
 
 						    	if(mesh.material){
 							    	if(mesh.material.name == "mat01sleep") mesh.material = TE.materials[0];

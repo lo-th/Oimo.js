@@ -23,7 +23,7 @@ var ThreeEngine = function () {
 	// containe all material reference
 	var materials = [];
 
-	var renderer, scene, sceneSky, camera, cameraSky, sky, materialSky, renderLoop, control;
+	var renderer, scene, sceneBG, camera, cameraBG, renderLoop, control;
 
 	var vsize = { x:0, y:0, z:0};
 	var vmid = { x:1, y:1, mode:'no' };
@@ -58,7 +58,7 @@ var ThreeEngine = function () {
 
 	var container = document.createElement( 'div' );
 	container.id = 'container';
-	container.style.cssText = unselect + 'padding:0; position:absolute; left:0; top:0; bottom:0; overflow:hidden;';
+	container.style.cssText = unselect + ' padding:0; position:absolute; left:0; top:0; bottom:0; overflow:hidden;';
 
 	var selectedCenter = new THREE.Vector3(0,150,0);
 	var selected = null;
@@ -69,59 +69,41 @@ var ThreeEngine = function () {
 
 	var isBuffered = false;
 	var isDebug = true;
-
-	var materialType=0;
 	var isShadow = false;
-	var isReflect = true;
-	
-
-	var planeBG = null;
-
-
-
 	var isOptimized;
+	var isNotReflected;
 
 	var mouseMode = '';
 	var backPlane;
-
-
-	var debugColor = 0x282929;
-	var debugColor2 = 0x288829;
-	var debugAlpha = 0.3;
-	var jointColor = 0x30ff30;
-
+	var debugColor = 0x606060;
 
 	//-----------------------------------------------------
 	//  INIT VIEW
 	//-----------------------------------------------------
 
-	var init = function () {
+	var init = function (option) {
 
-		// for my local test on windows explorer
+		if(!option) option = {};
+		isOptimized = option.optimized || false;
+		isNotReflected = option.notReflected || false;
+		if(!isOptimized) antialias = true;
+		else antialias = false;
+
+		// for my local test on windows 
 		if(browserName==="Firefox" || browserName==="Chrome") PATH = '';
 
-		renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false, clearColor: 0x000000, clearAlpha: 0 });
-		renderer.autoClearColor = false;
+		renderer = new THREE.WebGLRenderer({ antialias:antialias, alpha: false });
+		//
+		//renderer.autoClearColor = false;
+		//renderer.clearStencil = false;
 		
 		container.appendChild( renderer.domElement );
 
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
-		scene.add(camera);
-
-		sceneSky = new THREE.Scene();
-		cameraSky = new THREE.PerspectiveCamera( 60, 1, 1, 999999 );
-		sceneSky.add(cameraSky);
-
-		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , side:THREE.BackSide, depthWrite: false} );
-		sky = new THREE.Mesh(new THREE.IcosahedronGeometry(20000,1), materialSky);
-		//sky = new THREE.Mesh(new THREE.SphereGeometry(20000), materialSky);
 		
-		sceneSky.add(sky);
-		
-
         scene.add(back);
-		
+		scene.add(camera);
 		scene.add(content);
 		scene.add(contentPlus);
 		scene.add(contentDebug);
@@ -135,21 +117,39 @@ var ThreeEngine = function () {
 		marker = new THREE.Mesh(new THREE.SphereGeometry(6), markerMaterial);
 		scene.add(marker);
 
-		initLights();
-
-		MaxAnistropy = renderer.getMaxAnisotropy();
-		if(isReflect) initReflectBall();
+		if(!isNotReflected) initReflectBall();
 		initMaterial();
 
-		groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending:THREE.MultiplyBlending} );
-		planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMaterial );
-		planeBG.rotation.x = -90*ToRad;
-		planeBG.position.y = 0.01;
-		planeBG.receiveShadow = true;
-		back.add(planeBG);
-		planeBG.name = 'ground';
-		planeBG.visible = false;
+		if(!isOptimized){
+			MaxAnistropy = renderer.getMaxAnisotropy();
+			//renderer.physicallyBasedShading = true;
+			//renderer.gammaOutput = true;
+			//renderer.gammaInput = true;
+			//renderer.autoClear = false;
+			//sceneBG = new THREE.Scene();
+			//cameraBG = new THREE.PerspectiveCamera( 60, 1, 1, 30000 );
+			//sceneBG.add(cameraBG);
 
+		    renderer.shadowMapEnabled = true;
+		    //renderer.shadowMapType = THREE.PCFSoftShadowMap;
+		    //renderer.shadowMapSoft = true;
+
+		    isShadow = true;
+
+			initLights();
+			initObject();
+		}else {
+			//addShereBackgroud();
+			addGroundShadow();
+			MaxAnistropy = 1;
+			//initBackPlane();
+
+			/*renderer.autoClear = false;
+			renderer.autoClearColor = false;
+			renderer.autoClearDepth = false;
+			renderer.autoClearStencil = false;*/
+			renderer.setClearColor( 0x555555);
+		}
 
 		initSea3DMesh();
 		moveCamera();
@@ -161,7 +161,7 @@ var ThreeEngine = function () {
 	    update();
 	}
 
-	/*var initBackPlane = function () {
+	var initBackPlane = function () {
 		var backMat = new THREE.MeshBasicMaterial( { color: 0x905050, wireframe:true} );
 		backPlane = new THREE.Mesh( new THREE.PlaneGeometry( 2000,2000, 4, 4 ), backMat );
 		backPlane.receiveShadow = true;
@@ -174,7 +174,7 @@ var ThreeEngine = function () {
 			backPlane.position.copy(selectedCenter);
 			backPlane.rotation.y = -camPos.theta-(90*ToRad);
 		}
-	}*/
+	}
 
 	var initListener = function () {
 		container.addEventListener( 'mousemove', onMouseMove, false );
@@ -197,30 +197,6 @@ var ThreeEngine = function () {
 		viewResize();
 	}
 
-	var basicSky = function (n){
-
-        var canvas = document.createElement( 'canvas' );
-        canvas.width = canvas.height = 128;
-        var ctx = canvas.getContext( '2d' );
-        var colors = [];
-        colors[0] = "#636666";
-        colors[1] = "#545757"
-        colors[2] = "#414343";
-        colors[3] = "#282929";
-        var grd=ctx.createLinearGradient(0,0,0,128);
-        grd.addColorStop(0.1,colors[0]);
-        grd.addColorStop(0.3,colors[1]);
-        grd.addColorStop(0.7,colors[2]);
-        grd.addColorStop(0.9,colors[3]);
-        
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, 128, 128);
-
-        var tx = new THREE.Texture(canvas);
-        tx.needsUpdate = true;
-        return tx;
-    }
-
 	//-----------------------------------------------------
 	//  MESH CONTROL TEST
 	//-----------------------------------------------------
@@ -240,13 +216,13 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 	
 	var reflection = function(){
-		if(!isReflect){
-			isReflect = true;
+		if(isNotReflected){
+			isNotReflected = false;
 			initReflectBall();
 			updateBallCamera();
 			activReflection();
 		} else {
-			isReflect = false;
+			isNotReflected = true;
 			removeReflection();
 			if(ballCamera){
 				ballScene.remove( ballCamera );
@@ -254,13 +230,6 @@ var ThreeEngine = function () {
 				//ballScene = null;
 			}
 		}
-		/*var i=materials.length;//content.children.length;
-		while (i--) {
-			//content.children[ i ].material.needsUpdate = true;
-			materials[ i ].needsUpdate = true;
-		}*/
-
-
 	}
 
 	var debug = function(){
@@ -273,46 +242,16 @@ var ThreeEngine = function () {
 	var shadow = function(){
 		if(isShadow){
 			isShadow = false;
+			removeLights();
+			removeGroundShadow();
 		}else{ 
 			isShadow = true;
+			initLights();
+			addGroundShadow();
+			renderer.shadowMapType = THREE.PCFSoftShadowMap;
 		}
-
 		renderer.shadowMapEnabled = isShadow;
-		lights[1].castShadow = isShadow;
-		planeBG.visible = isShadow;
-		planeBG.material.needsUpdate = true;
-
-		var i=materials.length;
-		while (i--) {
-			materials[ i ].needsUpdate = true;
-		}
-
-		
-
-		//renderer.shadowMapEnabled = isShadow;
-		//renderer.shadowMapSoft = isShadow;
-	}
-
-	var changeMaterialType = function(){
-		materialType++;
-		if(materialType==3)materialType=0;
-
-		baseMaterial();
-
-		var i=materials.length;
-		while (i--) {
-			materials[ i ].needsUpdate = true;
-		}
-		i=content.children.length;
-		var name;
-		while (i--) {
-			name = content.children[ i ].material.name;
-			content.children[ i ].material = getMaterial(name);
-			content.children[ i ].material.needsUpdate = true;
-		}
-		if(isReflect){
-			activReflection();
-		}
+		renderer.shadowMapSoft = isShadow;
 	}
 
 	//-----------------------------------------------------
@@ -332,8 +271,8 @@ var ThreeEngine = function () {
 
 		ballMaterial = new THREE.MeshBasicMaterial({  });
 		ball = new THREE.Mesh( new THREE.SphereGeometry( 1, 20, 12  ),  ballMaterial);
-		//ball.castShadow = false;
-		//ball.receiveShadow = false;
+		ball.castShadow = false;
+		ball.receiveShadow = false;
 		ball.scale.set(-s,s,s);
 		ballScene.add( ball );
 
@@ -345,23 +284,26 @@ var ThreeEngine = function () {
 			ballMaterial.map = Ambience.getTexture();
 			ballMaterial.map.anisotropy = MaxAnistropy;
 			ballMaterial.map.needsUpdate = true;
-			//if(!isOptimized)renderer.shadowMapEnabled = false;
+			if(!isOptimized)renderer.shadowMapEnabled = false;
 			ballCamera.updateCubeMap( renderer, ballScene );
-			//if(!isOptimized)renderer.shadowMapEnabled = true;
+			if(!isOptimized)renderer.shadowMapEnabled = true;
 		}
 	}
 
 	var activReflection = function (){ 
 		envtexture = ballCamera.renderTarget;
 		var i = materials.length;
+		//var m='';
+		//for(var i=0; i!==materials.length; i++){
 		while (i--) {
 			materials[i].envMap = envtexture;
 			materials[i].combine = THREE.MixOperation;
 			//materials[i].combine = THREE.MultiplyOperation;
 			materials[i].reflectivity = 0.5;
-			materials[i].refractionRatio = 0.98;
-			materials[i].needsUpdate = true;
+			//materials[i].envMap.needsUpdate = true;
+			//m += materials[i].name + "<br>";
 		}
+		//document.getElementById("output").innerHTML = m;
 	}
 
 	var removeReflection = function (){
@@ -372,7 +314,6 @@ var ThreeEngine = function () {
 			materials[i].combine = null;
 			//materials[i].combine = THREE.MultiplyOperation;
 			materials[i].reflectivity = 0;
-			materials[i].needsUpdate = true;
 		}
 	}
 
@@ -380,75 +321,122 @@ var ThreeEngine = function () {
 	//  MATERIAL
 	//-----------------------------------------------------
 
+	//var groundMat; 
 	var debugMaterial, jointMaterial;
+
+	//var baseMaterialm baseMaterial2;
 	var envTexture;
-	var groundMaterial;
+	var sphereMaterial, groundMaterial;
+	var renderNoise=.04,nRenderNoise=.04;
+	//var droidTexture;
 
-	
-
-	var textures = [];
+	var setNoise = function (n){
+		//baseMaterial.uniforms.noise.value=baseMaterial2.uniforms.noise.value=
+		sphereMaterial.uniforms.noise.value=n;
+	}
 
 	var initMaterial = function () {
 
-		textures[0] = new createDiceTexture(0);
-		textures[1] = new createDiceTexture(1);
-		textures[2] = new createSnakeTexture();
-		textures[3] = new createWheelTexture(0);
-		textures[4] = new createGyroTexture();
-		textures[5] = new createDroidTexture();
-// 
-		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:debugAlpha} );
-		jointMaterial = new THREE.LineBasicMaterial( { color: jointColor } );
-		
-		baseMaterial();
+		// SHADER
+		if(!isOptimized){
+			//groundMaterial = new THREE.MeshBasicMaterial( { color: 0x505050 } );
+		    groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
+		    //sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x6f6f6f, side:THREE.BackSide, depthWrite: false} );
+			sphereMaterial = new THREE.ShaderMaterial({
+				uniforms:THREE.SpShader.uniforms,
+				vertexShader:THREE.SpShader.vertexShader,
+				fragmentShader:THREE.SpShader.fragmentShader,
+				side:THREE.BackSide,
+				depthWrite: false
+			});
+			sphereMaterial.uniforms.resolution.value.set(vsize.x,vsize.y);
+		}else{
+			groundMaterial = new THREE.MeshBasicMaterial( { color: 0x555555 } );
+			sphereMaterial = new THREE.MeshBasicMaterial( { color: 0x555555, side:THREE.BackSide, depthWrite: false} );
+		}
 
-		if(isReflect){
+		/*baseMaterial=new THREE.ShaderMaterial({
+			uniforms: THREE.SphereShader.uniforms,
+			vertexShader: THREE.SphereShader.vertexShader,
+			fragmentShader: THREE.SphereShader.fragmentShader,
+			wrapping:THREE.ClampToEdgeWrapping,
+			shading:THREE.SmoothShading
+		});
+		baseMaterial.uniforms.tMatCap.value = envTexture;
+		baseMaterial.uniforms.tMatCap.value.wrapS=baseMaterial.uniforms.tMatCap.value.wrapT=THREE.ClampToEdgeWrapping;
+		//baseMaterial.uniforms.tNormal.value.wrapS=baseMaterial.uniforms.tNormal.value.wrapT=THREE.RepeatWrapping;
+
+		baseMaterial2=new THREE.ShaderMaterial({
+			uniforms: THREE.SphereShader.uniforms,
+			vertexShader: THREE.SphereShader.vertexShader,
+			fragmentShader: THREE.SphereShader.fragmentShader,
+			wrapping:THREE.ClampToEdgeWrapping,
+			shading:THREE.SmoothShading
+		});
+		baseMaterial2.uniforms.tMatCap.value = envTexture;
+		baseMaterial2.uniforms.tMatCap.value.wrapS=baseMaterial2.uniforms.tMatCap.value.wrapT=THREE.ClampToEdgeWrapping;
+		//baseMaterial.uniforms.tNormal.value.wrapS=baseMaterial.uniforms.tNormal.value.wrapT=THREE.RepeatWrapping;
+		baseMaterial2.uniforms.useRim.value = 10/100;
+		baseMaterial2.uniforms.rimPower.value = 1/20;
+		*/
+
+		// from AutoTexture
+		var snakeTexture = createSnakeTexture();
+		var diceTexture = new createDiceTexture(0);
+		var diceTextureSleep = new createDiceTexture(1);
+		var wheelTexture = new createWheelTexture(0);
+		var gyroTexture = new createGyroTexture();//THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg'  );
+		var droidTexture = new createDroidTexture();
+// 
+		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, ambient:0x000000, specular:0x000000,  transparent:true, opacity:0.5} );// ,depthWrite: false } );//, transparent:true, opacity:0.5 
+		//, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+		jointMaterial = new THREE.LineBasicMaterial( { color: 0x30ff30 } );
+		//glassMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff,  refractionRatio: 0.98, transparent:true, opacity:0.2 } );
+		//groundMat = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending: THREE.MultiplyBlending} );
+
+		//---------------------------------------------
+
+		makeMaterial( { color: 0xff9933, name:'mat01' } );//0
+		makeMaterial( { color: 0x3399ff, name:'mat02'} );//1
+		makeMaterial( { color: 0x33ff99, name:'mat03' } );//2
+		makeMaterial( { map: diceTexture, name:'mat04' } );//3
+		makeMaterial( { map: snakeTexture, skinning: true, transparent:true, opacity:0.9, name:'mat05' } ); //4
+		makeMaterial( { map: wheelTexture, name:'mat06' } );//5
+		makeMaterial( { color: 0x7C7B77, name:'mat07' } );//6
+		makeMaterial( { color: 0xe7b37a, skinning: true, transparent:true, opacity:0.5, name:'mat08' } );
+		makeMaterial( { color: 0xffd9b2, name:'mat01sleep' } );//8
+		makeMaterial( { color: 0xb2d9ff, name:'mat02sleep' } );//9
+		makeMaterial( { color: 0xb2ffd9, name:'mat03sleep' } );//10
+		makeMaterial( { map: diceTextureSleep, name:'mat04sleep' } );//11
+		makeMaterial( { color: 0xAEABA6, name:'mat07sleep' } );//12
+		makeMaterial( { map: gyroTexture, name:'matGyro' } );//13
+		makeMaterial( { map: droidTexture, skinning: true, name:'matDroid' } );//14
+
+		//makeMaterial( { color: 0xffff00, shininess:100, specular:0xffffff, transparent:true, opacity:0.4, name:'matBone' } ); 
+		//makeMaterial( { color: 0xffffff, shininess:100, specular:0xffffff, transparent:true, opacity:0.4, name:'matBonesleep' } );  
+		for(var i=0;i!==16;i++){
+			makeMaterial( { map: new eightBall(i), shininess:60, specular:0xffffff, name:'pool'+i } );
+		}
+
+		if(!isNotReflected){
 			activReflection();
 			updateBallCamera();
-		}
-	}
-
-	var baseMaterial = function (){
-		makeMaterial( { n:0, color: 0xff9933, name:'mat01' } );//0
-		makeMaterial( { n:1, color: 0x3399ff, name:'mat02'} );//1
-		makeMaterial( { n:2, color: 0x33ff99, name:'mat03' } );//2
-		makeMaterial( { n:3, map: textures[0], name:'mat04' } );//3
-		makeMaterial( { n:4, map: textures[2], skinning: true, transparent:true, opacity:0.9, name:'mat05' } ); //4
-		makeMaterial( { n:5, map: textures[3], name:'mat06' } );//5
-		makeMaterial( { n:6, color: 0x7C7B77, name:'mat07' } );//6
-		makeMaterial( { n:7, color: 0xe7b37a, skinning: true, transparent:true, opacity:0.5, name:'mat08' } );
-		makeMaterial( { n:8, color: 0xffd9b2, name:'mat01sleep' } );//8
-		makeMaterial( { n:9, color: 0xb2d9ff, name:'mat02sleep' } );//9
-		makeMaterial( { n:10, color: 0xb2ffd9, name:'mat03sleep' } );//10
-		makeMaterial( { n:11, map: textures[1], name:'mat04sleep' } );//11
-		makeMaterial( { n:12, color: 0xAEABA6, name:'mat07sleep' } );//12
-		makeMaterial( { n:13, map: textures[4], name:'matGyro' } );//13
-		makeMaterial( { n:14, map: textures[5], skinning: true, name:'matDroid' } );//14
-
-		for(var i=0; i!==16; i++){
-			makeMaterial( { n:15+i, map: new eightBall(i), shininess:60, specular:0xffffff, name:'pool'+i } );
-		}
+		} 
 	}
 
 	var makeMaterial = function (obj){
 		var mat;
-		switch(materialType){
-			case 0:
-			    mat = new THREE.MeshBasicMaterial( obj );
-			break;
-			case 1:
-				obj.shininess = 100;
-				obj.specular = 0xffffff;
-			    mat = new THREE.MeshLambertMaterial( obj );
-			break;
-			case 2:
-			    obj.shininess = 100;
-				obj.specular = 0xffffff;
-			    mat = new THREE.MeshPhongMaterial( obj );
-			break;
+		//obj.ambient = 0x909090;
+		//obj.emissive = 0x000000;
+		
+		if(isOptimized) mat = new THREE.MeshBasicMaterial( obj );
+		else{
+			obj.shininess = 100;
+			obj.specular = 0xffffff;
+			mat = new THREE.MeshLambertMaterial( obj );
 		}
-
-		materials[obj.n] = mat;
+		// mat = new THREE.MeshPhongMaterial( obj );
+		materials.push(mat);
 	}
 
 	var getMaterial = function (name){
@@ -568,8 +556,6 @@ var ThreeEngine = function () {
 	    }
 	}
 
-	//var staticColor = 
-
 	var addStaticObjects = function (type, s){
 		var mesh;
 		var helper, helper2;
@@ -582,8 +568,6 @@ var ThreeEngine = function () {
 		        //mesh=new THREE.Mesh(new THREE.CubeGeometry( s[0], s[1], s[2] ), debugMaterial);
                 helper = new THREE.BoxHelper(mesh);
                 helper.material.color.set( debugColor );
-                helper.material.opacity = debugAlpha;
-                helper.material.transparent = true;
 		        mesh.add( helper );
 		    break; // box
 		    case 22: case 'ground': 
@@ -593,15 +577,11 @@ var ThreeEngine = function () {
 		        //mesh=new THREE.Mesh(new THREE.CubeGeometry( s[0], s[1], s[2] ), debugMaterial);
                 helper = new THREE.BoxHelper(mesh);
                 helper.material.color.setHex( debugColor );
-                helper.material.opacity = debugAlpha;
-                helper.material.transparent = true;
                 //helper.material.fog = false;;
                 mesh.add( helper );
 		        
 		        helper2 = new THREE.GridHelper( 0.5, 0.0625 );
-				helper2.setColors( debugColor2, debugColor );
-				helper2.material.opacity = debugAlpha;
-                helper2.material.transparent = true;
+				helper2.setColors( 0x608060, debugColor );
 				helper2.position.y = 0.5;
 				mesh.add( helper2 );
 		    break; // box
@@ -785,7 +765,6 @@ var ThreeEngine = function () {
 		}*/
 
 		//lightsAnimation(0.5, 0, 180, 90, 0);
-		planeBG.position.set(0, 0.01, 0);
 	}
 
 	var addSnake = function (s) {
@@ -903,14 +882,13 @@ var ThreeEngine = function () {
 	var lights = [];
 
 	var initLights = function () {
-		lights[0] = new THREE.AmbientLight( 0x555557 );
+		lights[0] = new THREE.AmbientLight( 0x505050 );
 		scene.add(lights[0]);
-
-
 
 		//if(isOptimized) return
 
-		lights[1] = new THREE.DirectionalLight( 0xffffff, 1.3 );
+		lights[1] = new THREE.DirectionalLight( 0xffffff );
+		lights[1].intensity = 1.3;
 		lights[1].castShadow = true;
 
 		lights[1].shadowCameraNear = 500;
@@ -935,7 +913,7 @@ var ThreeEngine = function () {
 	}
 
 	var removeLights = function () {
-		//lights[1].castShadow = false;
+		lights[1].castShadow = false;
 		scene.remove(lights[1]);
 		scene.remove(lights[0]);
 		lights.length = 0;
@@ -947,6 +925,57 @@ var ThreeEngine = function () {
 			lights[1].target.position.copy(center);
 			//lights[1].position.copy( Orbit(center , 35, 45, -1000));
 	    }
+	}
+
+	//-----------------------------------------------------
+	//  BG OBJECT
+	//-----------------------------------------------------
+
+	var planeBG = null, sphereBG = null;
+
+	var initObject = function () {
+		addGroundShadow();
+		addShereBackgroud();
+	}
+
+	var addGroundShadow = function () {
+		planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMaterial );
+		planeBG.rotation.x = (-90)*ToRad;
+		planeBG.position.y =0.01;
+		if(!isOptimized) planeBG.receiveShadow = true;
+		else{ 
+			planeBG.receiveShadow = false;
+			planeBG.visible = false;
+		}
+		planeBG.castShadow = false;
+		back.add(planeBG);
+		planeBG.name = 'ground';
+		
+	}
+
+	var removeGroundShadow = function () {
+		back.remove(planeBG);
+		planeBG.geometry.dispose();
+		planeBG.material.dispose();
+		planeBG = null;
+	}
+
+	var addShereBackgroud = function () {
+		sphereBG = new THREE.Mesh(new THREE.IcosahedronGeometry(16000,1),sphereMaterial);
+		back.add(sphereBG);
+		sphereBG.receiveShadow = false;
+		sphereBG.castShadow = false;
+		sphereBG.name = 'background';
+	}
+
+	var moveBgObject = function (){
+		if(planeBG!==null)planeBG.position.set(center.x, 0, center.z);
+		if(sphereBG!==null)sphereBG.position.copy(center);
+	}
+
+	var resetBgObject = function (){
+		if(planeBG!==null)planeBG.position.set(0, 0, 0);
+		if(sphereBG!==null)sphereBG.position.set(0, 0, 0);
 	}
 
 	//-----------------------------------------------------
@@ -1147,6 +1176,11 @@ var ThreeEngine = function () {
 		looker.rotation.y = -dir+(90*ToRad);*/
 
 
+		if(!isOptimized){
+			//renderNoise+=(nRenderNoise-renderNoise)*.2;
+			//setNoise(renderNoise);
+		}
+
 		//updateBackPlane();
 
 		/*
@@ -1156,7 +1190,7 @@ var ThreeEngine = function () {
 		*/
 
 		//renderer.clear();
-		renderer.render( sceneSky, cameraSky );
+		
 		renderer.render( scene, camera );
 
 		time = Date.now();
@@ -1351,8 +1385,6 @@ var ThreeEngine = function () {
 		for(var i=0; i!== content.children.length; i++){
 			content.children[i].name = i;
 		}
-
-
 	}
 
 	//-----------------------------------------------------
@@ -1452,11 +1484,6 @@ var ThreeEngine = function () {
 	var moveCamera = function () {
 		camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 		camera.lookAt(center);
-
-		cameraSky.position.copy(camera.position);
-		cameraSky.lookAt(center);
-
-		//planeBG.position.set(center.x, 0, center.z);
 	}
 
 	var endMove = function () {
@@ -1472,7 +1499,7 @@ var ThreeEngine = function () {
 		center.copy(vec);
 		moveLights();
 		moveCamera();
-		planeBG.position.set(center.x, 0, center.z);
+		moveBgObject();
 	}
 
 	var switchView = function () {
@@ -1491,9 +1518,11 @@ var ThreeEngine = function () {
 		vsize.z = vsize.x/vsize.y;
 		camera.aspect = vsize.z;
 		camera.updateProjectionMatrix();
-		cameraSky.aspect = vsize.z;
-		cameraSky.updateProjectionMatrix();
 		renderer.setSize( vsize.x, vsize.y );
+
+		if(!isOptimized){
+			if(sphereMaterial)sphereMaterial.uniforms.resolution.value.set(vsize.x, vsize.y);
+		}
 	}
 
 	var viewDivid = function () {
@@ -1583,7 +1612,6 @@ var ThreeEngine = function () {
 		reflection:reflection,
 		debug:debug,
 		shadow:shadow,
-		changeMaterialType:changeMaterialType,
 
 		setMouseMode: function (name) {
 			mouseMode = name;
