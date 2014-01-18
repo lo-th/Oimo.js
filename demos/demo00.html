@@ -1,9 +1,12 @@
 <meta charset="utf-8">
 <script>
 function CLEAR(o){};
-CLEAR({ground:true});
+CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
 // BASIC
 function initDemo(){
+    // ground
+    ADD({type:"ground", size:[2000,300,2000], pos:[0,-150,0]});
+
     var px, pz, t, n;
     var sx, sy, sz;
 

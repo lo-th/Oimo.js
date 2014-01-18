@@ -12,11 +12,8 @@ var Editor = function (Pos) {
 	var open = false;
 
     var container = document.createElement( 'div' );
-	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode; text-align:center; pointer-events:none; display:none';
+	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode;  pointer-events:none; display:none';
 	container.id = 'Editor';
-
-var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
-var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 
 	var show = function(mode){
 		if(mode === 'v'){
@@ -95,6 +92,9 @@ var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3);
 	}*/
    // addEditor();
 
+	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
+	var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(255,255,255,0.3); background:rgba(55,123,167,0.1); height:19px; padding:0px 0px; text-align:center;';
+
 
 	var decoFrame, bRun, bbMenu, maxDemo, codeEditor, nscript, oldScript, MainEditor;
 
@@ -103,14 +103,19 @@ var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3);
 		maxDemo = 8;
 		decoFrame = document.createElement( 'div' );
 		decoFrame.id = 'decoFrame';
-		decoFrame.style.cssText =unselect+'top:0px; position:relative; display:block; overflow:hidden; ';
+		decoFrame.style.cssText =unselect+'top:10px; left:120px; position:absolute; display:block; width:calc(100% - 120px); height:60px; overflow:hidden; padding:0;';
 		container.appendChild( decoFrame );
+
+		/*var decoFrame2 = document.createElement( 'div' );
+		decoFrame2.id = 'decoFrame';
+		decoFrame2.style.cssText =unselect+'top:10px; left:90px; position:absolute; display:block; width:calc(100% - 90px); height:40px; overflow:hidden; padding:0;';
+		decoFrame.appendChild( decoFrame2 );*/
 
 		bRun = document.createElement( 'div' );
 		bRun.id = 'Editor-Run';
-		bRun.style.cssText =bstyle+buttonActif+'width:100px;';
+		bRun.style.cssText =bstyle+buttonActif+'top:10px; left:10px; position:absolute; width:100px; height:40px; border:1px solid rgba(255,255,255,0.3);';
 		bRun.textContent = "RUN SCRIPT";
-		decoFrame.appendChild( bRun );
+		container.appendChild( bRun );
 
 		bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 		bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
@@ -120,11 +125,12 @@ var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3);
 		for(var i=0;i!==maxDemo;i++){
 			bbMenu[i] = document.createElement( 'div' );
 			bbMenu[i].name = 'demo0'+i;
-			if(i===0) bbMenu[i].style.cssText = bstyle+buttonActif + " width:100px; ";
-			else bbMenu[i].style.cssText = bstyle+buttonActif + " width:100px; border-left:1px solid rgba(1,1,1,0.3);";
+			//if(i===0) bbMenu[i].style.cssText = bstyle+buttonActif + " width:70px; ";
+			//else 
+			bbMenu[i].style.cssText = bstyle+buttonActif + " width:70px; border-left:1px solid rgba(255,255,255,0.3);";
 			bbMenu[i].textContent = 'demo 0'+i;
 			bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-			bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+			bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,0.1)';  }, false );
 			bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 			decoFrame.appendChild( bbMenu[i] );
 		}
