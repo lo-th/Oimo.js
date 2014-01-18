@@ -2,23 +2,23 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// TOWER
+// JENGA TOWER
 function initDemo(){
     // ground
     ADD({type:"ground", size:[2000,400,2000], pos:[0,-200,0]});
 
     // add dynamique object
-    var angle;
-    var px, py, pz;
-    var height = 40;
-    var sx = 75, sy = 75, sz = 160;
+    var height = 30;
+    var radius = 300;
+    var sx = 50, sy = 30, sz = 150;
+    var px, py, pz, angle;
 
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < 10; i++) {
             angle = (Math.PI * 2 / 10 * (i + (j & 1) * 0.5));
-            px = Math.cos(angle) * 250;
-            py = j * sy + sy * 0.5;
-            pz = - Math.sin(angle) * 250;
+            px = Math.cos(angle) * radius;
+            py = (sy*0.5) + j * sy;
+            pz = -Math.sin(angle) * radius;
 
             ADD({ type:"box", size:[sx,sy,sz], pos:[px,py,pz], rot:[0,angle*(180 / Math.PI),0], config:[1,0.4,0.2], move:true });
         }
