@@ -1,4 +1,60 @@
 'use strict';
+
+var cc0 = ['#00a78d', '#35c9dc','#aa5edf','#df5ebb','#dc5135','#eda124','#f0d927', '#1a1a1a'];
+var cc1 = ['#00937c', '#2fb4c9','#9653cc','#cc53a6','#c9472f','#de8e20','#e3c522', '#171717'];
+var cc2 = ['#007461', '#2492a6','#7640aa','#aa4084','#a63824','#c07019','#c5a21a', '#121212'];
+var cc3 = ['#007461', '#208499','#6a389d','#9d3877','#993020','#b46316','#ba9518', '#101010'];
+    
+function basicTexture(n){
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = canvas.height = 64;
+    var ctx = canvas.getContext( '2d' );
+   
+
+    var colors = [];
+    if(n===0){ // sphere
+        colors[0] = cc0[1];
+        colors[1] = cc1[1];
+    }
+    if(n===1){ // sphere sleep
+        colors[0] = cc2[1];
+        colors[1] = cc3[1];
+    }
+    if(n===2){ // box
+        colors[0] = cc0[4];
+        colors[1] = cc1[4];
+    }
+    if(n===3){ // box sleep
+        colors[0] = cc2[4];
+        colors[1] = cc3[4];
+    }
+    if(n===4){ // cyl sleep
+        colors[0] = cc0[0];
+        colors[1] = cc1[0];
+    }
+    if(n===5){ // cyl sleep
+        colors[0] = cc2[0];
+        colors[1] = cc3[0];
+    }
+    if(n===6){ // col sleep
+        colors[0] = cc1[6];
+        colors[1] = cc1[6];
+    }
+    if(n===7){ // col sleep
+        colors[0] = cc2[6];
+        colors[1] = cc2[6];
+    }
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillStyle = colors[1];
+    ctx.fillRect(0, 0, 32, 32);
+    ctx.fillRect(32, 32, 32, 32);
+
+    var tx = new THREE.Texture(canvas);
+    tx.needsUpdate = true;
+    return tx;
+}
+
 //-----------------------------------------------------
 //  DICE
 //-----------------------------------------------------

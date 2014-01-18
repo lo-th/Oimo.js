@@ -82,7 +82,7 @@ var ThreeEngine = function () {
 	var isOptimized;
 
 	var mouseMode = '';
-	var backPlane;
+	//var backPlane;
 
 
 	var debugColor = 0x282929;
@@ -121,7 +121,6 @@ var ThreeEngine = function () {
 		
 
         scene.add(back);
-		
 		scene.add(content);
 		scene.add(contentPlus);
 		scene.add(contentDebug);
@@ -149,7 +148,6 @@ var ThreeEngine = function () {
 		back.add(planeBG);
 		planeBG.name = 'ground';
 		planeBG.visible = false;
-
 
 		initSea3DMesh();
 		moveCamera();
@@ -198,20 +196,25 @@ var ThreeEngine = function () {
 	}
 
 	var basicSky = function (n){
-
         var canvas = document.createElement( 'canvas' );
         canvas.width = canvas.height = 128;
         var ctx = canvas.getContext( '2d' );
         var colors = [];
-        colors[0] = "#636666";
-        colors[1] = "#545757"
+        /*colors[0] = "#636666";
+        colors[1] = "#545757";
         colors[2] = "#414343";
-        colors[3] = "#282929";
+        colors[3] = "#191a1a";*/
+        colors[0] = "#2a2a2a";
+        colors[1] = "#2a2a2a";
+        colors[2] = "#1a1a1a";
+        colors[3] = "#1a1a1a";
+        colors[4] = "#1a1a1a";
         var grd=ctx.createLinearGradient(0,0,0,128);
         grd.addColorStop(0.1,colors[0]);
-        grd.addColorStop(0.3,colors[1]);
-        grd.addColorStop(0.7,colors[2]);
-        grd.addColorStop(0.9,colors[3]);
+        grd.addColorStop(0.5,colors[1]);
+        grd.addColorStop(0.55,colors[2]);
+        grd.addColorStop(0.7,colors[3]);
+        grd.addColorStop(0.9,colors[4]);
         
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, 128, 128);
@@ -286,11 +289,6 @@ var ThreeEngine = function () {
 		while (i--) {
 			materials[ i ].needsUpdate = true;
 		}
-
-		
-
-		//renderer.shadowMapEnabled = isShadow;
-		//renderer.shadowMapSoft = isShadow;
 	}
 
 	var changeMaterialType = function(){
@@ -306,9 +304,11 @@ var ThreeEngine = function () {
 		i=content.children.length;
 		var name;
 		while (i--) {
-			name = content.children[ i ].material.name;
-			content.children[ i ].material = getMaterial(name);
-			content.children[ i ].material.needsUpdate = true;
+			if(content.children[ i ].material){
+				name = content.children[ i ].material.name;
+				content.children[ i ].material = getMaterial(name);
+				content.children[ i ].material.needsUpdate = true;
+		    }
 		}
 		if(isReflect){
 			activReflection();
@@ -366,7 +366,6 @@ var ThreeEngine = function () {
 
 	var removeReflection = function (){
 		var i = materials.length;
-		//for(var i=0;i!==materials.length; i++){
 		while (i--) {
 			materials[i].envMap = null;
 			materials[i].combine = null;
@@ -387,6 +386,7 @@ var ThreeEngine = function () {
 	
 
 	var textures = [];
+	var bTextures = [];
 
 	var initMaterial = function () {
 
@@ -396,7 +396,16 @@ var ThreeEngine = function () {
 		textures[3] = new createWheelTexture(0);
 		textures[4] = new createGyroTexture();
 		textures[5] = new createDroidTexture();
-// 
+
+		bTextures[0] = new basicTexture(0);
+		bTextures[1] = new basicTexture(1);
+		bTextures[2] = new basicTexture(2);
+		bTextures[3] = new basicTexture(3);
+		bTextures[4] = new basicTexture(4);
+		bTextures[5] = new basicTexture(5);
+		bTextures[6] = new basicTexture(6);
+		bTextures[7] = new basicTexture(7);
+
 		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:debugAlpha} );
 		jointMaterial = new THREE.LineBasicMaterial( { color: jointColor } );
 		
@@ -409,19 +418,19 @@ var ThreeEngine = function () {
 	}
 
 	var baseMaterial = function (){
-		makeMaterial( { n:0, color: 0xff9933, name:'mat01' } );//0
-		makeMaterial( { n:1, color: 0x3399ff, name:'mat02'} );//1
-		makeMaterial( { n:2, color: 0x33ff99, name:'mat03' } );//2
+		makeMaterial( { n:0, map: bTextures[2], name:'mat01' } );//0
+		makeMaterial( { n:1, map: bTextures[0], name:'mat02'} );//1
+		makeMaterial( { n:2, map: bTextures[4], name:'mat03' } );//2
 		makeMaterial( { n:3, map: textures[0], name:'mat04' } );//3
 		makeMaterial( { n:4, map: textures[2], skinning: true, transparent:true, opacity:0.9, name:'mat05' } ); //4
 		makeMaterial( { n:5, map: textures[3], name:'mat06' } );//5
-		makeMaterial( { n:6, color: 0x7C7B77, name:'mat07' } );//6
+		makeMaterial( { n:6, map: bTextures[6], name:'mat07' } );//6
 		makeMaterial( { n:7, color: 0xe7b37a, skinning: true, transparent:true, opacity:0.5, name:'mat08' } );
-		makeMaterial( { n:8, color: 0xffd9b2, name:'mat01sleep' } );//8
-		makeMaterial( { n:9, color: 0xb2d9ff, name:'mat02sleep' } );//9
-		makeMaterial( { n:10, color: 0xb2ffd9, name:'mat03sleep' } );//10
+		makeMaterial( { n:8, map: bTextures[3], name:'mat01sleep' } );//8
+		makeMaterial( { n:9, map: bTextures[1], name:'mat02sleep' } );//9
+		makeMaterial( { n:10, map: bTextures[5], name:'mat03sleep' } );//10
 		makeMaterial( { n:11, map: textures[1], name:'mat04sleep' } );//11
-		makeMaterial( { n:12, color: 0xAEABA6, name:'mat07sleep' } );//12
+		makeMaterial( { n:12, map: bTextures[7], name:'mat07sleep' } );//12
 		makeMaterial( { n:13, map: textures[4], name:'matGyro' } );//13
 		makeMaterial( { n:14, map: textures[5], skinning: true, name:'matDroid' } );//14
 
@@ -1107,37 +1116,37 @@ var ThreeEngine = function () {
 		
 
 		if(followObject) cameraFollow(followObject.position);
-		//if(followSpecial){
-			if(followSpecial === 'gyro'){
-				var m00=followObject;
-		        var m01=contentSpecial.children[0];
-		        m01.position.copy(m00.position);
-		        m01.children[0].rotation.y=-(camPos.horizontal-90)*ToRad;
-		        m01.children[0].children[0].rotation.x =(camPos.vertical-90)*ToRad;
-		        m01.children[0].children[0].children[0].rotation.y += (getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1])) * ToRad;
-		        prevR[0] = m00.position.x;
-		        prevR[1] = m00.position.z;
-			} else if(followSpecial === 'droid'){
-				
-				movePlayer(delta);
 
-				//var m00 = followObject;
-				//player = null;
-		       // var m01=contentSpecial.children[0];
-		        //var distance = getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
-		        //player.position.copy(m00.position);
-		       /* if(distance>2){
-		        	if(Anim === "Idle"){ Anim="Walk"; player.children[0].play("Walk");}
-		        	player.rotation.y=-(camPos.horizontal+90)*ToRad;
-		        }
-		        else {
-		        	if(Anim === "Walk"){ Anim="Idle";
-		        		player.children[0].play("Idle");
-		        	}
-		        }
-		        prevR[0] = m00.position.x;
-		        prevR[1] = m00.position.z;*/
-			}
+		if(followSpecial === 'gyro'){
+			var m00=followObject;
+	        var m01=contentSpecial.children[0];
+	        m01.position.copy(m00.position);
+	        m01.children[0].rotation.y=-(camPos.horizontal-90)*ToRad;
+	        m01.children[0].children[0].rotation.x =(camPos.vertical-90)*ToRad;
+	        m01.children[0].children[0].children[0].rotation.y += (getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1])) * ToRad;
+	        prevR[0] = m00.position.x;
+	        prevR[1] = m00.position.z;
+		} else if(followSpecial === 'droid'){
+			
+			movePlayer(delta);
+
+			//var m00 = followObject;
+			//player = null;
+	       // var m01=contentSpecial.children[0];
+	        //var distance = getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
+	        //player.position.copy(m00.position);
+	       /* if(distance>2){
+	        	if(Anim === "Idle"){ Anim="Walk"; player.children[0].play("Walk");}
+	        	player.rotation.y=-(camPos.horizontal+90)*ToRad;
+	        }
+	        else {
+	        	if(Anim === "Walk"){ Anim="Idle";
+	        		player.children[0].play("Idle");
+	        	}
+	        }
+	        prevR[0] = m00.position.x;
+	        prevR[1] = m00.position.z;*/
+		}
 		//}
 
 		// test 
@@ -1147,15 +1156,6 @@ var ThreeEngine = function () {
 		looker.rotation.y = -dir+(90*ToRad);*/
 
 
-		//updateBackPlane();
-
-		/*
-		//delta = clock.getDelta();
-		//THREE.AnimationHandler.update( delta*0.5 );
-		//updatePlayerMove();
-		*/
-
-		//renderer.clear();
 		renderer.render( sceneSky, cameraSky );
 		renderer.render( scene, camera );
 
@@ -1164,20 +1164,6 @@ var ThreeEngine = function () {
 	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
 	    fps++;
 	}
-
-	
-
-	/*var viewRender = function () {
-		renderer.render( scene, camera );
-		fpsUpdate();
-	}
-
-	var fpsUpdate = function () {
-	    time = Date.now();
-	    ms = time - startTime;
-	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
-	    fps++;
-	}*/
 
 
 
@@ -1455,8 +1441,6 @@ var ThreeEngine = function () {
 
 		cameraSky.position.copy(camera.position);
 		cameraSky.lookAt(center);
-
-		//planeBG.position.set(center.x, 0, center.z);
 	}
 
 	var endMove = function () {

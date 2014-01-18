@@ -108,6 +108,6 @@ Van.prototype.correctRotation =	function (w) {
 	var axis1 = new OIMO.Vec3(this.body.rotation.e01, this.body.rotation.e11, this.body.rotation.e21);
 	var axis2 = new OIMO.Vec3(w.rotation.e00, w.rotation.e10, w.rotation.e20);
 	var axis3 = new OIMO.Vec3().sub(axis2, axis1.scaleEqual(axis1.dot(axis2)));
-	w.orientation.mul(new Quat().arc(axis2, axis3.normalize(axis3)), w.orientation);
+	w.orientation.mul(new OIMO.Quat().arc(axis2, axis3.normalize(axis3)), w.orientation);
 	w.orientation.normalize(w.orientation);
 }
