@@ -3,7 +3,7 @@
  */
 'use strict';
 var Ambience = function (Pos) {
-	var left = Pos || 750//140;
+	var left = Pos || 140//140;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
 	var textselect = '-o-user-select:text; -ms-user-select:text; -khtml-user-select:text; -webkit-user-select:text; -moz-user-select: text;'

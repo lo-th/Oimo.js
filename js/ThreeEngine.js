@@ -113,9 +113,11 @@ var ThreeEngine = function () {
 		cameraSky = new THREE.PerspectiveCamera( 60, 1, 1, 999999 );
 		sceneSky.add(cameraSky);
 
-		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , side:THREE.BackSide, depthWrite: false} );
-		sky = new THREE.Mesh(new THREE.IcosahedronGeometry(20000,1), materialSky);
-		//sky = new THREE.Mesh(new THREE.SphereGeometry(20000), materialSky);
+		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , depthWrite: false} );// side:THREE.BackSide,
+		//sky = new THREE.Mesh(new THREE.IcosahedronGeometry(20000,1), materialSky);
+		sky = new THREE.Mesh(new THREE.SphereGeometry(20000, 20, 12), materialSky);
+		sky.rotation.y = 180*ToRad;
+		sky.scale.set(1,1,-1)
 		
 		sceneSky.add(sky);
 		
@@ -200,10 +202,7 @@ var ThreeEngine = function () {
         canvas.width = canvas.height = 128;
         var ctx = canvas.getContext( '2d' );
         var colors = [];
-        /*colors[0] = "#636666";
-        colors[1] = "#545757";
-        colors[2] = "#414343";
-        colors[3] = "#191a1a";*/
+
         colors[0] = "#2a2a2a";
         colors[1] = "#2a2a2a";
         colors[2] = "#1a1a1a";
@@ -345,6 +344,10 @@ var ThreeEngine = function () {
 			ballMaterial.map = Ambience.getTexture();
 			ballMaterial.map.anisotropy = MaxAnistropy;
 			ballMaterial.map.needsUpdate = true;
+
+			materialSky.map = Ambience.getTexture();
+			materialSky.map.needsUpdate = true;
+
 			//if(!isOptimized)renderer.shadowMapEnabled = false;
 			ballCamera.updateCubeMap( renderer, ballScene );
 			//if(!isOptimized)renderer.shadowMapEnabled = true;
@@ -387,6 +390,7 @@ var ThreeEngine = function () {
 
 	var textures = [];
 	var bTextures = [];
+	var poolTextures = [];
 
 	var initMaterial = function () {
 
@@ -405,6 +409,10 @@ var ThreeEngine = function () {
 		bTextures[5] = new basicTexture(5);
 		bTextures[6] = new basicTexture(6);
 		bTextures[7] = new basicTexture(7);
+
+		for(var i=0; i!==16; i++){
+			poolTextures[i] = new eightBall(i);
+		}
 
 		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:debugAlpha} );
 		jointMaterial = new THREE.LineBasicMaterial( { color: jointColor } );
@@ -435,7 +443,7 @@ var ThreeEngine = function () {
 		makeMaterial( { n:14, map: textures[5], skinning: true, name:'matDroid' } );//14
 
 		for(var i=0; i!==16; i++){
-			makeMaterial( { n:15+i, map: new eightBall(i), shininess:60, specular:0xffffff, name:'pool'+i } );
+			makeMaterial( { n:15+i, map: poolTextures[i], shininess:60, specular:0xffffff, name:'pool'+i } );
 		}
 	}
 
@@ -1482,12 +1490,12 @@ var ThreeEngine = function () {
 
 	var viewDivid = function () {
 		if(vmid.mode==='no'){
-			if(window.innerWidth < window.innerHeight){ vmid.y = 0.5; vmid.x = 1; vmid.mod = 'h';
-			} else { vmid.x = 0.5; vmid.y = 1; vmid.mod = 'v';}
+			if(window.innerWidth < window.innerHeight){ vmid.y = 0.5; vmid.x = 1; vmid.mode = 'h';
+			} else { vmid.x = 0.5; vmid.y = 1; vmid.mode = 'v';}
 	    } else {
 	    	vmid.x = 1;
 	    	vmid.y = 1;
-	    	vmid.mod = 'no';
+	    	vmid.mode = 'no';
 	    }
 		viewResize();
 	}
@@ -1568,6 +1576,9 @@ var ThreeEngine = function () {
 		debug:debug,
 		shadow:shadow,
 		changeMaterialType:changeMaterialType,
+		getViewMode: function () {
+			return vmid.mode;
+		},
 
 		setMouseMode: function (name) {
 			mouseMode = name;

@@ -7,7 +7,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<link rel="shortcut icon" href="images/favicon.ico">
 		<style>
-			body { background-color: #555; margin:0; padding:0; overflow: hidden; }
+			body { background-color: #1a1a1a; margin:0; padding:0; overflow: hidden; }
 			@font-face { font-family: 'SourceCode'; src: url('images/SourceCodePro.woff') format('woff');}
 			a { text-decoration:none; }
 		</style> 
@@ -55,9 +55,9 @@
 		    	threeEngine = new ThreeEngine();
 		    	Editor = new Editor();
 		    	document.body.appendChild( threeEngine.domElement );
+		    	document.body.appendChild( Editor.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
-				Interface.menu.appendChild( Editor.domElement );
 				threeEngine.init();
 				TE = threeEngine;
             }

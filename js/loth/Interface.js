@@ -80,7 +80,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
 	var copy = document.createElement( 'div' );
-	copy.style.cssText = 'position:absolute; bottom:7px; width:350px; right:10px; text-align:right; pointer-events:auto; color:#777777;';
+	copy.style.cssText = 'position:absolute; bottom:0px; width:350px; right:0px; text-align:right; pointer-events:auto; color:#777777; margin-right:10px; margin-bottom:5px;';
 	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#888888'>LOTH 2013</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a> | <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a>";
 	container.appendChild( copy );
 
@@ -89,7 +89,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var aMenu = document.createElement( 'div' );
-	aMenu.style.cssText = 'left:10px; top:60px; position:absolute; display:block; text-align:center;';
+	aMenu.style.cssText = 'left:10px; top:60px; position:absolute; display:block; text-align:center; ';
 	container.appendChild( aMenu );
 
 	var bnext = document.createElement( 'div' );
@@ -122,32 +122,70 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var bMenu = document.createElement( 'div' );
-	bMenu.style.cssText = 'right:10px; top:160px;  position:absolute; width:40px; display:block; text-align:center; ';
+	bMenu.style.cssText = 'right:0px; top:160px;  position:absolute; width:120px; display:block; text-align:center;  margin-right:10px;';
 	container.appendChild( bMenu );
 
 	var bbMenu = [];
 
-	for(var i=0;i!==3;i++){
+	for(var i=0;i!==4;i++){
+
 		bbMenu[i] = document.createElement( 'div' );
-		bbMenu[i].style.cssText = buttonStyle + " height:40px; margin-bottom:6px;";
+		if(i===0) bbMenu[i].style.cssText = buttonStyle + "width:120px; height:28px; margin-bottom:20px;";
+		else bbMenu[i].style.cssText = buttonStyle + "width:120px; height:30px; margin-bottom:6px;";
 		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
 		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
 
 		bMenu.appendChild( bbMenu[i] );
 	}
 
-	bbMenu[0].innerHTML = "M";
-	bbMenu[1].innerHTML = "R";
-	bbMenu[2].innerHTML = "S";
+	bbMenu[1].innerHTML = "Material";
+	bbMenu[2].innerHTML = "Reflect";
+	bbMenu[3].innerHTML = "Shadow";
 
-	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.changeMaterialType(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[0].innerHTML = "Editor";
+	//bbMenu[4].innerHTML = "E";
+
+	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.changeMaterialType(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.reflection(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bbMenu[3].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+
+	bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); showCode(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	//bbMenu[4].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	
 
 	/*bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('delete'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('drag'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('shoot'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );*/
+    var showCode =  function () {
+    	TE.viewDivid();
+    	var mode = TE.getViewMode();
+
+    	if(mode==='no'){
+    		ribbon.style.right = '0';
+    		bMenu.style.right = '0';
+    		copy.style.right = '0';
+    		copy.style.bottom = '0';
+    		menu.style.bottom = '0';
+
+    		Editor.hide();
+    	} else {
+    		if(mode==="v"){
+    			ribbon.style.right = '50%';
+    			bMenu.style.right = '50%';
+    			copy.style.right = '50%';
+
+    		} else {
+    			copy.style.bottom = '50%'
+    			menu.style.bottom = '50%';
+
+    		}
+    	    Editor.show(mode);
+    	}
+    	
+
+    }
+
+
 
 
 	//-----------------------------------------------------
