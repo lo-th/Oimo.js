@@ -291,7 +291,9 @@ var Ambience = function (Pos) {
 		{ lat: 41.413416092316275, lng: 2.1531126527786455, name:'pos 7' },
 		{ lat: 35.69143938066447, lng: 139.695139627539, name:'pos 8' },
 		{ lat: 35.67120372775569, lng: 139.77167914398797, name:'pos 9' },
-		{ lat: 54.552083679428065, lng: -3.297380963134742 , name:'pos 10'}
+		{ lat: 54.552083679428065, lng: -3.297380963134742 , name:'pos 10'},
+		{ lat: -1.23920, lng: -90.385735, name:'sea 0' },
+		{ lat: -1.216466, lng: -90.422150, name:'sea 1' }
 	];
 
 	var currentPosition = Math.floor( Math.random() * locations.length );
@@ -392,6 +394,7 @@ var Ambience = function (Pos) {
 	}
 
 
+var newCanvas;
 
     window.initializeGoogleMapsAPI = function () {
 		isMapApiLoaded = true;
@@ -399,7 +402,7 @@ var Ambience = function (Pos) {
 		pos = locations[ currentPosition ];
 		bcenter.textContent = pos.name;
 		var myLatlng = new google.maps.LatLng( pos.lat, pos.lng );
-		var myOptions = { zoom: 18, center: myLatlng, mapTypeId: google.maps.MapTypeId.HYBRID, streetViewControl: false, mapTypeControl:false, zoomControl: false, panControl: false, overviewMapControl:false};
+		var myOptions = { zoom: 18, center:myLatlng, mapTypeId: google.maps.MapTypeId.HYBRID, streetViewControl:false, mapTypeControl:false, zoomControl:false, panControl:false, overviewMapControl:false};
 
 		map = new google.maps.Map( bigMapGoogle, myOptions);
 		google.maps.event.addListener(map, 'click', function(event) { addMarker(event.latLng); });
@@ -425,11 +428,28 @@ var Ambience = function (Pos) {
 			activeLocation = this.location;
 			bcenter.textContent = pos.name;
 
+			if(locations[ currentPosition ].name.slice(0,3) === 'sea'){
+				newCanvas = document.createElement('canvas');
+				var w = Math.round(this.canvas.width*0.7127);
+				var decal = this.canvas.width-w
+
+				newCanvas.width = w;
+				newCanvas.height = Math.round(this.canvas.height*0.7127);
+				var ctx = newCanvas.getContext('2d');
+
+				ctx.drawImage(this.canvas, -decal, 0);
+
+				mapCanvas = newCanvas;
+
+				//document.body.appendChild( this.canvas );
+
+			}
+
 			//textureNeedUpdate = true;
 
 			// update basic material
 			//texture = new THREE.Texture( this.canvas ); 
-			mapCanvas = this.canvas;
+			else mapCanvas = this.canvas;
 
 			//texture.needsUpdate = true;
 			// get final image
@@ -469,8 +489,9 @@ var Ambience = function (Pos) {
 			isReflect = true;*/
 
 			showMessage( 'Panorama loaded.');
-			//showMessage(  "{ lat: "+ pos.lat + ", lng: "+ pos.lng +" },");
-			//showMessage(this.canvas.width+"/"+this.canvas.height+"   __" +length);
+			console.log(  "{ lat: "+ pos.lat + ", lng: "+ pos.lng +" },");
+			console.log(this.canvas.width+"/"+this.canvas.height+"   __" +length);
+			if(newCanvas) console.log("new: "+newCanvas.width+"/"+newCanvas.height+"   __" +length);
 			showProgress( false );
 		};
 
