@@ -2,15 +2,17 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// PYRAMID
-function initDemo(){
+
+function initDemo()
+{
+    demoName("Pyramid");
     // ground
     ADD({type:"ground", size:[1300,400,1300], pos:[0,-200,0]});
 
     // add dynamique object
-    var px, py, pz;
     var height = 20, depth = 1;
     var sx = 60, sy = 40, sz = 60;
+    var px, py, pz;
 
     for (var i = 0; i < height; i++) {
         for (var j = i; j < height; j++) {

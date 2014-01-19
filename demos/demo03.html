@@ -2,8 +2,10 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// BALL TEST
-function initDemo(){
+
+function initDemo()
+{
+    demoName("Pool fall");
     // ground
     ADD({ type:"ground", size:[2000,300,2000], pos:[0,-150,0] });
     // wall
@@ -12,8 +14,10 @@ function initDemo(){
     ADD({ type:"box", size:[100,1000,1800], pos:[-950,500,0] });
     ADD({ type:"box", size:[100,1000,1800], pos:[ 950,500,0] });
 
+    var max = 333;
     var px, pz, s;
-    for (var i=0; i!==333; ++i ){
+
+    for (var i=0; i!==max; ++i ){
         s = 10+(Math.random()*100);
         px = -100+Math.random()*200;
         pz = -100+Math.random()*200;

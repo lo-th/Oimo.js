@@ -346,7 +346,7 @@ var basicStart = function(data){
     if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
-    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:-1, joints:joints.length });
 }
 
 //--------------------------------------------------
@@ -577,7 +577,7 @@ var worldInfo = function(){
         time_prev = time; fpsint = fps; fps = 0;
     } fps++;
 
-    infos[0] = currentDemo;
+    infos[0] = 0;//currentDemo;
     infos[1] = world.numRigidBodies;
     infos[2] = world.numContacts;
     infos[3] = world.broadPhase.numPairChecks;

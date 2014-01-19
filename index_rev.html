@@ -29,20 +29,21 @@
 		<script type="text/javascript" src="js/loth/AmbienceMapList.js"></script>
 		<script type="text/javascript" src="js/loth/Editor.js"></script>
 		<script type="text/javascript" src="js/GSVPano.min.js"></script>
-
 		<script type="text/javascript" src='js/navigatorDetect.js'></script>
 		
 		<script type="text/javascript">
 		    var version='REV';
-		    var demoName = [
+		    var DemoNames = [
 		        "Basic shape", "Dice fall", "Mad pool", 
 		        "Joint test", "Supermarket", "Greek temple", 
 		        "Ragdoll"
 		    ];
+		    var threeEngine, TE;
         	var Ambience;
-        	var threeEngine, TE;
         	var Interface;
         	var Editor;
+        	var demoName, demo;
+
             var OimoWorker = new Worker('js/oimo/worker_oimo_rev.js');
         	OimoWorker.postMessage = OimoWorker.webkitPostMessage || OimoWorker.postMessage;
 
@@ -50,14 +51,18 @@
 
 		    function init() {
 		    	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+		    	
+		    	threeEngine = new ThreeEngine();
 		    	Interface = new Interface('rev');
 		    	Ambience = new Ambience();
-		    	threeEngine = new ThreeEngine();
 		    	Editor = new Editor();
+
 		    	document.body.appendChild( threeEngine.domElement );
 		    	document.body.appendChild( Editor.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
+				demoName = Interface.demoName;
+
 				threeEngine.init();
 				TE = threeEngine;
             }
@@ -78,6 +83,10 @@
 	            if(phase === "INIT"){
 	            	TE.createObjects(e.data);
 	            	TE.createJoints(e.data.joints);
+	            	demo = e.data.demo;
+	            	if( demo !== -1) {
+	            	    demoName(DemoNames[demo]);
+	            	};
 	            	OimoWorker.postMessage({tell:"UPDATE"});
 				}
 
@@ -89,7 +98,7 @@
 
 				// update three object
     	    	if( phase === "RUN"){
-    	    		var demo = e.data.infos[0];
+    	    		//var demo = e.data.infos[0];
     	    		var max = e.data.maxB;
     	    		var i = max;
     	    		var m = e.data.matrix;
@@ -148,7 +157,11 @@
 	            // clear three object
 				if(phase === "CLEAR"){
 				    TE.clearAll();
-				    if(basicOption!==null){ OimoWorker.postMessage(basicOption); basicOption=null;  initDemo(); }  
+				    if(basicOption!==null){ 
+				    	OimoWorker.postMessage(basicOption); 
+				    	basicOption=null;  
+				    	initDemo(); 
+				    }  
 				}
 				// get ragdoll info
 				if(phase === "GETBONES") TE.getSqueletonStructure(e.data.name);
@@ -164,7 +177,7 @@
 	        function prevDemo(){ OimoWorker.postMessage({tell:"PREV"}); }
 	        function nextDemo(){ OimoWorker.postMessage({tell:"NEXT"}); }
 	        function changeGravity(G){ OimoWorker.postMessage({tell:"GRAVITY", G:G}); }
-
+	        
 	        //-----------------------------------------------------
             // TRANSE SCRIPT
             //-----------------------------------------------------
@@ -186,7 +199,6 @@
             //-----------------------------------------------------
 
 	        function displayInfo(a){
-	        	document.getElementById("demoName").innerHTML = demoName[a[0]];
 			    var info =[
 	        	    "Rigidbody: "+a[1]+"<br>",
 	        	    "Contact: "+a[2]+"<br>",

@@ -18,10 +18,6 @@ var Interface = function (name) {
 
     var titleLogo = document.createElement( 'svg' );
 	titleLogo.style.cssText = 'position:absolute; top:5px; left:5px; width:48x; height:48px;';
-	//var ll = document.createElement( 'img' );
-	//titleLogo.innerHTML ="<img id='logo' src='images/logo36.png'/>";
-	
-	//titleLogo.innerHTML ="<img id='logo' src='images/logo_b.svg' style='width:48px; height:48px;'/>"
 
 	var logos ="<svg version='1.1' id='oimo' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'"
 	logos +="width='48px' height='48px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'>"
@@ -39,8 +35,6 @@ var Interface = function (name) {
 	title.style.cssText = 'position:absolute; color:#FFFFFF; top:12px; left:60px; text-align:left; font-weight:bold; font-size:22px; pointer-events:none;';
 	title.innerHTML ="Oimo.js";
 
-
-
 	var titleLink = document.createElement( 'div' );
 	titleLink.style.cssText = 'position:absolute; color:#CCCCCC; top:20px; left:170px; text-align:left; pointer-events:auto; font-size:14px;';
 
@@ -51,14 +45,8 @@ var Interface = function (name) {
 	if(name==='dev') txt +="DEV";
 	else txt += "<a href='index.html' target='_self' style='"+linkStyle+"'>DEV</a>";
 	txt += sep;
-	/*if(name==='devlow') txt +="DEV-low";
-	else txt += "<a href='index_low.html' target='_self' style='"+linkStyle+"'>DEV-low</a>";
-	txt += sep;*/
 	if(name==='rev') txt +="REV";
 	else txt += "<a href='index_rev.html' target='_self' style='"+linkStyle+"'>REV</a>";
-	/*txt += sep;
-	if(name==='revlow')txt +="REV-low";
-	else txt += "<a href='index_rev_low.html' target='_self' style='"+linkStyle+"'>REV-low</a>";*/
 	
 	titleLink.innerHTML = txt;
 
@@ -104,6 +92,10 @@ var Interface = function (name) {
 	bcenter.id = "demoName";
 	bcenter.style.cssText = bbStyle;
 	bcenter.textContent = "Basic shape";
+
+	var demoName =  function (name) {
+		bcenter.textContent = name;
+	}
 
 	aMenu.appendChild( bprev );
 	aMenu.appendChild( bcenter );
@@ -156,7 +148,7 @@ var Interface = function (name) {
 	/*bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('delete'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('drag'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('shoot'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );*/
-    var showCode =  function () {
+    var showCode = function () {
     	TE.viewDivid();
     	var mode = TE.getViewMode();
 
@@ -177,12 +169,9 @@ var Interface = function (name) {
     		} else {
     			copy.style.bottom = '50%'
     			menu.style.bottom = '50%';
-
     		}
     	    Editor.show(mode);
     	}
-    	
-
     }
 
 
@@ -290,7 +279,8 @@ var Interface = function (name) {
     return {
 		domElement: container,
 		menu:menu,
-		setCurrentGravity:setCurrentGravity
+		setCurrentGravity:setCurrentGravity,
+		demoName:demoName
 	}
 
 

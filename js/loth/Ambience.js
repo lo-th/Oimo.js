@@ -18,7 +18,7 @@ var Ambience = function (Pos) {
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';
 	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
-    var effect = 'border:1px solid rgba(255,255,255,0.3);';//'box-shadow: 0 0 4px rgba(255,255,255,0.3); ';
+    var effect = 'border:1px solid rgba(255,255,255,0.3);';
 
 	var deco = document.createElement( 'div' );
 	deco.style.cssText = borderL+borderR+effect+'width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
@@ -56,8 +56,8 @@ var Ambience = function (Pos) {
 	deco.appendChild( bnext );
 
 	bcenter.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); transforme(); this.style.backgroundColor = 'rgba(55,123,167,0.5)'; }, false );
-	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") prev(); else prevLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") next(); else nextLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") prevGradian(); else prevLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); if(type==="color") nextGradian(); else nextLocation(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 
 	bcenter.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false ); 
 	bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
@@ -293,7 +293,9 @@ var Ambience = function (Pos) {
 		{ lat: 35.67120372775569, lng: 139.77167914398797, name:'pos 9' },
 		{ lat: 54.552083679428065, lng: -3.297380963134742 , name:'pos 10'},
 		{ lat: -1.23920, lng: -90.385735, name:'sea 0' },
-		{ lat: -1.216466, lng: -90.422150, name:'sea 1' }
+		{ lat: -1.216466, lng: -90.422150, name:'sea 1' },
+		{ lat: 48.863685, lng: 2.323028, name:'musee 1' },
+		{ lat: 19.425750, lng: -99.187024, name:'musee 2' }
 	];
 
 	var currentPosition = Math.floor( Math.random() * locations.length );
@@ -408,7 +410,7 @@ var newCanvas;
 		google.maps.event.addListener(map, 'click', function(event) { addMarker(event.latLng); });
 		geocoder = new google.maps.Geocoder();
 
-		setZoom( 2 );
+		setZoom( 3 );
 		addMarker( myLatlng );
 	//}
 		GEOloader.onProgress = function( p ) {
@@ -603,34 +605,32 @@ var newCanvas;
 	var texture;
     var currentShader = 0;
     var tweenner = [];
-    var GRD = {
-		line:10, alpha:0.5,
-		ranging:{ 
-			r0:0.1,r1:0.3,r2:0.8,r3:1,
-			r4:0.1,r5:0.5,r6:0.95,r7:1,
-			r8:0.1,r9:0.5,r10:0.95,r11:1
-		},
-		positions:{ 
-			p0:128, p1:50, p2:128, p3:128,
-			p4:128, p5:200, p6:128, p7:128 
-		},
-		colors:{ 
-			r0:0 ,   v0:0 ,   b0:0 ,   a0:1,
-			r1:60,   v1:60,   b1:60,   a1:1,
-			r2:60,   v2:60,   b2:60,   a2:1,
-			r3:0 ,   v3:0,    b3:0,    a3:1,
 
-			r4:255,  v4:255,  b4:255,  a4:1,
-			r5:180,  v5:180,  b5:180,  a5:1,
-			r6:60,   v6:60,   b6:60,   a6:0.5,
-			r7:0,    v7:0,    b7:0,    a7:0 ,
-
-			r8:0,    v8:0,    b8:0,    a8:1,
-			r9:20,   v9:20,   b9:20,   a9:0.5, 
-			r10:30,  v10:30,  b10:30,  a10:0.1,
-			r11:0,   v11:0,   b11:0,   a11:0
-		}
-	}
+    var GRD ={
+		name:'Default' ,line:1, alpha:1,
+		ranging:{
+		r0:0.21, r1:0.57, r2:0.62, r3:1.00,
+		r4:0.14, r5:0.49, r6:0.95, r7:1.00,
+		r8:0.00, r9:0.31, r10:0.95, r11:1.00
+		},
+		positions:{
+		p0:165, p1:92, p2:128, p3:128,
+		p4:48, p5:206, p6:128, p7:128
+		},
+		colors:{
+		r0:26, v0:26, b0:26, a0:1,
+		r1:83, v1:83, b1:80, a1:1,
+		r2:26, v2:26, b2:26, a2:1,
+		r3:26, v3:26, b3:26, a3:1,
+		r4:180, v4:180, b4:180, a4:1,
+		r5:80, v5:80, b5:80, a5:0,
+		r6:30, v6:30, b6:30, a6:0,
+		r7:17, v7:17, b7:17, a7:0,
+		r8:80, v8:80, b8:80, a8:1,
+		r9:60, v9:60, b9:60, a9:0,
+		r10:30, v10:30, b10:30, a10:0,
+		r11:17, v11:17, b11:17, a11:0
+	}};
 
 	var initInterface = function (){
 		mh[0]= document.createElement( 'div' );//document.getElementById('mh0');
@@ -752,13 +752,13 @@ var newCanvas;
 		}
 	}
 
-	var prev = function (){
+	var prevGradian = function (){
 		if(currentShader!==0)currentShader--;
 		else currentShader = ShaderMapList.length-1;
 		bcenter.textContent = ShaderMapList[currentShader].name;
 		tweenToPreset(  ShaderMapList[currentShader] );
 	}
-	var next = function (){
+	var nextGradian = function (){
 		if(currentShader!==ShaderMapList.length-1) currentShader++;
 		else currentShader = 0;
 		bcenter.textContent = ShaderMapList[currentShader].name;

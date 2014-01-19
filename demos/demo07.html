@@ -2,8 +2,10 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// CAR MADNESS
-function initDemo(){
+
+function initDemo()
+{
+    demoName("Car rush hour");
     // ground
     ADD({type:"ground", size:[10000,500,10000], pos:[0,-250,0]});
 
@@ -16,7 +18,7 @@ function initDemo(){
     var px, py, pz = -10000;
     var posy = 5000;
 
-    for (var i = 0; i < max; i++) {
+    for (var i = 0; i!==max; i++) {
        
         px = (-4000 + (Math.random() * 8000)); 
         py = 200 * i;

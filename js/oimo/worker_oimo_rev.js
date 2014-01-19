@@ -301,7 +301,7 @@ var basicStart = function(data){
     if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
 
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
-    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
+    self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:-1, joints:joints.length });
 }
 
 //--------------------------------------------------

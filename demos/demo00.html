@@ -2,15 +2,19 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// BASIC
-function initDemo(){
+
+function initDemo()
+{
+    demoName("Basic shape");
     // ground
     ADD({type:"ground", size:[2000,300,2000], pos:[0,-150,0]});
 
+    // dynamique object
+    var max = 100;
     var px, pz, t, n;
     var sx, sy, sz;
 
-    for (var i=0; i!==100; ++i ){
+    for (var i=0; i!==max; ++i ){
         if(version=="DEV") n=2;
         else n=3;
         t = Math.floor(Math.random()*n)+1;

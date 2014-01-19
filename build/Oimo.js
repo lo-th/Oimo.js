@@ -73,7 +73,7 @@ OIMO.Body = function(Obj){
     }
     this.body.name = name;
 
-    if(obj.world)obj.world.addRigidBody(this.body);
+    if(obj.world){ obj.world.addRigidBody(this.body); }
 }
 
 OIMO.Body.prototype = {
@@ -361,11 +361,11 @@ OIMO.World.prototype = {
         this.numContacts--;
     },
     calSleep:function(body){
-        if(!body.allowSleep)return false;
+        if(!body.allowSleep){return false;}
         var v=body.linearVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04)return false;
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
         v=body.angularVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25)return false;
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}
         return true;
     },
     solveIslands:function(){
@@ -7966,7 +7966,7 @@ OIMO.Mat33.prototype = {
         var a2 = tm[2], a5 = tm[5], a8 = tm[8];
 
         var dt= a0 * (a4*a8-a7*a5) + a3 * (a7*a2-a1*a8) + a6 * (a1*a5-a4*a2);
-        if(dt!=0)dt=1/dt;
+        if(dt!=0){dt=1/dt;}
         te[0] = dt*(a4*a8 - a5*a7);
         te[1] = dt*(a2*a7 - a1*a8);
         te[2] = dt*(a1*a5 - a2*a4);
@@ -8113,7 +8113,7 @@ OIMO.Quat.prototype = {
     },
     normalize: function(q){
         var len=Math.sqrt(q.s*q.s+q.x*q.x+q.y*q.y+q.z*q.z);
-        if(len>0)len=1/len;
+        if(len>0){len=1/len;}
         this.s=q.s*len;
         this.x=q.x*len;
         this.y=q.y*len;

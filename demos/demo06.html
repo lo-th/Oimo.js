@@ -2,8 +2,10 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// JENGA TOWER
-function initDemo(){
+
+function initDemo()
+{
+    demoName("Jenga tower");
     // ground
     ADD({type:"ground", size:[2000,400,2000], pos:[0,-200,0]});
 

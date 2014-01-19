@@ -2,8 +2,10 @@
 <script>
 function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:'sweep', G:-10});
-// BRIDGE TEST
-function initDemo(){
+
+function initDemo()
+{
+    demoName("The bridge");
     // ground
     ADD({ type:"ground", size:[2000,1000,2000], pos:[0,-500,0] });
 
@@ -29,7 +31,7 @@ function initDemo(){
             n++;
         }
     }
-
+    
     ADD({type:"box", size:[120, 120, 120], pos:[x, y + 100, z - 600],  config:[1,0.5,0.5], move:true});
 }
 </script>
