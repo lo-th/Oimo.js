@@ -69,7 +69,7 @@ var Interface = function (name) {
 
 	var copy = document.createElement( 'div' );
 	copy.style.cssText = 'position:absolute; bottom:0px; width:350px; right:0px; text-align:right; pointer-events:auto; color:#777777; margin-right:10px; margin-bottom:5px;';
-	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#888888'>LOTH 2013</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a> | <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a>";
+	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#888888'>LOTH 2014</a> |  <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a>";
 	container.appendChild( copy );
 
 	//-----------------------------------------------------
@@ -114,7 +114,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var bMenu = document.createElement( 'div' );
-	bMenu.style.cssText = 'right:0px; top:160px;  position:absolute; width:120px; display:block; text-align:center;  margin-right:10px;';
+	bMenu.style.cssText = 'right:0px; top:160px; position:absolute; width:120px; display:block; text-align:center;  margin-right:10px;';
 	container.appendChild( bMenu );
 
 	var bbMenu = [];

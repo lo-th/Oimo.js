@@ -55,6 +55,17 @@ function basicTexture(n){
     return tx;
 }
 
+function nullTexture(){
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = canvas.height = 64;
+    var ctx = canvas.getContext( '2d' );
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, 64, 64);
+
+    var tx = new THREE.Texture(canvas);
+    tx.needsUpdate = true;
+    return tx;
+}
 //-----------------------------------------------------
 //  DICE
 //-----------------------------------------------------

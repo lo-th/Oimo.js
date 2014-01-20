@@ -345,8 +345,10 @@ var ThreeEngine = function () {
 			ballMaterial.map.anisotropy = MaxAnistropy;
 			ballMaterial.map.needsUpdate = true;
 
-			materialSky.map = Ambience.getTexture();
-			materialSky.map.needsUpdate = true;
+			if(isReflect){
+				materialSky.map = Ambience.getTexture();
+				materialSky.map.needsUpdate = true;
+			}
 
 			//if(!isOptimized)renderer.shadowMapEnabled = false;
 			ballCamera.updateCubeMap( renderer, ballScene );
@@ -369,6 +371,10 @@ var ThreeEngine = function () {
 
 	var removeReflection = function (){
 		var i = materials.length;
+
+		materialSky.map = new nullTexture();
+		materialSky.map.needsUpdate = true;
+
 		while (i--) {
 			materials[i].envMap = null;
 			materials[i].combine = null;

@@ -34,39 +34,50 @@ var Editor = function (Pos) {
 		container.style.display = "none";
 	}
 
+
+	var colors = ['#303030', '#b10dc9', '#0074d9', '#ff851b'];
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
-	var bstyle =unselect+ ' font-size:14px; border-bottom:1px solid rgba(255,255,255,0.3); background:rgba(55,123,167,0.1); height:19px; padding:0px 0px; text-align:center;';
+	var bstyle =unselect+ ' font-size:14px; margin-right:4px; -webkit-border-radius:20px; border-radius:20px;  border:2px solid #252525; background:'+colors[0]+'; height:19px; padding:2px 2px; text-align:center;';
 
 	var bbMenu = [];
 	var nscript;
 	var maxDemo = 8;
+	var currentDemo;
+
 
 	var decoFrame = document.createElement( 'div' );
 	decoFrame.id = 'decoFrame';
-	decoFrame.style.cssText =unselect+'top:10px; left:120px; position:absolute; display:block; width:calc(100% - 120px); height:60px; overflow:hidden; padding:0;';
+	decoFrame.style.cssText =unselect+'top:10px; left:130px; position:absolute; display:block; width:calc(100% - 120px); height:60px; overflow:hidden; padding:0;';
 	container.appendChild( decoFrame );
 
     // RUN BUTTON
 	var bRun = document.createElement( 'div' );
 	bRun.id = 'Editor-Run';
-	bRun.style.cssText =bstyle+buttonActif+'top:10px; left:10px; position:absolute; width:100px; height:40px; border:1px solid rgba(255,255,255,0.3);';
+	bRun.style.cssText =bstyle+buttonActif+'top:10px; left:10px; position:absolute; width:100px; height:30px; padding-top:12px;';
 	bRun.textContent = "RUN SCRIPT";
 	container.appendChild( bRun );
-	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = colors[3]; }, false );
+	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = colors[2]; }, false );
+    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = colors[0]; }, false );
 
     // MENU DEMO
 	for(var i=0;i!==maxDemo;i++){
 		bbMenu[i] = document.createElement( 'div' );
-		bbMenu[i].name = 'demo0'+i;
-		bbMenu[i].style.cssText = bstyle+buttonActif + " width:70px; border-left:1px solid rgba(255,255,255,0.3);";
-		bbMenu[i].textContent = 'demo 0'+i;
-		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(55,123,167,0.1)';  }, false );
-		bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+		bbMenu[i].style.cssText = bstyle + buttonActif + "width:20px; margin-right=2px;";
+		if(i<10){
+			bbMenu[i].textContent = '0'+i;
+			bbMenu[i].name = 'demo0'+i;
+		}else{
+			bbMenu[i].textContent = i;
+			bbMenu[i].name = 'demo'+i;
+		}
+		bbMenu[i].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); importScript(this.name); currentDemo=this.name; this.style.backgroundColor =  colors[3];}, false );
+		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = colors[2]; }, false );
+		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = colors[0]; testCurrentDemo(); }, false );		
 		decoFrame.appendChild( bbMenu[i] );
 	}
+
+
 
 	// MAIN EDITOR
 	var MainEditor = document.createElement( 'iframe' );
@@ -78,6 +89,13 @@ var Editor = function (Pos) {
 
 	var importScript = function(name){
 		MainEditor.contentWindow.loadfile(name+".html");
+	}
+
+	var testCurrentDemo = function(){
+		for(var i=0, j=bbMenu.length;i!==j;i++){
+			if(bbMenu[i].name === currentDemo)bbMenu[i].style.backgroundColor = colors[1];
+			else bbMenu[i].style.backgroundColor = colors[0];
+		}
 	}
 
 	var update = function (){
