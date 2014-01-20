@@ -38,7 +38,7 @@
 		        "Joint test", "Supermarket", "Greek temple", 
 		        "Ragdoll"
 		    ];
-		    var threeEngine, TE;
+		    var TE;
         	var Ambience;
         	var Interface;
         	var Editor;
@@ -52,7 +52,7 @@
 		    function init() {
 		    	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 		    	
-		    	threeEngine = new ThreeEngine();
+		    	TE = new ThreeEngine();
 		    	Interface = new Interface('rev');
 		    	Ambience = new Ambience();
 		    	Editor = new Editor();
@@ -63,8 +63,7 @@
 				Interface.menu.appendChild( Ambience.domElement );
 				demoName = Interface.demoName;
 
-				threeEngine.init();
-				TE = threeEngine;
+				TE.init();
             }
 
             function mainAllObjectLoaded(){
@@ -183,6 +182,8 @@
             //-----------------------------------------------------
 
             var basicOption = null;
+
+            var CAM = function(h, v, d){ TE.changeView(h, v, d); }
 
             var ADD = function(obj){
             	TE.ADD(obj);

@@ -38,7 +38,7 @@
 		       "Joint test", "Supermarket", "Car simulator", 
 		       "Ragdoll", "Van", "Bridge", "Droid"
 		    ];
-        	var threeEngine, TE;
+        	var TE;
         	var Ambience;
         	var Interface;
         	var Editor;
@@ -52,19 +52,18 @@
 		    function init() {
 		    	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		    	threeEngine = new ThreeEngine();
+		    	TE = new ThreeEngine();
 		    	Interface = new Interface('dev');
 		    	Ambience = new Ambience();
 		    	Editor = new Editor();
 
-		    	document.body.appendChild( threeEngine.domElement );
+		    	document.body.appendChild( TE.domElement );
 		    	document.body.appendChild( Editor.domElement );
 		    	document.body.appendChild( Interface.domElement );
 				Interface.menu.appendChild( Ambience.domElement );
 				demoName = Interface.demoName;
 
-				threeEngine.init();
-				TE = threeEngine;
+				TE.init();
             }
 
             function mainAllObjectLoaded(){
@@ -184,6 +183,8 @@
             //-----------------------------------------------------
 
             var basicOption = null;
+
+            var CAM = function(h, v, d){ TE.changeView(h, v, d); }
 
             var ADD = function(obj){ TE.ADD(obj); }
 

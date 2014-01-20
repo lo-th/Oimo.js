@@ -265,7 +265,7 @@ var Ambience = function (Pos) {
 			texture = new THREE.Texture(canvasSphere[0]);
 		}
 		texture.needsUpdate = true; 
-		if(threeEngine) threeEngine.updateBallCamera();
+		if(TE) TE.updateBallCamera();
 	}
 
 	//--------------------------------------

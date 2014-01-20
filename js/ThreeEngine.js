@@ -1576,6 +1576,7 @@ var ThreeEngine = function () {
 		removeObject:removeObject,
 
 		viewDivid:viewDivid,
+		changeView:changeView,
 
 		//options
 		reflection:reflection,
