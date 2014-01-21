@@ -196,7 +196,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var bMenu = document.createElement( 'div' );
-	bMenu.style.cssText = 'right:0px; top:160px; position:absolute; width:60px; display:block; text-align:center;  margin-right:10px;';
+	bMenu.style.cssText = 'right:0px; top:20px; position:absolute; width:60px; display:block; text-align:center;  margin-right:10px;';
 	container.appendChild( bMenu );
 
 	var bbMenu = [];
@@ -224,7 +224,7 @@ var Interface = function (name) {
 	}
 
 
-	bbMenu[0].innerHTML = icon_github;
+	bbMenu[0].innerHTML = "<a href='https://github.com/lo-th/Oimo.js'  target='_blank' >"+icon_github+"</a>";
 	bbMenu[1].innerHTML = icon_gear;
 	bbMenu[2].innerHTML = icon_material;
 	bbMenu[3].innerHTML = icon_env;
@@ -263,12 +263,15 @@ var Interface = function (name) {
 	/*bbMenu[0].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('delete'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[1].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('drag'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.setMouseMode('shoot'); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );*/
+	var openSource = function () {
+		window.open("https://github.com/lo-th/Oimo.js", "_blank");
+	}
     var showCode = function () {
     	TE.viewDivid();
     	var mode = TE.getViewMode();
 
     	if(mode==='no'){
-    		ribbon.style.right = '0';
+    		//ribbon.style.right = '0';
     		bMenu.style.right = '0';
     		copy.style.right = '0';
     		copy.style.bottom = '0';
@@ -277,7 +280,7 @@ var Interface = function (name) {
     		Editor.hide();
     	} else {
     		if(mode==="v"){
-    			ribbon.style.right = '50%';
+    			//ribbon.style.right = '50%';
     			bMenu.style.right = '50%';
     			copy.style.right = '50%';
 
@@ -386,10 +389,10 @@ var Interface = function (name) {
     //  RIBBON
     //-----------------------------------------------------
 
-	var ribbon = document.createElement( 'div' );
+	/*var ribbon = document.createElement( 'div' );
 	ribbon.style.cssText ='position: absolute; top: 0; right: 0; border: 0;  pointer-events:auto;';
 	ribbon.innerHTML ="<a href='https://github.com/lo-th/Oimo.js'  target='_blank' ><img  src='images/ribbon0.png' alt='Fork me on GitHub' /></a>";
-	container.appendChild( ribbon );
+	container.appendChild( ribbon );*/
 
     return {
 		domElement: container,
