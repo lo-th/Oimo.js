@@ -14,6 +14,7 @@
 //---------------------------------------------------
 
 'use strict';
+//importScripts('../../build/Oimo.rev.min.js');
 importScripts('../../build/Oimo.rev.js');
 importScripts('demos.js');
 
