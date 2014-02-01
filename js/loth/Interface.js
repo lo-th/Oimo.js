@@ -7,7 +7,7 @@ var Interface = function (name) {
 	container.id = 'interface';
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
-	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#CCCCCC; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
+	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#EEEEEE; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
 	var effect = 'border:1px solid rgba(255,255,255,0.3);';
 	var buttonStyle = effect+'width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
 	var bbStyle = 'width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:18px; ';
@@ -114,14 +114,14 @@ var Interface = function (name) {
     titleLogo.innerHTML = icon_logos;
 
 	var title = document.createElement( 'div' );
-	title.style.cssText = 'position:absolute; color:#FFFFFF; top:12px; left:60px; text-align:left; font-weight:bold; font-size:22px; pointer-events:none;';
+	title.style.cssText = 'position:absolute; color:#FFFFFF; top:12px; left:60px; text-align:left; font-weight:900; font-size:23px; pointer-events:none;';
 	title.innerHTML ="Oimo.js";
 
 	var titleLink = document.createElement( 'div' );
-	titleLink.style.cssText = 'position:absolute; color:#CCCCCC; top:20px; left:170px; text-align:left; pointer-events:auto; font-size:14px;';
+	titleLink.style.cssText = 'position:absolute; color:#FFFFFF; top:19px; left:180px; text-align:left; pointer-events:auto; font-size:16px; font-weight:600;';
 
-	var linkStyle = "color:#dbae77; cursor:pointer;";
-	var sep = " . ";
+	var linkStyle = "color:#7fdbff; cursor:pointer;";
+	var sep = "/";
 	
 	var txt = "";
 	if(name==='dev') txt +="DEV";
@@ -142,7 +142,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:#808080; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:CECECE; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -151,7 +151,7 @@ var Interface = function (name) {
 
 	var copy = document.createElement( 'div' );
 	copy.style.cssText = 'position:absolute; bottom:0px; width:350px; right:0px; text-align:right; pointer-events:auto; color:#777777; margin-right:10px; margin-bottom:5px;';
-	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#888888'>LOTH 2014</a> |  <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a>";
+	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#909090'>LOTH 2014</a> |  <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a>";
 	container.appendChild( copy );
 
 	//-----------------------------------------------------
@@ -213,7 +213,8 @@ var Interface = function (name) {
 
 		bbMenu2[i] = document.createElement( 'div' );
 		bbMenu2[i].name = i;
-		bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:0px; color:#7fdbff;";
+		if(i===0)bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:30px; color:#7fdbff;";
+		else bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:0px; color:#7fdbff;";
 		bbMenu2[i].style.visibility = "hidden";
 		bbMenu2[i].innerHTML =bbMenuNames[i];
 		//else bbMenu[i].style.cssText = buttonStyle + "width:120px; height:30px; margin-bottom:6px;";
@@ -393,6 +394,15 @@ var Interface = function (name) {
 	ribbon.style.cssText ='position: absolute; top: 0; right: 0; border: 0;  pointer-events:auto;';
 	ribbon.innerHTML ="<a href='https://github.com/lo-th/Oimo.js'  target='_blank' ><img  src='images/ribbon0.png' alt='Fork me on GitHub' /></a>";
 	container.appendChild( ribbon );*/
+
+	//-----------------------------------------------------
+    //  BADGE
+    //-----------------------------------------------------
+
+    /*var badge = document.createElement( 'div' );
+    badge.style.cssText ='position: absolute; bottom: 20px; right: 10px; border: 0;  pointer-events:auto;';
+	badge.innerHTML ="<a href='http://www.chromeexperiments.com/detail/YOUR-PROJECT-NAME/'><img src='images/badge.png' alt='See my Experiment on ChromeExperiments.com' /></a>"
+	container.appendChild( badge );*/
 
     return {
 		domElement: container,

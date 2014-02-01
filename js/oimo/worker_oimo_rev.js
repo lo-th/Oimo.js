@@ -73,7 +73,8 @@ self.onmessage = function (e) {
         createWorld();
     }
 
-    if(phase === "ADD") ADD(e.data);
+    if(phase === "ADD") ADD(e.data.obj);
+    if(phase === "GET") GET(e.data.names);
     if(phase === "REMOVE") { isNeedRemove = true; removeTemp = e.data} //REMOVE(e.data);
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
@@ -96,6 +97,28 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var ADD = function(data){
+    // joint
+    if(data.type.substring(0,5) === 'joint'){
+        if(data.pos1) data.pos1 = rzOimo(data.pos1);
+        if(data.pos2) data.pos2 = rzOimo(data.pos2);
+        if(data.type==="jointDistance"){
+            if(data.min) data.min = data.min*invScale;
+            if(data.max) data.max = data.max*invScale;
+        } else { // is Angle
+            if(data.min) data.min = data.min*ToRad;
+            if(data.max) data.max = data.max*ToRad;
+        }
+        addJoint(data);
+    // object
+    } else {
+        if(data.size) data.size = rzOimo(data.size);
+        if(data.pos) data.pos = rzOimo(data.pos)
+        if(data.rot) data.rot = rotationToRad(data.rot);
+        addRigid(data, true);
+    }
+}
+/*
+var ADD = function(data){
     if(data.type.substring(0,5) === 'joint'){
         if(data.pos1) data.pos1 = rzOimo(data.pos1);
         if(data.pos2) data.pos2 = rzOimo(data.pos2);
@@ -107,6 +130,19 @@ var ADD = function(data){
         if(data.pos) data.pos = rzOimo(data.pos);
         addRigid(data, true);
     }
+}*/
+
+var GET = function(names){
+    var selects = {};
+    var name, i, j = names.length;
+    while(j--){
+        name = names[j];
+        i = bodys.length;
+        while(i--) if(bodys[i].name === name) selects[name] = bodys[i];
+        i = joints.length;
+        while(i--) if(joints[i].name === name) selects[name] = joints[i];
+    }
+    self.postMessage({tell:"SET", selects:selects});
 }
 
 var CONTROL = function(data){
@@ -455,13 +491,16 @@ var getBodyByName = function(name){
 //--------------------------------------------------
 
 var addJoint = function (obj){
+    var name = obj.name || '';
     var jc = new OIMO.JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
-    var minDistance = obj.minDistance || 0.01;
-    var maxDistance = obj.maxDistance || 0.1;
+    //var minDistance = obj.minDistance || 0.01;
+    //var maxDistance = obj.maxDistance || 0.1;
+    var min = obj.min || 0.01;
+    var max = obj.max || 0.1;
     var type = obj.type || "hinge";
     var collision = obj.collision || false;
     jc.allowCollision=collision;
@@ -475,15 +514,21 @@ var addJoint = function (obj){
     var joint;
     switch(type){
         case "ball": case "jointBall": joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
-        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, maxDistance); break;
+        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, max); break;
         case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
         case "hinge2": case "jointHinge2": joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
     }
     
     //joint.limitMotor.setSpring(1, 10); // soften the joint
+    joint.name = name;
     world.addJoint(joint);
     joints.push(joint);
+
     return joint;
+}
+
+var rotationToRad = function (ar){
+    return [ar[0]*ToRad, ar[1]*ToRad, ar[2]*ToRad];
 }
 
 //--------------------------------------------------

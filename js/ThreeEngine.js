@@ -32,7 +32,7 @@ var ThreeEngine = function () {
 	var center = new THREE.Vector3(0,150,0);
 
 	var delta, clock = new THREE.Clock();
-	var fpstxt, time, time_prev = 0, fps = 0, startTime, ms;
+	var fpstxt, time, time_prev = 0, fps = 0, startTime, ms, maxms = 0;;
 
 	var meshs = [];
 	var bullets = [];
@@ -140,6 +140,7 @@ var ThreeEngine = function () {
 
 		MaxAnistropy = renderer.getMaxAnisotropy();
 		if(isReflect) initReflectBall();
+		
 		initMaterial();
 
 		groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending:THREE.MultiplyBlending} );
@@ -292,24 +293,28 @@ var ThreeEngine = function () {
 
 	var changeMaterialType = function(){
 		materialType++;
-		if(materialType==3)materialType=0;
+		if(materialType==4)materialType=0;
 
 		baseMaterial();
 
-		var i=materials.length;
+		/*var i=materials.length;
 		while (i--) {
 			materials[ i ].needsUpdate = true;
-		}
+		}*/
 		i=content.children.length;
 		var name;
 		while (i--) {
 			if(content.children[ i ].material){
 				name = content.children[ i ].material.name;
 				content.children[ i ].material = getMaterial(name);
-				content.children[ i ].material.needsUpdate = true;
+				//content.children[ i ].material.needsUpdate = true;
+				//if(content.children[ i ].material.map)content.children[ i ].material.map.needsUpdate = true;
+				//content.children[ i ].geometry.buffersNeedUpdate = true;
+				//content.children[ i ].geometry.uvsNeedUpdate = true;
 		    }
 		}
-		if(isReflect){
+		//if(isReflect && materialType!==3){
+		if(isReflect ){
 			activReflection();
 		}
 	}
@@ -457,6 +462,9 @@ var ThreeEngine = function () {
 		var mat;
 		switch(materialType){
 			case 0:
+			    obj.wireframe = false;
+			    obj.shading = THREE.SmoothShading;
+			    obj.side = THREE.FrontSide;
 			    mat = new THREE.MeshBasicMaterial( obj );
 			break;
 			case 1:
@@ -468,6 +476,10 @@ var ThreeEngine = function () {
 			    obj.shininess = 100;
 				obj.specular = 0xffffff;
 			    mat = new THREE.MeshPhongMaterial( obj );
+			break;
+			case 3:
+				obj.wireframe = true;
+			    mat = new THREE.MeshBasicMaterial( obj );
 			break;
 		}
 
@@ -489,6 +501,24 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 
 	var ADD = function (obj){
+		var move = obj.move || false;
+		
+		if(obj.type.substring(0,5) === 'joint'){//_____________ Joint
+			addJoint();
+		}else{
+			if(move){//________________________________________ Dynamic
+				addObjects( obj.type, obj.size );
+			}else{//___________________________________________ Static
+				var mesh = addStaticObjects( obj.type, obj.size );
+				mesh.position.set( obj.pos[0], obj.pos[1], obj.pos[2] );
+				if(obj.rot) mesh.rotation.set( obj.rot[0]*ToRad, obj.rot[1]*ToRad, obj.rot[2]*ToRad );
+			}
+		}
+		// now create in oimo physic
+		OimoWorker.postMessage({ tell:"ADD", obj:obj });
+	}
+
+	/*var ADD = function (obj){
 		var name = obj.name || "";
 		var mesh;
 		var type = obj.type || "box";
@@ -509,15 +539,17 @@ var ThreeEngine = function () {
 		var pos2 = obj.pos2 || [0,0,0];
 		var axis1 = obj.axis1 || [0,0,0];
 		var axis2 = obj.axis2 || [0,0,0];
-		var minDistance = obj.min || 1;
-		var maxDistance = obj.max || 10;
+		var min = obj.min || 1;
+		var max = obj.max || 0;
+		//var minDistance = obj.min || 1;
+		//var maxDistance = obj.max || 10;
 		var collision = obj.collision || false;
 		var spring = obj.spring || [1, 0.5];
-		var upperAngle = obj.upperAngle || 0;
+		//var upperAngle = obj.upperAngle || 0;
 		
 		if(type.substring(0,5) === 'joint'){//_____________________________ Joint
 			addJoint();
-			OimoWorker.postMessage({ tell:"ADD", name:name, type:type, body1:body1, body2:body2, pos1:pos1, pos2:pos2, axis1:axis1, axis2:axis2, collision:collision, minDistance:minDistance, maxDistance:maxDistance, spring:spring, upperAngle:upperAngle   });
+			OimoWorker.postMessage({ tell:"ADD", name:name, type:type, body1:body1, body2:body2, pos1:pos1, pos2:pos2, axis1:axis1, axis2:axis2, collision:collision, min:min, max:max, spring:spring   });
 		}else{
 			if(move){//_____________________________________ Dynamic
 				addObjects( type, size );
@@ -529,7 +561,7 @@ var ThreeEngine = function () {
 			// now create in oimo physic
 			OimoWorker.postMessage({ tell:"ADD", name:name, type:type, move:move, size:size, pos:pos, rot:rot, config:config, notSleep:notSleep });
 		}
-	}
+	}*/
 
 	var CONTROL = function(data){
 		var type = obj.type || "ball";
@@ -809,6 +841,7 @@ var ThreeEngine = function () {
 
 		//lightsAnimation(0.5, 0, 180, 90, 0);
 		planeBG.position.set(0, 0.01, 0);
+		maxms = 0;
 	}
 
 	var addSnake = function (s) {
@@ -1175,6 +1208,7 @@ var ThreeEngine = function () {
 
 		time = Date.now();
 	    ms = time - startTime;
+	    if(ms > maxms)maxms = ms;
 	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
 	    fps++;
 	}
@@ -1591,7 +1625,7 @@ var ThreeEngine = function () {
 			mouseMode = name;
 		},
 		getFps: function (name) {
-			return fpstxt +" fps / "+ ms+" ms";
+			return fpstxt +" fps / "+ ms+"/"+maxms+" ms";
 		},
 		getSelected: function () {
 			if(selected) return selected.name;

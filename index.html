@@ -166,6 +166,7 @@
 				// get ragdoll info
 				if(phase === "GETBONES") TE.getSqueletonStructure(e.data.name);
 				if(phase === "GRAVITY") Interface.setCurrentGravity(e.data.G);
+				if(phase === "SET"){ SET = e.data.selects; endDemo(); }
     	    }
 
     	    //-----------------------------------------------------
@@ -183,10 +184,12 @@
             //-----------------------------------------------------
 
             var basicOption = null;
+            var SET = null;
 
             var CAM = function(h, v, d){ TE.changeView(h, v, d); }
 
             var ADD = function(obj){ TE.ADD(obj); }
+            var GET = function(names){ OimoWorker.postMessage({tell:"GET", names:names}); }
 
             var CLEAR = function(obj){
             	basicOption = obj || {ground:false};

@@ -84,7 +84,8 @@ self.onmessage = function (e) {
         createWorld();
     }
 
-    if(phase === "ADD") ADD(e.data);
+    if(phase === "ADD") ADD(e.data.obj);
+    if(phase === "GET") GET(e.data.names);
     if(phase === "REMOVE"){ isNeedRemove = true; removeTemp = e.data};
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
@@ -108,17 +109,39 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var ADD = function(data){
+    //var r = data.rot || [0,0,0];
+    // joint
     if(data.type.substring(0,5) === 'joint'){
         if(data.pos1) data.pos1 = rzOimo(data.pos1);
         if(data.pos2) data.pos2 = rzOimo(data.pos2);
-        if(data.minDistance) data.minDistance = data.minDistance*invScale;
-        if(data.maxDistance) data.maxDistance = data.maxDistance*invScale;
+        if(data.type==="jointDistance"){
+            if(data.min) data.min = data.min*invScale;
+            if(data.max) data.max = data.max*invScale;
+        } else { // is Angle
+            if(data.min) data.min = data.min*ToRad;
+            if(data.max) data.max = data.max*ToRad;
+        }
         addJoint(data);
+    // object
     } else {
         if(data.size) data.size = rzOimo(data.size);
-        if(data.pos) data.pos = rzOimo(data.pos);
+        if(data.pos) data.pos = rzOimo(data.pos)
+        if(data.rot) data.rot = rotationToRad(data.rot);
         addRigid(data, true);
     }
+}
+
+var GET = function(names){
+    var selects = {};
+    var name, i, j = names.length;
+    while(j--){
+        name = names[j];
+        i = bodys.length;
+        while(i--) if(bodys[i].name === name) selects[name] = bodys[i];
+        i = joints.length;
+        while(i--) if(joints[i].name === name) selects[name] = joints[i];
+    }
+    self.postMessage({tell:"SET", selects:selects});
 }
 
 var CONTROL = function(data){
@@ -520,18 +543,24 @@ var getBodyByName = function(name){
 //--------------------------------------------------
 
 var addJoint = function(obj){
+    var name = obj.name || '';
+    var type = obj.type || "hinge";
     var jc = new OIMO.JointConfig();
     var axis1 = obj.axis1 || [1,0,0];
     var axis2 = obj.axis2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
-    var minDistance = 0.01;
-    var maxDistance = obj.maxDistance || 0.1;
-    var lowerAngleLimit = obj.lowerAngle || 1;
-    var upperAngleLimit = obj.upperAngle || 0;
-    var lowerTranslation = obj.lowerTranslation || 1;
-    var upperTranslation = obj.upperTranslation || 0;
-    var type = obj.type || "hinge";
+
+    var min, max;
+    if(type==="jointDistance" || type==="distance"){
+        min = obj.min || 0;
+        max = obj.max || 0.1;
+    }else{
+        min = obj.min || 1;
+        max = obj.max || 0;
+    }
+
+    
     var limit = obj.limit || null;
     var spring = obj.spring || null;
     var collision = obj.collision || false;
@@ -546,10 +575,10 @@ var addJoint = function(obj){
     jc.body2 = obj.body2;
     var joint;
     switch(type){
-        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, minDistance, maxDistance); break;
-        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, lowerAngleLimit, upperAngleLimit); break;
-        case "prisme": case "jointPrisme": joint = new OIMO.PrismaticJoint(jc, lowerTranslation, upperTranslation); break;
-        case "slide": case "jointSlide": joint = new OIMO.SliderJoint(jc, lowerTranslation, upperTranslation); break;
+        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, min, max); break;
+        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, min, max); break;
+        case "prisme": case "jointPrisme": joint = new OIMO.PrismaticJoint(jc, min, max); break;
+        case "slide": case "jointSlide": joint = new OIMO.SliderJoint(jc, min, max); break;
         case "ball": case "jointBall": joint = new OIMO.BallAndSocketJoint(jc); break;
         case "wheel": case "jointWheel": 
             joint = new OIMO.WheelJoint(jc);  
@@ -560,9 +589,14 @@ var addJoint = function(obj){
         break;
     }
     //joint.limitMotor.setSpring(100, 0.9); // soften the joint
+    joint.name = name;
     world.addJoint(joint);
     joints.push(joint);
     return joint;
+}
+
+var rotationToRad = function (ar){
+    return [ar[0]*ToRad, ar[1]*ToRad, ar[2]*ToRad];
 }
 
 //--------------------------------------------------

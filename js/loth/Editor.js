@@ -41,7 +41,7 @@ var Editor = function (Pos) {
 
 	var bbMenu = [];
 	var nscript;
-	var maxDemo = 8;
+	var maxDemo = 9;
 	var currentDemo;
 
 
