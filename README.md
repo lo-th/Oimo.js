@@ -1,4 +1,4 @@
-<img src="http://lo-th.github.io/Oimo.js/images/logo.svg"/>  Oimo.js 
+<img src="http://lo-th.github.io/Oimo.js/images/logo.jpg"/>  Oimo.js 
 =========
 
 Oimo.js is a lightweight 3d physics engine for javascript.<br>
