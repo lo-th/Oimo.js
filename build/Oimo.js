@@ -25,9 +25,27 @@ OIMO.INV_SCALE = 0.01;
 //------------------------------
 
 OIMO.Body = function(Obj){
+
     var obj = Obj || {};
     var name = obj.name || '';
+    var type = obj.type || "box";
     var sc = obj.sc || new OIMO.ShapeConfig();
+    var p = obj.pos || [0,0,0];
+    var s = obj.size || [1,1,1];
+
+    // rescale for oimo world
+    //p = [p[0]*OIMO.INV_SCALE, p[1]*OIMO.INV_SCALE, p[2]*OIMO.INV_SCALE];
+    //s = [s[0]*OIMO.INV_SCALE, s[1]*OIMO.INV_SCALE, s[2]*OIMO.INV_SCALE];
+
+    p = p.map(function(x) { return x * OIMO.INV_SCALE; });
+    s = s.map(function(x) { return x * OIMO.INV_SCALE; });
+
+    var rot = obj.rot || [];
+    var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
+    var move = obj.move || false;
+    var noSleep  = obj.noSleep || false; 
+    var noAdjust = obj.noAdjust || false;
+
     if(obj.config){
         sc.density = obj.config[0] || 1;
         sc.friction = obj.config[1] || 0.4;
@@ -41,39 +59,60 @@ OIMO.Body = function(Obj){
     if(obj.configRot){
         sc.relativeRotation = OIMO.EulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
     }
-    
-    var p = obj.pos || [0,0,0];
-    var s = obj.size || [1,1,1];
-    // rescale for oimo world
-    p = [p[0]*OIMO.INV_SCALE, p[1]*OIMO.INV_SCALE, p[2]*OIMO.INV_SCALE];
-    s = [s[0]*OIMO.INV_SCALE, s[1]*OIMO.INV_SCALE, s[2]*OIMO.INV_SCALE];
 
-    var rot = obj.rot || [];
-    var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
-    var move = obj.move || false;
-    var noSleep  = obj.noSleep || false; 
-    var noAdjust = obj.noAdjust || false;
+    var shapes = [];
 
-    var shape;
-    switch(obj.type){
-        case "sphere": shape = new OIMO.SphereShape(sc, s[0]); break;
-        default: case "box": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); break;
+
+    if( typeof type === 'string' ) {
+        switch(type){
+            case "sphere": shapes[0] = new OIMO.SphereShape(sc, s[0]); break;
+            case "box": shapes[0] = new OIMO.BoxShape(sc, s[0], s[1], s[2]); break;
+        }
+
+        if(obj.world){
+           //this.body = obj.world.getByName(name);
+            /*if(this.body!==null){
+                shapes[0].relativePosition = new OIMO.Vec3(p[0], p[1], p[2]);
+                this.body.addShape(shapes[0]);
+            }else{// rigidbody not existe add new */
+                this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+                this.body.addShape(shapes[0]);
+                if(move){
+                    if(noAdjust)this.body.setupMass(0x1, false);
+                    else this.body.setupMass(0x1, true);
+                    if(noSleep) this.body.allowSleep = false;
+                    else this.body.allowSleep = true;
+                } else {
+                    this.body.setupMass(0x2);
+                }
+                this.body.name = name;
+                obj.world.addRigidBody(this.body); 
+           //}
+        }
+    } else {// multy shapes
+        var n;
+        this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+        for(var i=0; i<type.length; i++){
+            n = i*3;
+            switch(type[i]){
+                case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[0]); break;
+                case "box": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break;
+            }
+            this.body.addShape(shapes[i]);
+            if(i>0) shapes[i].relativePosition = new OIMO.Vec3(p[n+0], p[n+1], p[n+2]);
+        }
+        if(move){
+            if(noAdjust)this.body.setupMass(0x1, false);
+            else this.body.setupMass(0x1, true);
+            if(noSleep) this.body.allowSleep = false;
+            else this.body.allowSleep = true;
+        } else {
+            this.body.setupMass(0x2);
+        }
+        this.body.name = name;
+        obj.world.addRigidBody(this.body);
+
     }
-
-    this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
-    this.body.addShape(shape);
-
-    if(move){
-        if(noAdjust)this.body.setupMass(0x1, false);
-        else this.body.setupMass(0x1, true);
-        if(noSleep) this.body.allowSleep = false;
-        else this.body.allowSleep = true;
-    } else {
-        this.body.setupMass(0x2);
-    }
-    this.body.name = name;
-
-    if(obj.world){ obj.world.addRigidBody(this.body); }
 }
 
 OIMO.Body.prototype = {
@@ -82,9 +121,6 @@ OIMO.Body.prototype = {
     getMatrix:function(){
         return this.body.getMatrix();
     },
-    /*getSize:function(){
-        return new OIMO.Vec3().scale(this.size, OIMO.WORLD_SCALE);
-    },*/
     setPosition:function(x,y,z){
         this.body.setPosition(x,y,z);
     },
@@ -175,7 +211,7 @@ OIMO.World.prototype = {
             this.addShape(shape);
         }
         if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
-        this.rigidBodies=rigidBody;
+        this.rigidBodies = rigidBody;
         this.numRigidBodies++;
     },
     removeRigidBody:function(rigidBody){
@@ -201,15 +237,24 @@ OIMO.World.prototype = {
         remove.parent=null;
         this.numRigidBodies--;
     },
+    /*getByName:function(name){
+        var result = null;
+        var body=this.rigidBodies;
+        while(body!==null){
+            if(body.name!== "" && body.name === name) result = body;
+            body=body.next;
+        }
+        return result;
+    },*/
     addShape:function(shape){
         if(!shape.parent || !shape.parent.parent){
             throw new Error("It is not possible to be added alone to shape world");
         }
-        shape.proxy=this.broadPhase.createProxy(shape);
+        shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
         this.broadPhase.addProxy(shape.proxy);
-        },
-        removeShape:function(shape){
+    },
+    removeShape:function(shape){
         this.broadPhase.removeProxy(shape.proxy);
         shape.proxy=null;
     },
@@ -567,7 +612,8 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var x = X || 0;
     var y = Y || 0;
     var z = Z || 0;
-
+    
+    this.name = "yoo";
     this.BODY_DYNAMIC=0x1;
     this.BODY_STATIC=0x2;
     this.MAX_SHAPES=64;

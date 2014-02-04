@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Oimo.js Basic</title>
+<title>Oimo.js Compound test</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
@@ -41,7 +41,7 @@
     <input type="button" value="sphere" onClick=populate(1)>
     <input type="button" value="boxe" onClick=populate(2)>
     <input type="button" value="mix" onClick=populate(3)>
-    <input type="number" name="quantity" min="10" max="2000" value="500"  id='MaxNumber'>
+    <input type="number" name="quantity" min="10" max="2000" value="50"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
 </div>
 <div id='info'></div>
@@ -142,37 +142,85 @@
         var ground = new OIMO.Body({size:[100, 40, 400], pos:[0,-20,0], world:world});
         var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-50,0], world:world});
 
-        //add object
-        var x, y, z, w, h, d;
+        var oScale = [30,5,30];
         var i = max;
 
-        while (i--){
-            if(type===3) t = Math.floor(Math.random()*2)+1;
-            else t = type;
-            x = -100 + Math.random()*200;
-            z = -100 + Math.random()*200;
-            y = 100 + Math.random()*1000;
-            w = 10 + Math.random()*10;
-            h = 10 + Math.random()*10;
-            d = 10 + Math.random()*10;
 
-            if(t===1){
-                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
-                meshs[i] = new THREE.Mesh( geoSphere, matSphere );
-                meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
-            } else if(t===2){
-                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
-                meshs[i] = new THREE.Mesh( geoBox, matBox );
-                meshs[i].scale.set( w, h, d );
-            }
-            scene.add( meshs[i] );
+        while (i--){
+            bodys[i] = new OIMO.Body({
+                type:['box', 'box', 'box', 'box', 'box', 'box', 'box', 'box'], 
+                size:[30,5,30,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  25,10,5], 
+                pos:[0,300+(i*200),0,  12,-16,12,  -12,-16,12,  12,-16,-12,  -12,-16,-12,  12,16,-12,  -12,16,-12,  0,25,-12 ], 
+                move:true, 
+                world:world, 
+                name:'box'+i, 
+                config:[0.2, 0.4,0.1]
+            });
+
+            meshs[i] = new THREE.Mesh( geoBox, matBox );
+            meshs[i].scale.set( oScale[0],oScale[1],oScale[2] );
+            var adds = new THREE.Object3D();
+            adds.scale.set(1/oScale[0],1/oScale[1],1/oScale[2]);
+
+            var m1 = new THREE.Mesh( geoBox, matBox );
+            m1.scale.set( 4,30,4 );
+            m1.position.set(12,-16,12);
+
+            var m2 = new THREE.Mesh( geoBox, matBox );
+            m2.scale.set( 4,30,4 );
+            m2.position.set(-12,-16,12);
+
+            var m3 = new THREE.Mesh( geoBox, matBox );
+            m3.scale.set( 4,30,4 );
+            m3.position.set(12,-16,-12);
+
+            var m4 = new THREE.Mesh( geoBox, matBox );
+            m4.scale.set( 4,30,4 );
+            m4.position.set(-12,-16,-12);
+
+            var m5 = new THREE.Mesh( geoBox, matBox );
+            m5.scale.set( 4,30,4 );
+            m5.position.set(12,16,-12);
+
+            var m6 = new THREE.Mesh( geoBox, matBox );
+            m6.scale.set( 4,30,4 );
+            m6.position.set(-12,16,-12);
+
+            var m7 = new THREE.Mesh( geoBox, matBox );
+            m7.scale.set( 25,10,3);
+            m7.position.set(0,25,-12);
+
+            scene.add(meshs[i]);
+            meshs[i].add(adds);
+            adds.add(m1);
+            adds.add(m2);
+            adds.add(m3);
+            adds.add(m4);
+            adds.add(m5);
+            adds.add(m6);
+            adds.add(m7);
         }
     }
 
     function clearMesh(){
 
-        var i=meshs.length;
-        while (i--)scene.remove(meshs[ i ]);
+        var i = meshs.length;
+        var j, k;
+        while (i--){
+            if(meshs[i].childen){
+                j = meshs[i].childen.length;
+                while (j--){
+                    if(meshs[i].childen[j].childen){
+                        k = meshs[i].childen[j].childen.length;
+                        while (k--){
+                            meshs[i].childen[j].remove(meshs[i].childen[j].childen[k]);
+                        }
+                    }
+                    meshs[i].remove(meshs[i].childen[j]);
+                }
+            }
+            scene.remove(meshs[ i ]);
+        }
 
     }
 

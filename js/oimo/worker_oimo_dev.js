@@ -495,8 +495,8 @@ var addRigid = function(obj, OO){
         
 
     }
-    var body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     
+    var body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
     body.addShape(shape);
 
     if(move){

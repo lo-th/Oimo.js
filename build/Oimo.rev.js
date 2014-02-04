@@ -194,7 +194,7 @@ OIMO.World.prototype = {
         rigidBody.awake();
         var num=rigidBody.numShapes;
         for(var i=0;i<num;i++){
-        this.addShape(rigidBody.shapes[i]);
+            this.addShape(rigidBody.shapes[i]);
         }
         this.rigidBodies[this.numRigidBodies++]=rigidBody;
         rigidBody.parent=this;
@@ -312,37 +312,52 @@ OIMO.World.prototype = {
         }
         remove.parent=null;
     },
+    checkName:function(name){
+        var i=this.numRigidBodies;
+        while(i--){
+            if(this.rigidBodies[i].name === name) return true;
+            else return false;
+        }
+    },
+    getByName:function(name){
+        var i=this.numRigidBodies;
+        while(i--){
+            if(this.rigidBodies[i].name === name) return this.rigidBodies[i];
+        }
+    },
     step:function(){
         var time1=Date.now();
         var tmpC=this.contacts;
         this.contacts=this.prevContacts;
         this.prevContacts=tmpC;
-        for(var i=0;i<this.numRigidBodies;i++){
-        var tmpB=this.rigidBodies[i];
-        if(tmpB.sleeping){
-        var lv=tmpB.linearVelocity;
-        var av=tmpB.linearVelocity;
-        var p=tmpB.position;
-        var sp=tmpB.sleepPosition;
-        var o=tmpB.orientation;
-        var so=tmpB.sleepOrientation;
-        if(
-        lv.x!=0||lv.y!=0||lv.z!=0||
-        av.x!=0||av.y!=0||av.z!=0||
-        p.x!=sp.x||p.y!=sp.y||p.z!=sp.z||
-        o.s!=so.s||o.x!=so.x||o.y!=so.y||o.z!=so.z
-        ){
-        tmpB.awake();
-        continue;
-        }
-        }
+        var num = this.numRigidBodies;
+        while(num--){
+        //for(var i=0;i<this.numRigidBodies;i++){
+            var tmpB=this.rigidBodies[num];//this.rigidBodies[i];
+            if(tmpB.sleeping){
+                var lv=tmpB.linearVelocity;
+                var av=tmpB.linearVelocity;
+                var p=tmpB.position;
+                var sp=tmpB.sleepPosition;
+                var o=tmpB.orientation;
+                var so=tmpB.sleepOrientation;
+                if(
+                lv.x!=0||lv.y!=0||lv.z!=0||
+                av.x!=0||av.y!=0||av.z!=0||
+                p.x!=sp.x||p.y!=sp.y||p.z!=sp.z||
+                o.s!=so.s||o.x!=so.x||o.y!=so.y||o.z!=so.z
+                ){
+                tmpB.awake();
+                continue;
+                }
+            }
         }
         this.detectCollisions();
         this.updateIslands();
         var time2=Date.now();
         this.performance.solvingTime=time2-this.performance.solvingTime;
         this.performance.totalTime=time2-time1;
-        },
+    },
     detectCollisions:function(){
         this.collectContactInfos();
         this.setupContacts();
@@ -356,16 +371,16 @@ OIMO.World.prototype = {
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
         for(var i=0;i<numPairs;i++){
-        var pair=pairs[i];
-        var s1=pair.shape1;
-        var s2=pair.shape2;
-        var detector=this.detectors[s1.type][s2.type];
-        if(detector){
-        detector.detectCollision(s1,s2,this.collisionResult);
-        if(this.collisionResult.numContactInfos==OIMO.MAX_CONTACTS){
-        return;
-        }
-        }
+            var pair=pairs[i];
+            var s1=pair.shape1;
+            var s2=pair.shape2;
+            var detector=this.detectors[s1.type][s2.type];
+            if(detector){
+                detector.detectCollision(s1,s2,this.collisionResult);
+                if(this.collisionResult.numContactInfos==OIMO.MAX_CONTACTS){
+                    return;
+                }
+            }
         }
         var time3=Date.now();
         this.performance.narrowPhaseTime=time3-time2;
@@ -376,11 +391,11 @@ OIMO.World.prototype = {
         this.numPrevContacts1=this.numContacts;
         var numSleptContacts=0;
         for(var i=0;i<this.numPrevContacts1;i++){
-        var c=this.prevContacts[i];
-        if(c.sleeping){
-        this.prevContacts[i]=this.contacts[numSleptContacts];
-        this.contacts[numSleptContacts++]=c;
-        }
+            var c=this.prevContacts[i];
+            if(c.sleeping){
+                this.prevContacts[i]=this.contacts[numSleptContacts];
+                this.contacts[numSleptContacts++]=c;
+            }
         }
         var contactInfos=this.collisionResult.contactInfos;
         this.numContacts=numSleptContacts+this.collisionResult.numContactInfos;
@@ -627,6 +642,8 @@ OIMO.RigidBody = function(Rad,Ax,Ay,Az){
     var ax = Ax || 0;
     var ay = Ay || 0;
     var az = Az || 0;
+
+    this.name = "";
     this.type=0;
     this.position=null;
     this.mass=NaN;
@@ -1005,6 +1022,9 @@ OIMO.RigidBody.prototype = {
         this.linearVelocity.init();
         this.angularVelocity.init();
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
+    },
+    getName:function(){
+        return this.name;
     },
     getMatrix:function(){
         var m = this.matrix.elements;

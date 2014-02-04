@@ -15,3 +15,5 @@ Demo with three.js and worker:
 Basic demo no worker
 
 [basic test](http://lo-th.github.io/Oimo.js/test_basic.html)
+
+[compound test](http://lo-th.github.io/Oimo.js/test_compound.html)
