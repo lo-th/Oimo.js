@@ -95,7 +95,7 @@ OIMO.Body = function(Obj){
         for(var i=0; i<type.length; i++){
             n = i*3;
             switch(type[i]){
-                case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[0]); break;
+                case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n+0]); break;
                 case "box": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break;
             }
             this.body.addShape(shapes[i]);

@@ -38,7 +38,7 @@
 <body>
 <div id='container'></div>
 <div id='interface'>
-    <input type="button" value="sphere" onClick=populate(1)>
+    <input type="button" value="Chairs" onClick=populate(1)>
     <input type="button" value="boxe" onClick=populate(2)>
     <input type="button" value="mix" onClick=populate(3)>
     <input type="number" name="quantity" min="10" max="2000" value="50"  id='MaxNumber'>
@@ -119,11 +119,32 @@
         // oimo init
         world = new OIMO.World();
 
+        initChairGeometry();
         populate(1);
 
         //
 
         window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+    var types, sizes, positions, chairGeometry;
+
+    function initChairGeometry() {
+        types = ['box', 'box', 'box', 'box', 'box', 'box', 'box', 'box'];
+        sizes = [30,5,30,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  23,10,3 ];
+        positions = [0,0,0,  12,-16,12,  -12,-16,12,  12,-16,-12,  -12,-16,-12,  12,16,-12,  -12,16,-12,  0,25,-12 ];
+
+        chairGeometry = new THREE.Geometry();
+
+        var mesh, n;
+        for(var i=0; i<types.length; i++){
+            n = i*3;
+            mesh = new THREE.Mesh( geoBox );
+            mesh.scale.set( sizes[n+0], sizes[n+1], sizes[n+2] );
+            mesh.position.set( positions[n+0], positions[n+1], positions[n+2] );
+
+            THREE.GeometryUtils.merge( chairGeometry, mesh );
+        }
     }
 
     function populate(n) {
@@ -144,81 +165,34 @@
 
         var oScale = [30,5,30];
         var i = max;
-
+        var n;
 
         while (i--){
+            positions[1] = 300+(i*160);
+
             bodys[i] = new OIMO.Body({
-                type:['box', 'box', 'box', 'box', 'box', 'box', 'box', 'box'], 
-                size:[30,5,30,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  25,10,5], 
-                pos:[0,300+(i*200),0,  12,-16,12,  -12,-16,12,  12,-16,-12,  -12,-16,-12,  12,16,-12,  -12,16,-12,  0,25,-12 ], 
+                type:types,
+                size:sizes,
+                pos:positions,
                 move:true, 
                 world:world, 
                 name:'box'+i, 
                 config:[0.2, 0.4,0.1]
             });
 
-            meshs[i] = new THREE.Mesh( geoBox, matBox );
-            meshs[i].scale.set( oScale[0],oScale[1],oScale[2] );
-            var adds = new THREE.Object3D();
-            adds.scale.set(1/oScale[0],1/oScale[1],1/oScale[2]);
+            n = Math.round(Math.random()*2);
 
-            var m1 = new THREE.Mesh( geoBox, matBox );
-            m1.scale.set( 4,30,4 );
-            m1.position.set(12,-16,12);
-
-            var m2 = new THREE.Mesh( geoBox, matBox );
-            m2.scale.set( 4,30,4 );
-            m2.position.set(-12,-16,12);
-
-            var m3 = new THREE.Mesh( geoBox, matBox );
-            m3.scale.set( 4,30,4 );
-            m3.position.set(12,-16,-12);
-
-            var m4 = new THREE.Mesh( geoBox, matBox );
-            m4.scale.set( 4,30,4 );
-            m4.position.set(-12,-16,-12);
-
-            var m5 = new THREE.Mesh( geoBox, matBox );
-            m5.scale.set( 4,30,4 );
-            m5.position.set(12,16,-12);
-
-            var m6 = new THREE.Mesh( geoBox, matBox );
-            m6.scale.set( 4,30,4 );
-            m6.position.set(-12,16,-12);
-
-            var m7 = new THREE.Mesh( geoBox, matBox );
-            m7.scale.set( 25,10,3);
-            m7.position.set(0,25,-12);
+            if(n===1)meshs[i] = new THREE.Mesh( chairGeometry, matBox );
+            else meshs[i] = new THREE.Mesh( chairGeometry, matSphere );
 
             scene.add(meshs[i]);
-            meshs[i].add(adds);
-            adds.add(m1);
-            adds.add(m2);
-            adds.add(m3);
-            adds.add(m4);
-            adds.add(m5);
-            adds.add(m6);
-            adds.add(m7);
         }
     }
 
     function clearMesh(){
 
         var i = meshs.length;
-        var j, k;
         while (i--){
-            if(meshs[i].childen){
-                j = meshs[i].childen.length;
-                while (j--){
-                    if(meshs[i].childen[j].childen){
-                        k = meshs[i].childen[j].childen.length;
-                        while (k--){
-                            meshs[i].childen[j].remove(meshs[i].childen[j].childen[k]);
-                        }
-                    }
-                    meshs[i].remove(meshs[i].childen[j]);
-                }
-            }
             scene.remove(meshs[ i ]);
         }
 
