@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Oimo.js Compound test</title>
+<title>Oimo.js Ragdoll test</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
@@ -40,7 +40,7 @@
 <div id='interface'>
     <input type="button" value="demo 1" onClick=populate(1)>
     <input type="button" value="demo 2" onClick=populate(2)>
-    <input type="number" name="quantity" min="10" max="2000" value="200"  id='MaxNumber'>
+    <input type="number" name="quantity" min="10" max="2000" value="30"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
 </div>
 <div id='info'></div>
@@ -60,6 +60,7 @@
     //oimo var
     var world;
     var bodys = [];
+    var joints = [];
 
     var fps=0, time, time_prev=0, fpsint = 0;
     var ToRad = Math.PI / 180;
@@ -109,7 +110,6 @@
         // oimo init
         world = new OIMO.World();
 
-        initChairGeometry();
         populate(1);
 
         //
@@ -120,30 +120,22 @@
     var types, sizes, positions, chairGeometry;
 
     function addStaticBox(size, position, rotation) {
-        var mesh = new THREE.Mesh( geoBox, matGround );
-        mesh.scale.set( size[0], size[1], size[2] );
+        var mesh = new THREE.Mesh( new THREE.CubeGeometry( size[0], size[1], size[2] ), matGround );
         mesh.position.set( position[0], position[1], position[2] );
         mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
         scene.add( mesh );
         grounds.push(mesh);
     }
 
-    function initChairGeometry() {
-        types = [ 'box', 'box', 'box', 'box', 'box', 'box', 'box', 'box' ];
-        sizes = [ 30,5,30,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  23,10,3 ];
-        positions = [ 0,0,0,  12,-16,12,  -12,-16,12,  12,-16,-12,  -12,-16,-12,  12,16,-12,  -12,16,-12,  0,25,-12 ];
-
-        chairGeometry = new THREE.Geometry();
-
-        var mesh, n;
-        for(var i=0; i<types.length; i++){
-            n = i*3;
-            mesh = new THREE.Mesh( geoBox );
-            mesh.scale.set( sizes[n+0], sizes[n+1], sizes[n+2] );
-            mesh.position.set( positions[n+0], positions[n+1], positions[n+2] );
-
-            THREE.GeometryUtils.merge( chairGeometry, mesh );
-        }
+    function addBox(size, position, rotation, color) {
+        var mesh 
+        if(color) mesh = new THREE.Mesh( geoBox, matSphere );
+        else mesh = new THREE.Mesh( geoBox, matBox );
+        mesh.scale.set( size[0], size[1], size[2] );
+        if(position)mesh.position.set( position[0], position[1], position[2] );
+        if(rotation)mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
+        scene.add( mesh );
+        return mesh;
     }
 
     function populate(n) {
@@ -152,85 +144,96 @@
 
         if(n===1) type = 1
         else if(n===2) type = 2;
-        //else if(n===3) type = 3;
 
         // reset old
         clearMesh();
         world.clear();
 
-        if(type===1){// DEMO 1
-            var ground = new OIMO.Body({size:[100, 40, 400], pos:[0,-20,0], world:world});
-            var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-50,0], world:world});
-
-            addStaticBox([100, 40, 400], [0,-20,0], [0,0,0]);
-            addStaticBox([400, 40, 400], [0,-50,0], [0,0,0]);
-
-            var i = max;
-            var j;
-
-            while (i--){
-                positions[1] = 300+(i*160);
-                positions[0] = 0;
-                positions[2] = 0;
-
-                bodys[i] = new OIMO.Body({
-                    type:types,
-                    size:sizes,
-                    pos:positions,
-                    move:true, 
-                    world:world, 
-                    name:'box'+i, 
-                    config:[0.2, 0.4,0.1]
-                });
-
-                j = Math.round(Math.random()*2);
-
-                if(j===1)meshs[i] = new THREE.Mesh( chairGeometry, matBox );
-                else meshs[i] = new THREE.Mesh( chairGeometry, matSphere );
-
-                scene.add(meshs[i]);
-            }
-        } else if(type===2){// DEMO 2
-            var ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
+        var ground;
+        
+        if(type===1){
+            ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
             addStaticBox([1000, 40, 1000], [0,-20,0], [0,0,0]);
-            var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,130,-600], rot:[45,0,0], world:world});
-            addStaticBox([400, 40, 400], [0,130,-600], [45,0,0]);
+        }else{
+            ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world});
+            addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
+        }
 
-            var i = max;
-            var j, k=0, l=0;
+        var i = max;
+        var j = 0;
+        var k = 0;
+        var l = 0;
+        var m = 0;
+        var px,py,pz;
+        var collision=false;
 
-            while (i--){
-                positions[1] = 50;
-                positions[0] = -400+(50*l);
-                positions[2] = -400+(50*k);
+        while (i--){
+            l++;
 
-                l++;
-                if(l>16){k++; l=0}
-
-                bodys[i] = new OIMO.Body({
-                    type:types,
-                    size:sizes,
-                    pos:positions,
-                    move:true, 
-                    world:world, 
-                    name:'box'+i, 
-                    config:[0.2, 0.4,0.1]
-                });
-
-                j = Math.round(Math.random()*2);
-
-                if(j===1)meshs[i] = new THREE.Mesh( chairGeometry, matBox );
-                else meshs[i] = new THREE.Mesh( chairGeometry, matSphere );
-
-                scene.add(meshs[i]);
+            if(type===1){
+                px = -450+(l*100);
+                py = 200;
+                pz = -350+(m*100); 
+                if(l>7){m++; l=0}
+            }else {
+                px = 0;
+                py = 200 + (i*150);
+                pz = 0;
             }
 
-            bodys[max] = new OIMO.Body({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
-            meshs[max] = new THREE.Mesh( geoSphere, matSphere );
-            meshs[max].scale.set( 80, 80, 80 );
-            scene.add(meshs[max]);
+            bodys[j] = new OIMO.Body({type:"box", size:[20,30,15], pos:[px,py,pz], move:true, world:world, name:'chest'+j });
+            meshs[j] = addBox([20,30,15]);
 
-        } 
+            bodys[j+1] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px,py+30,pz], move:true, world:world, name:'head'+j });
+            meshs[j+1] = addBox([10,20,10]);
+
+            bodys[j+2] = new OIMO.Body({type:"box", size:[20,10,15], pos:[px,py-20,pz], move:true, world:world, name:'pelvis'+j });
+            meshs[j+2] = addBox([20,10,15]);
+
+            joints[k+0] = new OIMO.Link({body1:'chest'+j, body2:'head'+j, pos1:[0,15,0], pos2:[0,-10,0], collision:collision, world:world});
+            joints[k+1] = new OIMO.Link({body1:'chest'+j, body2:'pelvis'+j, pos1:[0,-15,0], pos2:[0,5,0], collision:collision, world:world});
+
+            // arm
+
+            bodys[j+3] = new OIMO.Body({type:"box", size:[20,10,10], pos:[px-20,py+8,pz], rot:[0,0,20], move:true, world:world, name:'L_arm'+j });
+            meshs[j+3] = addBox([20,10,10]);
+            bodys[j+4] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px-40,py,pz], rot:[0,0,20], move:true, world:world, name:'LF_arm'+j });
+            meshs[j+4] = addBox([20,8,8]);
+
+            bodys[j+5] = new OIMO.Body({type:"box", size:[20,10,10], pos:[px+20,py+8,pz], rot:[0,0,-20], move:true, world:world, name:'R_arm'+j });
+            meshs[j+5] = addBox([20,10,10], null, null, 1);
+            bodys[j+6] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px+40,py,pz], rot:[0,0,-20], move:true, world:world, name:'RF_arm'+j });
+            meshs[j+6] = addBox([20,8,8], null, null, 1);
+
+            joints[k+2] = new OIMO.Link({body1:'chest'+j, body2:'L_arm'+j, pos1:[-10,10,0], pos2:[10,0,0], collision:collision, world:world});
+            joints[k+3] = new OIMO.Link({body1:'chest'+j, body2:'R_arm'+j, pos1:[10,10,0], pos2:[-10,0,0], collision:collision, world:world});
+
+            joints[k+4] = new OIMO.Link({body1:'L_arm'+j, body2:'LF_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], collision:collision, world:world});
+            joints[k+5] = new OIMO.Link({body1:'R_arm'+j, body2:'RF_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], collision:collision, world:world});
+
+            // leg
+
+            bodys[j+7] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px-5,py-40,pz], rot:[0,0,-20], move:true, world:world, name:'L_leg'+j });
+            meshs[j+7] = addBox([10,20,10]);
+            bodys[j+8] = new OIMO.Body({type:"box", size:[8,20,8], pos:[px-15,py-70,pz], rot:[0,0,-20], move:true, world:world, name:'LF_leg'+j });
+            meshs[j+8] = addBox([8,20,8]);
+
+            bodys[j+9] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px+5,py-40,pz], rot:[0,0,20], move:true, world:world, name:'R_leg'+j });
+            meshs[j+9] = addBox([10,20,10], null, null, 1);
+            bodys[j+10] = new OIMO.Body({type:"box", size:[8,20,8], pos:[px+15,py-70,pz], rot:[0,0,20], move:true, world:world, name:'RF_leg'+j });
+            meshs[j+10] = addBox([8,20,8], null, null, 1);
+
+            joints[k+6] = new OIMO.Link({body1:'pelvis'+j, body2:'L_leg'+j, pos1:[-10,-5,0], pos2:[0,10,0], collision:collision, world:world});
+            joints[k+7] = new OIMO.Link({body1:'pelvis'+j, body2:'R_leg'+j, pos1:[10,-5,0], pos2:[0,10,0], collision:collision, world:world});
+
+            joints[k+8] = new OIMO.Link({body1:'L_leg'+j, body2:'LF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], collision:collision, world:world});
+            joints[k+9] = new OIMO.Link({body1:'R_leg'+j, body2:'RF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], collision:collision, world:world});
+
+
+            j+=11;
+            k+=10;
+               
+        }
     }
 
     function clearMesh(){
@@ -248,6 +251,7 @@
         grounds = [];
         meshs = [];
         bodys=[];
+        joints=[];
 
     }
 
@@ -285,11 +289,37 @@
                 if(mesh.material.name === 'ssph') mesh.material = matSphere; 
 
                 // reset position
-                if(m[13]<-100){
+                if(m[13]<-100 && bodys[i].name.substring(0,5)==='chest'){
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
                     bodys[i].setPosition(x,y,z);
+                    bodys[i+1].setPosition(x,y+30,z);
+                    bodys[i+2].setPosition(x,y-20,z);
+
+                    bodys[i+3].setPosition(x-20,y-8,z);
+                    bodys[i+4].setPosition(x-40,y,z);
+                    bodys[i+5].setPosition(x+20,y-8,z);
+                    bodys[i+6].setPosition(x+40,y,z);
+
+                    bodys[i+7].setPosition(x-5,y-40,z);
+                    bodys[i+8].setPosition(x-15,y-70,z);
+                    bodys[i+9].setPosition(x+5,y-40,z);
+                    bodys[i+10].setPosition(x+15,y-70,z);
+
+                    bodys[i].setRotation(0,0,0);
+                    bodys[i+1].setRotation(0,0,0);
+                    bodys[i+2].setRotation(0,0,0);
+
+                    bodys[i+3].setRotation(0,0,20);
+                    bodys[i+4].setRotation(0,02,0);
+                    bodys[i+5].setRotation(0,0,-20);
+                    bodys[i+6].setRotation(0,0,-20);
+
+                    bodys[i+7].setRotation(0,0,-20);
+                    bodys[i+8].setRotation(0,0,-20);
+                    bodys[i+9].setRotation(0,0,20);
+                    bodys[i+10].setRotation(0,0,20);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;

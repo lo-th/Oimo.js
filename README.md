@@ -17,3 +17,5 @@ Basic demo no worker
 [basic test](http://lo-th.github.io/Oimo.js/test_basic.html)
 
 [compound test](http://lo-th.github.io/Oimo.js/test_compound.html)
+
+[ragdoll test](http://lo-th.github.io/Oimo.js/test_ragdoll.html)

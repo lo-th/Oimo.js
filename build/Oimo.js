@@ -19,6 +19,73 @@ OIMO.SHAPE_BOX = 0x2;
 OIMO.WORLD_SCALE = 100;
 OIMO.INV_SCALE = 0.01;
 
+OIMO.TO_RAD = Math.PI / 180;
+
+//------------------------------
+//  LINK joint
+//------------------------------
+
+OIMO.Link = function(Obj){
+    var obj = Obj || {};
+    var name = obj.name || '';
+    var type = obj.type || "hinge";
+    var axis1 = obj.axis1 || [1,0,0];
+    var axis2 = obj.axis2 || [1,0,0];
+    var pos1 = obj.pos1 || [0,0,0];
+    var pos2 = obj.pos2 || [0,0,0];
+
+    pos1 = pos1.map(function(x) { return x * OIMO.INV_SCALE; });
+    pos2 = pos2.map(function(x) { return x * OIMO.INV_SCALE; });
+
+    var min, max;
+    if(type==="jointDistance" || type==="distance"){
+        min = obj.min || 0;
+        max = obj.max || 10;
+        min = min*OIMO.INV_SCALE;
+        max = max*OIMO.INV_SCALE;
+    }else{
+        min = obj.min || 57,29578;
+        max = obj.max || 0;
+        min = min*OIMO.TO_RAD;
+        max = max*OIMO.TO_RAD;
+    }
+
+    var limit = obj.limit || null;
+    var spring = obj.spring || null;
+    var collision = obj.collision || false;
+    var jc = new OIMO.JointConfig();
+    jc.allowCollision=collision;
+    jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
+    jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
+    jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
+    jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
+    if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = obj.world.getByName(obj.body1);
+    if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = obj.world.getByName(obj.body2);
+    jc.body1 = obj.body1;
+    jc.body2 = obj.body2;
+    var joint;
+    switch(type){
+        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, min, max); break;
+        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, min, max); break;
+        case "prisme": case "jointPrisme": joint = new OIMO.PrismaticJoint(jc, min, max); break;
+        case "slide": case "jointSlide": joint = new OIMO.SliderJoint(jc, min, max); break;
+        case "ball": case "jointBall": joint = new OIMO.BallAndSocketJoint(jc); break;
+        case "wheel": case "jointWheel": joint = new OIMO.WheelJoint(jc);  
+            if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+            if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+        break;
+    }
+    //joint.limitMotor.setSpring(100, 0.9); // soften the joint
+    joint.name = name;
+    obj.world.addJoint(joint);
+}
+
+OIMO.Link.prototype = {
+    constructor: OIMO.Link,
+    getMatrix:function(){
+        //return this.body.getMatrix();
+    }
+}
 
 //------------------------------
 //  BODY
@@ -33,6 +100,8 @@ OIMO.Body = function(Obj){
     var p = obj.pos || [0,0,0];
     var s = obj.size || [1,1,1];
 
+    this.name = name;
+
     // rescale for oimo world
     //p = [p[0]*OIMO.INV_SCALE, p[1]*OIMO.INV_SCALE, p[2]*OIMO.INV_SCALE];
     //s = [s[0]*OIMO.INV_SCALE, s[1]*OIMO.INV_SCALE, s[2]*OIMO.INV_SCALE];
@@ -40,8 +109,16 @@ OIMO.Body = function(Obj){
     p = p.map(function(x) { return x * OIMO.INV_SCALE; });
     s = s.map(function(x) { return x * OIMO.INV_SCALE; });
 
-    var rot = obj.rot || [];
-    var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
+    var rot = obj.rot || [0,0,0];
+    rot = rot.map(function(x) { return x * OIMO.TO_RAD; });
+    var r = [];
+    //console.log()
+    for (var i=0; i<rot.length/3; i++){
+        var tmp = OIMO.EulerToAxis(rot[i+0], rot[i+1], rot[i+2]);
+        r.push(tmp[0]);  r.push(tmp[1]); r.push(tmp[2]); r.push(tmp[3]);
+    }
+    //var r = OIMO.EulerToAxis(rot[0] || 0, rot[1] || 0, rot[2] || 0);
+
     var move = obj.move || false;
     var noSleep  = obj.noSleep || false; 
     var noAdjust = obj.noAdjust || false;
@@ -70,36 +147,35 @@ OIMO.Body = function(Obj){
         }
 
         if(obj.world){
-           //this.body = obj.world.getByName(name);
-            /*if(this.body!==null){
-                shapes[0].relativePosition = new OIMO.Vec3(p[0], p[1], p[2]);
-                this.body.addShape(shapes[0]);
-            }else{// rigidbody not existe add new */
-                this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
-                this.body.addShape(shapes[0]);
-                if(move){
-                    if(noAdjust)this.body.setupMass(0x1, false);
-                    else this.body.setupMass(0x1, true);
-                    if(noSleep) this.body.allowSleep = false;
-                    else this.body.allowSleep = true;
-                } else {
-                    this.body.setupMass(0x2);
-                }
-                this.body.name = name;
-                obj.world.addRigidBody(this.body); 
-           //}
+            this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
+            this.body.addShape(shapes[0]);
+            if(move){
+                if(noAdjust)this.body.setupMass(0x1, false);
+                else this.body.setupMass(0x1, true);
+                if(noSleep) this.body.allowSleep = false;
+                else this.body.allowSleep = true;
+            } else {
+                this.body.setupMass(0x2);
+            }
+            this.body.name = name;
+            obj.world.addRigidBody(this.body); 
+    
         }
     } else {// multy shapes
-        var n;
+        var n, n2;
         this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
         for(var i=0; i<type.length; i++){
             n = i*3;
+            n2 = i*4;
             switch(type[i]){
                 case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n+0]); break;
                 case "box": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break;
             }
             this.body.addShape(shapes[i]);
-            if(i>0) shapes[i].relativePosition = new OIMO.Vec3(p[n+0], p[n+1], p[n+2]);
+            if(i>0){
+                shapes[i].relativePosition = new OIMO.Vec3( p[n+0], p[n+1], p[n+2] );
+                if(r[n2+0]) shapes[i].relativeRotation = [ r[n2+0], r[n2+1], r[n2+2], r[n2+3] ];
+            }
         }
         if(move){
             if(noAdjust)this.body.setupMass(0x1, false);
@@ -123,6 +199,19 @@ OIMO.Body.prototype = {
     },
     setPosition:function(x,y,z){
         this.body.setPosition(x,y,z);
+    },
+    setRotation:function(x,y,z){
+        var r = OIMO.EulerToAxis(x, y, z);
+        var len = r[0]*r[0]+r[1]*r[1]+r[2]*r[2];
+        if(len>0){
+            len=1/Math.sqrt(len);
+            r[0]*=len;
+            r[1]*=len;
+            r[2]*=len;
+        }
+        var sin=Math.sin(rad*0.5);
+        var cos=Math.cos(rad*0.5);
+        this.body.orientation = new OIMO.Quat(cos,sin*r[0],sin*r[1],sin*r[2]);
     },
     sleep:function(){
         return this.body.sleeping;
@@ -237,15 +326,20 @@ OIMO.World.prototype = {
         remove.parent=null;
         this.numRigidBodies--;
     },
-    /*getByName:function(name){
+    getByName:function(name){
         var result = null;
         var body=this.rigidBodies;
         while(body!==null){
             if(body.name!== "" && body.name === name) result = body;
             body=body.next;
         }
+        var joint=this.joints;
+        while(joint!==null){
+            if(joint.name!== "" && joint.name === name) result = joint;
+            joint=joint.next;
+        }
         return result;
-    },*/
+    },
     addShape:function(shape){
         if(!shape.parent || !shape.parent.parent){
             throw new Error("It is not possible to be added alone to shape world");
@@ -4114,78 +4208,44 @@ OIMO.BoxShape.prototype.updateProxy = function(){
     var x=this.position.x;
     var y=this.position.y;
     var z=this.position.z;
-    this.vertex1.x=x+wx+hx+dx;
-    this.vertex1.y=y+wy+hy+dy;
-    this.vertex1.z=z+wz+hz+dz;
-    this.vertex2.x=x+wx+hx-dx;
-    this.vertex2.y=y+wy+hy-dy;
-    this.vertex2.z=z+wz+hz-dz;
-    this.vertex3.x=x+wx-hx+dx;
-    this.vertex3.y=y+wy-hy+dy;
-    this.vertex3.z=z+wz-hz+dz;
-    this.vertex4.x=x+wx-hx-dx;
-    this.vertex4.y=y+wy-hy-dy;
-    this.vertex4.z=z+wz-hz-dz;
-    this.vertex5.x=x-wx+hx+dx;
-    this.vertex5.y=y-wy+hy+dy;
-    this.vertex5.z=z-wz+hz+dz;
-    this.vertex6.x=x-wx+hx-dx;
-    this.vertex6.y=y-wy+hy-dy;
-    this.vertex6.z=z-wz+hz-dz;
-    this.vertex7.x=x-wx-hx+dx;
-    this.vertex7.y=y-wy-hy+dy;
-    this.vertex7.z=z-wz-hz+dz;
-    this.vertex8.x=x-wx-hx-dx;
-    this.vertex8.y=y-wy-hy-dy;
-    this.vertex8.z=z-wz-hz-dz;
-    var w;
-    var h;
-    var d;
-    if(this.halfDirectionWidth.x<0){
-        w=-this.halfDirectionWidth.x;
-    }else{
-        w=this.halfDirectionWidth.x;
-    }
-    if(this.halfDirectionWidth.y<0){
-        h=-this.halfDirectionWidth.y;
-    }else{
-        h=this.halfDirectionWidth.y;
-    }
-    if(this.halfDirectionWidth.z<0){
-        d=-this.halfDirectionWidth.z;
-    }else{
-        d=this.halfDirectionWidth.z;
-    }
-    if(this.halfDirectionHeight.x<0){
-        w-=this.halfDirectionHeight.x;
-    }else{
-        w+=this.halfDirectionHeight.x;
-    }
-    if(this.halfDirectionHeight.y<0){
-        h-=this.halfDirectionHeight.y;
-    }else{
-        h+=this.halfDirectionHeight.y;
-    }
-    if(this.halfDirectionHeight.z<0){
-        d-=this.halfDirectionHeight.z;
-    }else{
-        d+=this.halfDirectionHeight.z;
-    }
-    if(this.halfDirectionDepth.x<0){
-        w-=this.halfDirectionDepth.x;
-    }else{
-        w+=this.halfDirectionDepth.x;
-    }
-    if(this.halfDirectionDepth.y<0){
-        h-=this.halfDirectionDepth.y;
-    }else{
-        h+=this.halfDirectionDepth.y;
-    }
-    if(this.halfDirectionDepth.z<0){
-        d-=this.halfDirectionDepth.z;
-    }else{
-        d+=this.halfDirectionDepth.z;
-    }
+
+    this.vertex1.x = x+wx+hx+dx;
+    this.vertex1.y = y+wy+hy+dy;
+    this.vertex1.z = z+wz+hz+dz;
+    this.vertex2.x = x+wx+hx-dx;
+    this.vertex2.y = y+wy+hy-dy;
+    this.vertex2.z = z+wz+hz-dz;
+    this.vertex3.x = x+wx-hx+dx;
+    this.vertex3.y = y+wy-hy+dy;
+    this.vertex3.z = z+wz-hz+dz;
+    this.vertex4.x = x+wx-hx-dx;
+    this.vertex4.y = y+wy-hy-dy;
+    this.vertex4.z = z+wz-hz-dz;
+    this.vertex5.x = x-wx+hx+dx;
+    this.vertex5.y = y-wy+hy+dy;
+    this.vertex5.z = z-wz+hz+dz;
+    this.vertex6.x = x-wx+hx-dx;
+    this.vertex6.y = y-wy+hy-dy;
+    this.vertex6.z = z-wz+hz-dz;
+    this.vertex7.x = x-wx-hx+dx;
+    this.vertex7.y = y-wy-hy+dy;
+    this.vertex7.z = z-wz-hz+dz;
+    this.vertex8.x = x-wx-hx-dx;
+    this.vertex8.y = y-wy-hy-dy;
+    this.vertex8.z = z-wz-hz-dz;
+
+    var w = (this.halfDirectionWidth.x<0) ? -this.halfDirectionWidth.x : this.halfDirectionWidth.x; 
+    var h = (this.halfDirectionWidth.y<0) ? -this.halfDirectionWidth.y : this.halfDirectionWidth.y;
+    var d = (this.halfDirectionWidth.z<0) ? -this.halfDirectionWidth.z : this.halfDirectionWidth.z;
+
+    w = (this.halfDirectionHeight.x<0) ? w-this.halfDirectionHeight.x : w+this.halfDirectionHeight.x; 
+    h = (this.halfDirectionHeight.y<0) ? h-this.halfDirectionHeight.y : h+this.halfDirectionHeight.y;
+    d = (this.halfDirectionHeight.z<0) ? d-this.halfDirectionHeight.z : d+this.halfDirectionHeight.z;
+
+    w = (this.halfDirectionDepth.x<0) ? w-this.halfDirectionDepth.x : w+this.halfDirectionDepth.x; 
+    h = (this.halfDirectionDepth.y<0) ? h-this.halfDirectionDepth.y : h+this.halfDirectionDepth.y;
+    d = (this.halfDirectionDepth.z<0) ? d-this.halfDirectionDepth.z : d+this.halfDirectionDepth.z;
+    
     this.aabb.init(
         this.position.x-w-0.005,this.position.x+w+0.005,
         this.position.y-h-0.005,this.position.y+h+0.005,
@@ -4200,7 +4260,6 @@ OIMO.BoxShape.prototype.updateProxy = function(){
 
 OIMO.SphereShape = function(config,radius){
     OIMO.Shape.call( this, config);
-
     this.radius=radius;
     this.type=OIMO.SHAPE_SPHERE;
 }
@@ -4209,11 +4268,7 @@ OIMO.SphereShape.prototype.calculateMassInfo = function(out){
     var mass=4/3*Math.PI*this.radius*this.radius*this.radius*this.density;
     out.mass=mass;
     var inertia=mass*this.radius*this.radius*2/5;
-    out.inertia.init(
-        inertia,0,0,
-        0,inertia,0,
-        0,0,inertia
-    );
+    out.inertia.init( inertia,0,0,  0,inertia,0,  0,0,inertia );
 }
 OIMO.SphereShape.prototype.updateProxy = function(){
     this.aabb.init(
@@ -4221,9 +4276,7 @@ OIMO.SphereShape.prototype.updateProxy = function(){
         this.position.y-this.radius-0.005,this.position.y+this.radius+0.005,
         this.position.z-this.radius-0.005,this.position.z+this.radius+0.005
     );
-    if(this.proxy!=null){
-        this.proxy.update();
-    }
+    if(this.proxy!==null){ this.proxy.update(); }
 }
 
 
@@ -7195,6 +7248,7 @@ OIMO.LimitMotor.prototype = {
 OIMO.Joint = function(config){
     OIMO.Constraint.call( this );
 
+    this.name = "";
     this.JOINT_DISTANCE=0x1;
     this.JOINT_BALL_AND_SOCKET=0x2;
     this.JOINT_HINGE=0x3;
