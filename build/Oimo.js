@@ -29,8 +29,8 @@ OIMO.Link = function(Obj){
     var obj = Obj || {};
     var name = obj.name || '';
     var type = obj.type || "hinge";
-    var axis1 = obj.axis1 || [1,0,0];
-    var axis2 = obj.axis2 || [1,0,0];
+    var axe1 = obj.axe1 || [1,0,0];
+    var axe2 = obj.axe2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
 
@@ -55,8 +55,8 @@ OIMO.Link = function(Obj){
     var collision = obj.collision || false;
     var jc = new OIMO.JointConfig();
     jc.allowCollision=collision;
-    jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
-    jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
+    jc.localAxis1.init(axe1[0], axe1[1], axe1[2]);
+    jc.localAxis2.init(axe2[0], axe2[1], axe2[2]);
     jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
     jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
     if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = obj.world.getByName(obj.body1);
