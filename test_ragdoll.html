@@ -42,6 +42,7 @@
     <input type="button" value="demo 2" onClick=populate(2)>
     <input type="number" name="quantity" min="10" max="2000" value="30"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
+    <input type="button" value="collision off" onClick=switchCollision() id="col">
 </div>
 <div id='info'></div>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>
@@ -66,6 +67,7 @@
     var ToRad = Math.PI / 180;
 
     var type=1;
+    var collision=false;
 
     init();
     animate();
@@ -138,6 +140,13 @@
         return mesh;
     }
 
+    function switchCollision() {
+        var but = document.getElementById("col");
+        if(collision){ collision = false; but.value = "collision off";}
+        else{ collision = true; but.value = "collision on";}
+        populate();
+    }
+
     function populate(n) {
 
         var max = document.getElementById("MaxNumber").value;
@@ -165,7 +174,7 @@
         var l = 0;
         var m = 0;
         var px,py,pz;
-        var collision=false;
+        
 
         while (i--){
             l++;
@@ -205,30 +214,29 @@
             bodys[j+6] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px+40,py,pz], rot:[0,0,-20], move:true, world:world, name:'RF_arm'+j });
             meshs[j+6] = addBox([20,8,8], null, null, 1);
 
-            joints[k+2] = new OIMO.Link({body1:'chest'+j, body2:'L_arm'+j, pos1:[-10,10,0], pos2:[10,0,0], axe1:[0,0,1], axe2:[0,0,1], collision:collision, world:world});
-            joints[k+3] = new OIMO.Link({body1:'chest'+j, body2:'R_arm'+j, pos1:[10,10,0], pos2:[-10,0,0], axe1:[0,0,1], axe2:[0,0,1], collision:collision, world:world});
+            joints[k+2] = new OIMO.Link({body1:'chest'+j, body2:'L_arm'+j, pos1:[-10,10,0], pos2:[10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
+            joints[k+3] = new OIMO.Link({body1:'chest'+j, body2:'R_arm'+j, pos1:[10,10,0], pos2:[-10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
 
             joints[k+4] = new OIMO.Link({body1:'L_arm'+j, body2:'LF_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision, world:world});
             joints[k+5] = new OIMO.Link({body1:'R_arm'+j, body2:'RF_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision, world:world});
 
             // leg
 
-            bodys[j+7] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px-5,py-40,pz], rot:[0,0,-20], move:true, world:world, name:'L_leg'+j });
+            bodys[j+7] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px-6,py-40,pz], rot:[0,0,-20], move:true, world:world, name:'L_leg'+j });
             meshs[j+7] = addBox([10,20,10]);
             bodys[j+8] = new OIMO.Body({type:"box", size:[8,20,8], pos:[px-15,py-70,pz], rot:[0,0,-20], move:true, world:world, name:'LF_leg'+j });
             meshs[j+8] = addBox([8,20,8]);
 
-            bodys[j+9] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px+5,py-40,pz], rot:[0,0,20], move:true, world:world, name:'R_leg'+j });
+            bodys[j+9] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px+6,py-40,pz], rot:[0,0,20], move:true, world:world, name:'R_leg'+j });
             meshs[j+9] = addBox([10,20,10], null, null, 1);
             bodys[j+10] = new OIMO.Body({type:"box", size:[8,20,8], pos:[px+15,py-70,pz], rot:[0,0,20], move:true, world:world, name:'RF_leg'+j });
             meshs[j+10] = addBox([8,20,8], null, null, 1);
 
-            joints[k+6] = new OIMO.Link({body1:'pelvis'+j, body2:'L_leg'+j, pos1:[-10,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
-            joints[k+7] = new OIMO.Link({body1:'pelvis'+j, body2:'R_leg'+j, pos1:[10,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
+            joints[k+6] = new OIMO.Link({body1:'pelvis'+j, body2:'L_leg'+j, pos1:[-6,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
+            joints[k+7] = new OIMO.Link({body1:'pelvis'+j, body2:'R_leg'+j, pos1:[6,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
 
             joints[k+8] = new OIMO.Link({body1:'L_leg'+j, body2:'LF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], axe1:[1,0,0], axe2:[1,0,0], min:2, max:60, collision:collision, world:world});
             joints[k+9] = new OIMO.Link({body1:'R_leg'+j, body2:'RF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], axe1:[1,0,0], axe2:[1,0,0], min:2, max:60, collision:collision, world:world});
-
 
             j+=11;
             k+=10;
