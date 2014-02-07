@@ -576,17 +576,14 @@ var ThreeEngine = function () {
 	var createStaticObjects = function (data){
 		var max = data.types.length;
 		var mesh;
-		var m, mtx;
+		var mtx = new THREE.Matrix4();;
 	    for(var i=0; i!==max; i++){
 	    	mesh = addStaticObjects(data.types[i], data.sizes[i] || [50,50,50]);
-	        m = data.matrix[i];
-	        mtx = new THREE.Matrix4(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], 0, 0, 0, 1);
+	        mtx.fromArray( data.matrix[i] );
 	        mesh.position.setFromMatrixPosition( mtx );
 	        mesh.rotation.setFromRotationMatrix( mtx );
 	    }
 	}
-
-	//var staticColor = 
 
 	var addStaticObjects = function (type, s){
 		var mesh;

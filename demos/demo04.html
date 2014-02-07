@@ -26,8 +26,8 @@ function initDemo()
         if(L.charAt(L.length-1) === '0' && moving===true){
             ADD({type:"sphere", size:[20], pos:[x, y + 400, z - (i + 1) * depth], move:false, name:'s'+n});
             var dist = 500;
-            ADD({type:"jointDistance", body1:'b'+i, body2:'s'+n, pos1:[-width * 0.5, 0, 0], axis1:[1,0,0], axis2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
-            ADD({type:"jointDistance", body1:'b'+i, body2:'s'+n, pos1:[width * 0.5, 0, 0], axis1:[1,0,0], axis2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
+            ADD({type:"jointDistance", body1:'b'+i, body2:'s'+n, pos1:[-width * 0.5, 0, 0], axe1:[1,0,0], axe2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
+            ADD({type:"jointDistance", body1:'b'+i, body2:'s'+n, pos1:[width * 0.5, 0, 0], axe1:[1,0,0], axe2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
             n++;
         }
     }

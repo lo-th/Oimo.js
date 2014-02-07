@@ -13,15 +13,15 @@ Van = function (Pos) {
 	this.joint4;
 	this.angle =0;
 
-	this.size = {w:0.87, d:1.07, da: 2.31, h:0.4}
+	this.size = {w:87, d:107, da: 231, h:40}
 	this.pos = Pos || [0,0,0];
 	// create a body
 	//var off = 0.4;
-	var rad = 0.39;
-	var h = 0.4; //3.3
-	var w = 0.87;
-	var d = 1.07;
-	var da = 2.31
+	var rad = 39;
+	var h = 40; //3.3
+	var w = 87;
+	var d = 107;
+	var da = 231;
 
 	var sc = new OIMO.ShapeConfig();
 	//sc.relativePosition.init(0, (h*0.5)+rad, 0);
@@ -32,28 +32,21 @@ Van = function (Pos) {
 	// create wheels
 	sc.friction = 4;
 	sc.density = 10;
-	sc.relativePosition.init(0, 0, 0);
+	//sc.relativePosition.init(0, 0, 0);
 	this.wheel1 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[this.pos[0] , this.pos[1], this.pos[2] - da], sc:sc, move:true});
 	this.wheel3 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[this.pos[0] - w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
 	this.wheel4 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[this.pos[0] + w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
 
-/*
-	this.wheel1 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x , y, z - da], sc:sc, move:true});
-	//this.wheel2 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[x + w, y, z - d], sc:sc, move:true});
-	this.wheel3 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x - w, y, z + d], sc:sc, move:true});
-	this.wheel4 = addRigid({type:"vanwheel", size:[rad, rad, rad], pos:[x + w, y, z + d], sc:sc, move:true});
-*/
 	sc = new OIMO.ShapeConfig();
-	sc.relativePosition.init(0, (h*0.5)+rad, 0);
+	//sc.relativePosition.init(0, (h*0.5)+rad, 0);
 	sc.density = 10;
 
-	this.body = addRigid({type:"vanBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, noAdjust:true});
+	this.body = addRigid({type:"vanBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, massPos:[0, (h*0.5)+rad, 0]});
 		
 	// create joints
-	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[0, 0, -da], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	//this.joint2 = addJoint({type:"wheel", body1:this.body, body2:this.wheel2, pos1:[w, 0, -d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0] });
-	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0] });
+	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[0, 0, -da], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
+	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
+	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
 }
 
 Van.prototype.move =function (x,y,z) {

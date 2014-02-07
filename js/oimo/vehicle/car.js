@@ -13,23 +13,25 @@ Car = function (Pos, Config) {
 	this.angle =0;
 
 	this.pos = Pos || [0,0,0];
-	this.size = {w:0.5, d:1, h:0.4}
+	//this.size = {w:0.5, d:1, h:0.4}
+	this.size = {w:50, d:100, h:40}
 	this.config = Config || [10,0.5,0.5,    10,4,0.5];
 
 	// create a body
 	//var off = 0.4;
-	var rad = 0.3;
-	var h = 0.4;
-	var w = 0.5;
-	var d = 1;
+	var rad = 30;//0.3;
+	var h = 40;//0.4;
+	var w = 50;//0.5;
+	var d = 100;//1;
 
 	var sc = new OIMO.ShapeConfig();
-	sc.relativePosition.init(0, (h*0.5)+rad, 0);
 	sc.density = this.config[0] || 10;
 	sc.friction = this.config[1] || 0.5;
 	sc.restitution = this.config[2] || 0.5;
 	
-	this.body = addRigid({type:"carBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, noAdjust:true});
+	//this.body = addRigid({type:"carBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, noAdjust:true});
+	this.body = addRigid({type:"carBody", size:[(w+20) * 2, h, (d+40) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, massPos:[0, (h*0.5)+rad, 0]});
+
 
 	// create wheels
 	sc.friction = this.config[3] || 10;
@@ -42,10 +44,10 @@ Car = function (Pos, Config) {
 	this.wheel4 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[this.pos[0] + w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
 	
 	// create joints
-	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[-w, 0, -d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	this.joint2 = addJoint({type:"wheel", body1:this.body, body2:this.wheel2, pos1:[w, 0, -d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0] });
-	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axis1:[0, -1, 0], axis2:[-1, 0, 0], limit:[0,0] });
+	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[-w, 0, -d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
+	this.joint2 = addJoint({type:"wheel", body1:this.body, body2:this.wheel2, pos1:[w, 0, -d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
+	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
+	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
 }
 
 Car.prototype.move =function (x,y,z) {

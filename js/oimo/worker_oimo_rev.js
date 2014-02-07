@@ -100,38 +100,12 @@ self.onmessage = function (e) {
 var ADD = function(data){
     // joint
     if(data.type.substring(0,5) === 'joint'){
-        if(data.pos1) data.pos1 = rzOimo(data.pos1);
-        if(data.pos2) data.pos2 = rzOimo(data.pos2);
-        if(data.type==="jointDistance"){
-            if(data.min) data.min = data.min*invScale;
-            if(data.max) data.max = data.max*invScale;
-        } else { // is Angle
-            if(data.min) data.min = data.min*ToRad;
-            if(data.max) data.max = data.max*ToRad;
-        }
         addJoint(data);
     // object
     } else {
-        if(data.size) data.size = rzOimo(data.size);
-        if(data.pos) data.pos = rzOimo(data.pos)
-        if(data.rot) data.rot = rotationToRad(data.rot);
         addRigid(data, true);
     }
 }
-/*
-var ADD = function(data){
-    if(data.type.substring(0,5) === 'joint'){
-        if(data.pos1) data.pos1 = rzOimo(data.pos1);
-        if(data.pos2) data.pos2 = rzOimo(data.pos2);
-        if(data.minDistance) data.minDistance = data.minDistance*invScale;
-        if(data.maxDistance) data.maxDistance = data.maxDistance*invScale;
-        addJoint(data);
-    } else {
-        if(data.size) data.size = rzOimo(data.size);
-        if(data.pos) data.pos = rzOimo(data.pos);
-        addRigid(data, true);
-    }
-}*/
 
 var GET = function(names){
     var selects = {};
@@ -406,85 +380,48 @@ var startDemo = function (){
 //--------------------------------------------------
 
 var addRigid = function (obj, OO){
-    var notSaveSetting = OO || false;
 
-    var sc = obj.sc || new OIMO.ShapeConfig();
-    if(obj.config){
-        sc.density = obj.config[0] || 1;
-        sc.friction = obj.config[1] || 0.5;
-        sc.restitution = obj.config[2] || 0.5;
-    }
-    if(obj.configPos){
-        sc.position.set(obj.configPos[0], obj.configPos[1], obj.configPos[2]);
-    }
-    if(obj.configRot){
-        sc.rotation = OIMO.EulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
-    }
-
-    var name = obj.name || '';
-    var p = obj.pos || [0,0,0];
-    var s = obj.size || [1,1,1];
-    var rot = obj.rot || [0,0,0];
-    var r = OIMO.EulerToAxis(rot[0], rot[1], rot[2]);
+    var noNeedSendSetting = OO || false;
     var move = obj.move || false;
-    var noSleep  = obj.noSleep || false;
-    
-    var shape, t;
-    sc.position.init(p[0], p[1], p[2]);
-    sc.rotation.init();
+    var s = obj.size || [1,1,1];
+    var t;
     switch(obj.type){
-        case "sphere": shape=new OIMO.SphereShape(sc, s[0]); t=1; break;
-        case "box": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2] ); t=2; break;
-        case "ground": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2] ); t=22; break;
-        case "bone": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2] ); t=10; break;
-        case "cylinder": shape=new OIMO.CylinderShape(sc, s[0], s[1] ); t=3; break;
-        case "dice": shape=new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=4; break;
-        case "column": shape = new OIMO.CylinderShape(sc, s[0], s[1]); t=7; break;
-        case "columnBase": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=8; break;
-        case "columnTop": shape = new OIMO.BoxShape(sc, s[0], s[1], s[2]); t=9; break;
-        case "nball": shape = new OIMO.SphereShape(sc, s[0]); t=11; break;
-        case "gyro": shape = new OIMO.SphereShape(sc, s[0]); t=12; break;
-        case "droid": shape = new OIMO.SphereShape(sc, s[0]); t=16; break;// droid
+        case "sphere": t=1; break;
+        case "box": t=2; break;
+        case "ground": t=22; break;
+        case "bone": t=10; break;
+        case "cylinder": t=3; break;
+        case "dice": t=4; break; 
+        case "column": t=7; break;
+        case "columnBase": t=8; break;
+        case "columnTop": t=9; break;
+        case "nball": t=11; break;
+        case "gyro": t=12; break;
+        case "droid": t=16; break;
     }
-    var body = new OIMO.RigidBody(r[0], r[1], r[2], r[3]);
-    body.addShape(shape);
-    
-    if(move){ 
-        body.setupMass(0x0);
-        bodys.push(body);
-        if(!notSaveSetting){
-            types.push(t);
-            sizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
-        }
-        if(noSleep)body.allowSleep = false;
-        else body.allowSleep = true;
-    }else{ 
-        body.setupMass(0x1);
-        statics.push(body);
-        if(!notSaveSetting){
-            staticTypes.push(t);
-            staticSizes.push([s[0]*scale, s[1]*scale, s[2]*scale]);
-            var sr = body.rotation.elements;
-            var sp = body.position;
-            //staticMatrix.push([sr.e00, sr.e01, sr.e02, (sp.x*scale).toFixed(2), sr.e10, sr.e11, sr.e12, (sp.y*scale).toFixed(2), sr.e20, sr.e21, sr.e22, (sp.z*scale).toFixed(2)]);
-            staticMatrix.push([sr[0], sr[1], sr[2], (sp.x*scale).toFixed(2), sr[3], sr[4], sr[5], (sp.y*scale).toFixed(2), sr[6], sr[7], sr[8], (sp.z*scale).toFixed(2)]);
-        }
-    }
-    body.name = name;
-    world.addRigidBody(body);
-    return body;
-}
+ 
+    if (t===1 || t===11 || t===12 || t===16) obj.type = "sphere";
+    else if ( t===3 || t===7) obj.type = "cylinder";
+    else obj.type = "box";
 
-var getBodyByName = function(name){
-    var i;
-    var body;
-    for(i=0; i!==bodys.length; i++){
-        if(bodys[i].name === name ) body = bodys[i];
+    obj.world = world;
+    var b = new OIMO.Body(obj);
+
+    if(move){
+        bodys.push(b.body);
+        if(!noNeedSendSetting){
+            types.push(t);
+            sizes.push([s[0], s[1], s[2]]);
+        }
+    } else {
+        statics.push(b.body);
+        if(!noNeedSendSetting){
+            staticTypes.push(t);
+            staticSizes.push([s[0], s[1], s[2]]);
+            staticMatrix.push(b.getMatrix());
+        }
     }
-    for(i=0; i!==statics.length; i++){
-        if(statics[i].name === name ) body = statics[i];
-    }
-    return body;
+    return b.body;
 }
 
 //--------------------------------------------------
@@ -492,44 +429,11 @@ var getBodyByName = function(name){
 //--------------------------------------------------
 
 var addJoint = function (obj){
-    var name = obj.name || '';
-    var jc = new OIMO.JointConfig();
-    var axis1 = obj.axis1 || [1,0,0];
-    var axis2 = obj.axis2 || [1,0,0];
-    var pos1 = obj.pos1 || [0,0,0];
-    var pos2 = obj.pos2 || [0,0,0];
-    //var minDistance = obj.minDistance || 0.01;
-    //var maxDistance = obj.maxDistance || 0.1;
-    var min = obj.min || 0.01;
-    var max = obj.max || 0.1;
-    var type = obj.type || "hinge";
-    var collision = obj.collision || false;
-    jc.allowCollision=collision;
-    jc.localAxis1.init(axis1[0], axis1[1], axis1[2]);
-    jc.localAxis2.init(axis2[0], axis2[1], axis2[2]);
-    jc.localRelativeAnchorPosition1.init(pos1[0], pos1[1], pos1[2]);
-    jc.localRelativeAnchorPosition2.init(pos2[0], pos2[1], pos2[2]);
-    if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = getBodyByName(obj.body1);
-    if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = getBodyByName(obj.body2);
 
-    var joint;
-    switch(type){
-        case "ball": case "jointBall": joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
-        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, max); break;
-        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
-        case "hinge2": case "jointHinge2": joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
-    }
-    
-    //joint.limitMotor.setSpring(1, 10); // soften the joint
-    joint.name = name;
-    world.addJoint(joint);
-    joints.push(joint);
-
-    return joint;
-}
-
-var rotationToRad = function (ar){
-    return [ar[0]*ToRad, ar[1]*ToRad, ar[2]*ToRad];
+    obj.world = world;
+    var j = new OIMO.Link(obj);
+    joints.push(j.joint);
+    return j.joint;
 }
 
 //--------------------------------------------------

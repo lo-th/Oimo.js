@@ -63,17 +63,16 @@ OIMO.Link = function(Obj){
     if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = obj.world.getByName(obj.body1);
     if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = obj.world.getByName(obj.body2);
 
-    var joint;
     switch(type){
-        case "ball": case "jointBall": joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
-        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, max); break;
-        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
-        case "hinge2": case "jointHinge2": joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
+        case "ball": case "jointBall": this.joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
+        case "distance": case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, max); break;
+        case "hinge": case "jointHinge": this.joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
+        case "hinge2": case "jointHinge2": this.joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
     }
 
     // finaly add to physics world
-    joint.name = this.name;
-    obj.world.addJoint(joint);
+    this.joint.name = this.name;
+    obj.world.addJoint(this.joint);
 }
 
 OIMO.Link.prototype = {
@@ -137,7 +136,7 @@ OIMO.Body = function(Obj){
         
         switch(type[i]){
             case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n+0]); break;
-            case "cylinder": shape = new OIMO.CylinderShape(sc, s[n+0], s[n+1]); break;
+            case "cylinder": shapes[i] = new OIMO.CylinderShape(sc, s[n+0], s[n+1]); break;
             case "box": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break;
         }
 
@@ -8265,6 +8264,12 @@ OIMO.Vec3.prototype = {
         this.x=v.x*s;
         this.y=v.y*s;
         this.z=v.z*s;
+        return this;
+    },
+    scaleEqual: function(s){
+        this.x*=s;
+        this.y*=s;
+        this.z*=s;
         return this;
     },
     dot:function(v){

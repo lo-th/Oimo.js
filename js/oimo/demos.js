@@ -14,13 +14,13 @@ function demo0(n, t){
     world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({type:"ground", size:[5.5,3,5.5], pos:[0,-1.5,0]});
+    addRigid({type:"ground", size:[550,300,550], pos:[0,-150,0]});
 
     // wall
-    addRigid({ type:"box", size:[4.5,10,0.5], pos:[0,5,-2.5] });
-    addRigid({ type:"box", size:[4.5,10,0.5], pos:[0,5, 2.5] });
-    addRigid({ type:"box", size:[0.5,10,5.5], pos:[-2.5,5,0] });
-    addRigid({ type:"box", size:[0.5,10,5.5], pos:[ 2.5,5,0] });
+    addRigid({ type:"box", size:[450,1000,50], pos:[0,500,-250] });
+    addRigid({ type:"box", size:[450,1000,50], pos:[0,500, 250] });
+    addRigid({ type:"box", size:[50,1000,550], pos:[-250,500,0] });
+    addRigid({ type:"box", size:[50,1000,550], pos:[ 250,500,0] });
 
     // add dynamique object
     var body, px, pz, t;
@@ -29,15 +29,14 @@ function demo0(n, t){
     for (var i=0; i!==100; ++i ){
         if(version=="10.DEV")t = Math.floor(Math.random()*2)+1;
         else t = Math.floor(Math.random()*3)+1;
-        px = -1+Math.random()*2;
-        pz = -1+Math.random()*2;
-
-        sx = 0.2+Math.random()*1;
-        sy = 0.2+Math.random()*1;
-        sz = 0.2+Math.random()*1;
-        if(t==1) addRigid({ type:"sphere", size:[sx*0.5], pos:[px,30+i,pz], move:true });
-        else if(t==2) addRigid({ type:"box", size:[sx,sy,sz], pos:[px,30+i,pz], move:true });
-        else if(t==3) addRigid({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,30+i,pz], move:true });
+        px = -100+Math.random()*200;
+        pz = -100+Math.random()*200;
+        sx = 20+Math.random()*100;
+        sy = 20+Math.random()*100;
+        sz = 20+Math.random()*100;
+        if(t==1) addRigid({ type:"sphere", size:[sx*0.5], pos:[px,500+(i*200),pz], move:true });
+        else if(t==2) addRigid({ type:"box", size:[sx,sy,sz], pos:[px,500+(i*200),pz], move:true });
+        else if(t==3) addRigid({ type:"cylinder", size:[sx*0.5,sy,sx*0.5], pos:[px,500+(i*200),pz], move:true });
     }
 }
 
@@ -49,19 +48,22 @@ function demo1(){
     world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[20,3,20], pos:[0,-1.5,0] });
+    addRigid({ type:"ground", size:[2000,300,2000], pos:[0,-150,0] });
     // wall
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5,-9.5] });
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5,9.5] });
-    addRigid({ type:"box", size:[1,10,18], pos:[-9.5,5,0] });
-    addRigid({ type:"box", size:[1,10,18], pos:[ 9.5,5,0] });
+    addRigid({ type:"box", size:[2000,1000,1], pos:[ 0,500,950] });
+    addRigid({ type:"box", size:[2000,1000,1], pos:[ 0,500,950] });
+    addRigid({ type:"box", size:[1,1000,1800], pos:[-950,500,0] });
+    addRigid({ type:"box", size:[1,1000,1800], pos:[ 950,500,0] });
 
-    var body, px, pz, s;
+    var body, px, pz, s, r0, r1, r2;
     for (var i=0; i!==333; ++i ){
-        s = 0.1+Math.random();
-        px = -1+Math.random()*2;
-        pz = -1+Math.random()*2;
-        addRigid({ type:"dice", size:[s,s,s], pos:[px,1+(1.1*i),pz], config:[s*10, 0.5, 0.5], move:true });
+        s = 20+Math.random()*100;
+        px = -800+Math.random()*1600;
+        pz = -800+Math.random()*1600;
+        r0 = Math.random()*360;
+        r1 = Math.random()*360;
+        r2 = Math.random()*360;
+        addRigid({ type:"dice", size:[s,s,s], pos:[px,100+(100*i),pz], config:[s/100, 0.5, 0.5], rot:[r0,r1,r2], move:true });
     }
 }
 
@@ -73,19 +75,19 @@ function demo2(){
 	world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[25.4,3,12.7], pos:[0,-1.5,0] });
+    addRigid({ type:"ground", size:[2540,300,1270], pos:[0,-150,0] });
     // wall
-    addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,-6.85] });
-    addRigid({ type:"box", size:[25.4,5,1], pos:[0,2.5,6.85] });
-    addRigid({ type:"box", size:[1,5,14.7], pos:[-13.2,2.5,0] });
-    addRigid({ type:"box", size:[1,5,14.7], pos:[ 13.2,2.5,0] });
+    addRigid({ type:"box", size:[2540,500,100], pos:[0,250,-685] });
+    addRigid({ type:"box", size:[2540,500,100], pos:[0,250,685] });
+    addRigid({ type:"box", size:[100,500,1470], pos:[-1320,250,0] });
+    addRigid({ type:"box", size:[100,500,1470], pos:[ 1320,250,0] });
 
     // add dynamique object
     var body, px, pz, type = 1;
     for (var i=0; i!==333; ++i ){
-        px = -2+Math.random()*4;
-        pz = -2+Math.random()*4;
-        addRigid({ type:"nball", size:[0.286], pos:[px,1+(i*0.3),pz], config:[1,0.6,0.6], move:true });
+        px = -200+Math.random()*400;
+        pz = -200+Math.random()*400;
+        addRigid({ type:"nball", size:[28.6], pos:[px,1+(i*30),pz], config:[1,0.6,0.6], move:true });
     }
 }
 
@@ -96,14 +98,14 @@ function demo2(){
 function demo3(){
 	world.gravity = new OIMO.Vec3(0, -10, 0);
 
-    var dy=0.3;
+    var dy=30;
     // ground
-    addRigid({ type:"ground", size:[20,2,20], pos:[0,-1+dy,0] });
+    addRigid({ type:"ground", size:[2000,200,2000], pos:[0,-100+dy,0] });
     // wall
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,-9.5] });
-    addRigid({ type:"box", size:[20,10,1], pos:[0,5+dy,9.5] });
-    addRigid({ type:"box", size:[1,10,18], pos:[-9.5,5+dy,0] });
-    addRigid({ type:"box", size:[1,10,18], pos:[ 9.5,5+dy,0] });
+    addRigid({ type:"box", size:[2000,1000,100], pos:[0,500+dy,-950] });
+    addRigid({ type:"box", size:[2000,1000,100], pos:[0,500+dy,950] });
+    addRigid({ type:"box", size:[100,1000,1800], pos:[-950,500+dy,0] });
+    addRigid({ type:"box", size:[100,1000,1800], pos:[ 950,500+dy,0] });
 
     // add dynamique object
     dy+=1;
@@ -112,11 +114,11 @@ function demo3(){
     // bones
     var bone = [];
     for ( i = 0; i!==10; ++i){
-        bone[i] = addRigid({ type:"bone", size:[0.25,1,0.25], pos:[0,dy+0.5+(i*1.001),0], config:[10,0.4,0.4], move:true, rot:[0,0,0]});
+        bone[i] = addRigid({ type:"bone", size:[25,100,25], pos:[0,dy+50+(i*100.1),0], config:[10,0.4,0.4], move:true, rot:[0,0,0]});
     }
     //joints
     for ( i = 0; i!==9; ++i){
-        addJoint({body1:bone[i], body2:bone[i+1], pos1:[0,0.5,0], pos2:[0,-0.5,0], max:1, axis1:[1,0,1], axis2:[1,0,1], collision:true });
+        addJoint({type:"hinge", body1:bone[i], body2:bone[i+1], pos1:[0,50,0], pos2:[0,-50,0], min:20, max:60, axe1:[1,0,1], axe2:[1,0,1], collision:true });
     }
 }
 
@@ -128,14 +130,14 @@ function demo4(){
 	world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[100,4,100], pos:[0,-2,0] });
+    addRigid({ type:"ground", size:[10000,400,10000], pos:[0,-200,0] });
 
     var width = 6;
     var height = 6;
     var depth = 6;
-    var w = 0.75;
-    var h = 0.75;
-    var d = 0.75;
+    var w = 75;
+    var h = 75;
+    var d = 75;
     var x, y, z;
     for (var i = 0; i < width; i++) {
         for (var j = 0; j < height; j++) {
@@ -143,12 +145,12 @@ function demo4(){
                 x= (i - (width - 1) * 0.5) * w;
                 y= j * (h * 1) + h * 0.5;
                 z= (k - (depth - 1) * 0.5) * d;
-                addRigid({type:"box", size:[w-0.025,h,d-0.025], pos:[x,y,z], move:true});
+                addRigid({type:"box", size:[w-2.5,h,d-2.5], pos:[x,y,z], move:true});
             }
         }
     }
 
-    ball = new Ball([5,1,0]);
+    ball = new Ball([500,100,0]);
 }
 
 //--------------------------------------------------
@@ -159,7 +161,7 @@ function demo5(){
     world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[100,4,100], pos:[0,-2,0] });
+    addRigid({ type:"ground", size:[10000,400,10000], pos:[0,-200,0] });
 
     // Greek temple
     var x = 0, z = 0;
@@ -170,13 +172,13 @@ function demo5(){
     for(var i =0; i<width; i++){
         for(var j =0; j<depth; j++){
             for(var k =0; k<8;k++){
-                x = (i - (width - 1) * 0.5) * 4;
-                z = (j - (depth - 1) * 0.5) * 4;
-                r1 = (Math.floor((Math.random()*16))*22.5)*ToRad;// rad
-                r2 = (Math.floor((Math.random()*4))*90)*ToRad;// rad
-                if(k===0)addRigid({ type:"columnBase", size:[1.35,1,1.35], pos:[x,0.5,z], config:[3,0.6,0.2], move:true, rot:[0,r2,0] });
-                else if(k<7)addRigid({ type:"column", size:[0.5,1,0.5], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rot:[0,r1,0] });
-                else if (k===7)addRigid({ type:"columnTop", size:[1.35,1,1.35], pos:[x,0.5+(1.01*k),z], config:[3,0.6,0.2], move:true, rot:[0,r2,0] });
+                x = (i - (width - 1) * 0.5) * 400;
+                z = (j - (depth - 1) * 0.5) * 400;
+                r1 = (Math.floor((Math.random()*16))*22.5);
+                r2 = (Math.floor((Math.random()*4))*90);
+                if(k===0)addRigid({ type:"columnBase", size:[135,100,135], pos:[x,50,z], config:[3,0.6,0.2], move:true, rot:[0,r2,0] });
+                else if(k<7)addRigid({ type:"column", size:[50,100,50], pos:[x,50+(101*k),z], config:[3,0.6,0.2], move:true, rot:[0,r1,0] });
+                else if (k===7)addRigid({ type:"columnTop", size:[135,100,135], pos:[x,50+(101*k),z], config:[3,0.6,0.2], move:true, rot:[0,r2,0] });
                 //else addRigid({type:"box", size:[3.8,1,3.8], pos:[x,1.5+(1*k),z], sc:sc, move:true, sleep:true, rot:[0,0,0]});
             }
         }
@@ -184,11 +186,11 @@ function demo5(){
 
     if(version=="10.DEV"){
         // Car simulator
-        car = new Car([0,2,0]);
+        car = new Car([0,200,0]);
         
     }else{
         // ball controler
-        ball = new Ball([0,1,0]);
+        ball = new Ball([0,100,0]);
     }
 }
 
@@ -277,11 +279,11 @@ function demo7(){
 	world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[200000,1000,200000], pos:[0,-500,0] });
 
     if(version=="10.DEV"){
         // test new vehicle
-        van = new Van([0,2,0]);
+        van = new Van([0,200,0]);
     }
 }
 
@@ -293,45 +295,33 @@ function demo8(){
 	world.gravity = new OIMO.Vec3(0, -10, 0);
 
 	// ground
-    addRigid({ type:"ground", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[20000,1000,20000], pos:[0,-500,0] });
 
-    var x = 0;
-    var y = 3;
-    var z = 20;
-    var num = 40;
-    var width = 4;
-    var depth = 1;
+    var length = 40;
+    var width = 400, heigth = 40, depth = 100;
+    var x = 0, y = 300, z = (depth*length)*0.5;
     var moving = false;
-    var body;
-    var prop;
-    var b01;
-    var b02;
+    var n=0;
 
-    body = addRigid({ type:"box", size:[width, 0.4, depth], pos:[x,y,z], config:[2,0.5,0.5] });
-
-    for (var i = 0; i !== num; i++) {
-
-        b01 = body;
-
-        if(i == num -1) moving = false;
+    for (var i = 0; i <= length; i++) {
+        if(i === length || i===0) moving = false;
         else moving = true;
+        addRigid({ type:"box", size:[width, heigth, depth], pos:[x,y,z - (i + 1) * depth], config:[2,0.5,0.5], move:moving, name:'b'+i});
+        if(i!==0)addJoint({type:"jointHinge", body1:'b'+(i-1), body2:'b'+i, pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false });
 
-        body = addRigid({ type:"box", size:[width, 0.4, depth], pos:[x,y,z - (i + 1) * depth], config:[2,0.5,0.5], move:moving});
-
-        b02 = body;
-
-        addJoint({type:"hinge", body1:b01, body2:b02, pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false });
-
-        if(i==10 || i== 20 || i==30){
-            prop = addRigid({type:"sphere", size:[0.2], pos:[x, y + 4, z - (i + 1) * depth], move:false});
-            var dist = Math.sqrt(25 + width * width * 0.25);
-            addJoint({type:"distance", body1:body, body2:prop, pos1:[-width * 0.5, 0, 0], pos2:[0, 0, 0], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false, min:1, max:dist , spring:[2, 0.5] });
-            addJoint({type:"distance", body1:body, body2:prop, pos1:[width * 0.5, 0, 0], pos2:[0, 0, 0], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false, min:1, max:dist , spring:[2, 0.5] });
+        // Fixation
+        var L = i.toString();
+        if(L.charAt(L.length-1) === '0' && moving===true){
+            addRigid({type:"sphere", size:[20], pos:[x, y + 400, z - (i + 1) * depth], move:false, name:'s'+n});
+            var dist = 500;
+            addJoint({type:"jointDistance", body1:'b'+i, body2:'s'+n, pos1:[-width * 0.5, 0, 0], axe1:[1,0,0], axe2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
+            addJoint({type:"jointDistance", body1:'b'+i, body2:'s'+n, pos1:[width * 0.5, 0, 0], axe1:[1,0,0], axe2:[1,0,0], min:100, max:dist , spring:[2, 0.5] });
+            n++;
         }
     }
     
-    box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[x, y + 1, z - 6],  config:[1,0.5,0.5], move:true});
-    ball = new Ball([x, y + 1, z], 2); 
+    box = addRigid({type:"box", size:[120, 120, 120], pos:[x, y + 100, z - 600],  config:[1,0.5,0.5], move:true});
+    ball = new Ball([x, y + 100, z-100], 2); 
 }
 
 //--------------------------------------------------
@@ -342,10 +332,8 @@ function demo9(){
     world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[1000,10,1000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[100000,1000,100000], pos:[0,-500,0] });
 
-    var box = addRigid({type:"box", size:[1.2, 1.2, 1.2], pos:[2, 1, 6],  config:[1,0.5,0.5], move:true});
-    player = new Player([0, 2, 0], 20, 'droid');
-
-
+    var box = addRigid({type:"box", size:[120, 120, 120], pos:[200, 100, 600],  config:[1,0.5,0.5], move:true});
+    player = new Player([0, 200, 0], 20, 'droid');
 }

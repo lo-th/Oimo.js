@@ -7,10 +7,10 @@ Player = function (Pos, d, Name) {
 	this.sc = sc;
 	this.speed = 0.2;
 	this.phi = 0;
-	this.pos = Pos || [0,1,0];
+	this.pos = Pos || [0,100,0];
 	
 	var name  = Name || 'droid';
-	this.body = addRigid({type:name, size:[1, 2, 1], pos:this.pos, sc:sc, move:true, noSleep:true});
+	this.body = addRigid({type:name, size:[100, 200, 100], pos:this.pos, sc:sc, move:true, noSleep:true});
 }
 
 Player.prototype.Phi =function (v) {
@@ -29,8 +29,8 @@ Player.prototype.move =function (x,y,z, rot) {
 	this.body.angularVelocity.y = rot;
 	this.body.angularVelocity.z = 0;
 	this.body.linearVelocity.x = 0;
-		this.body.linearVelocity.y = 0;
-		this.body.linearVelocity.z = 0;
+	this.body.linearVelocity.y = 0;
+	this.body.linearVelocity.z = 0;
 	//this.update(0,0);
 }
 

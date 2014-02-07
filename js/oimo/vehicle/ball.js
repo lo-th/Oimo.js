@@ -9,7 +9,7 @@ Ball = function (Pos, d, Name) {
 	this.pos = Pos || [0,0,0];
 	
 	var name  = Name || 'gyro';
-	this.body = addRigid({type:name, size:[1], pos:this.pos, sc:sc, move:true, noSleep:true});
+	this.body = addRigid({type:name, size:[100], pos:this.pos, sc:sc, move:true, noSleep:true});
 }
 
 Ball.prototype.Phi =function (v) {
@@ -39,13 +39,7 @@ Ball.prototype.update = function (up, down, left, right) {
 		this.body.linearVelocity.z -= Math.sin(this.phi + Math.PI * 0.5) * this.speed;
 	}
 	if (up === 0 && down === 0 && left === 0 && right === 0) {
-		/*this.body.angularVelocity.x = 0;
-		this.body.angularVelocity.y = 0;
-		this.body.angularVelocity.z = 0;
-		this.body.linearVelocity.x = 0;
-		this.body.linearVelocity.y = 0;
-		this.body.linearVelocity.z = 0;*/
-		this.body.angularVelocity.scaleEqual(0.98);
-		this.body.angularVelocity.scaleEqual(0.88);
+		this.body.angularVelocity.scaleEqual(0.3);
+		this.body.linearVelocity.scaleEqual(0.3);
 	}
 }

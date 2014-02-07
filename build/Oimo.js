@@ -67,24 +67,24 @@ OIMO.Link = function(Obj){
     jc.body1 = obj.body1;
     jc.body2 = obj.body2;
 
-    var joint;
+    
     switch(type){
-        case "distance": case "jointDistance": joint = new OIMO.DistanceJoint(jc, min, max); break;
-        case "hinge": case "jointHinge": joint = new OIMO.HingeJoint(jc, min, max);
-            if(spring !== null)joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
+        case "distance": case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); break;
+        case "hinge": case "jointHinge": this.joint = new OIMO.HingeJoint(jc, min, max);
+            if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
         break;
-        case "prisme": case "jointPrisme": joint = new OIMO.PrismaticJoint(jc, min, max); break;
-        case "slide": case "jointSlide": joint = new OIMO.SliderJoint(jc, min, max); break;
-        case "ball": case "jointBall": joint = new OIMO.BallAndSocketJoint(jc); break;
-        case "wheel": case "jointWheel": joint = new OIMO.WheelJoint(jc);  
-            if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
-            if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+        case "prisme": case "jointPrisme": this.joint = new OIMO.PrismaticJoint(jc, min, max); break;
+        case "slide": case "jointSlide": this.joint = new OIMO.SliderJoint(jc, min, max); break;
+        case "ball": case "jointBall": this.joint = new OIMO.BallAndSocketJoint(jc); break;
+        case "wheel": case "jointWheel": this.joint = new OIMO.WheelJoint(jc);  
+            if(limit !== null) this.joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+            if(spring !== null) this.joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
         break;
     }
 
     // finaly add to physics world
-    joint.name = this.name;
-    obj.world.addJoint(joint);
+    this.joint.name = this.name;
+    obj.world.addJoint(this.joint);
 }
 
 OIMO.Link.prototype = {
@@ -104,9 +104,7 @@ OIMO.Body = function(Obj){
 
     this.name = obj.name || '';
     var move = obj.move || false;
-    var noSleep  = obj.noSleep || false; 
-    var noAdjust = obj.noAdjust || false;
-    
+    var noSleep  = obj.noSleep || false;
     
     // position
     var p = obj.pos || [0,0,0];
@@ -135,11 +133,13 @@ OIMO.Body = function(Obj){
         sc.collidesWith = obj.config[4] || 0xffffffff;
     }
 
-    if(obj.configPos){
-        sc.relativePosition.set(obj.configPos[0], obj.configPos[1], obj.configPos[2]);
+    if(obj.massPos){
+        obj.massPos = obj.massPos.map(function(x) { return x * OIMO.INV_SCALE; });
+        sc.relativePosition.init(obj.massPos[0], obj.massPos[1], obj.massPos[2]);
     }
-    if(obj.configRot){
-        sc.relativeRotation = OIMO.EulerToMatrix(obj.configRot[0], obj.configRot[1], obj.configRot[2]);
+    if(obj.massRot){
+        obj.massRot = obj.massRot.map(function(x) { return x * OIMO.TO_RAD; });
+        sc.relativeRotation = OIMO.EulerToMatrix(obj.massRot[0], obj.massRot[1], obj.massRot[2]);
     }
     
     // the rigidbody
@@ -167,7 +167,7 @@ OIMO.Body = function(Obj){
     
     // static or move
     if(move){
-        if(noAdjust)this.body.setupMass(0x1, false);
+        if(obj.massPos || obj.massRot)this.body.setupMass(0x1, false);
         else this.body.setupMass(0x1, true);
         if(noSleep) this.body.allowSleep = false;
         else this.body.allowSleep = true;
