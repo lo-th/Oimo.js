@@ -50,10 +50,10 @@ function demo1(){
     // ground
     addRigid({ type:"ground", size:[2000,300,2000], pos:[0,-150,0] });
     // wall
-    addRigid({ type:"box", size:[2000,1000,1], pos:[ 0,500,950] });
-    addRigid({ type:"box", size:[2000,1000,1], pos:[ 0,500,950] });
-    addRigid({ type:"box", size:[1,1000,1800], pos:[-950,500,0] });
-    addRigid({ type:"box", size:[1,1000,1800], pos:[ 950,500,0] });
+    addRigid({ type:"box", size:[2000,1000,100], pos:[ 0,500,950] });
+    addRigid({ type:"box", size:[2000,1000,100], pos:[ 0,500,-950] });
+    addRigid({ type:"box", size:[100,1000,1800], pos:[-950,500,0] });
+    addRigid({ type:"box", size:[100,1000,1800], pos:[ 950,500,0] });
 
     var body, px, pz, s, r0, r1, r2;
     for (var i=0; i!==333; ++i ){
