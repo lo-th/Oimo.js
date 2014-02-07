@@ -7,33 +7,16 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 
 <style>
-    body {
-        margin: 0px;
-        background-color: #000000;
-        overflow: hidden;
-        color: #eeeeee;
-        font-family: monospace;
-        font-size: 14px;
-    }
-    #interface{
-        position: absolute;
-        left:10px;
-        top:10px;
-    }
-    #info{
-        pointer-events:none;
-        position: absolute;
-        left:10px;
-        top:50px;
-        width: 400px;
-        height: 400px;
-    }
+    * {  margin: 0; padding: 0; border: 0;}
+    body { background-color: #585858; overflow: hidden; color: #eeeeee; font-family: monospace; font-size: 12px; }
+    input{ margin:0; padding:4px; }
+    #interface{ position: absolute; left:10px; top:10px; width:456px; height:20px; }
+    #info{ pointer-events:none; position: absolute; left:10px; top:50px; width: 400px; height: 400px; }
 </style>
 
 <script src="js/three.min.js"></script>
 <script src="build/Oimo.js"></script>
 <!--<script src="build/Oimo.rev.js"></script>-->
-<script src="js/controls/OrbitControls.js"></script>
 
 </head>
 <body>
@@ -44,6 +27,7 @@
     <input type="number" name="quantity" min="10" max="2000" value="30"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="button" value="collision off" onClick=switchCollision() id="col">
+    <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
 </div>
 <div id='info'></div>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>
@@ -53,11 +37,16 @@
 <script>
 
     // three var
-    var camera, scene, light, renderer, container, cameraControls;
+    var camera, scene, light, renderer, container, center;
     var meshs = [];
     var grounds = [];
     var geoBox, geoSphere;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround;
+
+    // navigation var 
+    var camPos = { horizontal: 90, vertical: 60, distance: 400, automove: false };
+    var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
+    var ToRad = Math.PI / 180;
 
     //oimo var
     var world;
@@ -71,27 +60,22 @@
     var collision=false;
 
     init();
-    animate();
+    loop();
 
     function init() {
 
         // three init
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false, clearColor: 0x585858, clearAlpha: 0});
-        this.renderer.autoClear = false;
-        //renderer.setClearColor( 0x585858, 1 );
-
+        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false});
         renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setClearColor( 0x585858, 1 );
+        
         container = document.getElementById("container");
         container.appendChild( renderer.domElement );
 
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
         camera.position.set( 0, 100, 400 );
-
-        cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-        cameraControls.target.set( 0, 40, 0);
-        cameraControls.maxDistance = 800;
-        cameraControls.minDistance = 10;
-        cameraControls.update();
+        center = new THREE.Vector3();
+        moveCamera();
 
         scene = new THREE.Scene();
 
@@ -118,6 +102,12 @@
         //
 
         window.addEventListener( 'resize', onWindowResize, false );
+        container.addEventListener( 'mousemove', onMouseMove, false );
+        container.addEventListener( 'mousedown', onMouseDown, false );
+        container.addEventListener( 'mouseout', onMouseUp, false );
+        container.addEventListener( 'mouseup', onMouseUp, false );
+        container.addEventListener( 'mousewheel', onMouseWheel, false );
+        container.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
     }
 
     var types, sizes, positions, chairGeometry;
@@ -272,9 +262,9 @@
 
     }
 
-    function animate() {
+    function loop() {
 
-        requestAnimationFrame( animate );
+        requestAnimationFrame( loop );
         
         world.step();
 
@@ -336,12 +326,15 @@
             }
         }
 
-        cameraControls.update();
-
         renderer.render( scene, camera );
 
         displayInfo();
 
+    }
+
+    function gravity(g){
+        nG = document.getElementById("gravity").value
+        world.gravity = new OIMO.Vec3(0, nG, 0);
     }
 
     function displayInfo(){
@@ -401,6 +394,57 @@
         tx.needsUpdate = true;
         return tx;
 
+    }
+
+    // MATH
+
+    function Orbit(origine, horizontal, vertical, distance) {
+        var p = new THREE.Vector3();
+        var phi = vertical*ToRad;
+        var theta = horizontal*ToRad;
+        p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
+        p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
+        p.y = (distance * Math.cos(phi)) + origine.y;
+        return p;
+    }
+
+    // MOUSE & NAVIGATION
+    function moveCamera() {
+        camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
+        camera.lookAt(center);
+    }
+
+    function onMouseDown(e) {
+        e.preventDefault();
+        mouse.ox = e.clientX;
+        mouse.oy = e.clientY;
+        mouse.h = camPos.horizontal;
+        mouse.v = camPos.vertical;
+        mouse.down = true;
+    }
+
+    function onMouseUp(e) {
+        mouse.down = false;
+        document.body.style.cursor = 'auto';
+    }
+
+    function onMouseMove(e) {
+        e.preventDefault();
+        if (mouse.down ) {
+            document.body.style.cursor = 'move';
+            camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
+            camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
+            moveCamera();
+        }
+    }
+
+    function onMouseWheel(e) {
+        var delta = 0;
+        if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
+        else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
+        else if(e.detail){delta=-e.detail*1.0;}
+        camPos.distance-=(delta*10);
+        moveCamera();   
     }
 
 </script>
