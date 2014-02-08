@@ -199,73 +199,75 @@ function demo5(){
 //--------------------------------------------------
 
 function demo6(){
-	world.gravity = new OIMO.Vec3(0, 0, 0);
+	world.gravity = new OIMO.Vec3(0, -0.01, 0);
 
     // ground
-    addRigid({ type:"ground", size:[2000,10,2000], pos:[0,-5,0] });
+    addRigid({ type:"ground", size:[2000,100,2000], pos:[0,-50,0] });
 
     // test ragdoll stucture
     var bones =[];
     var joints =[];
 
     for(var i=0; i!==bonesPosition.length; ++i){
-        bones[i] = addRigid({ type:"bone", size:[0.04,0.02,0.02], pos:bonesPosition[i], move:true, rotation:bonesRotation[i] });
+        bones[i] = addRigid({ type:"bone", size:[5,3,3], pos:bonesPosition[i], rot:bonesRotation[i] , move:true});
     }
 
+    var type = "hinge"; //"distance"
+
     var d = OIMO.Distance3d(bonesPosition[0], bonesPosition[1]);
-    addJoint({type:"distance", body1:bones[0], body2:bones[1], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[0], body2:bones[1], pos1:[0,0,0], pos2:[-d,0,0], axe1:[1,0,0], axe2:[1,0,0], min:10, max:20, collision:false});// 
     d = OIMO.Distance3d(bonesPosition[0], bonesPosition[5]);
-    addJoint({type:"distance", body1:bones[0], body2:bones[5], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[0], body2:bones[5], pos1:[0,0,0], pos2:[d,0,0], axe1:[1,0,0], axe2:[1,0,0], min:10, max:20, collision:false});// 
 
     //leg Right
     d = OIMO.Distance3d(bonesPosition[1], bonesPosition[2]);
-    addJoint({type:"distance", body1:bones[1], body2:bones[2], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[1], body2:bones[2], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[2], bonesPosition[3]);
-    addJoint({type:"distance", body1:bones[2], body2:bones[3], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[2], body2:bones[3], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[3], bonesPosition[4]);
-    addJoint({type:"distance", body1:bones[3], body2:bones[4], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[3], body2:bones[4], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
 
     //leg Left
     d = OIMO.Distance3d(bonesPosition[5], bonesPosition[6]);
-    addJoint({type:"distance", body1:bones[5], body2:bones[6], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[5], body2:bones[6], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20 });
     d = OIMO.Distance3d(bonesPosition[6], bonesPosition[7]);
-    addJoint({type:"distance", body1:bones[6], body2:bones[7], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[6], body2:bones[7], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20 });
     d = OIMO.Distance3d(bonesPosition[7], bonesPosition[8]);
-    addJoint({type:"distance", body1:bones[7], body2:bones[8], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[7], body2:bones[8], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20 });
 
     // spine
     d = OIMO.Distance3d(bonesPosition[0], bonesPosition[9]);
-    addJoint({type:"distance", body1:bones[0], body2:bones[9], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[0], body2:bones[9], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:40 });
     d = OIMO.Distance3d(bonesPosition[9], bonesPosition[10]);
-    addJoint({type:"distance", body1:bones[9], body2:bones[10], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[9], body2:bones[10], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:40 });
     d = OIMO.Distance3d(bonesPosition[10], bonesPosition[11]);
-    addJoint({type:"distance", body1:bones[10], body2:bones[11], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[10], body2:bones[11], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:40 });
     d = OIMO.Distance3d(bonesPosition[11], bonesPosition[12]);
-    addJoint({type:"distance", body1:bones[11], body2:bones[12], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[11], body2:bones[12], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:40 });
     d = OIMO.Distance3d(bonesPosition[12], bonesPosition[13]);
-    addJoint({type:"distance", body1:bones[12], body2:bones[13], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[12], body2:bones[13], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:40 });
     d = OIMO.Distance3d(bonesPosition[13], bonesPosition[14]);
-    addJoint({type:"distance", body1:bones[13], body2:bones[14], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[13], body2:bones[14], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:40 });
 
     // arm right
-    d = OIMO.Distance3d(bonesPosition[12], bonesPosition[19]);
-    addJoint({type:"distance", body1:bones[12], body2:bones[19], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    d = OIMO.Distance3d(bonesPosition[13], bonesPosition[19]);
+    addJoint({type:type, body1:bones[13], body2:bones[19], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[19], bonesPosition[20]);
-    addJoint({type:"distance", body1:bones[19], body2:bones[20], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[19], body2:bones[20], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[20], bonesPosition[21]);
-    addJoint({type:"distance", body1:bones[20], body2:bones[21], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[20], body2:bones[21], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[21], bonesPosition[22]);
-    addJoint({type:"distance", body1:bones[21], body2:bones[22], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[21], body2:bones[22], pos1:[0,0,0], pos2:[0,-d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
 
     // arm left
-    d = OIMO.Distance3d(bonesPosition[12], bonesPosition[15]);
-    addJoint({type:"distance", body1:bones[12], body2:bones[15], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    d = OIMO.Distance3d(bonesPosition[13], bonesPosition[15]);
+    addJoint({type:type, body1:bones[13], body2:bones[15], pos1:[0,0,0], pos2:[0,d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20 });
     d = OIMO.Distance3d(bonesPosition[15], bonesPosition[16]);
-    addJoint({type:"distance", body1:bones[15], body2:bones[16], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[15], body2:bones[16], pos1:[0,0,0], pos2:[0,d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[16], bonesPosition[17]);
-    addJoint({type:"distance", body1:bones[16], body2:bones[17], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[16], body2:bones[17], pos1:[0,0,0], pos2:[0,d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
     d = OIMO.Distance3d(bonesPosition[17], bonesPosition[18]);
-    addJoint({type:"distance", body1:bones[17], body2:bones[18], pos1:[0,0,0], pos2:[0,0,0], axis1:[0,0,0], axis2:[1,0,1], collision:false, min:d, max:d });
+    addJoint({type:type, body1:bones[17], body2:bones[18], pos1:[0,0,0], pos2:[0,d,0], axe1:[1,0,0], axe2:[1,0,0], collision:false, min:10, max:20  });
 
 }
 
@@ -307,7 +309,7 @@ function demo8(){
         if(i === length || i===0) moving = false;
         else moving = true;
         addRigid({ type:"box", size:[width, heigth, depth], pos:[x,y,z - (i + 1) * depth], config:[2,0.5,0.5], move:moving, name:'b'+i});
-        if(i!==0)addJoint({type:"jointHinge", body1:'b'+(i-1), body2:'b'+i, pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axis1:[1,0,0], axis2:[1,0,0], collision:false });
+        if(i!==0)addJoint({type:"jointHinge", body1:'b'+(i-1), body2:'b'+i, pos1:[0, 0, -depth * 0.5], pos2:[0, 0, depth * 0.5], upperAngle:0, axe1:[1,0,0], axe2:[1,0,0], collision:false });
 
         // Fixation
         var L = i.toString();

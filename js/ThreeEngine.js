@@ -686,6 +686,21 @@ var ThreeEngine = function () {
     		    meshFlag=new THREE.Mesh(geo00, Bmat ); 
     		    mesh.scale.set( s[0], s[1], s[2] ); 
     		    mesh.add(meshFlag);
+
+
+    		    var mx=new THREE.Mesh(geo01b, debugMaterial);
+		        mx.visible = false;
+                var helper = new THREE.BoxHelper(mx);
+                helper.material.color.set( debugColor );
+                helper.material.opacity = debugAlpha;
+                helper.material.transparent = true;
+		        mx.add( helper );
+
+		        mesh.add(mx)
+
+
+
+
     		    boneindex++;
     		break;
     		case 11: case 'nball': 
@@ -856,16 +871,16 @@ var ThreeEngine = function () {
 		//var mesh = new THREE.SkinnedMesh( getMeshByName('sila').geometry, getMaterial('mat08') );
 		var mesh = getMeshByName('sila')
 		mesh.material = getMaterial('mat08');
-		mesh.scale.set( s[0], s[1], s[2] );
+		mesh.scale.set( -s[0], s[1], s[2] );
 		//mesh.position.y=90;
 		content.add( mesh );
 		mesh.receiveShadow = true;
 		mesh.castShadow = true;
 
-		var n = mesh.bones.length;
+		/*var n = mesh.bones.length;
 		var e;
 		for (var i=0; i!==n ; i++){
-		  e = new THREE.AxisHelper( 10 )
+		    e = new THREE.AxisHelper( 10 )
 			content.add( e );
 			var mtx = mesh.bones[i].matrix//matrixWorld;
 
@@ -878,7 +893,7 @@ var ThreeEngine = function () {
 			e.rotation.z = mesh.bones[i].rotation.z;
 
 			//e.rotation.setFromRotationMatrix( mtx );
-		}
+		}*/
 	}
 
 	var updateSila = function () {
@@ -889,10 +904,17 @@ var ThreeEngine = function () {
 			rot = ref.rotation;
 			pos = ref.position;
 
+			//mtx.fromArray( m[i] );
+	        //mesh.position.setFromMatrixPosition( mtx )
+			//mesh.rotation.setFromRotationMatrix( mtx );
+
 			//mesh.bones[i].position.set(pos.x, pos.y, -pos.z);
-			mesh.bones[i].position.set( pos.x, pos.y, pos.z);
-		//	mesh.bones[i].rotation.set( rot.x, rot.y, rot.z);
-	mesh.bones[i].rotation.set( rot.y, rot.x, rot.z);
+			mesh.bones[i].position.set( pos.x, pos.y-90, pos.z);
+			//mesh.bones[i].rotation.set( rot.x, rot.y, rot.z);
+
+			mesh.bones[i].rotation.set( rot.x, -rot.y-180*ToRad, -rot.z+90*ToRad);
+	//mesh.bones[i].rotation.set( rot.x, rot.y, rot.z);
+	//mesh.bones[i].rotation.set( rot.x, -rot.y+(180*ToRad), -rot.z+(90*ToRad));
 	//mesh.bones[i].rotation.set( rot.z+180*ToRad, rot.x+180*ToRad, rot.y+180*ToRad);
 	        //mesh.bones[i].rotation.set( -rot.x+0*ToRad, -rot.y-180*ToRad, -rot.z-180*ToRad);
 	       // mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-90*ToRad);
@@ -911,12 +933,19 @@ var ThreeEngine = function () {
 		if(mesh.bones.length!==0){
 			var n = mesh.bones.length;
 			for (var i=0; i!==n ; i++){
+
+				pos[i] = [mesh.bones[i].position.x, mesh.bones[i].position.y+90, -mesh.bones[i].position.z];
+				//rot[i] = [-mesh.bones[i].rotation.x, -mesh.bones[i].rotation.y, -mesh.bones[i].rotation.z];
+				//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.x+0*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
+				rot[i] = [ mesh.bones[i].rotation.x, -mesh.bones[i].rotation.y+(180*ToRad), -mesh.bones[i].rotation.z+(90*ToRad)];
+				rot[i] = rot[i].map(function(x) { return x * ToDeg; });
+
 				//pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
 				//rot[i] = [mesh.bones[i].rotation.x, mesh.bones[i].rotation.y, mesh.bones[i].rotation.z];
 
-				pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
+				//pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
 				//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.x+0*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
-				rot[i] = [ mesh.bones[i].rotation.x-0*ToRad, mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.z+0*ToRad];
+				//rot[i] = [ mesh.bones[i].rotation.x-0*ToRad, mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.z+0*ToRad];
 				//rot[i] = [ -mesh.bones[i].rotation.x+180*ToRad, mesh.bones[i].rotation.y-180*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
 				//rot[i] = [ mesh.bones[i].rotation.y+90*ToRad, mesh.bones[i].rotation.z+180*ToRad, -mesh.bones[i].rotation.x+270*ToRad];
 				//rot[i] = [ -mesh.bones[i].rotation.x+90*ToRad, -mesh.bones[i].rotation.y+180*ToRad, -mesh.bones[i].rotation.z+90*ToRad];
