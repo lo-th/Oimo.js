@@ -92,7 +92,7 @@ self.onmessage = function (e) {
 
     if(phase === "UPDATE"){ if(isTimout) update(); else timer = setInterval(update, timerStep);  }
     if(phase === "KEY") userKey(e.data.key);
-    if(phase === "PLAYERMOVE"){isPlayerMove= true; playerSet = e.data;}
+    if(phase === "PLAYERMOVE"){player.move(e.data.v);}//isPlayerMove= true; playerSet = e.data;}
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
     if(phase === "NEXT") initNextDemo();
@@ -186,9 +186,9 @@ var update = function(){
         wakeup = true;
     }
 
-    if(isPlayerMove && player!==null){
-        player.move(playerSet.x, playerSet.y, playerSet.z, playerSet.rot); isPlayerMove = false;
-    }
+    /*if(isPlayerMove && player!==null){
+        player.move(playerSet.v); //isPlayerMove = false;
+    }*/
 
     while (i--) {
 

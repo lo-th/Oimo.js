@@ -334,8 +334,17 @@ function demo9(){
     world.gravity = new OIMO.Vec3(0, -10, 0);
 
     // ground
-    addRigid({ type:"ground", size:[100000,1000,100000], pos:[0,-500,0] });
+    addRigid({ type:"ground", size:[10000,300,10000], pos:[0,-150,0] });
 
-    var box = addRigid({type:"box", size:[120, 120, 120], pos:[200, 100, 600],  config:[1,0.5,0.5], move:true});
-    player = new Player([0, 200, 0], 20, 'droid');
+    var box, px, pz, sx, sy, sz;
+    
+    for(var i=0; i!==40; ++i){
+        sx = 50+Math.random()*200;
+        sy = 50+Math.random()*200;
+        sz = 50+Math.random()*200;
+        px = -3000+Math.random()*6000;
+        pz = -3000+Math.random()*6000;
+        box= addRigid({type:"box", size:[sx, sy, sz], pos:[px, sy*0.5, pz],  config:[1,0.5,0.5], move:true});
+    }
+    player = new Player([0, 100, 0]);
 }

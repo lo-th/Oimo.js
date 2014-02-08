@@ -2,35 +2,29 @@
 
 Player = function (Pos, d, Name) {
 	var sc = new OIMO.ShapeConfig();
-	sc.density = d || 20;
-	sc.friction = 0.6;
+	sc.density = d || 1;
+	sc.friction = 0.0;
+	sc.restitution = 0.0;
 	this.sc = sc;
 	this.speed = 0.2;
 	this.phi = 0;
 	this.pos = Pos || [0,100,0];
 	
 	var name  = Name || 'droid';
-	this.body = addRigid({type:name, size:[100, 200, 100], pos:this.pos, sc:sc, move:true, noSleep:true});
+	this.body = addRigid({type:name, size:[100, 200, 100], pos:this.pos, sc:sc, move:true, noSleep:true, name:name});
 }
 
 Player.prototype.Phi =function (v) {
 	this.phi = v;
 }
 
-Player.prototype.move =function (x,y,z, rot) {
-	//this.body.rotation = eulerToMatrix(0,rot,0);
-	this.body.position = new OIMO.Vec3(x,y+1,z);
-	//this.body.orientation = eulerToAxisAngle(0,rot,0);
-	/*this.body.orientation.x = 0;
-	this.body.orientation.y = 0;
-	this.body.orientation.z = 0;
-	this.body.orientation.s = 0;*/
+Player.prototype.move =function (v) {
 	this.body.angularVelocity.x = 0;
-	this.body.angularVelocity.y = rot;
+	this.body.angularVelocity.y = v.r;
 	this.body.angularVelocity.z = 0;
-	this.body.linearVelocity.x = 0;
+	this.body.linearVelocity.x =  (v.x);
 	this.body.linearVelocity.y = 0;
-	this.body.linearVelocity.z = 0;
+	this.body.linearVelocity.z =  (v.z);
 	//this.update(0,0);
 }
 

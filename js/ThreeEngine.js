@@ -757,9 +757,16 @@ var ThreeEngine = function () {
     		    mesh.scale.set( 3, 3, 3 );
     		break;
     		case 16: case 'droid':
-    		    mesh = new THREE.Object3D();
-    		    //mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
-    		    //mesh.scale.set( s[0], s[1], s[2] );
+    		   // mesh = new THREE.Object3D();
+    		    mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
+    		    mesh.scale.set( s[0], s[1], s[2] );
+    		    mesh.visible = false;
+
+    		    var helper = new THREE.BoxHelper(mesh);
+                helper.material.color.set( debugColor );
+                helper.material.opacity = debugAlpha;
+                helper.material.transparent = true;
+		        mesh.add( helper );
     		    //mesh=new THREE.Mesh(geo02b, getMaterial('mat02'));
     		    //mesh.scale.set( s[0], s[0], s[0] ); 
 
@@ -781,7 +788,7 @@ var ThreeEngine = function () {
 	    		//player = m3;
 	    		//player.position.set(0,0,0);
 	    		//player.children[0].play("Walk");
-	    		followObject = player;
+	    		followObject = mesh;//player;
     		break;
     	}
     	mesh.position.y = -10000;
@@ -1216,27 +1223,9 @@ var ThreeEngine = function () {
 	        prevR[0] = m00.position.x;
 	        prevR[1] = m00.position.z;
 		} else if(followSpecial === 'droid'){
-			
 			movePlayer(delta);
-
-			//var m00 = followObject;
-			//player = null;
-	       // var m01=contentSpecial.children[0];
-	        //var distance = getDistance(m00.position.x, m00.position.z, prevR[0], prevR[1]);
-	        //player.position.copy(m00.position);
-	       /* if(distance>2){
-	        	if(Anim === "Idle"){ Anim="Walk"; player.children[0].play("Walk");}
-	        	player.rotation.y=-(camPos.horizontal+90)*ToRad;
-	        }
-	        else {
-	        	if(Anim === "Walk"){ Anim="Idle";
-	        		player.children[0].play("Idle");
-	        	}
-	        }
-	        prevR[0] = m00.position.x;
-	        prevR[1] = m00.position.z;*/
 		}
-		//}
+		
 
 		// test 
 		/*looker.position.copy(center);
@@ -1261,7 +1250,8 @@ var ThreeEngine = function () {
 	//  PLAYER MOVE
 	//-----------------------------------------------------
 
-	var playerSet = {animation:'Idle', destX:0, destZ:0, maxSpeed:0.02, speed:0, acc:0.001, decay:0.9};
+	var playerSet = {animation:'Idle', x:0, z:0, r:0, destX:0, destZ:0, maxSpeed:0.02, speed:0, acc:0.001, decay:0.9};
+	var playeroldpos = {x:0, z:0, r:0, t:0};
 
 
 	var setPlayerDestination = function (){
@@ -1270,7 +1260,9 @@ var ThreeEngine = function () {
 		//player.rotation.y = - Math.atan2(player.position.z-marker.position.z,player.position.x-marker.position.x)//+(90*ToRad);
 	}
 
+	
 	var movePlayer = function (delta){
+
 		if (mouse.down && selected.name!=='background'){
 			playerSet.destX = marker.position.x;
 			playerSet.destZ = marker.position.z;
@@ -1281,17 +1273,44 @@ var ThreeEngine = function () {
 			else{ playerSet.speed = 0; if(playerSet.animation === 'Walk'){ playerSet.animation = 'Idle';player.children[0].play(playerSet.animation);} }	
 		}
 
-		player.position.x += (playerSet.destX - player.position.x) * playerSet.speed;
+		/*player.position.x += (playerSet.destX - player.position.x) * playerSet.speed;
 		player.position.z += (playerSet.destZ - player.position.z) * playerSet.speed;
-		player.rotation.y = - Math.atan2(player.position.z-marker.position.z,player.position.x-marker.position.x)//+(90*ToRad);
+		player.rotation.y = - Math.atan2(player.position.z-marker.position.z,player.position.x-marker.position.x);*/
+
+		playerSet.x += (playerSet.destX - playerSet.x) * playerSet.speed;
+		playerSet.z += (playerSet.destZ - playerSet.z) * playerSet.speed;
+		playerSet.r = - Math.atan2(playerSet.z-marker.position.z,playerSet.x-marker.position.x);
+
 		//player.children[0].play(playerSet.animation);
         THREE.AnimationHandler.update( delta*(0.5 +  (playerSet.speed*5)) );
-		//player.position.x += (playerSet.destX - player.position.x) / playerSet.speed;
-		//player.position.z += (playerSet.destZ - player.position.z) / playerSet.speed;
-		player.position.y = 0;//22;
+		//player.position.y = 0;
+
+		//the unit for velocity is [m/s] so you should devide movement amount by movement duration
+		var v = { 
+			x:((playerSet.x-playeroldpos.x)*0.01)/delta, 
+			z:((playerSet.z-playeroldpos.z)*0.01)/delta,
+			r:(playerSet.r-playeroldpos.r )/delta
+
+			//x:((player.position.x-playeroldpos.x)*0.01)/delta, 
+			//z:((player.position.z-playeroldpos.z)*0.01)/delta,
+
+			//x:(((player.position.x)-(playeroldpos.x)) * playerSet.speed )/delta, 
+			//z:(((player.position.z)-(playeroldpos.z)) * playerSet.speed )/delta,
+
+			//r:(player.rotation.y-playeroldpos.r )/delta 
+		}
 
 
-		OimoWorker.postMessage({tell:"PLAYERMOVE", x:player.position.x*0.01, y:player.position.y*0.01,z:player.position.z*0.01, rot:player.rotation.y}); 
+		OimoWorker.postMessage({tell:"PLAYERMOVE", v:v}); 
+
+		playeroldpos.x = playerSet.x;
+		playeroldpos.z = playerSet.z;
+		playeroldpos.r = playerSet.r;
+		playeroldpos.t = Date.now();
+
+		player.position.x=followObject.position.x;
+		player.position.z=followObject.position.z;
+		player.rotation.y=playerSet.r//followObject.rotation.y;
 	}
 
 	/*function updatePlayerMove() {
