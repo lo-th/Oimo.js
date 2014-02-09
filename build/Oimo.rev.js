@@ -1123,28 +1123,34 @@ OIMO.RigidBody.prototype = {
     },
     getMatrix:function(){
         var m = this.matrix.elements;
-        var r = this.rotation.elements;
-        var p = this.position;
-        
-        m[0] = r[0];
-        m[1] = r[3];
-        m[2] = r[6];
-        m[3] = 0;
+        var r,p;
+        if(!this.sleeping){
+            // rotation matrix
+            r = this.rotation.elements;
+            m[0] = r[0];
+            m[1] = r[3];
+            m[2] = r[6];
+            m[3] = 0;
 
-        m[4] = r[1];
-        m[5] = r[4];
-        m[6] = r[7];
-        m[7] = 0;
+            m[4] = r[1];
+            m[5] = r[4];
+            m[6] = r[7];
+            m[7] = 0;
 
-        m[8] = r[2];
-        m[9] = r[5];
-        m[10] = r[8];
-        m[11] = 0;
+            m[8] = r[2];
+            m[9] = r[5];
+            m[10] = r[8];
+            m[11] = 0;
 
-        m[12] = p.x*OIMO.WORLD_SCALE;
-        m[13] = p.y*OIMO.WORLD_SCALE;
-        m[14] = p.z*OIMO.WORLD_SCALE;
-        m[15] = 0;
+            // position matrix
+            p = this.position;
+            m[12] = p.x*OIMO.WORLD_SCALE;
+            m[13] = p.y*OIMO.WORLD_SCALE;
+            m[14] = p.z*OIMO.WORLD_SCALE;
+            m[15] = 0;
+        } else {
+            m[15] = 1;
+        }
 
         return m;
     }
@@ -6204,6 +6210,8 @@ OIMO.Joint = function(){
     this.anchorPosition2=new OIMO.Vec3();
     this.connection1=new OIMO.JointConnection(this);
     this.connection2=new OIMO.JointConnection(this);
+
+    this.matrix = new OIMO.Mat44();
 }
 OIMO.Joint.prototype = Object.create( OIMO.Constraint.prototype );
 OIMO.Joint.prototype.preSolve = function (timeStep,invTimeStep) {
@@ -6211,6 +6219,25 @@ OIMO.Joint.prototype.preSolve = function (timeStep,invTimeStep) {
 OIMO.Joint.prototype.solve = function () {
 }
 OIMO.Joint.prototype.postSolve = function () {
+}
+
+
+// for three js
+OIMO.Joint.prototype.getMatrix = function () {
+    var m = this.matrix.elements;
+    var p1 = this.anchorPosition1;
+    var p2 = this.anchorPosition2;
+    m[0] = p1.x * OIMO.WORLD_SCALE;
+    m[1] = p1.y * OIMO.WORLD_SCALE;
+    m[2] = p1.z * OIMO.WORLD_SCALE;
+    m[3] = 0;
+
+    m[4] = p2.x * OIMO.WORLD_SCALE;
+    m[5] = p2.y * OIMO.WORLD_SCALE;
+    m[6] = p2.z * OIMO.WORLD_SCALE;
+    m[7] = 0;
+
+    return m;
 }
 
 // BallJoint

@@ -29,10 +29,6 @@ var version = "10.DEV";
 // physics variable
 var world;
 var dt = 1/60;
-
-var scale = 100;
-var invScale = 0.01;
-
 var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
@@ -43,15 +39,16 @@ var ToRad = Math.PI / 180;
 // array variable
 var bodys = [];
 var matrix = [];
-var matrixs = [];
-var sleeps = [];
-var types = [];
-var sizes = [];
+var matrixJoint = [];
+
+var types = [], sizes = [];
+var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
+
 var infos = new Float32Array(13);
 var currentDemo = 0;
 var maxDemo = 10;
 
-var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
+
 
 // array joint 
 var joints = [], jointPos = [];
@@ -67,6 +64,9 @@ var statBegin;
 var isTimout = false;
 var isNeedRemove = false;
 var removeTemp = {};
+
+
+var buffer = [];
 
 
 //--------------------------------------------------
@@ -155,8 +155,9 @@ var REMOVE = function(data){
     }else {
         world.removeRigidBody(bodys[n]);
         bodys.splice(n,1);
-        sleeps.splice(n,1);
-        matrix.splice(n*12,12);
+        matrix.splice(n,1);
+       // sleeps.splice(n,1);
+        //matrix.splice(n*12,12);
     }
     self.postMessage(removeTemp);
     isNeedRemove=false;
@@ -175,11 +176,7 @@ var update = function(){
 
     world.step();
     
-    var r, p, t, n;
-    var p1, p2;
-    var i =  bodys.length;
-    maxBody = i;
-
+    var i;
     var wakeup = false;
 
     if(Gravity!==newGravity){
@@ -188,36 +185,22 @@ var update = function(){
         wakeup = true;
     }
 
+    // body info
+    i =  bodys.length;
     while (i--) {
-
         if( wakeup ) bodys[i].awake();
-        if( bodys[i].sleeping ){ sleeps[i] = 1; }
-        else{ 
-            sleeps[i] = 0;
-            matrix[i] = bodys[i].getMatrix();
-        }
+        matrix[i] = bodys[i].getMatrix();
     }
 
+    // joint info
     i = joints.length;
-    //var 
-    maxJoint = i;
     while (i--) {
-        p1 = joints[i].anchorPoint1;
-        p2 = joints[i].anchorPoint2;
-        n = 6*i;
-        jointPos[n+0] = p1.x*scale;
-        jointPos[n+1] = p1.y*scale; 
-        jointPos[n+2] = p1.z*scale; 
-
-        jointPos[n+3] = p2.x*scale; 
-        jointPos[n+4] = p2.y*scale; 
-        jointPos[n+5] = p2.z*scale; 
+        matrixJoint[i] = joints[i].getMatrix();
     }
-
    
     worldInfo();
 
-    self.postMessage({tell:"RUN", infos:infos, matrix:matrix, sleeps:sleeps, jointPos:jointPos, maxBody:maxBody, maxJ:maxJoint })
+    self.postMessage({tell:"RUN", infos:infos, matrix:matrix, matrixJoint:matrixJoint });
 
     if(isTimout){
         delay = timerStep - (Date.now()-t01);
@@ -392,7 +375,8 @@ var resetArray = function (){
 
     // sending array
     matrix.length = 0; // = new Array();//Float32Array(100000);// [];
-    sleeps.length = 0; // = new Array();//new Float32Array(100000);//[];
+    matrixJoint.length = 0;
+    //sleeps.length = 0; // = new Array();//new Float32Array(100000);//[];
     jointPos.length = 0; // = new Array();//new Float32Array(100000);//[];
 }
 

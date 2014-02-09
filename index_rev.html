@@ -97,18 +97,17 @@
 
 				// update three object
     	    	if( phase === "RUN"){
-    	    		//var demo = e.data.infos[0];
-    	    		var max = e.data.maxB;
-    	    		var i = max;
-    	    		var m = e.data.matrix;
+    	    		
     	    		var mtx = new THREE.Matrix4();
         	    	var mesh;
 
         	    	// Update rendering meshes
+        	    	var m = e.data.matrix;
+    	    		var i = m.length;
         	    	while (i--) {
         	    		if( TE.content.children[i] ){
             	    		mesh = TE.content.children[i];
-            	    		if( e.data.sleeps[i]===0){
+            	    		if( m[i][15] === 0 ){ // not sleep
 
             	    			mtx.fromArray( m[i] );
 	            	    		mesh.position.setFromMatrixPosition( mtx );
@@ -134,14 +133,13 @@
 		            }
 
 		            // Update rendering joints
-		            i = e.data.maxJ;
-		            var jointPos = e.data.jointPos;
+		            m = e.data.matrixJoint;
+		            i = m.length;
 		            while (i--) {
 		            	if( TE.contentJoint.children[i] ){
-		            		n = 6*i
 		            		mesh = TE.contentJoint.children[i];
-		            		mesh.geometry.vertices[0].set( jointPos[n+0], jointPos[n+1], jointPos[n+2] );
-		            		mesh.geometry.vertices[1].set( jointPos[n+3], jointPos[n+4], jointPos[n+5] );
+		            		mesh.geometry.vertices[0].set( m[i][0], m[i][1], m[i][2] );
+		            		mesh.geometry.vertices[1].set( m[i][4], m[i][5], m[i][6] );
 		            		mesh.geometry.verticesNeedUpdate = true;
 		            	}
 		            }
