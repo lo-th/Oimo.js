@@ -68,8 +68,6 @@ var isTimout = false;
 var isNeedRemove = false;
 var removeTemp = {};
 
-var isPlayerMove = false;
-var playerSet = {};
 
 //--------------------------------------------------
 //   WORKER MESSAGE
@@ -92,7 +90,7 @@ self.onmessage = function (e) {
 
     if(phase === "UPDATE"){ if(isTimout) update(); else timer = setInterval(update, timerStep);  }
     if(phase === "KEY") userKey(e.data.key);
-    if(phase === "PLAYERMOVE"){player.move(e.data.v);}//isPlayerMove= true; playerSet = e.data;}
+    if(phase === "PLAYERMOVE") player.move(e.data.v);
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
     if(phase === "NEXT") initNextDemo();
@@ -109,12 +107,16 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var ADD = function(data){
-    // joint
-    if(data.type.substring(0,5) === 'joint'){
-        addJoint(data);
-    // object
-    } else {
+    if( typeof data.type === 'array' || data.type instanceof Array ){//___ Compound object
         addRigid(data, true);
+    } else {
+        // joint
+        if(data.type.substring(0,5) === 'joint'){
+            addJoint(data);
+        // object
+        } else {
+            addRigid(data, true);
+        }
     }
 }
 
@@ -185,10 +187,6 @@ var update = function(){
         world.gravity = new OIMO.Vec3(0, Gravity, 0);
         wakeup = true;
     }
-
-    /*if(isPlayerMove && player!==null){
-        player.move(playerSet.v); //isPlayerMove = false;
-    }*/
 
     while (i--) {
 
@@ -429,31 +427,33 @@ var addRigid = function(obj, OO){
     var s = obj.size || [1,1,1];
     var t;
 
-    switch(obj.type){
-        case "sphere": t=1; break;
-        case "box": t=2; break;
-        case "ground": t=22; break;
-        case "bone": t=10; break;
-        case "cylinder": t=3; break;// fake cylinder
-        case "dice": t=4; break;  
-        case "wheel": t=5; break;// fake cylinder
-        case "wheelinv": t=6; break;// fake cylinder
+    if( typeof obj.type === 'string' || obj.type instanceof String ){
+        switch(obj.type){
+            case "sphere": t=1; break;
+            case "box": t=2; break;
+            case "ground": t=22; break;
+            case "bone": t=10; break;
+            case "cylinder": t=3; break;// fake cylinder
+            case "dice": t=4; break;  
+            case "wheel": t=5; break;// fake cylinder
+            case "wheelinv": t=6; break;// fake cylinder
 
-        case "column": s[0] = s[0]*2; s[2] = s[2]*2; obj.size = s; t=7; break;// fake cylinder
-        case "columnBase": t=8; break;
-        case "columnTop": t=9; break;
-        case "nball": t=11; break;
-        case "gyro": t=12; break;
-        case "carBody": t=13; break;
+            case "column": s[0] = s[0]*2; s[2] = s[2]*2; obj.size = s; t=7; break;// fake cylinder
+            case "columnBase": t=8; break;
+            case "columnTop": t=9; break;
+            case "nball": t=11; break;
+            case "gyro": t=12; break;
+            case "carBody": t=13; break;
 
-        case "vanBody": t=14; break;
-        case "vanwheel": t=15; break;// fake cylinder
+            case "vanBody": t=14; break;
+            case "vanwheel": t=15; break;// fake cylinder
 
-        case "droid": t=16; break;// droid
+            case "droid": t=16; break;// droid
+        }
+
+        if (t===1 || t===3 || t===5 || t===6 || t===11 || t===12 || t===15 || t===16) obj.type = "sphere";
+        else obj.type = "box";
     }
-
-    if (t===1 || t===3 || t===5 || t===6 || t===11 || t===12 || t===15 || t===16) obj.type = "sphere";
-    else obj.type = "box";
 
     obj.world = world;
     var b = new OIMO.Body(obj);

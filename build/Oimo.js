@@ -156,6 +156,7 @@ OIMO.Body = function(Obj){
         n2 = i*4;
         switch(type[i]){
             case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n+0]); break;
+            case "cylinder": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break; // fake cylinder
             case "box": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break;
         }
         this.body.addShape(shapes[i]);

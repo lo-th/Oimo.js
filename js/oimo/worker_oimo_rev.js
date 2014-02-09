@@ -19,6 +19,7 @@ importScripts('../../build/Oimo.rev.js');
 importScripts('demos.js');
 
 importScripts('vehicle/ball.js');
+importScripts('vehicle/player.js');
 
 // main class
 var version = "10.REV";
@@ -50,7 +51,7 @@ var joints = [], jointPos = [];
 
 var infos =new Float32Array(13);
 var currentDemo = 0;
-var maxDemo = 7;
+var maxDemo = 8;
 
 // Controle by key
 var car = null;
@@ -84,6 +85,7 @@ self.onmessage = function (e) {
     if(phase === "KEY") userKey(e.data.key);
     if(phase === "CAMERA") userCamera(e.data.cam);
     if(phase === "GRAVITY") newGravity = e.data.G;
+    if(phase === "PLAYERMOVE") player.move(e.data.v);
     if(phase === "NEXT") initNextDemo();
     if(phase === "PREV") initPrevDemo();
     if(phase === "BONESLIST"){ 
@@ -98,12 +100,16 @@ self.onmessage = function (e) {
 //--------------------------------------------------
 
 var ADD = function(data){
-    // joint
-    if(data.type.substring(0,5) === 'joint'){
-        addJoint(data);
-    // object
-    } else {
+    if( typeof data.type === 'array' || data.type instanceof Array ){//___ Compound object
         addRigid(data, true);
+    } else {
+        // joint
+        if(data.type.substring(0,5) === 'joint'){
+            addJoint(data);
+        // object
+        } else {
+            addRigid(data, true);
+        }
     }
 }
 
@@ -272,6 +278,7 @@ var clearWorld = function (){
     for (i = max - 1; i >= 0 ; i -- ) world.removeJoint(world.joints[i]);
     // Clear control object
     if(ball !== null ) ball = null;
+    if(player !== null ) player = null;
 
     resetArray();
     // Clear three object
@@ -368,6 +375,7 @@ var startDemo = function (){
     else if(currentDemo==4)demo4();
     else if(currentDemo==5)demo5();
     else if(currentDemo==6)demo6();
+    else if(currentDemo==7)demo9();
 
     // start engine
     
@@ -385,24 +393,26 @@ var addRigid = function (obj, OO){
     var move = obj.move || false;
     var s = obj.size || [1,1,1];
     var t;
-    switch(obj.type){
-        case "sphere": t=1; break;
-        case "box": t=2; break;
-        case "ground": t=22; break;
-        case "bone": t=10; break;
-        case "cylinder": t=3; break;
-        case "dice": t=4; break; 
-        case "column": t=7; break;
-        case "columnBase": t=8; break;
-        case "columnTop": t=9; break;
-        case "nball": t=11; break;
-        case "gyro": t=12; break;
-        case "droid": t=16; break;
+    if( typeof obj.type === 'string' || obj.type instanceof String ){
+        switch(obj.type){
+            case "sphere": t=1; break;
+            case "box": t=2; break;
+            case "ground": t=22; break;
+            case "bone": t=10; break;
+            case "cylinder": t=3; break;
+            case "dice": t=4; break; 
+            case "column": t=7; break;
+            case "columnBase": t=8; break;
+            case "columnTop": t=9; break;
+            case "nball": t=11; break;
+            case "gyro": t=12; break;
+            case "droid": t=16; break;
+        }
+     
+        if (t===1 || t===11 || t===12 || t===16) obj.type = "sphere";
+        else if ( t===3 || t===7) obj.type = "cylinder";
+        else obj.type = "box";
     }
- 
-    if (t===1 || t===11 || t===12 || t===16) obj.type = "sphere";
-    else if ( t===3 || t===7) obj.type = "cylinder";
-    else obj.type = "box";
 
     obj.world = world;
     var b = new OIMO.Body(obj);

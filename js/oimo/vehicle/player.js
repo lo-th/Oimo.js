@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2013 EL-EMENT saharan */
+/* Copyright (c) 2014 loth */
 
 Player = function (Pos, d, Name) {
 	var sc = new OIMO.ShapeConfig();
@@ -12,10 +12,6 @@ Player = function (Pos, d, Name) {
 	
 	var name  = Name || 'droid';
 	this.body = addRigid({type:name, size:[100, 200, 100], pos:this.pos, sc:sc, move:true, noSleep:true, name:name});
-}
-
-Player.prototype.Phi =function (v) {
-	this.phi = v;
 }
 
 Player.prototype.move =function (v) {
