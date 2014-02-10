@@ -157,6 +157,7 @@ OIMO.Body = function(Obj){
         }
         this.body.addShape(shapes[i]);
         if(i>0){
+            //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
             shapes[i].relativePosition = new OIMO.Vec3( p[n+0], p[n+1], p[n+2] );
             if(r[n2+0]) shapes[i].relativeRotation = [ r[n2+0], r[n2+1], r[n2+2], r[n2+3] ];
         }

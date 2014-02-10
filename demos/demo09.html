@@ -22,22 +22,21 @@ function initDemo()
     var sizes = [ 30,5,30,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  23,10,3 ];
     var positions = [ 0,0,0,  12,-16,12,  -12,-16,12,  12,-16,-12,  -12,-16,-12,  12,16,-12,  -12,16,-12,  0,25,-12 ];
 
-    if(version=="DEV"){//!\\ for the moment only on dev version 
-        while (Max--){
-            if(distribution===1){
-                positions[0] = 0;
-                positions[1] = 300+(i*160);
-                positions[2] = 0;
-            } else {
-                positions[0] = -400+(50*l);
-                positions[1] = 50;
-                positions[2] = -400+(50*k);
-                l++;
-                if(l>16){k++; l=0}
-            }
-            ADD({ type:types, size:sizes, pos:positions, move:true, name:'chair'+i, config:[0.2, 0.4,0.1] });
-            i++;
+    while (Max--){
+        if(distribution===1){
+            positions[0] = 0;
+            positions[1] = 300+(i*160);
+            positions[2] = 0;
+        } else {
+            positions[0] = -400+(50*l);
+            positions[1] = 50;
+            positions[2] = -400+(50*k);
+            l++;
+            if(l>16){k++; l=0}
         }
+        ADD({ type:types, size:sizes, pos:positions, move:true, name:'chair'+i, config:[0.2, 0.4,0.1] });
+        i++;
     }
+    
 }
 </script>
