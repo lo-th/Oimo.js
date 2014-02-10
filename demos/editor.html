@@ -30,6 +30,12 @@
 		    });
 		}
 
+		function close(){
+			codeEditor.getInputField().blur();
+			//document.body.blur();
+			//window.parent.document.body.focus();
+		}
+
 		function loadfile(url){
 		    if(fileref) head.removeChild(fileref);
 		    fileref = document.createElement("frame");

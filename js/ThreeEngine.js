@@ -190,8 +190,8 @@ var ThreeEngine = function () {
 		container.addEventListener( 'mousewheel', onMouseWheel, false );
 		container.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
 
-		document.addEventListener( 'keydown', onKeyDown, false );
-		document.addEventListener( 'keyup', onKeyUp, false );
+		window.addEventListener( 'keydown', onKeyDown, false );
+		window.addEventListener( 'keyup', onKeyUp, false );
 
 		window.addEventListener( 'resize', viewResize, false ); 
 		viewResize();
@@ -1722,6 +1722,7 @@ var ThreeEngine = function () {
 		debug:debug,
 		shadow:shadow,
 		changeMaterialType:changeMaterialType,
+
 		getViewMode: function () {
 			return vmid.mode;
 		},

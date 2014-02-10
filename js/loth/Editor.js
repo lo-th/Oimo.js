@@ -32,6 +32,10 @@ var Editor = function (Pos) {
 
 	var hide = function(){
 		container.style.display = "none";
+		
+		if(MainEditor)MainEditor.contentWindow.close()
+		window.focus();
+	
 	}
 
 
