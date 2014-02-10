@@ -26,6 +26,7 @@ var version = "10.REV";
 // physics variable
 var world;
 var dt = 1/60;
+var broadPhase = 2; // 1:BRUTE_FORCE, 2:SWEEP_AND_PRUNE; 
 var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
@@ -65,9 +66,11 @@ var removeTemp = {};
 self.onmessage = function (e) {
     var phase = e.data.tell;
     if(phase === "INITWORLD"){
-        dt = e.data.dt;
-        iterations = e.data.iterations;
-        newGravity = e.data.G;
+        dt = e.data.dt || 1/60;
+        broadPhase = e.data.broadPhase || 2;
+        iterations = e.data.iterations || 8;
+        newGravity = e.data.G || -10;
+
         createWorld();
     }
 
@@ -145,7 +148,8 @@ var REMOVE = function(data){
     if(data.type.substring(0,5) === 'joint'){
         world.removeJoint(joints[n]);
         joints.splice(n,1);
-        jointPos.splice(n*6,6);
+        matrixJoint.splice(n,1);
+        //jointPos.splice(n*6,6);
     }else {
         world.removeRigidBody(bodys[n]);
         bodys.splice(n,1);
@@ -238,15 +242,15 @@ var userKey = function (key) {
 //--------------------------------------------------
 
 var createWorld = function (){
-    if(world==null){
-        world = new OIMO.World();
-        world.numIterations = iterations;
-        world.timeStep = dt;
-        timerStep = dt * 1000;
-        world.gravity = new OIMO.Vec3(0, Gravity, 0);
-    }
+
+    world = new OIMO.World( dt, broadPhase, iterations);
+
+    timerStep = dt * 1000;
+    world.gravity = new OIMO.Vec3(0, Gravity, 0);
+
     resetArray();
     lookIfNeedInfo();
+
 }
 
 //--------------------------------------------------
@@ -254,13 +258,11 @@ var createWorld = function (){
 //--------------------------------------------------
  
 var clearWorld = function (){
+
     if(isTimout)clearTimeout(timer);
     else clearInterval(timer);
-    var i;
-    var max = world.numRigidBodies;
-    for (i = max - 1; i >= 0 ; i -- ) world.removeRigidBody(world.rigidBodies[i]);
-    max = world.numJoints;
-    for (i = max - 1; i >= 0 ; i -- ) world.removeJoint(world.joints[i]);
+
+    world.clear();
     // Clear control object
     if(ball !== null ) ball = null;
     if(player !== null ) player = null;
@@ -268,6 +270,7 @@ var clearWorld = function (){
     resetArray();
     // Clear three object
     self.postMessage({tell:"CLEAR"});
+
 }
 
 //--------------------------------------------------
@@ -287,7 +290,7 @@ var basicStart = function(data){
 
     if(data.iteration){
         iterations = data.iteration;
-        world.numIterations = iterations;
+        world.iteration = iterations;
     }
 
     if(data.timestep){
@@ -297,9 +300,15 @@ var basicStart = function(data){
     }
 
     if(data.broadphase){
-        if(data.BroadPhase==="brute") world.broadphase = OIMO.BROAD_PHASE_BRUTE_FORCE;
-        else world.broadphase = OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
+        if(data.broadphase !== broadPhase){
+            broadPhase = data.broadphase;
+            switch(broadPhase){
+                case 1: case 'brute': world.broadPhase = new OIMO.BruteForceBroadPhase(); break;
+                case 2: case 'sweep': default : world.broadPhase = new OIMO.SweepAndPruneBroadPhase(); break;
+            }
+        }
     }
+
     // ground
     if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
 
@@ -444,7 +453,7 @@ var worldInfo = function () {
         time_prev = time; fpsint = fps; fps = 0;
     } fps++;
 
-    infos[0] = currentDemo;
+    infos[0] = world.broadPhase.types;
     infos[1] = world.numRigidBodies;
     infos[2] = world.numContacts;
     infos[3] = world.numShapes;

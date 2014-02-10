@@ -29,6 +29,7 @@ var version = "10.DEV";
 // physics variable
 var world;
 var dt = 1/60;
+var broadPhase = 2; // 1:BRUTE_FORCE, 2:SWEEP_AND_PRUNE, 3:VOLUME_TREE; 
 var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
@@ -65,10 +66,6 @@ var isTimout = false;
 var isNeedRemove = false;
 var removeTemp = {};
 
-
-var buffer = [];
-
-
 //--------------------------------------------------
 //   WORKER MESSAGE
 //--------------------------------------------------
@@ -76,9 +73,10 @@ var buffer = [];
 self.onmessage = function (e) {
     var phase = e.data.tell;
     if(phase === "INITWORLD"){
-        dt = e.data.dt;
-        iterations = e.data.iterations;
-        newGravity = e.data.G;
+        dt = e.data.dt || 1/60;
+        broadPhase = e.data.broadPhase || 2;
+        iterations = e.data.iterations || 8;
+        newGravity = e.data.G || -10;
         createWorld();
     }
 
@@ -151,7 +149,8 @@ var REMOVE = function(data){
     if(data.type.substring(0,5) === 'joint'){
         world.removeJoint(joints[n]);
         joints.splice(n,1);
-        jointPos.splice(n*6,6);
+        matrixJoint.splice(n,1);
+        //jointPos.splice(n*6,6);
     }else {
         world.removeRigidBody(bodys[n]);
         bodys.splice(n,1);
@@ -202,8 +201,9 @@ var update = function(){
 
     self.postMessage({tell:"RUN", infos:infos, matrix:matrix, matrixJoint:matrixJoint });
 
+
     if(isTimout){
-        delay = timerStep - (Date.now()-t01);
+        delay = (timerStep - (Date.now()-t01)).toFixed(2);
         timer = setTimeout(update, delay);
     }
 }
@@ -261,20 +261,15 @@ var userKey = function(key){
 //--------------------------------------------------
 
 var createWorld = function(){
-    if(world==null){
-        world = new OIMO.World();
 
-        //world.broadphase = OIMO.BROAD_PHASE_BRUTE_FORCE;
-        //world.broadphase = OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
-        //world.broadphase = OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
-        
-        world.numIterations = iterations;
-        world.timeStep = dt;
-        timerStep = dt * 1000;
-        world.gravity = new OIMO.Vec3(0, Gravity, 0);
-    }
+    world = new OIMO.World( dt, broadPhase, iterations );
+
+    timerStep = dt * 1000;
+    world.gravity = new OIMO.Vec3(0, Gravity, 0);
+    
     resetArray();
     lookIfNeedInfo();
+
 }
 
 //--------------------------------------------------
@@ -282,9 +277,11 @@ var createWorld = function(){
 //--------------------------------------------------
   
 var clearWorld = function(){
+
     if(isTimout)clearTimeout(timer);
     else clearInterval(timer);
-    if(world !== null) world.clear();
+
+    world.clear();
     // Clear control object
     if(car !== null ) car = null;
     if(van !== null ) van = null;
@@ -294,6 +291,7 @@ var clearWorld = function(){
     resetArray();
     // Clear three object
     self.postMessage({tell:"CLEAR"});
+
 }
 
 //--------------------------------------------------
@@ -323,10 +321,18 @@ var basicStart = function(data){
     }
 
     if(data.broadphase){
-        if(data.broadphase==="brute") world.broadphase = OIMO.BROAD_PHASE_BRUTE_FORCE;
-        else if(data.broadphase==="sweep") world.broadphase = OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
-        else world.broadphase = OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE;
+        if(data.broadphase !== broadPhase){
+            broadPhase = data.broadphase;
+            switch(data.broadphase){
+                case 1: case 'brute': world.broadPhase = new OIMO.BruteForceBroadPhase(); break;
+                case 2: case 'sweep': default : world.broadPhase = new OIMO.SAPBroadPhase(); break;    
+                case 3: case 'tree' : world.broadPhase = new OIMO.DBVTBroadPhase(); break;
+            }
+        }
     }
+
+    // test buffer
+    if(data.buffer) buffer = data.buffer;
 
     // ground
     if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
@@ -484,7 +490,7 @@ var worldInfo = function(){
         time_prev = time; fpsint = fps; fps = 0;
     } fps++;
 
-    infos[0] = 0;//currentDemo;
+    infos[0] = world.broadPhase.types;
     infos[1] = world.numRigidBodies;
     infos[2] = world.numContacts;
     infos[3] = world.broadPhase.numPairChecks;

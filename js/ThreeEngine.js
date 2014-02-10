@@ -77,8 +77,6 @@ var ThreeEngine = function () {
 
 	var planeBG = null;
 
-
-
 	var isOptimized;
 
 	var mouseMode = '';

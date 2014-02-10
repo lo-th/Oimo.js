@@ -9,9 +9,6 @@
 
 var OIMO = { REVISION: 'REV.1.0.0' };
 
-OIMO.BROAD_PHASE_BRUTE_FORCE=1;
-OIMO.BROAD_PHASE_SWEEP_AND_PRUNE=2;
-
 OIMO.SHAPE_NULL = 0x0;
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;
@@ -196,9 +193,12 @@ OIMO.Body.prototype = {
 //  WORLD
 //------------------------------
 
-OIMO.World = function(StepPerSecond, BroadPhaseType){
-    var stepPerSecond = StepPerSecond || 60;
-    var broadPhaseType = BroadPhaseType || OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
+OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
+
+    var broadPhaseType = BroadPhaseType || 2;
+    this.timeStep = TimeStep || 1/60;
+    this.iteration = Iterations || 8;
+
     this.rigidBodies=[];
     this.rigidBodies.length = OIMO.MAX_BODIES;
     this.numRigidBodies=0;
@@ -232,15 +232,12 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
     this.islandNumConstraints=0;
 
     switch(broadPhaseType){
-        case OIMO.BROAD_PHASE_BRUTE_FORCE: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
-        case OIMO.BROAD_PHASE_SWEEP_AND_PRUNE: this.broadPhase=new OIMO.SweepAndPruneBroadPhase(); break;
+        case 1: this.broadPhase = new OIMO.BruteForceBroadPhase(); break;
+        case 2: default: this.broadPhase = new OIMO.SweepAndPruneBroadPhase(); break;
     }
 
-    this.timeStep=1 / stepPerSecond;
-    this.iteration=8;
-    this.gravity=new OIMO.Vec3(0,-9.80665,0);
-    this.performance=new OIMO.Performance();
-
+    this.gravity = new OIMO.Vec3(0,-9.80665,0);
+    this.performance = new OIMO.Performance();
 
     var numShapeTypes=4;
     this.detectors=[];
@@ -1202,6 +1199,7 @@ OIMO.Proxy.prototype = {
 // BroadPhase
 
 OIMO.BroadPhase = function(){
+    this.types = 0x0;
     this.numPairChecks=0;
     this.numPairs=0;
     
@@ -1284,6 +1282,7 @@ OIMO.BroadPhase.prototype = {
 
 OIMO.BruteForceBroadPhase = function(){
     OIMO.BroadPhase.call( this);
+    this.types = 0x1;
 
     this.numProxies=0;
     this.proxyPool = [];// Vector
@@ -1336,6 +1335,7 @@ OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
 
 OIMO.SweepAndPruneBroadPhase = function(){
     OIMO.BroadPhase.call( this);
+    this.types = 0x2;
 
     this.numProxies=0;
     this.sortAxis=0;

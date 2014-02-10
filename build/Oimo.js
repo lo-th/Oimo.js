@@ -9,10 +9,6 @@
 
 var OIMO = { REVISION: 'DEV.1.1.0a' };
 
-OIMO.BROAD_PHASE_BRUTE_FORCE=1;
-OIMO.BROAD_PHASE_SWEEP_AND_PRUNE=2;
-OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE=3;
-
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;
 
@@ -216,9 +212,12 @@ OIMO.Body.prototype = {
 //  WORLD
 //------------------------------
 
-OIMO.World = function(StepPerSecond, BroadPhaseType){
-    var stepPerSecond = StepPerSecond || 60;
-    var broadPhaseType = BroadPhaseType || OIMO.BROAD_PHASE_SWEEP_AND_PRUNE;
+OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
+
+    var broadPhaseType = BroadPhaseType || 2;
+    this.timeStep= TimeStep || 1/60;
+    this.numIterations = Iterations || 8;
+
     this.rigidBodies=null;
     this.numRigidBodies=0;
     this.contacts=null;
@@ -228,15 +227,14 @@ OIMO.World = function(StepPerSecond, BroadPhaseType){
     this.joints=null;
     this.numJoints=0;
     this.numIslands=0;
-    this.timeStep=1 / stepPerSecond;
-
+    
     switch(broadPhaseType){
-        case OIMO.BROAD_PHASE_BRUTE_FORCE: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
-        case OIMO.BROAD_PHASE_SWEEP_AND_PRUNE: this.broadPhase=new OIMO.SAPBroadPhase(); break;
-        case OIMO.BROAD_PHASE_DYNAMIC_BOUNDING_VOLUME_TREE: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
+        case 1: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
+        case 2: default: this.broadPhase=new OIMO.SAPBroadPhase(); break;
+        case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
     }
 
-    this.numIterations=8;
+    
     this.gravity=new OIMO.Vec3(0,-9.80665,0);
     this.performance=new OIMO.Performance();
     var numShapeTypes=3;
@@ -401,7 +399,9 @@ OIMO.World.prototype = {
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
-        for(var i=0, l=numPairs; i<l; i++){
+        var i = numPairs;
+        while(i--){
+        //for(var i=0, l=numPairs; i<l; i++){
             var pair=pairs[i];
             var s1;
             var s2;
@@ -606,7 +606,9 @@ OIMO.World.prototype = {
             var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;
-            for(var j=0, l=islandNumRigidBodies; j<l; j++){
+            var j = islandNumRigidBodies;
+            while (j--){
+            //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body=this.islandRigidBodies[j];
                 if(body.isDynamic){
                     body.linearVelocity.x+=gx;
@@ -617,31 +619,43 @@ OIMO.World.prototype = {
 
             // randomizing order
             if(this.enableRandomizer){
-                for(j=1, l=islandNumConstraints; j<l; j++){
+                j = islandNumConstraints;
+                while(j--){if(j!==0){
+                //for(j=1, l=islandNumConstraints; j<l; j++){
                     var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                     constraint=this.islandConstraints[j];
                     this.islandConstraints[j]=this.islandConstraints[swap];
                     this.islandConstraints[swap]=constraint;
-                }
+                }}
             }
 
             // solve contraints
-            for(j=0, l=islandNumConstraints; j<l; j++){
+            j = islandNumConstraints;
+            while(j--){
+            //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].preSolve(this.timeStep,invTimeStep);// pre-solve
             }
-            for(var k=0, l=this.numIterations; k<l; k++){
-                for(j=0, m=islandNumConstraints; j<m; j++){
+            var k = this.numIterations;
+            while(k--){
+            //for(var k=0, l=this.numIterations; k<l; k++){
+                j = islandNumConstraints;
+                while(j--){
+                //for(j=0, m=islandNumConstraints; j<m; j++){
                     this.islandConstraints[j].solve();// main-solve
                 }
             }
-            for(j=0, l=islandNumConstraints; j<l; j++){
+            j = islandNumConstraints;
+            while(j--){
+            //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].postSolve();// post-solve
                 this.islandConstraints[j]=null;// gc
             }
 
             // sleeping check
             var sleepTime=10;
-            for(j=0, l=islandNumRigidBodies;j<l;j++){
+            j = islandNumRigidBodies;
+            while(j--){
+            //for(j=0, l=islandNumRigidBodies;j<l;j++){
                 body=this.islandRigidBodies[j];
                 if(this.calSleep(body)){
                     body.sleepTime+=this.timeStep;
@@ -654,13 +668,17 @@ OIMO.World.prototype = {
             }
             if(sleepTime>0.5){
                 // sleep the island
-                for(j=0, l=islandNumRigidBodies;j<l;j++){
+                j = islandNumRigidBodies;
+                while(j--){
+                //for(j=0, l=islandNumRigidBodies;j<l;j++){
                     this.islandRigidBodies[j].sleep();
                     this.islandRigidBodies[j]=null;// gc
                 }
             }else{
                 // update positions
-                for(j=0, l=islandNumRigidBodies;j<l;j++){
+                j = islandNumRigidBodies;
+                while(j--){
+                //for(j=0, l=islandNumRigidBodies;j<l;j++){
                     this.islandRigidBodies[j].updatePosition(this.timeStep);
                     this.islandRigidBodies[j]=null;// gc
                 }
@@ -1098,43 +1116,20 @@ OIMO.AABB.prototype = {
         this.maxZ=maxZ;
     },
     combine:function(aabb1,aabb2){
-        if(aabb1.minX<aabb2.minX){
-            this.minX=aabb1.minX;
-        }else{
-            this.minX=aabb2.minX;
-        }
-        if(aabb1.maxX>aabb2.maxX){
-            this.maxX=aabb1.maxX;
-        }else{
-            this.maxX=aabb2.maxX;
-        }
-        if(aabb1.minY<aabb2.minY){
-            this.minY=aabb1.minY;
-        }else{
-            this.minY=aabb2.minY;
-        }
-        if(aabb1.maxY>aabb2.maxY){
-            this.maxY=aabb1.maxY;
-        }else{
-            this.maxY=aabb2.maxY;
-        }
-        if(aabb1.minZ<aabb2.minZ){
-            this.minZ=aabb1.minZ;
-        }else{
-            this.minZ=aabb2.minZ;
-        }
-        if(aabb1.maxZ>aabb2.maxZ){
-            this.maxZ=aabb1.maxZ;
-        }else{
-            this.maxZ=aabb2.maxZ;
-        }
-        var margin=0;
+        this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
+        this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
+        this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
+        this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
+        this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
+        this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
+
+        /*var margin=0;
         this.minX-=margin;
         this.minY-=margin;
         this.minZ-=margin;
         this.maxX+=margin;
         this.maxY+=margin;
-        this.maxZ+=margin;
+        this.maxZ+=margin;*/
     },
     surfaceArea:function(){
         var h=this.maxY-this.minY;
@@ -1174,8 +1169,7 @@ OIMO.Proxy.prototype = {
 // BasicProxy
 
 OIMO.BasicProxy = function(shape){
-    OIMO.Proxy.call( this, shape);
-
+    OIMO.Proxy.call( this, shape );
 }
 OIMO.BasicProxy.prototype = Object.create( OIMO.Proxy.prototype );
 OIMO.BasicProxy.prototype.update = function () {
@@ -1185,18 +1179,21 @@ OIMO.BasicProxy.prototype.update = function () {
 // BroadPhase
 
 OIMO.BroadPhase = function(){
+    this.types = 0x0;
     this.numPairChecks=0;
     this.numPairs=0;
     
     this.bufferSize=256;
     this.pairs=[];// vector
     this.pairs.length = this.bufferSize;
-    for(var i=0, j=this.bufferSize;i<j;i++){
-        this.pairs[i]=new OIMO.Pair();
+    var i = this.bufferSize;
+    while(i--){
+        this.pairs[i] = new OIMO.Pair();
     }
 }
 
 OIMO.BroadPhase.prototype = {
+
     constructor: OIMO.BroadPhase,
 
     createProxy:function(shape){
@@ -1252,9 +1249,12 @@ OIMO.BroadPhase.prototype = {
             var newBufferSize=this.bufferSize<<1;
             var newPairs=[];// vector
             newPairs.length = this.bufferSize;
-            for(var i=0, j=this.bufferSize;i<j;i++){
+            var i = this.bufferSize;
+            while(i--){
+            //for(var i=0, j=this.bufferSize;i<j;i++){
                 newPairs[i]=this.pairs[i];
             }
+
             for(i=this.bufferSize, j=newBufferSize;i<j;i++){
                 newPairs[i]=new OIMO.Pair();
             }
@@ -1272,7 +1272,7 @@ OIMO.BroadPhase.prototype = {
 
 OIMO.BruteForceBroadPhase = function(){
     OIMO.BroadPhase.call( this);
-
+    this.types = 0x1;
     this.numProxies=0;
     this.maxProxies = 256;
     this.proxies = [];// Vector !
@@ -1288,7 +1288,9 @@ OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
     if(this.numProxies==this.maxProxies){
         this.maxProxies<<=1;
         var newProxies=[];
-        for(var i=0, l=this.numProxies;i<l;i++){
+        var i = this.numProxies;
+        while(i--){
+        //for(var i=0, l=this.numProxies;i<l;i++){
             newProxies[i]=this.proxies[i];
         }
         this.proxies=newProxies;
@@ -1306,23 +1308,23 @@ OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
 }
 OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
     this.numPairChecks=this.numProxies*(this.numProxies-1)>>1;
-        for(var i=0, l=this.numProxies;i<l;i++){
+        var i = this.numProxies;
+        while(i--){
+        //for(var i=0, l=this.numProxies;i<l;i++){
             var p1=this.proxies[i];
             var b1=p1.aabb;
             var s1=p1.shape;
-            for(var j=i+1, m=this.numProxies;j<m;j++){
+            var j = this.numProxies;
+            while(j--){ if(j!==0){
+            //for(var j=i+1, m=this.numProxies;j<m;j++){
                 var p2=this.proxies[j];
                 var b2=p2.aabb;
                 var s2=p2.shape;
-                if(b1.maxX<b2.minX||b1.minX>b2.maxX||
-                b1.maxY<b2.minY||b1.minY>b2.maxY||
-                b1.maxZ<b2.minZ||b1.minZ>b2.maxZ||
-                !this.isAvailablePair(s1,s2)
-                ){
+                if(b1.maxX<b2.minX||b1.minX>b2.maxX|| b1.maxY<b2.minY||b1.minY>b2.maxY|| b1.maxZ<b2.minZ||b1.minZ>b2.maxZ|| !this.isAvailablePair(s1,s2) ){
                     continue;
                 }
                     this.addPair(s1,s2);
-                }
+                }}
         }
 }
 
@@ -1332,10 +1334,9 @@ OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
 //  COLLISION BROADPHASE SAP
 //------------------------------
 
-// SAPBroadPhase
-
 OIMO.SAPBroadPhase = function(){
     OIMO.BroadPhase.call( this);
+    this.types = 0x2;
 
     this.numElementsD = 0;
     this.numElementsS = 0;
@@ -1723,15 +1724,9 @@ OIMO.SAPProxy.prototype.update = function () {
     }
 }
 
-
-
-
 //------------------------------
 //  COLLISION BROADPHASE DBVT
 //------------------------------
-
-
-// DBVTProxy
 
 OIMO.DBVTProxy = function(shape){
     OIMO.Proxy.call( this, shape);
@@ -1760,6 +1755,7 @@ OIMO.DBVTNode = function(){
 
 OIMO.DBVTBroadPhase = function(){
     OIMO.BroadPhase.call( this);
+    this.types = 0x3;
 
     this.numLeaves = 0;
     this.maxLeaves = 0;
