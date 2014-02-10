@@ -437,7 +437,7 @@ var addJoint = function (obj){
 
     obj.world = world;
     var j = new OIMO.Link(obj);
-    joints.push(j.joint);
+    if(obj.type === "jointDistance" || obj.show ) joints.push(j.joint);
     return j.joint;
 }
 

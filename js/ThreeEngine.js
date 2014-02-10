@@ -518,7 +518,7 @@ var ThreeEngine = function () {
 		} else {
 		
 			if(obj.type.substring(0,5) === 'joint'){//_____________ Joint
-				addJoint();
+				if(obj.type === "jointDistance" || obj.show ) addJoint();
 			}else{
 				if(move){//________________________________________ Dynamic
 					//addObjects( obj.type, obj.size );

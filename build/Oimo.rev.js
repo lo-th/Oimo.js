@@ -38,7 +38,7 @@ OIMO.Link = function(Obj){
     if(!obj.world) return;
 
     this.name = obj.name || '';
-    var type = obj.type || "hinge";
+    var type = obj.type || "jointHinge";
     var axe1 = obj.axe1 || [1,0,0];
     var axe2 = obj.axe2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
@@ -61,10 +61,10 @@ OIMO.Link = function(Obj){
     if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = obj.world.getByName(obj.body2);
 
     switch(type){
-        case "ball": case "jointBall": this.joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
-        case "distance": case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, max); break;
-        case "hinge": case "jointHinge": this.joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
-        case "hinge2": case "jointHinge2": this.joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
+        case "jointBall": this.joint = new OIMO.BallJoint(jc, obj.body1, obj.body2); break;
+        case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, obj.body1, obj.body2, max); break;
+        case "jointHinge": this.joint = new OIMO.HingeJoint(jc, obj.body1, obj.body2); break;     
+        case "jointHinge2": this.joint = new OIMO.Hinge2Joint(jc, obj.body1, obj.body2); break;
     }
 
     // finaly add to physics world

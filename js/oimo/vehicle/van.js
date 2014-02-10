@@ -44,9 +44,9 @@ Van = function (Pos) {
 	this.body = addRigid({type:"vanBody", size:[(w+0.2) * 2, h, (d+0.4) * 2], pos:this.pos, sc:sc, move:true, noSleep:true, massPos:[0, (h*0.5)+rad, 0]});
 		
 	// create joints
-	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[0, 0, -da], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
-	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
+	this.joint1 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel1, pos1:[0, 0, -da], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
+	this.joint3 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
+	this.joint4 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
 }
 
 Van.prototype.move =function (x,y,z) {

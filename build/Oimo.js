@@ -26,7 +26,7 @@ OIMO.Link = function(Obj){
     if(!obj.world) return;
 
     this.name = obj.name || '';
-    var type = obj.type || "hinge";
+    var type = obj.type || "jointHinge";
     var axe1 = obj.axe1 || [1,0,0];
     var axe2 = obj.axe2 || [1,0,0];
     var pos1 = obj.pos1 || [0,0,0];
@@ -36,7 +36,7 @@ OIMO.Link = function(Obj){
     pos2 = pos2.map(function(x) { return x * OIMO.INV_SCALE; });
 
     var min, max;
-    if(type==="jointDistance" || type==="distance"){
+    if(type==="jointDistance"){
         min = obj.min || 0;
         max = obj.max || 10;
         min = min*OIMO.INV_SCALE;
@@ -65,14 +65,14 @@ OIMO.Link = function(Obj){
 
     
     switch(type){
-        case "distance": case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); break;
-        case "hinge": case "jointHinge": this.joint = new OIMO.HingeJoint(jc, min, max);
+        case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); break;
+        case "jointHinge": this.joint = new OIMO.HingeJoint(jc, min, max);
             if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
         break;
-        case "prisme": case "jointPrisme": this.joint = new OIMO.PrismaticJoint(jc, min, max); break;
-        case "slide": case "jointSlide": this.joint = new OIMO.SliderJoint(jc, min, max); break;
-        case "ball": case "jointBall": this.joint = new OIMO.BallAndSocketJoint(jc); break;
-        case "wheel": case "jointWheel": this.joint = new OIMO.WheelJoint(jc);  
+        case "jointPrisme": this.joint = new OIMO.PrismaticJoint(jc, min, max); break;
+        case "jointSlide": this.joint = new OIMO.SliderJoint(jc, min, max); break;
+        case "jointBall": this.joint = new OIMO.BallAndSocketJoint(jc); break;
+        case "jointWheel": this.joint = new OIMO.WheelJoint(jc);  
             if(limit !== null) this.joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
             if(spring !== null) this.joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
         break;

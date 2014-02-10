@@ -44,10 +44,10 @@ Car = function (Pos, Config) {
 	this.wheel4 = addRigid({type:"wheel", size:[rad, rad, rad], pos:[this.pos[0] + w, this.pos[1], this.pos[2] + d], sc:sc, move:true});
 	
 	// create joints
-	this.joint1 = addJoint({type:"wheel", body1:this.body, body2:this.wheel1, pos1:[-w, 0, -d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	this.joint2 = addJoint({type:"wheel", body1:this.body, body2:this.wheel2, pos1:[w, 0, -d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
-	this.joint3 = addJoint({type:"wheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
-	this.joint4 = addJoint({type:"wheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
+	this.joint1 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel1, pos1:[-w, 0, -d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
+	this.joint2 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel2, pos1:[w, 0, -d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0], spring:[8,1] });
+	this.joint3 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel3, pos1:[-w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
+	this.joint4 = addJoint({type:"jointWheel", body1:this.body, body2:this.wheel4, pos1:[w, 0, d], axe1:[0, -1, 0], axe2:[-1, 0, 0], limit:[0,0] });
 }
 
 Car.prototype.move =function (x,y,z) {
