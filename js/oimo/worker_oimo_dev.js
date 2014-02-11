@@ -34,11 +34,11 @@ var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
 var timer, delay, timerStep, timeStart=0;
-//var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
 var ToRad = Math.PI / 180;
 
 // array variable
 var bodys = [];
+var joints = [];
 var matrix = [];
 var matrixJoint = [];
 
@@ -48,11 +48,6 @@ var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
 var infos = new Float32Array(13);
 var currentDemo = 0;
 var maxDemo = 10;
-
-
-
-// array joint 
-var joints = [], jointPos = [];
 
 // vehicle by key
 var car = null;
@@ -195,7 +190,8 @@ var REMOVE = function(data){
 var maxBody, maxJoint;
 
 var update = function(){
-    //if(isNeedRemove){ REMOVE(removeTemp); }
+
+    if(isNeedRemove) REMOVE(removeTemp); 
     if(isTimout) timeStart = Date.now();
 
     world.step();
@@ -226,12 +222,11 @@ var update = function(){
 
     self.postMessage({tell:"RUN", infos:infos, matrix:matrix, matrixJoint:matrixJoint });
 
-
     if(isTimout){
-        delay = (timerStep - (Date.now()-timeStart)).toFixed(2);
+        delay = timerStep - (Date.now()-timeStart);
         timer = setTimeout(update, delay);
     }
-    if(isNeedRemove){ REMOVE(removeTemp); }
+
 }
 
 //--------------------------------------------------
@@ -254,15 +249,6 @@ var userCamera = function(cam){
         ball.Phi(cam[1]);
     }
 }
-
-//--------------------------------------------------
-//   USER PLAYER
-//--------------------------------------------------
-
-/*var playerMove = function(data){
-    player.move(data.x, data.y, data.z, data.rot);
-}*/
-
 
 //--------------------------------------------------
 //   USER KEY
@@ -320,6 +306,25 @@ var clearWorld = function(){
 
 }
 
+var resetArray = function (){
+
+    types.length = 0;
+    sizes.length = 0;
+
+    staticTypes.length = 0;
+    staticSizes.length = 0;
+    staticMatrix.length = 0;
+
+    bodys.length = 0;
+    joints.length = 0;
+    statics.length = 0;
+
+    // sending array
+    matrix.length = 0;
+    matrixJoint.length = 0;
+
+}
+
 //--------------------------------------------------
 //   INIT WORLD FOR EDITOR
 //--------------------------------------------------
@@ -357,12 +362,6 @@ var basicStart = function(data){
         }
     }
 
-    // test buffer
-    if(data.buffer) buffer = data.buffer;
-
-    // ground
-    if(data.ground) addRigid({type:"ground", size:[40,1,40], pos:[0,-0.5,0]});
-
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:-1, joints:joints.length });
 }
@@ -374,59 +373,28 @@ var basicStart = function(data){
 var initNextDemo = function(){
     clearWorld();
     currentDemo ++;
-    if(currentDemo == maxDemo)currentDemo=0;
+    if(currentDemo === maxDemo)currentDemo=0;
     lookIfNeedInfo();
 }
 
 var initPrevDemo = function(){
     clearWorld();
     currentDemo --;
-    if(currentDemo < 0)currentDemo=maxDemo-1;
+    if(currentDemo < 0) currentDemo=maxDemo-1;
     lookIfNeedInfo();
 }
 
 var lookIfNeedInfo = function(){
-    if(currentDemo==6){
-        getBonesInfo('sila');
-    } else {
-        startDemo();
-    }
-}
-
-var resetArray = function (){
-    bodys.length = 0; // = [];
-    types.length = 0; // = [];
-    sizes.length = 0; // = [];
-
-    statics.length = 0; // = [];
-    staticTypes.length = 0; // = [];
-    staticSizes.length = 0; // = [];
-    staticMatrix.length = 0; // = [];
-
-    joints.length = 0; // = [];
-
-    // sending array
-    matrix.length = 0; // = new Array();//Float32Array(100000);// [];
-    matrixJoint.length = 0;
-    //sleeps.length = 0; // = new Array();//new Float32Array(100000);//[];
-    jointPos.length = 0; // = new Array();//new Float32Array(100000);//[];
+    if(currentDemo===6) getBonesInfo('sila');
+    else startDemo();
 }
 
 var startDemo = function(){
 
-    if(currentDemo==0)demo0();
-    else if(currentDemo==1)demo1();
-    else if(currentDemo==2)demo2();
-    else if(currentDemo==3)demo3();
-    else if(currentDemo==4)demo4();
-    else if(currentDemo==5)demo5();
-    else if(currentDemo==6)demo6();
-    else if(currentDemo==7)demo7();
-    else if(currentDemo==8)demo8();
-    else if(currentDemo==9)demo9();
+    // start new demo
+    eval("demo"+currentDemo)();
 
     // start engine
-
     self.postMessage({tell:"INITSTATIC", types:staticTypes, sizes:staticSizes, matrix:staticMatrix });
     self.postMessage({tell:"INIT", types:types, sizes:sizes, demo:currentDemo, joints:joints.length });
 
@@ -438,36 +406,15 @@ var startDemo = function(){
 
 var addRigid = function(obj, OO){
 
-    var notSaveSetting = OO || false;
+    var notNeedSendToTHREE = OO || false;
     var move = obj.move || false;
     var s = obj.size || [1,1,1];
-    var t;
+    var sendType = obj.type || "box";
 
     if( typeof obj.type === 'string' || obj.type instanceof String ){
-        switch(obj.type){
-            case "sphere": t=1; break;
-            case "box": t=2; break;
-            case "ground": t=22; break;
-            case "bone": t=10; break;
-            case "cylinder": t=3; break;// fake cylinder
-            case "dice": t=4; break;  
-            case "wheel": t=5; break;// fake cylinder
-            case "wheelinv": t=6; break;// fake cylinder
-
-            case "column": s[0] = s[0]*2; s[2] = s[2]*2; obj.size = s; t=7; break;// fake cylinder
-            case "columnBase": t=8; break;
-            case "columnTop": t=9; break;
-            case "nball": t=11; break;
-            case "gyro": t=12; break;
-            case "carBody": t=13; break;
-
-            case "vanBody": t=14; break;
-            case "vanwheel": t=15; break;// fake cylinder
-
-            case "droid": t=16; break;// droid
-        }
-
-        if (t===1 || t===3 || t===5 || t===6 || t===11 || t===12 || t===15 || t===16) obj.type = "sphere";
+        var t = obj.type;
+        if( t === 'column') {s[0] = s[0]*2; s[2] = s[2]*2; obj.size = s; }
+        if ( t==="sphere" || t==="cylinder" || t==="wheel" || t==="wheelinv" || t==="nball" || t==="gyro" || t==="vanwheel" ) obj.type = "sphere";
         else obj.type = "box";
     }
 
@@ -476,20 +423,20 @@ var addRigid = function(obj, OO){
 
     if(move){
         bodys.push(b.body);
-        if(!notSaveSetting){
-            types.push(t);
+        if(!notNeedSendToTHREE){
+            types.push(sendType);
             sizes.push([s[0], s[1], s[2]]);
         }
     } else {
         statics.push(b.body);
-        if(!notSaveSetting){
+        if(!notNeedSendToTHREE){
             staticTypes.push(t);
             staticSizes.push([s[0], s[1], s[2]]);
             staticMatrix.push(b.getMatrix());
         }
     }
-    
     return b.body;
+
 }
 
 //--------------------------------------------------
@@ -502,6 +449,7 @@ var addJoint = function(obj){
     var j = new OIMO.Link(obj);
     if(obj.type === "jointDistance" || obj.show )joints.push(j.joint);
     return j.joint;
+
 }
 
 //--------------------------------------------------
@@ -509,12 +457,6 @@ var addJoint = function(obj){
 //--------------------------------------------------
 
 var worldInfo = function(){
-
-    /*time = Date.now();
-    ms = time - t01;
-    if (time - 1000 > time_prev) {
-        time_prev = time; fpsint = fps; fps = 0;
-    } fps++;*/
 
     infos[0] = world.broadPhase.types;
     infos[1] = world.numRigidBodies;
@@ -528,5 +470,5 @@ var worldInfo = function(){
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
     infos[11] = world.performance.fpsint;
-    //infos[12] = ms;
+
 }
