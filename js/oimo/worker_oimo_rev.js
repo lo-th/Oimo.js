@@ -80,9 +80,9 @@ self.onmessage = function (e) {
     if(phase === "BASIC") basicStart(e.data);
     // from mouse
     if(phase === "REMOVE") { isNeedRemove = true; removeTemp = e.data; }; 
-    if(phase === "SHOOT"){ shoot(e.data); };
+    if(phase === "SHOOT") SHOOT(e.data);
+    if(phase === "PUSH") PUSH(e.data);
     if(phase === "DRAG"){};
-    if(phase === "PUSH"){};
 
     if(phase === "UPDATE"){if(isTimout) update(); else timer = setInterval(update, timerStep);}
     if(phase === "KEY") userKey(e.data.key);
@@ -147,15 +147,22 @@ var rzOimo = function (ar){
 //   SHOOT SOME BULLETS
 //--------------------------------------------------
 
-var shoot = function(data){
+var SHOOT = function(data){
     var target = data.target.map(function(x) { return x * OIMO.INV_SCALE; });
     var bullet = addRigid(data.obj, true);
 
     var position = new OIMO.Vec3();
     //var position = new OIMO.Vec3(data.obj.pos[0], data.obj.pos[1], data.obj.pos[2]);
     var force = new OIMO.Vec3(target[0],target[1], target[2]);
-    bullet.applyImpulse(position,force)
+    bullet.applyImpulse(position,force);
+}
 
+var PUSH = function(data){
+    var target = data.target.map(function(x) { return x * OIMO.INV_SCALE; });
+    var position = new OIMO.Vec3();
+    //var position = new OIMO.Vec3(data.obj.pos[0], data.obj.pos[1], data.obj.pos[2]);
+    var force = new OIMO.Vec3(target[0],target[1], target[2]);
+    bodys[data.n].applyImpulse(position,force)
 }
 
 //--------------------------------------------------

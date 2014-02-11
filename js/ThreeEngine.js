@@ -28,7 +28,7 @@ var ThreeEngine = function () {
 	var vsize = { x:0, y:0, z:0};
 	var vmid = { x:1, y:1, mode:'no' };
 	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false, phi:0, theta:0 };
-	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
+	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, press:false, moving:true };
 	var center = new THREE.Vector3(0,150,0);
 
 	var delta, clock = new THREE.Clock();
@@ -79,7 +79,7 @@ var ThreeEngine = function () {
 
 	var isOptimized;
 
-	var mouseMode = [ 'none', 'delete', 'shoot', 'drag', 'push' ];
+	var mouseMode = [ 'none', 'delete', 'shoot', 'push', 'drag' ];
 	var mMode = 0; 
 
 	var debugColor = 0x282929;
@@ -136,6 +136,13 @@ var ThreeEngine = function () {
 		markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
 		marker = new THREE.Mesh(new THREE.SphereGeometry(6), markerMaterial);
 		scene.add(marker);
+
+		/*var mgeo = new THREE.Geometry();
+		var mMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
+		mgeo.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
+		mgeo.vertices.push( new THREE.Vector3( 0, 12, 0 ) );
+		var mLine = new THREE.Line( mgeo, mMaterial, THREE.LinePieces );
+		marker.add( mLine );*/
 
 		initLights();
 
@@ -463,10 +470,11 @@ var ThreeEngine = function () {
 		makeMaterial( { n:12, map: bTextures[7], name:'mat07sleep' } );//12
 		makeMaterial( { n:13, map: textures[4], name:'matGyro' } );//13
 		makeMaterial( { n:14, map: textures[5], skinning: true, name:'matDroid' } );//14
-
 		for(var i=0; i!==16; i++){
 			makeMaterial( { n:15+i, map: poolTextures[i], shininess:60, specular:0xffffff, name:'pool'+i } );
 		}
+
+		makeMaterial( { n:31, color: 0x909090, name:'bullet' } );//bullet mat
 	}
 
 	var makeMaterial = function (obj){
@@ -1068,8 +1076,9 @@ var ThreeEngine = function () {
 	var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
 	var geo05 = new THREE.SphereGeometry( 1, 12, 8 );
 	var geo06;
+	var geoBullet =  new THREE.SphereGeometry(1,12,8);
 
-	var geo00b,geo01b,geo02b,geo03b,geo04b,geo05b;
+	var geo00b,geo01b,geo02b,geo03b,geo04b,geo05b, geoBulletb;
 	var smoothCube;
 	var diceBuffer;
 	var colomnBuffer;
@@ -1101,6 +1110,7 @@ var ThreeEngine = function () {
 			geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
 			geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
 			geo05b = THREE.BufferGeometryUtils.fromGeometry( geo05 );
+			geoBulletb = THREE.BufferGeometryUtils.fromGeometry( geoBullet );
 			//smoothCube = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
 			smoothCube = THREE.BufferGeometryUtils.fromGeometry(sbox.clone());
 			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
@@ -1127,6 +1137,7 @@ var ThreeEngine = function () {
 			geo03b = geo03;
 			geo04b = geo04;
 			geo05b = geo05;
+			geoBulletb = geoBullet;
 	    	smoothCube = sbox.clone();//getSeaGeometry('box');
 	    	diceBuffer = getSeaGeometry('dice');
 			colomnBuffer = getSeaGeometry('column');
@@ -1281,6 +1292,8 @@ var ThreeEngine = function () {
 
 		renderer.render( sceneSky, cameraSky );
 		renderer.render( scene, camera );
+
+		updateBullet();
 
 		time = Date.now();
 	    ms = time - startTime;
@@ -1451,12 +1464,13 @@ var ThreeEngine = function () {
 
 					if(markerMaterial.color!==0xffffff) markerMaterial.color.setHex(0xFFFFFF);
 					//if(!marker.visible)marker.visible=true;
-					//if(intersects[0].face!==null)marker.lookAt(intersects[0].face.normal);
+					
 					//console.log("intersects.length: "+ intersects.length);
 					//console.log("intersects.distance: "+ intersects[0].distance);
 					//console.log("intersects.face: "+ intersects[0].face);
 					point = intersects[0].point;
 					marker.position.copy( point );
+					//if(intersects[0].face!==null)marker.lookAt(intersects[0].face.normal);
 					selected = intersects[0].object;
 					selectedCenter = point;
 
@@ -1465,17 +1479,20 @@ var ThreeEngine = function () {
 					if(mouse.down){
 						switch(mouseMode[mMode]){
 							case 'delete': OimoWorker.postMessage({tell:"REMOVE", type:'object', n:selected.name}); break;
+							case 'push': OimoWorker.postMessage({tell:"PUSH", n:selected.name, target:[point.x, point.y, point.z]}); break;
+
 							case 'drag': 
 							    var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
 							break;
-							//case 'push': break;
+							
 						
 
 
 						}
 				    }
 			    }
-			    if(mouseMode[mMode]==='shoot' && mouse.down){
+			    if(mouseMode[mMode]==='shoot' && mouse.press){
+			    	mouse.press = false;
 					shoot(camera.position,point);
 				}
 
@@ -1489,10 +1506,14 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 	//  SHOOT BY MOUSE 
 	//-----------------------------------------------------
-	var bulletMaterial = new THREE.MeshBasicMaterial( {color:0xfff000, name:'bullet'} );
+
 	var shoot = function ( p0, p1 ) {
-		var n = content.children[i].length;
-		var bullet = new THREE.Mesh( new THREE.SphereGeometry(30,6,6), bulletMaterial );
+		var n = content.children.length;
+		var bullet = new THREE.Mesh( geoBulletb, getMaterial('bullet') );
+		bullet.scale.set( 30, 30, 30 ); 
+		bullet.position.y = 10000;
+		bullet.receiveShadow = true;
+	    bullet.castShadow = true;
 		bullet.name = n;
 
 		var impulse = p1.sub(p0);
@@ -1506,8 +1527,21 @@ var ThreeEngine = function () {
 
 		OimoWorker.postMessage({tell:"SHOOT", obj:obj, target:target });
 
-		var j =bullets.length; 
+		var j = bullets.length; 
 		bullets[j]= bullet;
+	}
+
+	var updateBullet = function () {
+		if(bullets.length){
+			var i = bullets.length;
+			while(i--){
+				if(bullets[i].position.y < -200){
+					
+					OimoWorker.postMessage({tell:"REMOVE", type:'object', n:bullets[i].name});
+					bullets.splice(i,1);
+				}
+			}
+		}
 	}
 
 	//-----------------------------------------------------
@@ -1538,6 +1572,7 @@ var ThreeEngine = function () {
 		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
 		mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
 		mouse.down = true;
+		if(mouseMode[mMode]==='shoot')mouse.press = true;
 		rayTest();
 		if(followSpecial === 'droid')setPlayerDestination();
 	}
