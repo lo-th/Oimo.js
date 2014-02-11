@@ -391,7 +391,16 @@ OIMO.World.prototype = {
         }
         this.updateContacts();
         this.solveIslands();
+
         var time2=Date.now();
+
+        // fps update
+        if (time2 - 1000 > this.performance.time_prev) {
+            this.performance.time_prev = time2;
+            this.performance.fpsint = this.performance.fps; 
+            this.performance.fps = 0;
+        } this.performance.fps++;
+
         this.performance.totalTime=time2-time1;
         this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
     },
@@ -691,12 +700,15 @@ OIMO.World.prototype = {
     }
 }
 
-
 //------------------------------
 //  PERFORMANCE
 //------------------------------
 
 OIMO.Performance = function(){
+    this.time_prev=0;
+    this.fpsint=0;
+    this.fps=0;
+
     this.broadPhaseTime=0;
     this.narrowPhaseTime=0;
     this.solvingTime=0;

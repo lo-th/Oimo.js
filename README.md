@@ -19,3 +19,7 @@ Basic demo no worker
 [compound test](http://lo-th.github.io/Oimo.js/test_compound.html)
 
 [ragdoll test](http://lo-th.github.io/Oimo.js/test_ragdoll.html)
+
+Basic demo worker transferrable
+
+[worker test](http://lo-th.github.io/Oimo.js/test_worker.html)

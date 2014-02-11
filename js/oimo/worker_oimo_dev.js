@@ -33,8 +33,8 @@ var broadPhase = 2; // 1:BRUTE_FORCE, 2:SWEEP_AND_PRUNE, 3:VOLUME_TREE;
 var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
-var timer, delay, timerStep;
-var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
+var timer, delay, timerStep, timeStart=0;
+//var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
 var ToRad = Math.PI / 180;
 
 // array variable
@@ -196,7 +196,7 @@ var maxBody, maxJoint;
 
 var update = function(){
     //if(isNeedRemove){ REMOVE(removeTemp); }
-    t01 = Date.now();
+    if(isTimout) timeStart = Date.now();
 
     world.step();
     
@@ -228,7 +228,7 @@ var update = function(){
 
 
     if(isTimout){
-        delay = (timerStep - (Date.now()-t01)).toFixed(2);
+        delay = (timerStep - (Date.now()-timeStart)).toFixed(2);
         timer = setTimeout(update, delay);
     }
     if(isNeedRemove){ REMOVE(removeTemp); }
@@ -510,11 +510,11 @@ var addJoint = function(obj){
 
 var worldInfo = function(){
 
-    time = Date.now();
+    /*time = Date.now();
     ms = time - t01;
     if (time - 1000 > time_prev) {
         time_prev = time; fpsint = fps; fps = 0;
-    } fps++;
+    } fps++;*/
 
     infos[0] = world.broadPhase.types;
     infos[1] = world.numRigidBodies;
@@ -527,7 +527,6 @@ var worldInfo = function(){
     infos[8] = world.performance.solvingTime;
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
-    
-    infos[11] = fpsint;
-    infos[12] = ms;
+    infos[11] = world.performance.fpsint;
+    //infos[12] = ms;
 }
