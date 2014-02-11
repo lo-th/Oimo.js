@@ -79,12 +79,14 @@ var ThreeEngine = function () {
 
 	var isOptimized;
 
-	var mouseMode = '';
+	var mouseMode = [ 'none', 'delete', 'shoot', 'drag', 'push' ];
+	var mMode = 0; 
 
 	var debugColor = 0x282929;
 	var debugColor2 = 0x288829;
 	var debugAlpha = 0.3;
 	var jointColor = 0x30ff30;
+
 
 
 	//-----------------------------------------------------
@@ -1433,6 +1435,8 @@ var ThreeEngine = function () {
 
 			if ( intersectsBack.length || intersects.length ) {
 				if(!marker.visible) marker.visible=true;
+				
+
 				if ( intersectsBack.length ) {
 					if(markerMaterial.color!==0x888888)markerMaterial.color.setHex(0x888888);
 					point = intersectsBack[0].point;
@@ -1442,6 +1446,8 @@ var ThreeEngine = function () {
 				if ( intersects.length) {
 
 					if (typeof intersects[0].object.name == 'string' || intersects[0].object.name instanceof String) if(intersects[0].object.name.substring(0,4) === "help") return;
+
+					if(bullets.length)if(intersects[0].object.material.name === 'bullet') return;
 
 					if(markerMaterial.color!==0xffffff) markerMaterial.color.setHex(0xFFFFFF);
 					//if(!marker.visible)marker.visible=true;
@@ -1456,24 +1462,60 @@ var ThreeEngine = function () {
 
 					//attachControl(selected);
 
-					if(mouseMode==='delete') delSelected();
-					else if(mouseMode==='drag'){
-						var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
+					if(mouse.down){
+						switch(mouseMode[mMode]){
+							case 'delete': OimoWorker.postMessage({tell:"REMOVE", type:'object', n:selected.name}); break;
+							case 'drag': 
+							    var p1 = [selected.position.x-point.x, selected.position.y-point.y, selected.position.z-point.z];
+							break;
+							//case 'push': break;
+						
 
-					}else if(mouseMode==='shoot'){
 
-					}else if(mouseMode==='push'){
-
-					}
+						}
+				    }
 			    }
+			    if(mouseMode[mMode]==='shoot' && mouse.down){
+					shoot(camera.position,point);
+				}
+
+
 		    } else {
 		    	marker.visible = false;
 		    }
 		}
 	}
 
+	//-----------------------------------------------------
+	//  SHOOT BY MOUSE 
+	//-----------------------------------------------------
+	var bulletMaterial = new THREE.MeshBasicMaterial( {color:0xfff000, name:'bullet'} );
+	var shoot = function ( p0, p1 ) {
+		var n = content.children[i].length;
+		var bullet = new THREE.Mesh( new THREE.SphereGeometry(30,6,6), bulletMaterial );
+		bullet.name = n;
+
+		var impulse = p1.sub(p0);
+		impulse.normalize();
+		impulse.multiplyScalar(500);
+
+		var target = [impulse.x, impulse.y, impulse.z];
+
+		var obj = { type:"sphere", pos:[p0.x, p0.y, p0.z], size:[30,6,6], move:true, name:n, config:[1, 0.5,0.3] };
+		content.add( bullet );
+
+		OimoWorker.postMessage({tell:"SHOOT", obj:obj, target:target });
+
+		var j =bullets.length; 
+		bullets[j]= bullet;
+	}
+
+	//-----------------------------------------------------
+	//  DELETE BY MOUSE
+	//-----------------------------------------------------
+
 	var delSelected = function () {
-		OimoWorker.postMessage({tell:"REMOVE", type:'object', n:selected.name});
+		
 	}
 
 	var removeObject = function (n) {
@@ -1481,8 +1523,6 @@ var ThreeEngine = function () {
 		for(var i=0; i!== content.children.length; i++){
 			content.children[i].name = i;
 		}
-
-
 	}
 
 	//-----------------------------------------------------
@@ -1727,8 +1767,12 @@ var ThreeEngine = function () {
 			return vmid.mode;
 		},
 
-		setMouseMode: function (name) {
-			mouseMode = name;
+		setMouseMode: function () {
+			mMode++;
+			if(mMode === mouseMode.length) mMode = 0;
+		},
+		getMouseMode: function () {
+			return 'mouse ' + mouseMode[mMode];
 		},
 		getFps: function (name) {
 			return fpstxt +" fps / "+ ms+"/"+maxms+" ms";

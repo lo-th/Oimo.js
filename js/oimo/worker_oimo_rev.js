@@ -73,12 +73,16 @@ self.onmessage = function (e) {
 
         createWorld();
     }
-
+    // from editor
     if(phase === "ADD") ADD(e.data.obj);
     if(phase === "GET") GET(e.data.names);
-    if(phase === "REMOVE") { isNeedRemove = true; removeTemp = e.data} //REMOVE(e.data);
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
+    // from mouse
+    if(phase === "REMOVE") { isNeedRemove = true; removeTemp = e.data; }; 
+    if(phase === "SHOOT"){ shoot(e.data); };
+    if(phase === "DRAG"){};
+    if(phase === "PUSH"){};
 
     if(phase === "UPDATE"){if(isTimout) update(); else timer = setInterval(update, timerStep);}
     if(phase === "KEY") userKey(e.data.key);
@@ -137,6 +141,21 @@ var CONTROL = function(data){
 
 var rzOimo = function (ar){
     return [ar[0]*invScale, ar[1]*invScale, ar[2]*invScale];
+}
+
+//--------------------------------------------------
+//   SHOOT SOME BULLETS
+//--------------------------------------------------
+
+var shoot = function(data){
+    var target = data.target.map(function(x) { return x * OIMO.INV_SCALE; });
+    var bullet = addRigid(data.obj, true);
+
+    var position = new OIMO.Vec3();
+    //var position = new OIMO.Vec3(data.obj.pos[0], data.obj.pos[1], data.obj.pos[2]);
+    var force = new OIMO.Vec3(target[0],target[1], target[2]);
+    bullet.applyImpulse(position,force)
+
 }
 
 //--------------------------------------------------

@@ -7,8 +7,8 @@ var Interface = function (name) {
 	container.id = 'interface';
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
-	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#EEEEEE; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
-	var effect = 'border:1px solid rgba(255,255,255,0.3);';
+	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#FFFFFF; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
+	var effect = 'border:3px solid rgba(255,255,255,0.3);';
 	var buttonStyle = effect+'width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
 	var bbStyle = 'width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:18px; ';
 
@@ -91,7 +91,7 @@ var Interface = function (name) {
 		"C185.52,134.146,219.672,120,256,120V392z'/></svg>"
     ].join("\n");
 
-    var icon_env = [
+    /*var icon_env = [
 	    "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'",
 		"width='"+iconSize+"px' height='"+iconSize+"px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'>",
 	    "<path id='icon_env' fill='"+iconColor+"'  d='M256.417,90c44.34,0,86.026,17.267,117.38,48.62c31.354,31.354,48.62,73.04,48.62,117.38",
@@ -101,6 +101,34 @@ var Interface = function (name) {
 		"c-1.479-36.569-31.577-65.765-68.508-65.765c-25.183,0-47.183,13.583-59.107,33.814c-5.449-3.39-11.857-5.379-18.746-5.379",
 		"c-19.566,0-35.432,15.795-35.57,35.33c-17.266,8.197-29.206,25.79-29.206,46.173c0,28.22,22.872,51.092,51.091,51.092H333.51",
 		"c26.537,0,48.052-21.513,48.052-48.05C381.562,260.969,364.692,241.425,342.41,237.25z'/></svg>"
+    ].join("\n");*/
+
+    var icon_env = [
+	    "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'",
+	    "width='"+iconSize+"px' height='"+iconSize+"px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'>",
+	    "<path id='icon_env' fill='"+iconColor+"' d='M409.338,216.254c-10.416-54.961-58.666-95.777-115.781-95.777c-35.098,0-67.631,15.285-89.871,41.584",
+		"c-37.148-9.906-76.079,11.781-86.933,48.779C78.16,222.176,50.6,257.895,50.6,299.303c0,50.852,41.37,92.221,93.222,92.221H369.18",
+		"c50.85,0,92.221-41.369,92.221-92.221C461.4,263.389,440.941,231.457,409.338,216.254z M369.18,351.523H143.821",
+		"c-29.795,0-53.222-23.426-53.222-52.221c0-34.078,27.65-60.078,62.186-53.816c-11.536-39.596,44.131-61.93,64.641-32.348",
+		"c5.157-14.582,25.823-52.662,76.131-52.662c38.027,0,77.361,26.08,78.664,84.982c25.363,0.098,49.18,18.432,49.18,53.844",
+		"C421.4,328.098,397.975,351.523,369.18,351.523z'/></svg>"
+    ].join("\n");
+
+    var icon_target = [
+	    "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'",
+		"width='"+iconSize+"px' height='"+iconSize+"px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'>",
+		"<path id='icon_target' fill='"+iconColor+"' d='M280.316,266.703l158.854,78.616l-55.943,21.638l53.979,69.331L405.115,462l-54.461-70.728",
+		"l-34.746,48.97L280.316,266.703z M237.525,178.318c-19.426,0-35.178,15.748-35.178,35.177c0,19.427,15.752,35.178,35.178,35.178",
+		"c19.428,0,35.178-15.751,35.178-35.178C272.703,194.066,256.953,178.318,237.525,178.318z M270.521,343.293",
+		"c-10.654,2.713-21.715,4.116-32.996,4.116c-35.449,0-68.775-13.804-93.844-38.869c-25.066-25.068-38.871-58.396-38.871-93.846",
+		"c0-35.447,13.805-68.775,38.873-93.843c25.066-25.066,58.395-38.872,93.842-38.872c35.449,0,68.775,13.806,93.844,38.872",
+		"c25.066,25.067,38.871,58.396,38.871,93.843c0,21.681-5.172,42.563-14.918,61.253l28.643,14.176",
+		"c11.664-22.601,18.256-48.244,18.256-75.429C402.221,123.739,328.482,50,237.525,50C146.57,50,72.83,123.739,72.83,214.694",
+		"c0,90.962,73.74,164.694,164.695,164.694c13.59,0,26.791-1.658,39.422-4.76L270.521,343.293z M237.525,114.89",
+		"c-55.119,0-99.805,44.687-99.805,99.805c0,55.122,44.686,99.805,99.805,99.805c9.129,0,17.967-1.232,26.367-3.527l-6.449-31.441",
+		"c-6.301,1.939-12.988,2.989-19.918,2.989c-37.398,0-67.824-30.426-67.824-67.825s30.426-67.825,67.824-67.825",
+		"s67.826,30.426,67.826,67.825c0,11.738-3,22.789-8.271,32.429l28.701,14.203c7.371-13.918,11.551-29.785,11.551-46.632",
+		"C337.332,159.576,292.645,114.89,237.525,114.89z'/></svg>"
     ].join("\n");
 
 
@@ -142,7 +170,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:CECECE; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:#DEDEDE; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none;';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -202,10 +230,10 @@ var Interface = function (name) {
 	var bbMenu = [];
 	var bbMenu2 = [];
 
-	var bbMenuNames = ["source", "editor", "material", "reflect", "shadow"];
-	var bbMenuIcons = ["icon_github", "icon_gear", "icon_material", "icon_env", "icon_shadow"];
+	var bbMenuNames = ["source", "editor", "material", "reflect", "shadow", "mouse mode"];
+	var bbMenuIcons = ["icon_github", "icon_gear", "icon_material", "icon_env", "icon_shadow", "icon_target"];
 
-	for(var i=0;i!==5;i++){
+	for(var i=0;i!==6;i++){
 
 		bbMenu[i] = document.createElement( 'div' );
 		bbMenu[i].name = i;
@@ -216,7 +244,8 @@ var Interface = function (name) {
 		if(i===0)bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:30px; color:#7fdbff;";
 		else bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:0px; color:#7fdbff;";
 		bbMenu2[i].style.visibility = "hidden";
-		bbMenu2[i].innerHTML =bbMenuNames[i];
+		bbMenu2[i].id = "menu"+i;
+		bbMenu2[i].innerHTML = bbMenuNames[i];
 		//else bbMenu[i].style.cssText = buttonStyle + "width:120px; height:30px; margin-bottom:6px;";
 		bbMenu[i].addEventListener( 'mouseover', function ( event ) { event.preventDefault(); overColor(this.name);  }, false );
 		bbMenu[i].addEventListener( 'mouseout', function ( event ) { event.preventDefault(); outColor(this.name); }, false );
@@ -230,6 +259,7 @@ var Interface = function (name) {
 	bbMenu[2].innerHTML = icon_material;
 	bbMenu[3].innerHTML = icon_env;
 	bbMenu[4].innerHTML = icon_shadow;
+	bbMenu[5].innerHTML = icon_target;
 
 	//bbMenu[0].style.color = "#ffffff";
 	/*var overColor = function (n) {
@@ -257,6 +287,7 @@ var Interface = function (name) {
 	bbMenu[2].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.changeMaterialType(); clickColor(this.name); }, false );
 	bbMenu[3].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.reflection(); clickColor(this.name); }, false );
 	bbMenu[4].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.shadow(); clickColor(this.name); }, false );
+	bbMenu[5].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); TE.setMouseMode(); bbMenu2[5].innerHTML = TE.getMouseMode(); clickColor(this.name); }, false );
 	
 	//bbMenu[4].addEventListener( 'mousedown', function ( event ) { event.preventDefault(); threeEngine.shadow(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
 	

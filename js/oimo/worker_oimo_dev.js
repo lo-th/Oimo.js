@@ -79,12 +79,16 @@ self.onmessage = function (e) {
         newGravity = e.data.G || -10;
         createWorld();
     }
-
+    // from editor
     if(phase === "ADD") ADD(e.data.obj);
     if(phase === "GET") GET(e.data.names);
-    if(phase === "REMOVE"){ isNeedRemove = true; removeTemp = e.data};
     if(phase === "CLEAR") clearWorld();
     if(phase === "BASIC") basicStart(e.data);
+    // from mouse
+    if(phase === "REMOVE"){ isNeedRemove = true; removeTemp = e.data; };
+    if(phase === "SHOOT"){ shoot(e.data); };
+    if(phase === "DRAG"){};
+    if(phase === "PUSH"){};
 
     if(phase === "UPDATE"){ if(isTimout) update(); else timer = setInterval(update, timerStep);  }
     if(phase === "KEY") userKey(e.data.key);
@@ -141,6 +145,21 @@ var CONTROL = function(data){
 }
 
 //--------------------------------------------------
+//   SHOOT SOME BULLETS
+//--------------------------------------------------
+
+var shoot = function(data){
+    var target = data.target.map(function(x) { return x * OIMO.INV_SCALE; });
+    var bullet = addRigid(data.obj, true);
+
+    var position = new OIMO.Vec3();
+    //var position = new OIMO.Vec3(data.obj.pos[0], data.obj.pos[1], data.obj.pos[2]);
+    var force = new OIMO.Vec3(target[0],target[1], target[2]);
+    bullet.applyImpulse(position,force)
+
+}
+
+//--------------------------------------------------
 //   REMOVE SOMETING ON FLY
 //--------------------------------------------------
 
@@ -150,13 +169,10 @@ var REMOVE = function(data){
         world.removeJoint(joints[n]);
         joints.splice(n,1);
         matrixJoint.splice(n,1);
-        //jointPos.splice(n*6,6);
     }else {
         world.removeRigidBody(bodys[n]);
         bodys.splice(n,1);
         matrix.splice(n,1);
-       // sleeps.splice(n,1);
-        //matrix.splice(n*12,12);
     }
     self.postMessage(removeTemp);
     isNeedRemove=false;
@@ -170,7 +186,7 @@ var REMOVE = function(data){
 var maxBody, maxJoint;
 
 var update = function(){
-    if(isNeedRemove){ REMOVE(removeTemp); }
+    //if(isNeedRemove){ REMOVE(removeTemp); }
     t01 = Date.now();
 
     world.step();
@@ -206,6 +222,7 @@ var update = function(){
         delay = (timerStep - (Date.now()-t01)).toFixed(2);
         timer = setTimeout(update, delay);
     }
+    if(isNeedRemove){ REMOVE(removeTemp); }
 }
 
 //--------------------------------------------------
