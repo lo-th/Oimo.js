@@ -86,13 +86,6 @@ OIMO.Link = function(Obj){
     obj.world.addJoint(this.joint);
 }
 
-OIMO.Link.prototype = {
-    constructor: OIMO.Link,
-    getMatrix:function(){
-        //return this.body.getMatrix();
-    }
-}
-
 //------------------------------
 //  BODY
 //------------------------------
@@ -180,37 +173,6 @@ OIMO.Body = function(Obj){
     this.body.name = this.name;
     obj.world.addRigidBody(this.body);
 }
-
-OIMO.Body.prototype = {
-    constructor: OIMO.Body,
-
-    getMatrix:function(){
-        return this.body.getMatrix();
-    },
-    setPosition:function(x,y,z){
-        this.body.setPosition(x,y,z);
-    },
-    setRotation:function(x,y,z){
-        var r = OIMO.EulerToAxis(x* OIMO.TO_RAD, y* OIMO.TO_RAD, z* OIMO.TO_RAD);
-        var rad = r[0];
-        var len = r[1]*r[1]+r[2]*r[2]+r[3]*r[3];
-        if(len>0){
-            len=1/Math.sqrt(len);
-            r[1]*=len;
-            r[2]*=len;
-            r[3]*=len;
-        }
-        var sin=Math.sin(rad*0.5);
-        var cos=Math.cos(rad*0.5);
-        this.body.orientation = new OIMO.Quat(cos,sin*r[1],sin*r[2],sin*r[3]);
-        //this.body.orientation = new OIMO.Quat(r[0], r[1], r[2], r[3]);
-    },
-    sleep:function(){
-        return this.body.sleeping;
-    }
-}
-
-
 
 //------------------------------
 //  WORLD
@@ -1066,6 +1028,21 @@ OIMO.RigidBody.prototype = {
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
         this.linearVelocity.init();
         this.angularVelocity.init();
+    },
+    setRotation:function(x,y,z){
+        /*var r = OIMO.EulerToAxis(x* OIMO.TO_RAD, y* OIMO.TO_RAD, z* OIMO.TO_RAD);
+        var rad = r[0];
+        var len = r[1]*r[1]+r[2]*r[2]+r[3]*r[3];
+        if(len>0){
+            len=1/Math.sqrt(len);
+            r[1]*=len;
+            r[2]*=len;
+            r[3]*=len;
+        }
+        var sin=Math.sin(rad*0.5);
+        var cos=Math.cos(rad*0.5);
+        this.body.orientation = new OIMO.Quat(cos,sin*r[1],sin*r[2],sin*r[3]);
+        //this.body.orientation = new OIMO.Quat(r[0], r[1], r[2], r[3]);*/
     },
     getMatrix:function(){
         var m = this.matrix.elements;

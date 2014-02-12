@@ -432,7 +432,7 @@ var addRigid = function(obj, OO){
         if(!notNeedSendToTHREE){
             staticTypes.push(t);
             staticSizes.push([s[0], s[1], s[2]]);
-            staticMatrix.push(b.getMatrix());
+            staticMatrix.push(b.body.getMatrix());
         }
     }
     return b.body;

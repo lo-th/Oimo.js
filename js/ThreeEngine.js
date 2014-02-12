@@ -437,8 +437,8 @@ var ThreeEngine = function () {
 		bTextures[3] = new basicTexture(3);
 		bTextures[4] = new basicTexture(4);
 		bTextures[5] = new basicTexture(5);
-		bTextures[6] = new basicTexture(6);
-		bTextures[7] = new basicTexture(7);
+		//bTextures[6] = new basicTexture(6);
+		//bTextures[7] = new basicTexture(7);
 
 		for(var i=0; i!==16; i++){
 			poolTextures[i] = new eightBall(i);
@@ -464,14 +464,16 @@ var ThreeEngine = function () {
 		makeMaterial( { n:3, map: textures[0], name:'mat04' } );//3
 		makeMaterial( { n:4, map: textures[2], skinning: true, transparent:true, opacity:0.9, name:'mat05' } ); //4
 		makeMaterial( { n:5, map: textures[3], name:'mat06' } );//5
-		makeMaterial( { n:6, map: bTextures[6], name:'mat07' } );//6
+		//makeMaterial( { n:6, map: bTextures[6], name:'mat07' } );//6
+		makeMaterial( { n:6, color: 0xd1c080, name:'mat07' } );//
 		makeMaterial( { n:7, color: 0xe7b37a, skinning: true, transparent:true, opacity:0.5, name:'mat08' } );
 		//makeMaterial( { n:8, map: bTextures[3], name:'mat01sleep' } );//8
 		makeMaterial( { n:8, color: 0x991f1f, name:'mat01sleep' } );//8
 		makeMaterial( { n:9, map: bTextures[1], name:'mat02sleep' } );//9
 		makeMaterial( { n:10, map: bTextures[5], name:'mat03sleep' } );//10
 		makeMaterial( { n:11, map: textures[1], name:'mat04sleep' } );//11
-		makeMaterial( { n:12, map: bTextures[7], name:'mat07sleep' } );//12
+		//makeMaterial( { n:12, map: bTextures[7], name:'mat07sleep' } );//12
+		makeMaterial( { n:12, color: 0xb4a56d, name:'mat07sleep' } );//12
 		makeMaterial( { n:13, map: textures[4], name:'matGyro' } );//13
 		makeMaterial( { n:14, map: textures[5], skinning: true, name:'matDroid' } );//14
 		for(var i=0; i!==16; i++){
@@ -1804,7 +1806,7 @@ var ThreeEngine = function () {
 			return 'mouse ' + mouseMode[mMode];
 		},
 		getFps: function (name) {
-			return fpstxt +" fps / "+ ms+"/"+maxms+" ms";
+			return fpstxt +" fps / "+ ms+" ms"//+"/"+maxms+" ms";
 		},
 		getSelected: function () {
 			if(selected) return selected.name;

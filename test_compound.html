@@ -149,6 +149,8 @@
         clearMesh();
         world.clear();
 
+        var b;
+
         if(type===1){// DEMO 1
             var ground = new OIMO.Body({size:[100, 40, 400], pos:[0,-20,0], world:world});
             var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-50,0], world:world});
@@ -164,7 +166,7 @@
                 positions[0] = 0;
                 positions[2] = 0;
 
-                bodys[i] = new OIMO.Body({
+                b = new OIMO.Body({
                     type:types,
                     size:sizes,
                     pos:positions,
@@ -173,6 +175,8 @@
                     name:'box'+i, 
                     config:[0.2, 0.4,0.1]
                 });
+
+                bodys[i] = b.body;
 
                 j = Math.round(Math.random()*2);
 
@@ -189,6 +193,7 @@
 
             var i = max;
             var j, k=0, l=0;
+            
 
             while (i--){
                 positions[1] = 50;
@@ -198,7 +203,7 @@
                 l++;
                 if(l>16){k++; l=0}
 
-                bodys[i] = new OIMO.Body({
+                b = new OIMO.Body({
                     type:types,
                     size:sizes,
                     pos:positions,
@@ -208,6 +213,8 @@
                     config:[0.2, 0.4,0.1]
                 });
 
+                bodys[i] = b.body;
+
                 j = Math.round(Math.random()*2);
 
                 if(j===1)meshs[i] = new THREE.Mesh( chairGeometry, matBox );
@@ -216,7 +223,8 @@
                 scene.add(meshs[i]);
             }
 
-            bodys[max] = new OIMO.Body({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
+            b = new OIMO.Body({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
+            bodys[max] = b.body;
             meshs[max] = new THREE.Mesh( geoSphere, matSphere );
             meshs[max].scale.set( 80, 80, 80 );
             scene.add(meshs[max]);
@@ -265,7 +273,7 @@
 
             mesh = meshs[i];
 
-            if(!bodys[i].sleep()){
+            if(!bodys[i].sleeping){
                 m = bodys[i].getMatrix();
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );

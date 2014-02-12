@@ -30,8 +30,7 @@ var broadPhase = 2; // 1:BRUTE_FORCE, 2:SWEEP_AND_PRUNE;
 var iterations = 8;
 var Gravity = -10, newGravity = -10;
 
-var timer, delay, timerStep;
-var fps=0, time, time_prev=0, fpsint = 0, ms, t01;
+var timer, delay, timerStep, timeStart=0;
 var ToRad = Math.PI / 180;
 
 // array rigid
@@ -194,7 +193,7 @@ var REMOVE = function(data){
 
 var update = function(){
     if(isNeedRemove){REMOVE(removeTemp);}
-    t01 = Date.now();
+    if(isTimout) timeStart = Date.now();
 
     world.step();
 
@@ -225,7 +224,7 @@ var update = function(){
     self.postMessage({tell:"RUN", infos: infos, matrix:matrix, matrixJoint:matrixJoint });
 
     if(isTimout){
-        delay = timerStep - (Date.now()-t01);
+        delay = timerStep - (Date.now()-timeStart);
         timer = setTimeout(update, delay);
     }
 }
@@ -449,7 +448,7 @@ var addRigid = function (obj, OO){
         if(!noNeedSendSetting){
             staticTypes.push(t);
             staticSizes.push([s[0], s[1], s[2]]);
-            staticMatrix.push(b.getMatrix());
+            staticMatrix.push(b.body.getMatrix());
         }
     }
     return b.body;
@@ -473,12 +472,6 @@ var addJoint = function (obj){
 
 var worldInfo = function () {
 
-    time = Date.now();
-    ms = time - t01;
-    if (time - 1000 > time_prev) {
-        time_prev = time; fpsint = fps; fps = 0;
-    } fps++;
-
     infos[0] = world.broadPhase.types;
     infos[1] = world.numRigidBodies;
     infos[2] = world.numContacts;
@@ -490,7 +483,6 @@ var worldInfo = function () {
     infos[8] = world.performance.solvingTime;
     infos[9] = world.performance.updatingTime;
     infos[10] = world.performance.totalTime;
-    
-    infos[11] = fpsint;
-    infos[12] = ms;
+    infos[11] = world.performance.fpsint;
+
 }

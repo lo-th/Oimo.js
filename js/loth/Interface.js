@@ -7,15 +7,15 @@ var Interface = function (name) {
 	container.id = 'interface';
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
-	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#FFFFFF; font-size:12px; font-family:SourceCode; pointer-events:none;  overflow:hidden;';
-	var effect = 'border:3px solid rgba(255,255,255,0.3);';
-	var buttonStyle = effect+'width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; background-color: rgba(1,1,1,0.1); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
-	var bbStyle = 'width:170px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:18px; ';
+	container.style.cssText =unselect +  'position:absolute; left:0; right:0; top:0; bottom:0; color:#FFFFFF; font-size:10px; font-family:SourceCode; pointer-events:none;  overflow:hidden; -webkit-font-smoothing: antialiased;';
+	var effect = '';//border:3px solid rgba(255,255,255,0.3);
+	var buttonStyle = effect+'width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; background-color: rgba(1,1,1,0.0); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
+	var bbStyle = 'width:130px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:14px; ';
 
 	//-----------------------------------------------------
     //  ICON
     //-----------------------------------------------------
-    var iconSize = 48;
+    var iconSize = 36;//48;
     var iconColor = '#ffffff';
 
     var icon_logos = [
@@ -131,6 +131,40 @@ var Interface = function (name) {
 		"C337.332,159.576,292.645,114.89,237.525,114.89z'/></svg>"
     ].join("\n");
 
+    var new_logo = [
+        "<svg version='1.1' id='Calque_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'",
+	    "width='360px' height='80px' viewBox='0 0 200 40' enable-background='new 0 0 200 40' xml:space='preserve'>",
+        "<g><path fill='#FFFFFF' d='M17.053,24.732c-7.745,0-6.856-14.104,0.48-14.104C25.287,10.629,24.385,24.732,17.053,24.732z M17.317,23.971",
+		"c3.221,0,3.932-3.817,3.932-6.34c0-2.477-0.794-6.24-3.949-6.24c-3.221,0-3.932,3.817-3.932,6.34",
+		"C13.368,20.207,14.162,23.971,17.317,23.971z'/>",
+	    "<path fill='#FFFFFF' d='M26.686,16.166c-0.253,1.693-0.381,3.415-0.368,5.128c0.005,0.636-0.032,1.355,0.178,1.965",
+		"c0.266,0.774,1.383,0.345,1.901,0.108c0.035,0.095,0.102,0.205,0.111,0.305c-0.539,0.434-2.347,1.488-3.015,0.838",
+		"c-0.636-0.619-0.448-2.224-0.448-3.023c0-1.175,0.033-2.351,0.082-3.524c0.018-0.439-0.108-1.357,0.164-1.723",
+		"C25.594,15.832,26.309,15.968,26.686,16.166C26.62,16.611,26.456,16.045,26.686,16.166z M26.176,13.518",
+		"c-1.286,0-1.034-2.321,0.289-2.05C27.552,11.69,27.221,13.518,26.176,13.518z'/>",
+	    "<path fill='#FFFFFF' d='M28.239,16.623c0.845-0.298,3.182-1.393,3.182,0.24c0,1.419-0.469,3.024-0.311,4.377c0.451-1.635,1.606-5.697,3.982-5.263",
+		"c2.11,0.386,0.878,3.999,1.039,5.251c0.393-1.447,0.892-2.979,1.825-4.178c0.999-1.284,2.963-1.698,3.37,0.289",
+		"c0.277,1.35-0.104,2.887-0.182,4.249c-0.032,0.547-0.123,1.304,0.144,1.811c0.325,0.618,1.446,0.169,1.887-0.032",
+		"c0.035,0.095,0.102,0.205,0.111,0.305c-0.625,0.503-1.987,1.238-2.82,0.954c-0.728-0.248-0.631-1.53-0.631-2.12",
+		"c0-1.088,0.114-2.173,0.208-3.255c0.052-0.59,0.18-1.665-0.56-1.901c-1.496-0.478-2.587,3.05-2.863,3.993",
+		"c-0.293,0.999-0.49,2.028-0.553,3.067c-0.17,0.165-0.975,0.121-1.225,0.152l-0.094-0.006c0.083-1.594,0.186-3.186,0.276-4.779",
+		"c0.034-0.596,0.146-1.308-0.086-1.877c-0.323-0.792-1.093-0.511-1.557-0.033c-1.114,1.146-1.663,2.949-1.993,4.474",
+		"c-0.072,0.334-0.18,2.056-0.417,2.086c-0.366,0.045-0.732,0.091-1.097,0.136l-0.094-0.006c0.135-1.609,0.203-3.223,0.262-4.836",
+		"c0.027-0.746,0.105-1.524,0.04-2.27c-0.083-0.95-1.147-0.567-1.755-0.406C28.3,16.917,28.231,16.752,28.239,16.623z'/>",
+	    "<path fill='#FFFFFF' d='M43.79,21.041c0-1.964,0.997-4.185,2.93-4.922c2.408-0.919,4.33,1.131,4.33,3.469c0,1.964-1.005,4.185-2.936,4.922",
+		"C45.704,25.429,43.79,23.379,43.79,21.041z M45.19,20.484c0,1.391,0.625,3.416,2.326,3.416c1.772,0,2.127-2.434,2.127-3.768",
+		"c0-1.391-0.627-3.404-2.326-3.404C45.546,16.729,45.19,19.148,45.19,20.484z'/>",
+	    "<path fill='#FFFFFF' d='M53.241,24.65c-1.327,0-1.062-2.36,0.291-2.079C54.653,22.805,54.322,24.65,53.241,24.65z'/>",
+	    "<path fill='#FFFFFF' d='M58.092,16.166c-0.071,3.527-0.013,7.237-0.99,10.658c-0.392,1.396-1.238,2.869-2.704,3.337",
+		"c-0.681,0.217-1.433,0.244-2.109-0.006c-0.647-0.24-1.385-0.981-0.727-1.64c0.658-0.658,0.874,0.286,1.424,0.595",
+		"c0.751,0.421,1.733,0.334,2.3-0.34c0.949-1.101,1.01-3.007,1.119-4.379c0.131-1.643,0.162-3.292,0.183-4.94",
+		"c0.011-0.852,0.018-1.704,0.021-2.556C56.612,15.988,57.313,15.756,58.092,16.166C58.081,16.748,57.862,16.045,58.092,16.166z",
+		" M57.454,13.535c-1.28,0-1.027-2.346,0.283-2.067C58.81,11.697,58.496,13.535,57.454,13.535z'/>",
+	    "<path fill='#FFFFFF' d='M60.964,22.295c0.171,1.856,3.703,2.468,3.703,0.416c0-1.024-1.35-1.457-2.098-1.811c-0.954-0.452-2.108-1.029-2.292-2.19",
+		"c-0.31-1.951,1.929-2.918,3.544-2.796c0.741,0.056,1.714,0.36,1.95,1.166c0.234,0.801-0.725,1.7-1.43,1.119",
+		"c0.836-1.911-2.569-2.177-2.97-0.552c-0.255,1.033,1.005,1.589,1.741,1.945c0.897,0.434,1.968,0.823,2.492,1.733",
+		"c1.211,2.106-1.628,3.506-3.301,3.384c-0.838-0.061-2.221-0.387-2.461-1.353C59.672,22.681,60.336,22.134,60.964,22.295z'/></g></svg>"
+    ].join("\n");
 
 
 	//-----------------------------------------------------
@@ -138,30 +172,30 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var titleLogo = document.createElement( 'svg' );
-	titleLogo.style.cssText = 'position:absolute; top:5px; left:5px; width:48x; height:48px;';
-    titleLogo.innerHTML = icon_logos;
+	titleLogo.style.cssText = 'position:absolute; top:-11px; left:-5px; width:60x; height:120px;';
+    titleLogo.innerHTML = new_logo;//icon_logos;
 
-	var title = document.createElement( 'div' );
+	/*var title = document.createElement( 'div' );
 	title.style.cssText = 'position:absolute; color:#FFFFFF; top:12px; left:60px; text-align:left; font-weight:900; font-size:23px; pointer-events:none;';
-	title.innerHTML ="Oimo.js";
+	title.innerHTML ="Oimo.js";*/
 
 	var titleLink = document.createElement( 'div' );
-	titleLink.style.cssText = 'position:absolute; color:#FFFFFF; top:19px; left:180px; text-align:left; pointer-events:auto; font-size:16px; font-weight:600;';
+	titleLink.style.cssText = 'position:absolute; color:#FFFFFF; top:23px; left:130px; text-align:left; pointer-events:auto; font-size:14px;';// font-weight:600
 
 	var linkStyle = "color:#7fdbff; cursor:pointer;";
-	var sep = "/";
+	var sep = ".";
 	
 	var txt = "";
-	if(name==='dev') txt +="DEV";
-	else txt += "<a href='index.html' target='_self' style='"+linkStyle+"'>DEV</a>";
+	if(name==='dev') txt +="dev";
+	else txt += "<a href='index.html' target='_self' style='"+linkStyle+"'>dev</a>";
 	txt += sep;
-	if(name==='rev') txt +="REV";
-	else txt += "<a href='index_rev.html' target='_self' style='"+linkStyle+"'>REV</a>";
+	if(name==='rev') txt +="rev";
+	else txt += "<a href='index_rev.html' target='_self' style='"+linkStyle+"'>rev</a>";
 	
 	titleLink.innerHTML = txt;
 
 	container.appendChild( titleLogo );
-	container.appendChild( title );
+	//container.appendChild( title );
 	container.appendChild( titleLink );
 
 	//-----------------------------------------------------
@@ -170,7 +204,7 @@ var Interface = function (name) {
 
 	var output = document.createElement( 'div' );
 	output.id = "output";
-	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:#DEDEDE; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none;';
+	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:#DEDEDE; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none; font-size:10px; ';
 	container.appendChild( output );
 
 	//-----------------------------------------------------
@@ -187,7 +221,7 @@ var Interface = function (name) {
     //-----------------------------------------------------
 
     var aMenu = document.createElement( 'div' );
-	aMenu.style.cssText = 'left:10px; top:60px; position:absolute; display:block; text-align:center; ';
+	aMenu.style.cssText = 'left:calc(50% - 100px); width:200px; top:20px; position:absolute; display:block; text-align:center; ';
 	container.appendChild( aMenu );
 
 	var bnext = document.createElement( 'div' );
@@ -211,38 +245,38 @@ var Interface = function (name) {
 	aMenu.appendChild( bcenter );
 	aMenu.appendChild( bnext );
 
-    bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
-    bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(55,123,167,1)';  }, false );
-    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0.1)';  }, false );
+    bprev.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(127,219,255,0.3)';  }, false );
+    bprev.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0)';  }, false );
+    bnext.addEventListener( 'mouseover', function ( event ) { event.preventDefault(); this.style.backgroundColor = 'rgba(127,219,255,0.3)';  }, false );
+    bnext.addEventListener( 'mouseout', function ( event ) { event.preventDefault();  this.style.backgroundColor = 'rgba(1,1,1,0)';  }, false );
 
-	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); prevDemo(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
-	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); nextDemo(); this.style.backgroundColor = 'rgba(55,123,167,0.5)';}, false );
+	bprev.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); prevDemo(); this.style.backgroundColor = 'rgba(127,219,255,0.5)';}, false );
+	bnext.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); nextDemo(); this.style.backgroundColor = 'rgba(127,219,255,0.5)';}, false );
 
 	//-----------------------------------------------------
     //  MENU DEMO
     //-----------------------------------------------------
 
     var bMenu = document.createElement( 'div' );
-	bMenu.style.cssText = 'right:0px; top:20px; position:absolute; width:60px; display:block; text-align:center;  margin-right:10px;';
+	bMenu.style.cssText = 'right:0px; top:12px; position:absolute; width:'+(iconSize+12)+'px; display:block; text-align:center;  margin-right:5px;';
 	container.appendChild( bMenu );
 
 	var bbMenu = [];
 	var bbMenu2 = [];
 
-	var bbMenuNames = ["source", "editor", "material", "reflect", "shadow", "mouse mode"];
+	var bbMenuNames = ["Source", "Editor", "Material", "Reflect", "Shadow", "Mouse mode"];
 	var bbMenuIcons = ["icon_github", "icon_gear", "icon_material", "icon_env", "icon_shadow", "icon_target"];
 
 	for(var i=0;i!==6;i++){
 
 		bbMenu[i] = document.createElement( 'div' );
 		bbMenu[i].name = i;
-		bbMenu[i].style.cssText = "margin-left:6px; width:48px; height:48px; margin-bottom:0px; pointer-events:auto;  ";
+		bbMenu[i].style.cssText = "margin-left:6px; width:"+iconSize+"px; height:"+iconSize+"px; margin-bottom:0px; pointer-events:auto;  ";
 
 		bbMenu2[i] = document.createElement( 'div' );
 		bbMenu2[i].name = i;
-		if(i===0)bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:30px; color:#7fdbff;";
-		else bbMenu2[i].style.cssText = "width:60px; height:20px; margin-bottom:0px; color:#7fdbff;";
+		if(i===0)bbMenu2[i].style.cssText = "width:"+(iconSize+12)+"px; height:20px; margin-bottom:30px; color:#7fdbff;";
+		else bbMenu2[i].style.cssText = "width:"+(iconSize+12)+"px; height:20px; margin-bottom:0px; color:#7fdbff;";
 		bbMenu2[i].style.visibility = "hidden";
 		bbMenu2[i].id = "menu"+i;
 		bbMenu2[i].innerHTML = bbMenuNames[i];
@@ -303,6 +337,7 @@ var Interface = function (name) {
     	var mode = TE.getViewMode();
 
     	if(mode==='no'){
+    		aMenu.style.left = 'calc(50% - 100px)';
     		//ribbon.style.right = '0';
     		bMenu.style.right = '0';
     		copy.style.right = '0';
@@ -312,6 +347,7 @@ var Interface = function (name) {
     		Editor.hide();
     	} else {
     		if(mode==="v"){
+    			aMenu.style.left = 'calc(25% - 100px)';
     			//ribbon.style.right = '50%';
     			bMenu.style.right = '50%';
     			copy.style.right = '50%';

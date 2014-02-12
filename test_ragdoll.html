@@ -277,8 +277,8 @@
 
             mesh = meshs[i];
 
-            if(!bodys[i].sleep()){
-                m = bodys[i].getMatrix();
+            if(!bodys[i].body.sleeping){
+                m = bodys[i].body.getMatrix();
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );
                 mesh.rotation.setFromRotationMatrix( mtx );
@@ -292,33 +292,33 @@
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
-                    bodys[i].setPosition(x,y,z);
-                    bodys[i+1].setPosition(x,y+30,z);
-                    bodys[i+2].setPosition(x,y-20,z);
+                    bodys[i+0].body.setPosition(x,y,z);
+                    bodys[i+1].body.setPosition(x,y+30,z);
+                    bodys[i+2].body.setPosition(x,y-20,z);
 
-                    bodys[i+3].setPosition(x-20,y-8,z);
-                    bodys[i+4].setPosition(x-40,y,z);
-                    bodys[i+5].setPosition(x+20,y-8,z);
-                    bodys[i+6].setPosition(x+40,y,z);
+                    bodys[i+3].body.setPosition(x-20,y-8,z);
+                    bodys[i+4].body.setPosition(x-40,y,z);
+                    bodys[i+5].body.setPosition(x+20,y-8,z);
+                    bodys[i+6].body.setPosition(x+40,y,z);
 
-                    bodys[i+7].setPosition(x-5,y-40,z);
-                    bodys[i+8].setPosition(x-15,y-70,z);
-                    bodys[i+9].setPosition(x+5,y-40,z);
-                    bodys[i+10].setPosition(x+15,y-70,z);
+                    bodys[i+7].body.setPosition(x-5,y-40,z);
+                    bodys[i+8].body.setPosition(x-15,y-70,z);
+                    bodys[i+9].body.setPosition(x+5,y-40,z);
+                    bodys[i+10].body.setPosition(x+15,y-70,z);
 
-                    bodys[i].setRotation(0,0,0);
-                    bodys[i+1].setRotation(0,0,0);
-                    bodys[i+2].setRotation(0,0,0);
+                    bodys[i].body.setRotation(0,0,0);
+                    bodys[i+1].body.setRotation(0,0,0);
+                    bodys[i+2].body.setRotation(0,0,0);
 
-                    bodys[i+3].setRotation(0,0,20);
-                    bodys[i+4].setRotation(0,02,0);
-                    bodys[i+5].setRotation(0,0,-20);
-                    bodys[i+6].setRotation(0,0,-20);
+                    bodys[i+3].body.setRotation(0,0,20);
+                    bodys[i+4].body.setRotation(0,02,0);
+                    bodys[i+5].body.setRotation(0,0,-20);
+                    bodys[i+6].body.setRotation(0,0,-20);
 
-                    bodys[i+7].setRotation(0,0,-20);
-                    bodys[i+8].setRotation(0,0,-20);
-                    bodys[i+9].setRotation(0,0,20);
-                    bodys[i+10].setRotation(0,0,20);
+                    bodys[i+7].body.setRotation(0,0,-20);
+                    bodys[i+8].body.setRotation(0,0,-20);
+                    bodys[i+9].body.setRotation(0,0,20);
+                    bodys[i+10].body.setRotation(0,0,20);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;

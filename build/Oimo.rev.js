@@ -72,12 +72,12 @@ OIMO.Link = function(Obj){
     obj.world.addJoint(this.joint);
 }
 
-OIMO.Link.prototype = {
+/*OIMO.Link.prototype = {
     constructor: OIMO.Link,
     getMatrix:function(){
         //return this.body.getMatrix();
     }
-}
+}*/
 
 //------------------------------
 //  BODY
@@ -160,7 +160,7 @@ OIMO.Body = function(Obj){
     obj.world.addRigidBody(this.body);
 }
 
-OIMO.Body.prototype = {
+/*OIMO.Body.prototype = {
     constructor: OIMO.Body,
 
     getMatrix:function(){
@@ -186,7 +186,7 @@ OIMO.Body.prototype = {
     sleep:function(){
         return this.body.sleeping;
     }
-}
+}*/
 
 
 
@@ -451,6 +451,14 @@ OIMO.World.prototype = {
         this.detectCollisions();
         this.updateIslands();
         var time2=Date.now();
+
+        // fps update
+        if (time2 - 1000 > this.performance.time_prev) {
+            this.performance.time_prev = time2;
+            this.performance.fpsint = this.performance.fps; 
+            this.performance.fps = 0;
+        } this.performance.fps++;
+
         this.performance.solvingTime=time2-this.performance.solvingTime;
         this.performance.totalTime=time2-time1;
     },
@@ -720,6 +728,10 @@ OIMO.World.prototype = {
 //------------------------------
 
 OIMO.Performance = function(){
+    this.time_prev=0;
+    this.fpsint=0;
+    this.fps=0;
+    
     this.broadPhaseTime=0;
     this.narrowPhaseTime=0;
     this.solvingTime=0;
@@ -1118,6 +1130,11 @@ OIMO.RigidBody.prototype = {
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
         this.linearVelocity.init();
         this.angularVelocity.init();
+    },
+    setRotation:function(x,y,z){
+        /*this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
+        this.linearVelocity.init();
+        this.angularVelocity.init();*/
     },
     getMatrix:function(){
         var m = this.matrix.elements;
