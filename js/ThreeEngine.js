@@ -288,9 +288,12 @@ var ThreeEngine = function () {
 			isShadow = false;
 		}else{ 
 			isShadow = true;
+			//renderer.shadowMapType = THREE.PCFSoftShadowMap;
+			//renderer.setFaceCulling( THREE.CullFaceNone );
 		}
 
 		renderer.shadowMapEnabled = isShadow;
+
 		lights[1].castShadow = isShadow;
 		planeBG.visible = isShadow;
 		planeBG.material.needsUpdate = true;
