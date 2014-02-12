@@ -65,7 +65,10 @@ OIMO.Link = function(Obj){
 
     
     switch(type){
-        case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); break;
+        case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); 
+             if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);
+
+        break;
         case "jointHinge": this.joint = new OIMO.HingeJoint(jc, min, max);
             if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
         break;
