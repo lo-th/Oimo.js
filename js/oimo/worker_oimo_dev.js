@@ -414,7 +414,7 @@ var addRigid = function(obj, OO){
     if( typeof obj.type === 'string' || obj.type instanceof String ){
         var t = obj.type;
         if( t === 'column') {s[0] = s[0]*2; s[2] = s[2]*2; obj.size = s; }
-        if ( t==="sphere" || t==="cylinder" || t==="wheel" || t==="wheelinv" || t==="nball" || t==="gyro" || t==="vanwheel" ) obj.type = "sphere";
+        if ( t==="sphere" || t==="cylinder" || t==="wheel" || t==="wheelinv" || t==="nball" || t==="gyro" || t==="vanwheel" || t==="droid") obj.type = "sphere";
         else obj.type = "box";
     }
 

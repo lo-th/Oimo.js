@@ -335,6 +335,9 @@ function demo9(){
 
     // ground
     addRigid({ type:"ground", size:[10000,300,10000], pos:[0,-150,0] });
+    // wall
+    addRigid({ type:"box", size:[1000,200,100], pos:[0,100,-800] });
+    addRigid({ type:"box", size:[100,200,1400], pos:[-500,100,0] });
 
     var box, px, pz, sx, sy, sz;
     

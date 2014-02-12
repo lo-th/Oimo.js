@@ -15,11 +15,11 @@ Player = function (Pos, d, Name) {
 }
 
 Player.prototype.move =function (v) {
-	this.body.angularVelocity.x = 0;
-	this.body.angularVelocity.y = v.r;
-	this.body.angularVelocity.z = 0;
+	//this.body.angularVelocity.x = 0;
+	//this.body.angularVelocity.y = v.r;
+	//this.body.angularVelocity.z = 0;
 	this.body.linearVelocity.x =  (v.x);
-	this.body.linearVelocity.y = 0;
+	//this.body.linearVelocity.y = 0;
 	this.body.linearVelocity.z =  (v.z);
 	//this.update(0,0);
 }

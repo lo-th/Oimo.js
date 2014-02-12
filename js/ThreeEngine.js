@@ -782,16 +782,17 @@ var ThreeEngine = function () {
 	    		    mesh.scale.set( 3, 3, 3 );
 	    		break;
 	    		case 16: case 'droid':
-	    		    mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
-	    		    mesh.scale.set( s[0], s[1], s[2] );
-	    		    mesh.visible = false;
+	    		    mesh = new THREE.Object3D();
+	    		    //mesh =new THREE.Mesh(smoothCube, getMaterial('mat01'));
+	    		    //mesh.scale.set( s[0], s[1], s[2] );
+	    		    //mesh.visible = false;
 
-	    		    var helper = new THREE.BoxHelper(mesh);
+	    		    /*var helper = new THREE.BoxHelper(mesh);
 	                helper.material.color.set( 0x28ff29 );
 	                helper.material.opacity = debugAlpha;
 	                helper.material.transparent = true;
 			        mesh.add( helper );
-			        helper.name = "helpDroid";
+			        helper.name = "helpDroid";*/
 
 	    		    player = getMeshByName('Android');
 	    		    player.material = getMaterial('matDroid');
@@ -1330,7 +1331,7 @@ var ThreeEngine = function () {
 
 		playerSet.x += (playerSet.destX - playerSet.x) * playerSet.speed;
 		playerSet.z += (playerSet.destZ - playerSet.z) * playerSet.speed;
-		playerSet.r = unwrapRadian(-Math.atan2(playerSet.z-marker.position.z,playerSet.x-marker.position.x));
+		playerSet.r = (-Math.atan2(playerSet.z-marker.position.z,playerSet.x-marker.position.x));
 
         THREE.AnimationHandler.update( delta*(0.5 +  (playerSet.speed*5)) );
 
@@ -1451,7 +1452,7 @@ var ThreeEngine = function () {
 				}
 				if ( intersects.length) {
 
-					if (typeof intersects[0].object.name == 'string' || intersects[0].object.name instanceof String) if(intersects[0].object.name.substring(0,4) === "help") return;
+					//if (typeof intersects[0].object.name == 'string' || intersects[0].object.name instanceof String) if(intersects[0].object.name.substring(0,4) === "help") return;
 
 					if(bullets.length)if(intersects[0].object.material.name === 'bullet') return;
 
