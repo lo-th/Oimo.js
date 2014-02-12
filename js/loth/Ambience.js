@@ -605,8 +605,35 @@ var newCanvas;
 	var texture;
     var currentShader = 0;
     var tweenner = [];
-
     var GRD ={
+		name:'Default' ,line:1, alpha:1,
+		ranging:{
+		r0:0.0, r1:0.5, r2:0.60, r3:1.00,
+		r4:0.05, r5:0.3, r6:0.95, r7:1.00,
+		r8:0.2, r9:0.35, r10:0.95, r11:1.00
+		},
+		positions:{
+		p0:64, p1:60, p2:128, p3:128,
+		p4:178, p5:212, p6:128, p7:128
+		},
+		colors:{
+		r0:60, v0:85, b0:87, a0:1,
+		r1:107, v1:125, b1:127, a1:1,
+		r2:26, v2:26, b2:26, a2:1,
+		r3:26, v3:26, b3:26, a3:1,
+
+		r4:197, v4:209, b4:209, a4:1,
+		r5:197, v5:209, b5:209, a5:0,
+		r6:197, v6:209, b6:209, a6:0,
+
+		r7:50, v7:56, b7:57, a7:1,
+		r8:50, v8:56, b8:57, a8:0,
+		r9:50, v9:56, b9:57, a9:0,
+
+		r10:30, v10:30, b10:30, a10:0,
+		r11:17, v11:17, b11:17, a11:0
+	}};
+    /*var GRD ={
 		name:'Default' ,line:1, alpha:1,
 		ranging:{
 		r0:0.21, r1:0.57, r2:0.62, r3:1.00,
@@ -630,7 +657,7 @@ var newCanvas;
 		r9:60, v9:60, b9:60, a9:0,
 		r10:30, v10:30, b10:30, a10:0,
 		r11:17, v11:17, b11:17, a11:0
-	}};
+	}};*/
 
 	var initInterface = function (){
 		mh[0]= document.createElement( 'div' );//document.getElementById('mh0');

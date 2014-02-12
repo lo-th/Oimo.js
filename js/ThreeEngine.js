@@ -100,6 +100,8 @@ var ThreeEngine = function () {
 
 		renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false, clearColor: 0x000000, clearAlpha: 0 });
 		renderer.autoClearColor = false;
+		renderer.gammaInput = true;
+        renderer.gammaOutput = true;
 		
 		container.appendChild( renderer.domElement );
 
@@ -386,8 +388,8 @@ var ThreeEngine = function () {
 			materials[i].envMap = envtexture;
 			materials[i].combine = THREE.MixOperation;
 			//materials[i].combine = THREE.MultiplyOperation;
-			materials[i].reflectivity = 0.5;
-			materials[i].refractionRatio = 0.98;
+			materials[i].reflectivity = 0.6;
+			//materials[i].refractionRatio = 0.98;
 			materials[i].needsUpdate = true;
 		}
 	}
@@ -401,7 +403,6 @@ var ThreeEngine = function () {
 		while (i--) {
 			materials[i].envMap = null;
 			materials[i].combine = null;
-			//materials[i].combine = THREE.MultiplyOperation;
 			materials[i].reflectivity = 0;
 			materials[i].needsUpdate = true;
 		}
@@ -455,7 +456,9 @@ var ThreeEngine = function () {
 	}
 
 	var baseMaterial = function (){
-		makeMaterial( { n:0, map: bTextures[2], name:'mat01' } );//0
+		//makeMaterial( { n:0, map: bTextures[2], name:'mat01' } );//0
+		makeMaterial( { n:0, color: 0xC22627, name:'mat01' } );//0             blue 19509a
+		
 		makeMaterial( { n:1, map: bTextures[0], name:'mat02'} );//1
 		makeMaterial( { n:2, map: bTextures[4], name:'mat03' } );//2
 		makeMaterial( { n:3, map: textures[0], name:'mat04' } );//3
@@ -463,7 +466,8 @@ var ThreeEngine = function () {
 		makeMaterial( { n:5, map: textures[3], name:'mat06' } );//5
 		makeMaterial( { n:6, map: bTextures[6], name:'mat07' } );//6
 		makeMaterial( { n:7, color: 0xe7b37a, skinning: true, transparent:true, opacity:0.5, name:'mat08' } );
-		makeMaterial( { n:8, map: bTextures[3], name:'mat01sleep' } );//8
+		//makeMaterial( { n:8, map: bTextures[3], name:'mat01sleep' } );//8
+		makeMaterial( { n:8, color: 0x991f1f, name:'mat01sleep' } );//8
 		makeMaterial( { n:9, map: bTextures[1], name:'mat02sleep' } );//9
 		makeMaterial( { n:10, map: bTextures[5], name:'mat03sleep' } );//10
 		makeMaterial( { n:11, map: textures[1], name:'mat04sleep' } );//11
@@ -690,7 +694,6 @@ var ThreeEngine = function () {
 	    		case 1: case 'sphere': mesh=new THREE.Mesh(geo02b, getMaterial('mat02')); mesh.scale.set( s[0], s[0], s[0] ); break; // sphere
 	    		case 2: case 'box':
 	    		    mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
-	    		    //mesh=new THREE.Mesh(geo01b, getMaterial('mat01'));
 	    		    mesh.scale.set( s[0], s[1], s[2] ); 
 	    		break; // box
 	    		case 3: case 'cylinder': mesh=new THREE.Mesh(geo03b, getMaterial('mat03')); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
@@ -1072,7 +1075,7 @@ var ThreeEngine = function () {
 	var geo00 = new THREE.PlaneGeometry( 1, 1 );
 	var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
 	var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
-	var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
+	//var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
 	var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
 	var geo05 = new THREE.SphereGeometry( 1, 12, 8 );
 	var geo06;
@@ -1107,10 +1110,10 @@ var ThreeEngine = function () {
 			geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
 			geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
 			geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
-			geo03b = THREE.BufferGeometryUtils.fromGeometry( geo03 );
+			geo03b = THREE.BufferGeometryUtils.fromGeometry( getSeaGeometry('cyl') );
 			geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
 			geo05b = THREE.BufferGeometryUtils.fromGeometry( geo05 );
-			geoBulletb = THREE.BufferGeometryUtils.fromGeometry( geoBullet );
+			geoBulletb = THREE.BufferGeometryUtils.fromGeometry( getSeaGeometry('bullet') );
 			//smoothCube = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
 			smoothCube = THREE.BufferGeometryUtils.fromGeometry(sbox.clone());
 			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
@@ -1134,10 +1137,10 @@ var ThreeEngine = function () {
 	    	geo00b = geo00;
 			geo01b = geo01;
 			geo02b = geo02;
-			geo03b = geo03;
+			geo03b = getSeaGeometry('cyl') ;
 			geo04b = geo04;
 			geo05b = geo05;
-			geoBulletb = geoBullet;
+			geoBulletb = getSeaGeometry('bullet');
 	    	smoothCube = sbox.clone();//getSeaGeometry('box');
 	    	diceBuffer = getSeaGeometry('dice');
 			colomnBuffer = getSeaGeometry('column');
@@ -1162,7 +1165,7 @@ var ThreeEngine = function () {
 	//  SEA3D IMPORT
 	//-----------------------------------------------------
 
-	var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van', 'box', 'droid'];
+	var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van', 'geo','droid'];
 	var seaN = 0;
 
 	var initSea3DMesh = function (){
@@ -1171,16 +1174,6 @@ var ThreeEngine = function () {
 		
 		SeaLoader.onComplete = function( e ) {
 			for (var i=0; i !== SeaLoader.meshes.length; i++){
-				
-				/*if(SeaLoader.meshes[i].name ==="gyro"){
-					scaleGeometry(SeaLoader.meshes[i].geometry, 1, 'x');
-					scaleGeometry(SeaLoader.meshes[i].children[0].geometry, 1, 'z');
-	    		    scaleGeometry(SeaLoader.meshes[i].children[0].children[0].geometry, 1, 'z');
-	    		    scaleGeometry(SeaLoader.meshes[i].children[0].children[0].children[0].geometry, 1, 'x');
-				}*/
-				/*if(SeaLoader.meshes[i].name ==="Android"){
-					scaleGeometry(SeaLoader.meshes[i].geometry, 1, 'x');
-				}*/
 				meshs.push( SeaLoader.meshes[i] );
 			}
 			// load Next
