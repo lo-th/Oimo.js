@@ -18,6 +18,7 @@
 		var codeEditor;
 		var fileref;
 		var head;
+		var base = null;
 
 		function init() {
 		    head = document.getElementsByTagName("head")[0];
@@ -32,8 +33,10 @@
 
 		function close(){
 			codeEditor.getInputField().blur();
-			//document.body.blur();
-			//window.parent.document.body.focus();
+		}
+
+		function setBase(b){
+			if(base==null)base = b;
 		}
 
 		function loadfile(url){
@@ -57,6 +60,8 @@
 		    var v = doc.getElementsByTagName("head")[0].innerHTML;
 		    var txt = v.slice(53, -10);
 		    codeEditor.setValue( txt );
+
+		    base.update();
 		}
 
 		</script>

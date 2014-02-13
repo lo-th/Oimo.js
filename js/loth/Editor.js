@@ -87,11 +87,13 @@ var Editor = function (Pos) {
 	var MainEditor = document.createElement( 'iframe' );
 	MainEditor.id = 'mEditor';
 	MainEditor.name = 'MainEditor';
-	MainEditor.src = "demos/editor.html";
+	MainEditor.src = "demos/mainEditor.html";
 	MainEditor.style.cssText =unselect+"top:70px; bottom:0px; left:10px; right:0;  margin:0; padding:0; position:absolute; height:calc(100% - 70px); width:calc(100% - 10px); display:block; pointer-events:auto; border:none;"
 	container.appendChild( MainEditor );
 
+
 	var importScript = function(name){
+		MainEditor.contentWindow.setBase(Editor);
 		MainEditor.contentWindow.loadfile(name+".html");
 	}
 
@@ -114,6 +116,7 @@ var Editor = function (Pos) {
 	}
 
 	return {
+		update:update,
 		domElement: container,
 		show:show,
 		hide:hide,
