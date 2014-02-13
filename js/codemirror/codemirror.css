@@ -1,5 +1,8 @@
 /* BASICS */
 @font-face { font-family: "SourceCode"; src:url("../../images/SourceCodePro.woff") format("woff");}
+/** {
+  box-sizing: border-box;
+}*/
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
   /*font-family: monospace;*/
@@ -13,6 +16,7 @@
   position:absolute;
   left:0px;
   top:0px;
+  background: transparent;
 }
 
 
@@ -22,6 +26,63 @@
   overflow: auto;
 
 }
+
+
+/* Let's get this party started */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+   
+}
+
+::-webkit-scrollbar-track-piece {           /* Fond */
+  background: transparent none;
+  border: solid 4px transparent;
+  border-right-width: 8px;
+  margin: 4px;
+  -webkit-box-shadow: inset 1px 1px 0 0 rgb(137,131,117), inset -1px -1px 0 0 rgb(224,220,210);
+}
+::-webkit-scrollbar-track-piece:horizontal {      /* Fond pour la barre du bas */
+  border-right-width: 4px;
+  border-bottom-width: 8px;
+}
+ 
+/* Track */
+::-webkit-scrollbar-track {
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,1); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;*/
+     background: rgba(46,47,48,1);
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  border: solid 0 transparent;
+  border-right-width: 4px;
+  -webkit-border-radius: 5px;
+  -webkit-border-top-right-radius: 9px 5px;
+  -webkit-border-bottom-right-radius: 9px 5px;
+  -webkit-box-shadow: inset 0 0 0 1px rgb(79,79,79), inset 0 0 0 6px rgb(88,88,89);
+   /* -webkit-border-radius: 10px;
+    border-radius: 10px;*/
+    /*background: rgba(108,108,109,1); 
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); */
+}
+::-webkit-scrollbar-thumb:hover {           /* Barre */
+  -webkit-box-shadow: inset 0 0 0 1px rgb(108,108,109), inset 0 0 0 6px rgb(110,110,111);
+}
+::-webkit-scrollbar-thumb:horizontal {          /* Barre du bas */
+  border-right-width: 0;
+  border-bottom-width: 4px;
+  -webkit-border-top-right-radius: 5px;
+  -webkit-border-bottom-right-radius: 5px 9px;
+  -webkit-border-bottom-left-radius: 5px 9px;
+}
+::-webkit-scrollbar-thumb:window-inactive {
+  -webkit-box-shadow: inset 0 0 0 1px rgb(78,78,79), inset 0 0 0 6px rgb(58,58,59);
+
+}
+
 
 /* PADDING */
 
@@ -33,15 +94,17 @@
 }
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
-  background-color: #888888; /*white;  The little square between H and V scrollbars */
+
+  background-color: #242627; /*white;  The little square between H and V scrollbars */
 }
 
 /* GUTTER */
-
 .CodeMirror-gutters {
-  border-right: 1px solid #ddd;
+  background: transparent;
+  border: 0;
+ /* border-right: 1px solid #ddd;
   background-color: #f7f7f7;
-  white-space: nowrap;
+  white-space: nowrap;*/
 }
 .CodeMirror-linenumbers {}
 .CodeMirror-linenumber {
@@ -136,9 +199,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-monokai .CodeMirror-matchingbracket {
   text-decoration: underline;
   color: white !important;
-}*/
+}background: #1a1a1a;*/
 
-.cm-s-monokai.CodeMirror {background: #1a1a1a; color: #f8f8f2;}
+.cm-s-monokai.CodeMirror { color: #f8f8f2; background:rgba(0,0,0,0);}
 .cm-s-monokai div.CodeMirror-selected {background: #49483E !important;}
 .cm-s-monokai .CodeMirror-gutters {background: #272822; border-right: 0px;}
 .cm-s-monokai .CodeMirror-linenumber {color: #d0d0d0;}

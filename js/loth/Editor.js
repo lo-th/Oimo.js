@@ -12,7 +12,7 @@ var Editor = function (Pos) {
 	var open = false;
 
     var container = document.createElement( 'div' );
-	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode;  pointer-events:none; display:none';
+	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode;  pointer-events:none; display:none; background: linear-gradient(45deg, #1d1f20, #2f3031);';
 	container.id = 'Editor';
 
 	var show = function(mode){
@@ -88,7 +88,7 @@ var Editor = function (Pos) {
 	MainEditor.id = 'mEditor';
 	MainEditor.name = 'MainEditor';
 	MainEditor.src = "demos/mainEditor.html";
-	MainEditor.style.cssText =unselect+"top:70px; bottom:0px; left:10px; right:0;  margin:0; padding:0; position:absolute; height:calc(100% - 70px); width:calc(100% - 10px); display:block; pointer-events:auto; border:none;"
+	MainEditor.style.cssText =unselect+"  top:70px; bottom:0px; left:10px; right:0;  margin:0; padding:0; position:absolute; height:calc(100% - 70px); width:calc(100% - 10px); display:block; pointer-events:auto; border:none;"
 	container.appendChild( MainEditor );
 
 
