@@ -17,6 +17,7 @@ function initDemo()
     var j = 0;
     var px,py,pz;
     var jtype = "jointHinge";
+    var spring = [2, 0.3];
         
 
     while (Max--){
@@ -33,14 +34,16 @@ function initDemo()
             pz = 0;
         }
 
-        ADD({type:"box", size:[20,30,15], pos:[px,py,pz], move:true, name:'chest'+j });
-
+        ADD({type:"box", size:[20,10,15], pos:[px,py-20,pz], move:true, name:'pelvis'+j });
+        ADD({type:"box", size:[20,10,15], pos:[px,py-10,pz], move:true, name:'spine1_'+j });
+        ADD({type:"box", size:[20,10,15], pos:[px,py,pz], move:true, name:'spine2_'+j });
+        ADD({type:"box", size:[20,10,15], pos:[px,py+10,pz], move:true, name:'spine3_'+j });
         ADD({type:"nball", size:[10], pos:[px,py+30,pz], move:true, name:'head'+j });
 
-        ADD({type:"box", size:[20,10,15], pos:[px,py-20,pz], move:true, name:'pelvis'+j });
-
-        ADD({type:jtype, body1:'chest'+j, body2:'head'+j, pos1:[0,15,0], pos2:[0,-10,0], min:2, max:20, collision:collision});
-        ADD({type:jtype, body1:'chest'+j, body2:'pelvis'+j, pos1:[0,-15,0], pos2:[0,5,0], collision:collision});
+        ADD({type:jtype, body1:'pelvis'+j, body2:'spine1_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, spring:spring});
+        ADD({type:jtype, body1:'spine1_'+j, body2:'spine2_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, spring:spring});
+        ADD({type:jtype, body1:'spine2_'+j, body2:'spine3_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, spring:spring});
+        ADD({type:jtype, body1:'spine3_'+j, body2:'head'+j, pos1:[0,5,0], pos2:[0,-10,0], min:2, max:20, collision:collision, spring:spring});
 
         // arm
 
@@ -50,8 +53,8 @@ function initDemo()
         ADD({type:"box", size:[20,10,10], pos:[px+20,py+8,pz], rot:[0,0,-20], move:true, name:'R_arm'+j });
         ADD({type:"box", size:[20,8,8], pos:[px+40,py,pz], rot:[0,0,-20], move:true, name:'RF_arm'+j });
 
-        ADD({type:jtype, body1:'chest'+j, body2:'L_arm'+j, pos1:[-10,10,0], pos2:[10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision});
-        ADD({type:jtype, body1:'chest'+j, body2:'R_arm'+j, pos1:[10,10,0], pos2:[-10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision});
+        ADD({type:jtype, body1:'spine3_'+j, body2:'L_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision});
+        ADD({type:jtype, body1:'spine3_'+j, body2:'R_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision});
 
         ADD({type:jtype, body1:'L_arm'+j, body2:'LF_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision});
         ADD({type:jtype, body1:'R_arm'+j, body2:'RF_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision});

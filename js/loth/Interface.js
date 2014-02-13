@@ -132,8 +132,8 @@ var Interface = function (name) {
     ].join("\n");
 
     var txt_logo = [
-        "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='120px'",
-	    "height='46px' viewBox='0 0 86.25 30.375' enable-background='new 0 0 86.25 30.375' xml:space='preserve'>",
+        "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='100px'",
+	    "height='40px' viewBox='0 0 86.25 30.375' enable-background='new 0 0 86.25 30.375' xml:space='preserve'>",
 	    "<path fill='#FFFFFF' d='M23.023,7.516c-1.615,0-1.609-2.496,0-2.496C24.661,5.02,24.658,7.516,23.023,7.516z M23.961,22.563h-1.922v-12",
 		"c0.609,0,1.219,0,1.828,0c0.182,0,0.093,0.343,0.093,0.494c0,1.308,0,2.615,0,3.923C23.961,17.507,23.961,20.035,23.961,22.563z'/>",
 	    "<path fill='#FFFFFF' d='M44.891,22.563h-1.922v-6.891c0-1.992-0.711-4.262-3.212-3.718c-1.83,0.398-2.424,2.48-2.424,4.103",
@@ -165,11 +165,11 @@ var Interface = function (name) {
     titleLogo.innerHTML = icon_logos;//+//new_logo;//icon_logos;
 
 	var title = document.createElement( 'div' );
-	title.style.cssText = 'position:absolute; color:#FFFFFF; top:8px; left:15px; text-align:left; font-weight:900; font-size:23px; pointer-events:none;';
+	title.style.cssText = 'position:absolute; color:#FFFFFF; top:9px; left:19px; text-align:left; font-weight:900; font-size:23px; pointer-events:none;';
 	title.innerHTML = txt_logo;//"Oimo.js";
 
 	var titleLink = document.createElement( 'div' );
-	titleLink.style.cssText = 'position:absolute; color:#FFFFFF; top:23px; left:144px; text-align:left; pointer-events:auto; font-size:14px;';// font-weight:600
+	titleLink.style.cssText = 'position:absolute; color:#FFFFFF; top:23px; left:124px; text-align:left; pointer-events:auto; font-size:14px;';// font-weight:600
 
 	var linkStyle = "color:#7fdbff; cursor:pointer;";
 	var sep = ".";

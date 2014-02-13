@@ -1088,6 +1088,7 @@ var ThreeEngine = function () {
 	var geoBullet =  new THREE.SphereGeometry(1,12,8);
 
 	var geo00b,geo01b,geo02b,geo03b,geo04b,geo05b, geoBulletb;
+	var cyl1, cyl2;
 	var smoothCube;
 	var diceBuffer;
 	var colomnBuffer;
