@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Oimo.js Basic</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=11" />
+
+	<style>
+		* {  margin: 0; padding: 0; border: 0;}
+		body { background-color: #585858; overflow: hidden; color: #eeeeee; font-family: monospace; font-size: 12px; }
+	</style>
+
+	<script src="../../Desktop/Oimo.js/js/three.min.js"></script>
+	<script src="../../Desktop/Oimo.js/build/Oimo.min.js"></script>
+
+</head>
+<body>
+
+</body>
+<script>
+window.addEventListener('load', function () {
+
+// three var
+	var camera, scene, light, renderer, container, center;
+	var meshs = [];
+	var geoSphere;
+	var matBox, matSphere, matBoxSleep, matSphereSleep;
+
+	var xyBounds = 50;
+	var numBalls = 500;
+
+// navigation var
+	var camPos = { horizontal: 90, vertical: 60, distance: 400, automove: false };
+	var mouse = { ox: 0, oy: 0, h: 0, v: 0, mx: 0, my: 0, down: false, over: false, moving: true };
+	var ToRad = Math.PI / 180;
+
+//oimo var
+	var world;
+	var bodys = [];
+
+	init();
+	loop();
+
+	function init() {
+
+		// three init
+		renderer = new THREE.WebGLRenderer({precision: "mediump", antialias: false});
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.setClearColor(0x000, 1);
+
+		container = document.body;
+		container.appendChild(renderer.domElement);
+
+		camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+		camera.position.set(0, 100, 400);
+		center = new THREE.Vector3();
+		moveCamera();
+
+		scene = new THREE.Scene();
+
+		scene.add(new THREE.AmbientLight(0x383838));
+
+		light = new THREE.DirectionalLight(0xffffff, 1.3);
+		light.position.set(0.3, 1, 0.5).normalize();
+		scene.add(light);
+
+		geoSphere = new THREE.SphereGeometry(1, 20, 10);
+
+		matSphere = new THREE.MeshLambertMaterial({ map: basicTexture(0), name: 'sph' });
+		matBox = new THREE.MeshLambertMaterial({  map: basicTexture(2), name: 'box' });
+		matSphereSleep = new THREE.MeshLambertMaterial({ map: basicTexture(1), name: 'ssph' });
+		matBoxSleep = new THREE.MeshLambertMaterial({  map: basicTexture(3), name: 'sbox' });
+
+		// oimo init
+		world = new OIMO.World();
+		world.gravity = new OIMO.Vec3(0, -9, 0);
+
+		//add ground mesh
+		addStaticBox([200, 40, 200], [0, -20, 0], [0, 0, 0]);
+
+		populate();
+
+		window.addEventListener('resize', onWindowResize, false);
+		container.addEventListener('mousemove', onMouseMove, false);
+		container.addEventListener('mousedown', onMouseDown, false);
+		container.addEventListener('mouseout', onMouseUp, false);
+		container.addEventListener('mouseup', onMouseUp, false);
+		container.addEventListener('mousewheel', onMouseWheel, false);
+		container.addEventListener('DOMMouseScroll', onMouseWheel, false); // firefox
+	}
+
+	var mat = new THREE.MeshLambertMaterial({ color: 0x151515 });
+
+	function addStaticBox(size, position, rotation) {
+		var geo1 = new THREE.CubeGeometry(size[0], size[1], size[2]);
+		var mesh = new THREE.Mesh(geo1, mat);
+		mesh.position.set(position[0], position[1], position[2]);
+		mesh.rotation.set(rotation[0] * ToRad, rotation[1] * ToRad, rotation[2] * ToRad);
+		scene.add(mesh);
+		new OIMO.Body({size: size, pos: position, move: false, world: world});
+
+	}
+
+	function populate() {
+
+		var x, y, z, w, h, d;
+		var i = numBalls;
+
+		while (i--) {
+			x = -xyBounds + Math.random() * xyBounds * 2;
+			z = -xyBounds + Math.random() * xyBounds * 2;
+			y = xyBounds + Math.random() * xyBounds * 20;
+			w = 10 + Math.random() * 10;
+			h = 10 + Math.random() * 10;
+			d = 10 + Math.random() * 10;
+
+			bodys[i] = new OIMO.Body({type: 'sphere', size: [w * 0.5], pos: [x, y, z], move: true, world: world});
+			meshs[i] = new THREE.Mesh(geoSphere, matSphere);
+			meshs[i].scale.set(w * 0.5, w * 0.5, w * 0.5);
+			scene.add(meshs[i]);
+		}
+	}
+
+	function loop() {
+
+		requestAnimationFrame(loop);
+
+		world.step();
+
+		var m, x, y, z;
+		var mtx = new THREE.Matrix4();
+		var i = bodys.length;
+		var mesh;
+
+		while (i--) {
+
+			var body = bodys[i].body;
+			mesh = meshs[i];
+
+			// IMPORTANT!! sync up mesh positions with the physics bodies
+			m = body.getMatrix();
+			mtx.fromArray(m);
+			mesh.position.setFromMatrixPosition(mtx);
+			mesh.rotation.setFromRotationMatrix(mtx);
+
+			// reset position if balls fall too far
+			if (m[13] < -1000) {
+				x = -xyBounds + Math.random() * xyBounds * 2;
+				z = -xyBounds + Math.random() * xyBounds * 2;
+				y = xyBounds + Math.random() * xyBounds * 20;
+				body.setPosition(x, y, z);
+			}
+		}
+
+		renderer.render(scene, camera);
+
+	}
+
+	function basicTexture(n) {
+
+		var canvas = document.createElement('canvas');
+		canvas.width = canvas.height = 64;
+		var ctx = canvas.getContext('2d');
+		var colors = [];
+		if (n === 0) { // sphere
+			colors[0] = "#58AA80";
+			colors[1] = "#58FFAA";
+		}
+		if (n === 1) { // sphere sleep
+			colors[0] = "#383838";
+			colors[1] = "#38AA80";
+		}
+		ctx.fillStyle = colors[0];
+		ctx.fillRect(0, 0, 64, 64);
+		ctx.fillStyle = colors[1];
+		ctx.fillRect(0, 0, 32, 32);
+		ctx.fillRect(32, 32, 32, 32);
+
+		var tx = new THREE.Texture(canvas);
+		tx.needsUpdate = true;
+		return tx;
+
+	}
+
+// MATH
+
+	function Orbit(origine, horizontal, vertical, distance) {
+		var p = new THREE.Vector3();
+		var phi = vertical * ToRad;
+		var theta = horizontal * ToRad;
+		p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
+		p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
+		p.y = (distance * Math.cos(phi)) + origine.y;
+		return p;
+	}
+
+// MOUSE & NAVIGATION
+	function moveCamera() {
+		camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
+		camera.lookAt(center);
+	}
+
+	function onMouseDown(e) {
+		e.preventDefault();
+		mouse.ox = e.clientX;
+		mouse.oy = e.clientY;
+		mouse.h = camPos.horizontal;
+		mouse.v = camPos.vertical;
+		mouse.down = true;
+	}
+
+	function onMouseUp(e) {
+		mouse.down = false;
+		document.body.style.cursor = 'auto';
+	}
+
+	function onMouseMove(e) {
+		e.preventDefault();
+		if (mouse.down) {
+			document.body.style.cursor = 'move';
+			camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
+			camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
+			moveCamera();
+		}
+	}
+
+	function onMouseWheel(e) {
+		var delta = 0;
+		if (e.wheelDeltaY) {
+			delta = e.wheelDeltaY * 0.01;
+		}
+		else if (e.wheelDelta) {
+			delta = e.wheelDelta * 0.05;
+		}
+		else if (e.detail) {
+			delta = -e.detail;
+		}
+		camPos.distance -= (delta * 10);
+		moveCamera();
+	}
+
+	function onWindowResize() {
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+	}
+});
+
+</script>
+</html>
