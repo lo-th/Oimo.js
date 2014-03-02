@@ -189,7 +189,7 @@
             var body = bodys[i].body;
             mesh = meshs[i];
 
-            if(!body.sleep()){
+            if(!body.sleeping){
                 m = body.getMatrix();
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );
