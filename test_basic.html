@@ -189,7 +189,11 @@
             var body = bodys[i].body;
             mesh = meshs[i];
 
+<<<<<<< HEAD
             if(!body.sleep()){
+=======
+            if(!body.sleeping){
+>>>>>>> origin/master
                 m = body.getMatrix();
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );
