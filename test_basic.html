@@ -186,11 +186,11 @@
         var mesh;
 
         while (i--){
-
+            var body = bodys[i].body;
             mesh = meshs[i];
 
-            if(!bodys[i].sleep()){
-                m = bodys[i].getMatrix();
+            if(!body.sleep()){
+                m = body.getMatrix();
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );
                 mesh.rotation.setFromRotationMatrix( mtx );
@@ -204,7 +204,7 @@
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
-                    bodys[i].setPosition(x,y,z);
+                    body.setPosition(x,y,z);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
