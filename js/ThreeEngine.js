@@ -87,7 +87,7 @@ var ThreeEngine = function () {
 	var debugAlpha = 0.3;
 	var jointColor = 0x30ff30;
 
-
+	var postprocessing = { enabled  : false };
 
 	//-----------------------------------------------------
 	//  INIT VIEW
@@ -98,12 +98,14 @@ var ThreeEngine = function () {
 		// for my local test on windows explorer
 		if(browserName==="Firefox" || browserName==="Chrome") PATH = '';
 
-		renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false, clearColor: 0x000000, clearAlpha: 0 });
+		renderer = new THREE.WebGLRenderer({precision: "lowp", antialias:false });
 		renderer.autoClearColor = false;
-		renderer.gammaInput = true;
-        renderer.gammaOutput = true;
+		renderer.autoClear = false;
+		//renderer.gammaInput = true;
+        //renderer.gammaOutput = true;
 		
 		container.appendChild( renderer.domElement );
+
 
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
@@ -146,6 +148,8 @@ var ThreeEngine = function () {
 		var mLine = new THREE.Line( mgeo, mMaterial, THREE.LinePieces );
 		marker.add( mLine );*/
 
+		
+
 		initLights();
 
 		MaxAnistropy = renderer.getMaxAnisotropy();
@@ -166,10 +170,46 @@ var ThreeEngine = function () {
 		moveCamera();
 		
 	    changeView(45,60,1000);
+
+
+		//initPostprocessing();
 	    initListener();
 	    
 	    //initBackPlane();
 	    update();
+	}
+
+	
+
+	function initPostprocessing() {
+		var bgPass = new THREE.RenderPass( sceneSky, cameraSky );
+		var renderPass = new THREE.RenderPass( scene, camera );
+		var bokehPass = new THREE.BokehPass( scene, camera, {
+			focus: 		1.0,//1.0,
+			aperture:	0.025,
+			maxblur:	1.0,//1.0,
+
+			width:  window.innerWidth,
+			height: window.innerHeight
+		} );
+
+		bokehPass.renderToScreen = true;
+		
+		var colorCorrectionPass = new THREE.ShaderPass( THREE.ColorCorrectionShader );
+		colorCorrectionPass.uniforms[ "powRGB" ].value = new THREE.Vector3( 1.0, 1.0, 1.0 );
+		colorCorrectionPass.uniforms[ "mulRGB" ].value = new THREE.Vector3( 1.3, 1.3, 1.3 );
+		
+		var composer = new THREE.EffectComposer( renderer );
+
+		composer.addPass( bgPass );
+		composer.addPass( renderPass );
+		composer.addPass( colorCorrectionPass );
+		composer.addPass( bokehPass );
+		
+		postprocessing.composer = composer;
+		postprocessing.colcor = colorCorrectionPass;
+		postprocessing.bokeh = bokehPass;
+
 	}
 
 	/*var initBackPlane = function () {
@@ -1290,8 +1330,20 @@ var ThreeEngine = function () {
 		looker.rotation.y = -dir+(90*ToRad);*/
 
 
-		renderer.render( sceneSky, cameraSky );
-		renderer.render( scene, camera );
+		//renderer.render( sceneSky, cameraSky );
+		//renderer.render( scene, camera );
+
+		if ( postprocessing.enabled ) {
+
+			postprocessing.composer.render( 0.1 );
+
+		} else {
+
+			//renderer.clear();
+			renderer.render( sceneSky, cameraSky );
+			renderer.render( scene, camera );
+
+		}
 
 		updateBullet();
 
@@ -1697,6 +1749,7 @@ var ThreeEngine = function () {
 		cameraSky.aspect = vsize.z;
 		cameraSky.updateProjectionMatrix();
 		renderer.setSize( vsize.x, vsize.y );
+		if ( postprocessing.enabled ) postprocessing.composer.setSize( vsize.x, vsize.y );
 	}
 
 	var viewDivid = function () {
