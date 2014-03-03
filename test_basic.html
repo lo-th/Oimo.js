@@ -186,11 +186,16 @@
         var mesh;
 
         while (i--){
-            var body = bodys[i].body;
+
             mesh = meshs[i];
 
+<<<<<<< HEAD
             if(!body.sleeping){
                 m = body.getMatrix();
+=======
+            if(!bodys[i].sleep()){
+                m = bodys[i].getMatrix();
+>>>>>>> parent of c031c6e... Fixing body reference
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );
                 mesh.rotation.setFromRotationMatrix( mtx );
@@ -204,7 +209,7 @@
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
-                    body.setPosition(x,y,z);
+                    bodys[i].setPosition(x,y,z);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
