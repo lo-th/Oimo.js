@@ -485,7 +485,8 @@ OIMO.World.prototype = {
         }
         // expand island buffers
         if(this.maxIslandRigidBodies<this.numRigidBodies){
-            this.maxIslandRigidBodies=this.numRigidBodies<<1;
+            //this.maxIslandRigidBodies=this.numRigidBodies<<1;
+            this.maxIslandRigidBodies=this.numRigidBodies*2;
             this.islandRigidBodies=[];
             this.islandStack=[];
             this.islandRigidBodies.length = this.maxIslandRigidBodies;
@@ -493,7 +494,8 @@ OIMO.World.prototype = {
         }
         var numConstraints=this.numJoints+this.numContacts;
         if(this.maxIslandConstraints<numConstraints){
-            this.maxIslandConstraints=numConstraints<<1;
+            //this.maxIslandConstraints=numConstraints<<1;
+            this.maxIslandConstraints=numConstraints*2;
             this.islandConstraints=[];
             this.islandConstraints.length = this.maxIslandConstraints;
         }
@@ -1239,7 +1241,8 @@ OIMO.BroadPhase.prototype = {
     },
     addPair:function(s1,s2){
         if(this.numPairs==this.bufferSize){
-            var newBufferSize=this.bufferSize<<1;
+            //var newBufferSize=this.bufferSize<<1;
+            var newBufferSize=this.bufferSize*2;
             var newPairs=[];// vector
             newPairs.length = this.bufferSize;
             var i = this.bufferSize;
@@ -1279,7 +1282,8 @@ OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
 }
 OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
     if(this.numProxies==this.maxProxies){
-        this.maxProxies<<=1;
+        //this.maxProxies<<=1;
+        this.maxProxies*=2;
         var newProxies=[];
         var i = this.numProxies;
         while(i--){
@@ -1301,6 +1305,7 @@ OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
 }
 OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
     this.numPairChecks=this.numProxies*(this.numProxies-1)>>1;
+    //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
         var i = this.numProxies;
         while(i--){
         //for(var i=0, l=this.numProxies;i<l;i++){
@@ -1519,7 +1524,8 @@ OIMO.SAPAxis.prototype = {
 
     addElements:function(min,max){
         if(this.numElements+2>=this.bufferSize){
-            this.bufferSize<<=1;
+            //this.bufferSize<<=1;
+            this.bufferSize*=2;
             var newElements=[];
             for(var i=0, l=this.numElements; i<l; i++){
                 newElements[i]=this.elements[i];
@@ -1587,6 +1593,7 @@ OIMO.SAPAxis.prototype = {
         var diff=right-left;
         if(diff>16){
         var mid=left+(diff>>1);
+        //var mid=left+(diff*0.5);
         tmp=elements[mid];
         elements[mid]=elements[right];
         elements[right]=tmp;
@@ -1769,7 +1776,8 @@ OIMO.DBVTBroadPhase.prototype.addProxy = function (proxy) {
     var p=(proxy);
     this.tree.insertLeaf(p.leaf);
     if(this.numLeaves==this.maxLeaves){
-    this.maxLeaves<<=1;
+    //this.maxLeaves<<=1;
+    this.maxLeaves*=2;
     var newLeaves=[];// vector
     newLeaves.length = this.maxLeaves;
     for(var i=0;i<this.numLeaves;i++){
@@ -1850,7 +1858,8 @@ OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
     continue;
     }
     if(stackCount+4>=this.maxStack){
-    this.maxStack<<=1;
+    //this.maxStack<<=1;
+    this.maxStack*=2;
     var newStack=[];// vector
     newStack.length = this.maxStack;
     for(var i=0;i<stackCount;i++){
