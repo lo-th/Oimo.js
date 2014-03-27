@@ -6,7 +6,7 @@ It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/Oi
 created by [Saharan](http://el-ement.com/blog/) on ActionScript 3.0.<br>
 
 
-Demo with three.js and worker:
+Home Demo with three.js and worker:
 
 [oimo.js dev](http://lo-th.github.io/Oimo.js/index.html)
 
@@ -23,3 +23,7 @@ Basic demo no worker
 Basic demo worker transferrable
 
 [worker test](http://lo-th.github.io/Oimo.js/test_worker.html)
+
+Basic demo from png compression (dev:31kb rev:29kb)
+
+[png test](http://lo-th.github.io/Oimo.js/test_basic_png.html)
