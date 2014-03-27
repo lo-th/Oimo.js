@@ -79,7 +79,8 @@ def main(argv=None):
 		# header
 
 		with open(output,'r') as f: text = f.read()
-		with open(output,'w') as f: f.write('// oimo.js - https://github.com/lo-th/Oimo.js\n' + text + sourcemapping)
+		# with open(output,'w') as f: f.write('// oimo.js - https://github.com/lo-th/Oimo.js\n' + text + sourcemapping)
+		with open(output,'w') as f: f.write( text + sourcemapping)
 
 	os.close(fd)
 	os.remove(path)
