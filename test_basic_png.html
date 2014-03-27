@@ -13,10 +13,7 @@
     #interface{ position: absolute; left:10px; top:10px; width:456px; height:20px; }
     #info{ pointer-events:none; position: absolute; left:10px; top:50px; width: 400px; height: 400px; }
 </style>
-
-<script src="js/three.min.js"></script>
 <script src="js/PngSourceLoader.js"></script>
-
 </head>
 <body>
 <div id='container'></div>
@@ -56,7 +53,8 @@
     prevInit();
 
     function prevInit() {
-        var L = new PngSourceLoader("images/oimo.dev.png", init);
+        var L = new PngSourceLoader(["images/three.png", "images/oimo.dev.png"], init);
+        //var L = new PngSourceLoader("images/oimo.dev.png", init);
     }
     
     function init() {
