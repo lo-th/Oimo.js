@@ -13,6 +13,9 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         s=(shape1);
         b=(shape2);
     }
+
+    var D = b.dimentions;
+
     var ps=s.position;
     var psx=ps.x;
     var psy=ps.y;
@@ -22,18 +25,17 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
     var pby=pb.y;
     var pbz=pb.z;
     var rad=s.radius;
-    var nw=b.normalDirectionWidth;
-    var nh=b.normalDirectionHeight;
-    var nd=b.normalDirectionDepth;
+
     var hw=b.halfWidth;
     var hh=b.halfHeight;
     var hd=b.halfDepth;
+
     var dx=psx-pbx;
     var dy=psy-pby;
     var dz=psz-pbz;
-    var sx=nw.x*dx+nw.y*dy+nw.z*dz;
-    var sy=nh.x*dx+nh.y*dy+nh.z*dz;
-    var sz=nd.x*dx+nd.y*dy+nd.z*dz;
+    var sx=D[0]*dx+D[1]*dy+D[2]*dz;
+    var sy=D[3]*dx+D[4]*dy+D[5]*dz;
+    var sz=D[6]*dx+D[7]*dy+D[8]*dz;
     var cx;
     var cy;
     var cz;
@@ -82,27 +84,27 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
                 len=dx-hw;
             if(sx<0){
                 sx=-hw;
-                dx=nw.x;
-                dy=nw.y;
-                dz=nw.z;
+                dx=D[0];
+                dy=D[1];
+                dz=D[2];
             }else{
                 sx=hw;
-                dx=-nw.x;
-                dy=-nw.y;
-                dz=-nw.z;
+                dx=-D[0];
+                dy=-D[1];
+                dz=-D[2];
             }
         }else{
             len=dz-hd;
             if(sz<0){
                 sz=-hd;
-                dx=nd.x;
-                dy=nd.y;
-                dz=nd.z;
+                dx=D[6];
+                dy=D[7];
+                dz=D[8];
             }else{
                 sz=hd;
-                dx=-nd.x;
-                dy=-nd.y;
-                dz=-nd.z;
+                dx=-D[6];
+                dy=-D[7];
+                dz=-D[8];
             }
         }
         }else{
@@ -110,38 +112,38 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
                 len=dy-hh;
                 if(sy<0){
                     sy=-hh;
-                    dx=nh.x;
-                    dy=nh.y;
-                    dz=nh.z;
+                    dx=D[3];
+                    dy=D[4];
+                    dz=D[5];
                 }else{
                     sy=hh;
-                    dx=-nh.x;
-                    dy=-nh.y;
-                    dz=-nh.z;
+                    dx=-D[3];
+                    dy=-D[4];
+                    dz=-D[5];
                 }
             }else{
                 len=dz-hd;
                 if(sz<0){
                     sz=-hd;
-                    dx=nd.x;
-                    dy=nd.y;
-                    dz=nd.z;
+                    dx=D[6];
+                    dy=D[7];
+                    dz=D[8];
                 }else{
                     sz=hd;
-                    dx=-nd.x;
-                    dy=-nd.y;
-                    dz=-nd.z;
+                    dx=-D[6];
+                    dy=-D[7];
+                    dz=-D[8];
             }
         }
     }
-    cx=pbx+sx*nw.x+sy*nh.x+sz*nd.x;
-    cy=pby+sx*nw.y+sy*nh.y+sz*nd.y;
-    cz=pbz+sx*nw.z+sy*nh.z+sz*nd.z;
+    cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+    cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+    cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
     manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
     }else{
-        cx=pbx+sx*nw.x+sy*nh.x+sz*nd.x;
-        cy=pby+sx*nw.y+sy*nh.y+sz*nd.y;
-        cz=pbz+sx*nw.z+sy*nh.z+sz*nd.z;
+        cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+        cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+        cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
         dx=cx-ps.x;
         dy=cy-ps.y;
         dz=cz-ps.z;

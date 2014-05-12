@@ -4,8 +4,6 @@
   box-sizing: border-box;
 }*/
 .CodeMirror {
-  /* Set height, width, borders, and global font properties here */
-  /*font-family: monospace;*/
   font-family: SourceCode;
   height:100%;
   width:100%;
@@ -30,21 +28,14 @@
 
 /* Let's get this party started */
 ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 8px;
+    height: 8px;
    
 }
 
-::-webkit-scrollbar-track-piece {           /* Fond */
-  background: transparent none;
-  border: solid 4px transparent;
-  border-right-width: 8px;
-  margin: 4px;
-  -webkit-box-shadow: inset 1px 1px 0 0 rgb(137,131,117), inset -1px -1px 0 0 rgb(224,220,210);
-}
-::-webkit-scrollbar-track-piece:horizontal {      /* Fond pour la barre du bas */
-  border-right-width: 4px;
-  border-bottom-width: 8px;
+::-webkit-scrollbar-track-piece { 
+  background: rgba(0,0,0,0);
+  margin: 0px;
 }
  
 /* Track */
@@ -52,16 +43,17 @@
     /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,1); 
     -webkit-border-radius: 10px;
     border-radius: 10px;*/
-     background: rgba(46,47,48,1);
+     background: rgba(46,47,48,0);
 }
  
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  border: solid 0 transparent;
-  border-right-width: 4px;
   -webkit-border-radius: 5px;
+  /*border: solid 0 transparent;
+  border-right-width: 10px;
+  
   -webkit-border-top-right-radius: 9px 5px;
-  -webkit-border-bottom-right-radius: 9px 5px;
+  -webkit-border-bottom-right-radius: 9px 5px;*/
   -webkit-box-shadow: inset 0 0 0 1px rgb(79,79,79), inset 0 0 0 6px rgb(88,88,89);
    /* -webkit-border-radius: 10px;
     border-radius: 10px;*/
@@ -71,16 +63,15 @@
 ::-webkit-scrollbar-thumb:hover {           /* Barre */
   -webkit-box-shadow: inset 0 0 0 1px rgb(108,108,109), inset 0 0 0 6px rgb(110,110,111);
 }
-::-webkit-scrollbar-thumb:horizontal {          /* Barre du bas */
-  border-right-width: 0;
+ /*::-webkit-scrollbar-thumb:horizontal {         
+ border-right-width: 0px;
   border-bottom-width: 4px;
   -webkit-border-top-right-radius: 5px;
   -webkit-border-bottom-right-radius: 5px 9px;
   -webkit-border-bottom-left-radius: 5px 9px;
-}
+}*/
 ::-webkit-scrollbar-thumb:window-inactive {
-  -webkit-box-shadow: inset 0 0 0 1px rgb(78,78,79), inset 0 0 0 6px rgb(58,58,59);
-
+  -webkit-box-shadow: inset 0 0 0 1px rgb(10,10,10), inset 0 0 0 6px rgb(58,58,59);
 }
 
 
@@ -136,7 +127,7 @@
 .cm-tab { display: inline-block; }
 
 /* DEFAULT THEME */
-
+.cm-s-default.CodeMirror { color: #111111; background:rgba(0,0,0,0);}
 .cm-s-default .cm-keyword {color: #708;}
 .cm-s-default .cm-atom {color: #219;}
 .cm-s-default .cm-number {color: #164;}
@@ -171,7 +162,8 @@
 
 div.CodeMirror span.CodeMirror-matchingbracket {color: #0f0;}
 div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
-.CodeMirror-activeline-background {background: #e8f2ff;}
+.CodeMirror-activeline-background {background: rgba(232,242,255,0.3); }
+.CodeMirror-focused .CodeMirror-selected { background: rgba(215,212,240,0.2);  }
 
 /* MONOKAI THEME */
 
@@ -376,8 +368,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
   visibility: visible;
 }
 
-.CodeMirror-selected { background: #d9d9d9; }
-.CodeMirror-focused .CodeMirror-selected { background: #d7d4f0; }
+/*.CodeMirror-selected { background: #d9d9d9; }*/
 
 .cm-searching {
   background: #ffa;

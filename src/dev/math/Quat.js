@@ -23,6 +23,24 @@ OIMO.Quat.prototype = {
         this.z=q1.z+q2.z;
         return this;
     },
+    addTime: function(v,t){
+        var os=this.s;
+        var ox=this.x;
+        var oy=this.y;
+        var oz=this.z;
+        t*=0.5;
+        var s=(-v.x*ox-v.y*oy-v.z*oz)*t;
+        var x=(v.x*os+v.y*oz-v.z*oy)*t;
+        var y=(-v.x*oz+v.y*os+v.z*ox)*t;
+        var z=(v.x*oy-v.y*ox+v.z*os)*t;
+        os+=s; ox+=x; oy+=y; oz+=z;
+        s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
+        this.s=os*s;
+        this.x=ox*s;
+        this.y=oy*s;
+        this.z=oz*s;
+        return this;
+    },
     sub: function(q1,q2){
         this.s=q1.s-q2.s;
         this.x=q1.x-q2.x;
@@ -102,6 +120,10 @@ OIMO.Quat.prototype = {
         this.y=q.y;
         this.z=q.z;
         return this;
+    },
+    testDiff: function(q){
+        if(this.s!==q.s || this.x!==q.x || this.y!==q.y || this.z!==q.z) return true;
+        else return false;
     },
     clone: function(q){
         return new OIMO.Quat(this.s,this.x,this.y,this.z);

@@ -1,12 +1,9 @@
 OIMO.BoxBoxCollisionDetector = function(){
     OIMO.CollisionDetector.call( this );
-
-    this.clipVertices1=[];// vector 24
-    this.clipVertices2=[];// vector 24
-    this.clipVertices1.length = 24;
-    this.clipVertices2.length = 24;
-    this.used=[];// vector 8
-    this.used.length = 8;
+    this.clipVertices1=new OIMO_ARRAY_TYPE(24);
+    this.clipVertices2=new OIMO_ARRAY_TYPE(24);
+    this.used=new OIMO_ARRAY_TYPE(8);
+    
     this.INF = 1/0;
 }
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
@@ -20,6 +17,12 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
         b1=(shape2);
         b2=(shape1);
     }
+    var V1 = b1.elements;
+    var V2 = b2.elements;
+
+    var D1 = b1.dimentions;
+    var D2 = b2.dimentions;
+
     var p1=b1.position;
     var p2=b2.position;
     var p1x=p1.x;
@@ -37,42 +40,45 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var w2=b2.halfWidth;
     var h2=b2.halfHeight;
     var d2=b2.halfDepth;
-    var d1x=b1.halfDirectionWidth.x;
-    var d1y=b1.halfDirectionWidth.y;
-    var d1z=b1.halfDirectionWidth.z;
-    var d2x=b1.halfDirectionHeight.x;
-    var d2y=b1.halfDirectionHeight.y;
-    var d2z=b1.halfDirectionHeight.z;
-    var d3x=b1.halfDirectionDepth.x;
-    var d3y=b1.halfDirectionDepth.y;
-    var d3z=b1.halfDirectionDepth.z;
-    var d4x=b2.halfDirectionWidth.x;
-    var d4y=b2.halfDirectionWidth.y;
-    var d4z=b2.halfDirectionWidth.z;
-    var d5x=b2.halfDirectionHeight.x;
-    var d5y=b2.halfDirectionHeight.y;
-    var d5z=b2.halfDirectionHeight.z;
-    var d6x=b2.halfDirectionDepth.x;
-    var d6y=b2.halfDirectionDepth.y;
-    var d6z=b2.halfDirectionDepth.z;
-    var a1x=b1.normalDirectionWidth.x;
-    var a1y=b1.normalDirectionWidth.y;
-    var a1z=b1.normalDirectionWidth.z;
-    var a2x=b1.normalDirectionHeight.x;
-    var a2y=b1.normalDirectionHeight.y;
-    var a2z=b1.normalDirectionHeight.z;
-    var a3x=b1.normalDirectionDepth.x;
-    var a3y=b1.normalDirectionDepth.y;
-    var a3z=b1.normalDirectionDepth.z;
-    var a4x=b2.normalDirectionWidth.x;
-    var a4y=b2.normalDirectionWidth.y;
-    var a4z=b2.normalDirectionWidth.z;
-    var a5x=b2.normalDirectionHeight.x;
-    var a5y=b2.normalDirectionHeight.y;
-    var a5z=b2.normalDirectionHeight.z;
-    var a6x=b2.normalDirectionDepth.x;
-    var a6y=b2.normalDirectionDepth.y;
-    var a6z=b2.normalDirectionDepth.z;
+
+    var a1x=D1[0];
+    var a1y=D1[1];
+    var a1z=D1[2];
+    var a2x=D1[3];
+    var a2y=D1[4];
+    var a2z=D1[5];
+    var a3x=D1[6];
+    var a3y=D1[7];
+    var a3z=D1[8];
+    var d1x=D1[9];
+    var d1y=D1[10];
+    var d1z=D1[11];
+    var d2x=D1[12];
+    var d2y=D1[13];
+    var d2z=D1[14];
+    var d3x=D1[15];
+    var d3y=D1[16];
+    var d3z=D1[17];
+
+    var a4x=D2[0];
+    var a4y=D2[1];
+    var a4z=D2[2];
+    var a5x=D2[3];
+    var a5y=D2[4];
+    var a5z=D2[5];
+    var a6x=D2[6];
+    var a6y=D2[7];
+    var a6z=D2[8];
+    var d4x=D2[9];
+    var d4y=D2[10];
+    var d4z=D2[11];
+    var d5x=D2[12];
+    var d5y=D2[13];
+    var d5z=D2[14];
+    var d6x=D2[15];
+    var d6y=D2[16];
+    var d6z=D2[17];
+    
     var a7x=a1y*a4z-a1z*a4y;
     var a7y=a1z*a4x-a1x*a4z;
     var a7z=a1x*a4y-a1y*a4x;
@@ -859,15 +865,15 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var v2x;
     var v2y;
     var v2z;
-    v=b1.vertex1;
-    v1x=v.x;
-    v1y=v.y;
-    v1z=v.z;
+    //vertex1;
+    v1x=V1[0];
+    v1y=V1[1];
+    v1z=V1[2];
     maxDistance=nx*v1x+ny*v1y+nz*v1z;
-    v=b1.vertex2;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex2;
+    vx=V1[3];
+    vy=V1[4];
+    vz=V1[5];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -875,10 +881,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex3;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex3;
+    vx=V1[6];
+    vy=V1[7];
+    vz=V1[8];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -886,10 +892,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex4;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex4;
+    vx=V1[9];
+    vy=V1[10];
+    vz=V1[11];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -897,10 +903,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex5;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex5;
+    vx=V1[12];
+    vy=V1[13];
+    vz=V1[14];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -908,10 +914,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex6;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex6;
+    vx=V1[15];
+    vy=V1[16];
+    vz=V1[17];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -919,10 +925,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex7;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex7;
+    vx=V1[18];
+    vy=V1[19];
+    vz=V1[20];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -930,10 +936,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex8;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex8;
+    vx=V1[21];
+    vy=V1[22];
+    vz=V1[23];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -941,15 +947,15 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b2.vertex1;
-    v2x=v.x;
-    v2y=v.y;
-    v2z=v.z;
+    //vertex1;
+    v2x=V2[0];
+    v2y=V2[1];
+    v2z=V2[2];
     maxDistance=nx*v2x+ny*v2y+nz*v2z;
-    v=b2.vertex2;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex2;
+    vx=V2[3];
+    vy=V2[4];
+    vz=V2[5];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -957,10 +963,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex3;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex3;
+    vx=V2[6];
+    vy=V2[7];
+    vz=V2[8];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -968,10 +974,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex4;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex4;
+    vx=V2[9];
+    vy=V2[10];
+    vz=V2[11];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -979,10 +985,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex5;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex5;
+    vx=V2[12];
+    vy=V2[13];
+    vz=V2[14];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -990,10 +996,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex6;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex6;
+    vx=V2[15];
+    vy=V2[16];
+    vz=V2[17];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -1001,10 +1007,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex7;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex7;
+    vx=V2[18];
+    vy=V2[19];
+    vz=V2[20];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -1012,10 +1018,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex8;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex8;
+    vx=V2[21];
+    vy=V2[22];
+    vz=V2[23];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -1076,112 +1082,112 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     switch(minDotIndex){
     case 0:
-    v=b1.vertex1;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex3;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex4;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex2;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex1;
+    q1x=V1[0];
+    q1y=V1[1];
+    q1z=V1[2];
+    //vertex3;
+    q2x=V1[6];
+    q2y=V1[7];
+    q2z=V1[8];
+    //vertex4;
+    q3x=V1[9];
+    q3y=V1[10];
+    q3z=V1[11];
+    //vertex2;
+    q4x=V1[3];
+    q4y=V1[4];
+    q4z=V1[5];
     break;
     case 1:
-    v=b1.vertex6;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex8;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex7;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex5;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex6;
+    q1x=V1[15];
+    q1y=V1[16];
+    q1z=V1[17];
+    //vertex8;
+    q2x=V1[21];
+    q2y=V1[22];
+    q2z=V1[23];
+    //vertex7;
+    q3x=V1[18];
+    q3y=V1[19];
+    q3z=V1[20];
+    //vertex5;
+    q4x=V1[12];
+    q4y=V1[13];
+    q4z=V1[14];
     break;
     case 2:
-    v=b1.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex1;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex2;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex5;
+    q1x=V1[12];
+    q1y=V1[13];
+    q1z=V1[14];
+    //vertex1;
+    q2x=V1[0];
+    q2y=V1[1];
+    q2z=V1[2];
+    //vertex2;
+    q3x=V1[3];
+    q3y=V1[4];
+    q3z=V1[5];
+    //vertex6;
+    q4x=V1[15];
+    q4y=V1[16];
+    q4z=V1[17];
     break;
     case 3:
-    v=b1.vertex8;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex7;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex8;
+    q1x=V1[21];
+    q1y=V1[22];
+    q1z=V1[23];
+    //vertex4;
+    q2x=V1[9];
+    q2y=V1[10];
+    q2z=V1[11];
+    //vertex3;
+    q3x=V1[6];
+    q3y=V1[7];
+    q3z=V1[8];
+    //vertex7;
+    q4x=V1[18];
+    q4y=V1[19];
+    q4z=V1[20];
     break;
     case 4:
-    v=b1.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex7;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex1;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex5;
+    q1x=V1[12];
+    q1y=V1[13];
+    q1z=V1[14];
+    //vertex7;
+    q2x=V1[18];
+    q2y=V1[19];
+    q2z=V1[20];
+    //vertex3;
+    q3x=V1[6];
+    q3y=V1[7];
+    q3z=V1[8];
+    //vertex1;
+    q4x=V1[0];
+    q4y=V1[1];
+    q4z=V1[2];
     break;
     case 5:
-    v=b1.vertex2;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex8;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex2;
+    q1x=V1[3];
+    q1y=V1[4];
+    q1z=V1[5];
+    //vertex4;
+    q2x=V1[6];
+    q2y=V1[7];
+    q2z=V1[8];
+    //vertex8;
+    q3x=V1[21];
+    q3y=V1[22];
+    q3z=V1[23];
+    //vertex6;
+    q4x=V1[15];
+    q4y=V1[16];
+    q4z=V1[17];
     break;
     }
     }else{
@@ -1214,112 +1220,112 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     switch(minDotIndex){
     case 0:
-    v=b2.vertex1;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex3;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex4;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex2;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex1;
+    q1x=V2[0];
+    q1y=V2[1];
+    q1z=V2[2];
+    //vertex3;
+    q2x=V2[6];
+    q2y=V2[7];
+    q2z=V2[8];
+    //vertex4;
+    q3x=V2[9];
+    q3y=V2[10];
+    q3z=V2[11];
+    //vertex2;
+    q4x=V2[3];
+    q4y=V2[4];
+    q4z=V2[5];
     break;
     case 1:
-    v=b2.vertex6;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex8;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex7;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex5;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex6;
+    q1x=V2[15];
+    q1y=V2[16];
+    q1z=V2[17];
+    //vertex8;
+    q2x=V2[21];
+    q2y=V2[22];
+    q2z=V2[23];
+    //vertex7;
+    q3x=V2[18];
+    q3y=V2[19];
+    q3z=V2[20];
+    //vertex5;
+    q4x=V2[12];
+    q4y=V2[13];
+    q4z=V2[14];
     break;
     case 2:
-    v=b2.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex1;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex2;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex5;
+    q1x=V2[12];
+    q1y=V2[13];
+    q1z=V2[14];
+    //vertex1;
+    q2x=V2[0];
+    q2y=V2[1];
+    q2z=V2[2];
+    //vertex2;
+    q3x=V2[3];
+    q3y=V2[4];
+    q3z=V2[5];
+    //vertex6;
+    q4x=V2[15];
+    q4y=V2[16];
+    q4z=V2[17];
     break;
     case 3:
-    v=b2.vertex8;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex7;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex8;
+    q1x=V2[21];
+    q1y=V2[22];
+    q1z=V2[23];
+    //vertex4;
+    q2x=V2[9];
+    q2y=V2[10];
+    q2z=V2[11];
+    //vertex3;
+    q3x=V2[6];
+    q3y=V2[7];
+    q3z=V2[8];
+    //vertex7;
+    q4x=V2[18];
+    q4y=V2[19];
+    q4z=V2[20];
     break;
     case 4:
-    v=b2.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex7;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex1;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //ertex5;
+    q1x=V2[12];
+    q1y=V2[13];
+    q1z=V2[14];
+    //vertex7;
+    q2x=V2[18];
+    q2y=V2[19];
+    q2z=V2[20];
+    //vertex3;
+    q3x=V2[6];
+    q3y=V2[7];
+    q3z=V2[8];
+    //vertex1;
+    q4x=V2[0];
+    q4y=V2[1];
+    q4z=V2[2];
     break;
     case 5:
-    v=b2.vertex2;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex8;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex2;
+    q1x=V2[3];
+    q1y=V2[4];
+    q1z=V2[5];
+    //vertex4;
+    q2x=V2[9];
+    q2y=V2[10];
+    q2z=V2[11];
+    //vertex8;
+    q3x=V2[21];
+    q3y=V2[22];
+    q3z=V2[23];
+    //vertex6;
+    q4x=V2[15];
+    q4y=V2[16];
+    q4z=V2[17];
     break;
     }
     }

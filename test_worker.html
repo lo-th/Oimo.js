@@ -38,7 +38,7 @@
             world.gravity.init(0,-10,0);
 
             // Ground plane
-            var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world});
+            var ground = new OIMO.Body({size:[40, 4, 40], pos:[0,-2,0], world:world});
             
             var N = e.data.N;
             for(var i=0; i!==N; i++){
@@ -96,7 +96,7 @@
     var oimoInfo = 0;
 
     // Create a blob for the inline worker code
-    var blob = new Blob([document.querySelector('#worker1').textContent]);
+    var blob = new Blob([document.querySelector('#worker1').textContent], {type : 'text/javascript'});
 
     // Create worker
     var worker = new Worker(window.URL.createObjectURL(blob));
@@ -212,7 +212,7 @@
         scene.add( mesh );
            
         // cubes
-        var cubeGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.CubeGeometry( 0.5,  0.5,  0.5, 1, 1, 1));
+        var cubeGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.BoxGeometry( 0.5,  0.5,  0.5, 1, 1, 1));
         
 
         for(var i=0; i<N*0.5; i++){
@@ -263,7 +263,7 @@
         } fps++;
 
         var info =[
-            "Oimo.js DEV.1.1.0a<br><br>",
+            "Oimo.js DEV.1.1.1a<br><br>",
             "Physics: " + oimoInfo +" fps<br>",
             "Render: " + fpsint +" fps<br>"
         ].join("\n");

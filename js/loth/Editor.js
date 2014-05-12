@@ -1,8 +1,9 @@
 /**
  * @author loth / http://3dflashlo.wordpress.com/
  */
+ 'use strict';
 var Editor = function (Pos) {
-	'use strict';
+	
 	var left = Pos || 310;//590;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
@@ -38,6 +39,19 @@ var Editor = function (Pos) {
 
 	}
 
+	var iconSize2 = 46;
+	var iconColor = '#ffffff'
+
+	var icon_update = [
+		"<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'",
+		"width='"+iconSize2+"px' height='"+iconSize2+"px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'>",
+		"<path id='icon_update' fill='"+iconColor+"' d='M373.223,142.573l-37.252,37.253c-20.225-20.224-48.162-32.731-79.021-32.731",
+		"c-61.719,0-111.752,50.056-111.752,111.776c0,0.016,0-0.016,0,0h43.412l-69.342,69.315L50,258.871h42.514c0-0.008,0,0.006,0,0",
+		"c0-90.816,73.621-164.46,164.436-164.46C302.357,94.411,343.467,112.816,373.223,142.573z M462,253.129l-69.268-69.316",
+		"l-69.342,69.316h43.412c0,0.016,0-0.017,0,0c0,61.72-50.033,111.776-111.752,111.776c-30.859,0-58.797-12.508-79.021-32.731",
+		"l-37.252,37.253c29.758,29.757,70.867,48.162,116.273,48.162c90.814,0,164.436-73.644,164.436-164.459c0-0.007,0,0.008,0,0H462z'/></svg>"
+	].join("\n");
+
 
 	var colors = ['#303030', '#b10dc9', '#0074d9', '#ff851b'];
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
@@ -55,14 +69,39 @@ var Editor = function (Pos) {
 	container.appendChild( decoFrame );
 
     // RUN BUTTON
-	var bRun = document.createElement( 'div' );
+    var bRun = document.createElement( 'div' );
+	bRun.id = 'Editor-Run';
+	bRun.style.cssText = bstyle + buttonActif + 'top:10px; left:20px; position:absolute; width:46px; height:46px;';
+	var rvalue = 0;
+	var updateTimer;
+	var outColor = 'ffffff';
+	var selColor = '1a94ff';
+	var icColor = document.createElement( 'div' );
+	icColor.style.cssText = "-webkit-border-radius:40px; border-radius:40px; position:absolute; width:46px; height:46px; pointer-events:none; background-color: rgba(0,0,0,0); pointer-events:none;";
+	var icRun = document.createElement( 'div' );
+	icRun.style.cssText = "position:absolute; width:46px; height:46px; pointer-events:none;";
+	icRun.innerHTML = icon_update; 
+	container.appendChild( bRun );
+	bRun.appendChild(icColor);
+	bRun.appendChild(icRun);
+	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); icColor.style.backgroundColor = 'rgba(0,116,217,0.7)'; }, false );
+	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  icColor.style.backgroundColor = 'rgba(0,116,217,0.1)'; updateTimer = setInterval(rotateUpdate, 10, icRun); document.getElementById("icon_update").setAttribute('fill','#'+selColor);}, false );
+    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); icColor.style.backgroundColor = 'rgba(0,0,0,0)'; clearInterval(updateTimer); document.getElementById("icon_update").setAttribute('fill','#'+outColor);}, false );
+
+    var rotateUpdate = function (dom) {
+    	rvalue -= 5;
+		dom.style.webkitTransform = 'rotate('+rvalue+'deg)';
+		dom.style.oTransform = 'rotate('+rvalue+'deg)';
+		dom.style.transform = 'rotate('+rvalue+'deg)';
+	}
+	/*var bRun = document.createElement( 'div' );
 	bRun.id = 'Editor-Run';
 	bRun.style.cssText =bstyle+buttonActif+'top:10px; left:10px; position:absolute; width:100px; height:30px; padding-top:12px;';
 	bRun.textContent = "RUN SCRIPT";
 	container.appendChild( bRun );
 	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); this.style.backgroundColor = colors[3]; }, false );
 	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  this.style.backgroundColor = colors[2]; }, false );
-    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = colors[0]; }, false );
+    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); this.style.backgroundColor = colors[0]; }, false );*/
 
     // MENU DEMO
 	for(var i=0;i!==maxDemo;i++){

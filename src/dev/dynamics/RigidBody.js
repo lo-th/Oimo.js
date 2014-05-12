@@ -28,10 +28,11 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     this.numJoints=0;
     this.addedToIsland=false;
     this.sleeping=false;
-    this.massInfo= new OIMO.MassInfo(); 
+    this.massInfo= new OIMO.MassInfo();
 
-    var len=ax*ax+ay*ay+az*az;
-    this.position=new OIMO.Vec3(x,y,z);
+    this.position=new OIMO.Vec3(x,y,z); 
+
+    var len=ax*ax+ay*ay+az*az; 
     if(len>0){
         len=1/Math.sqrt(len);
         ax*=len;
@@ -104,9 +105,10 @@ OIMO.RigidBody.prototype = {
             var relX=shape.relativePosition.x;
             var relY=shape.relativePosition.y;
             var relZ=shape.relativePosition.z;
-            tmpV.x+=relX*shapeMass;
+            /*tmpV.x+=relX*shapeMass;
             tmpV.y+=relY*shapeMass;
-            tmpV.z+=relZ*shapeMass;
+            tmpV.z+=relZ*shapeMass;*/
+            tmpV.addScale(shape.relativePosition, shapeMass);
             this.mass+=shapeMass;
             this.rotateInertia(shape.relativeRotation,this.massInfo.inertia,tmpM);
             this.localInertia.addEqual(tmpM);
@@ -149,7 +151,7 @@ OIMO.RigidBody.prototype = {
             te[7]+=zx;
         }
         this.inverseLocalInertia.invert(this.localInertia);
-        if(type===this.BODY_STATIC){
+        if(type==this.BODY_STATIC){
             this.inverseMass=0;
             this.inverseLocalInertia.init(0,0,0,0,0,0,0,0,0);
         }
@@ -162,23 +164,27 @@ OIMO.RigidBody.prototype = {
         this.sleepTime=0;
         var cs=this.contactLink;
         while(cs!=null){
-        cs.body.sleepTime=0;
-        cs.body.sleeping=false;
-        cs=cs.next;
+            cs.body.sleepTime=0;
+            cs.body.sleeping=false;
+            cs=cs.next;
         }
         var js=this.jointLink;
         while(js!=null){
-        js.body.sleepTime=0;
-        js.body.sleeping=false;
-        js=js.next;
+            js.body.sleepTime=0;
+            js.body.sleeping=false;
+            js=js.next;
         }
         for(var shape=this.shapes;shape!=null;shape=shape.next){
-        shape.updateProxy();
+            shape.updateProxy();
         }
     },
     sleep:function(){
         if(!this.allowSleep||this.sleeping)return;
-        this.linearVelocity.x=0;
+        this.linearVelocity.init();
+        this.angularVelocity.init();
+        this.sleepPosition.copy(this.position);
+        this.sleepOrientation.copy(this.orientation);
+        /*this.linearVelocity.x=0;
         this.linearVelocity.y=0;
         this.linearVelocity.z=0;
         this.angularVelocity.x=0;
@@ -186,11 +192,12 @@ OIMO.RigidBody.prototype = {
         this.angularVelocity.z=0;
         this.sleepPosition.x=this.position.x;
         this.sleepPosition.y=this.position.y;
-        this.sleepPosition.z=this.position.z;
-        this.sleepOrientation.s=this.orientation.s;
+        this.sleepPosition.z=this.position.z;*/
+        /*this.sleepOrientation.s=this.orientation.s;
         this.sleepOrientation.x=this.orientation.x;
         this.sleepOrientation.y=this.orientation.y;
-        this.sleepOrientation.z=this.orientation.z;
+        this.sleepOrientation.z=this.orientation.z;*/
+        
         this.sleepTime=0;
         this.sleeping=true;
         for(var shape=this.shapes;shape!=null;shape=shape.next){
@@ -202,47 +209,53 @@ OIMO.RigidBody.prototype = {
     },
     updatePosition:function(timeStep){
         switch(this.type){
-        case this.BODY_STATIC:
-            this.linearVelocity.x=0;
-            this.linearVelocity.y=0;
-            this.linearVelocity.z=0;
-            this.angularVelocity.x=0;
-            this.angularVelocity.y=0;
-            this.angularVelocity.z=0;
-        break;
-        case this.BODY_DYNAMIC:
-            var vx=this.linearVelocity.x;
-            var vy=this.linearVelocity.y;
-            var vz=this.linearVelocity.z;
-            this.position.x+=vx*timeStep;
-            this.position.y+=vy*timeStep;
-            this.position.z+=vz*timeStep;
-            vx=this.angularVelocity.x;
-            vy=this.angularVelocity.y;
-            vz=this.angularVelocity.z;
-            var os=this.orientation.s;
-            var ox=this.orientation.x;
-            var oy=this.orientation.y;
-            var oz=this.orientation.z;
-            timeStep*=0.5;
-            var s=(-vx*ox-vy*oy-vz*oz)*timeStep;
-            var x=(vx*os+vy*oz-vz*oy)*timeStep;
-            var y=(-vx*oz+vy*os+vz*ox)*timeStep;
-            var z=(vx*oy-vy*ox+vz*os)*timeStep;
-            os+=s;
-            ox+=x;
-            oy+=y;
-            oz+=z;
-            s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
-            this.orientation.s=os*s;
-            this.orientation.x=ox*s;
-            this.orientation.y=oy*s;
-            this.orientation.z=oz*s;
+            case this.BODY_STATIC:
+                this.linearVelocity.init();
+                this.angularVelocity.init();
+                /*this.linearVelocity.x=0;
+                this.linearVelocity.y=0;
+                this.linearVelocity.z=0;
+                this.angularVelocity.x=0;
+                this.angularVelocity.y=0;
+                this.angularVelocity.z=0;*/
+            break;
+            case this.BODY_DYNAMIC:
+                this.position.addTime(this.linearVelocity, timeStep);
+                /*var vx=this.linearVelocity.x;
+                var vy=this.linearVelocity.y;
+                var vz=this.linearVelocity.z;
+                this.position.x+=vx*timeStep;
+                this.position.y+=vy*timeStep;
+                this.position.z+=vz*timeStep;*/
 
-            
-        break;
-        default:
-            throw new Error("Invalid type.");
+                this.orientation.addTime(this.angularVelocity, timeStep);
+                
+               /* var vx=this.angularVelocity.x;
+                var vy=this.angularVelocity.y;
+                var vz=this.angularVelocity.z;
+                var os=this.orientation.s;
+                var ox=this.orientation.x;
+                var oy=this.orientation.y;
+                var oz=this.orientation.z;
+                timeStep*=0.5;
+                var s=(-vx*ox-vy*oy-vz*oz)*timeStep;
+                var x=(vx*os+vy*oz-vz*oy)*timeStep;
+                var y=(-vx*oz+vy*os+vz*ox)*timeStep;
+                var z=(vx*oy-vy*ox+vz*os)*timeStep;
+                os+=s;
+                ox+=x;
+                oy+=y;
+                oz+=z;
+                s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
+                this.orientation.s=os*s;
+                this.orientation.x=ox*s;
+                this.orientation.y=oy*s;
+                this.orientation.z=oz*s;*/
+
+                
+            break;
+            default:
+                throw new Error("Invalid type.");
         }
         this.syncShapes();
     },
@@ -310,28 +323,32 @@ OIMO.RigidBody.prototype = {
 
         this.rotateInertia(this.rotation,this.inverseLocalInertia,this.inverseInertia);
         for(var shape=this.shapes;shape!=null;shape=shape.next){
-        var relPos=shape.relativePosition;
-        var relRot=shape.relativeRotation;
-        var rot=shape.rotation;
-        var lx=relPos.x;
-        var ly=relPos.y;
-        var lz=relPos.z;
-        shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
-        shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
-        shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];
-        rot.mul(relRot,this.rotation);
-        shape.updateProxy();
+            //var relPos=shape.relativePosition;
+            //var relRot=shape.relativeRotation;
+            //var rot=shape.rotation;
+            /*var lx=relPos.x;
+            var ly=relPos.y;
+            var lz=relPos.z;
+            shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
+            shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
+            shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];*/
+
+            shape.position.mul(this.position,shape.relativePosition,this.rotation);
+            shape.rotation.mul(shape.relativeRotation,this.rotation);
+            shape.updateProxy();
         }
     },
     applyImpulse:function(position,force){
-        this.linearVelocity.x+=force.x*this.inverseMass;
+        this.linearVelocity.addScale(force, this.inverseMass);
+        /*this.linearVelocity.x+=force.x*this.inverseMass;
         this.linearVelocity.y+=force.y*this.inverseMass;
-        this.linearVelocity.z+=force.z*this.inverseMass;
+        this.linearVelocity.z+=force.z*this.inverseMass;*/
         var rel=new OIMO.Vec3();
         rel.sub(position,this.position).cross(rel,force).mulMat(this.inverseInertia,rel);
-        this.angularVelocity.x+=rel.x;
+        this.angularVelocity.addEqual(rel);
+        /*this.angularVelocity.x+=rel.x;
         this.angularVelocity.y+=rel.y;
-        this.angularVelocity.z+=rel.z;
+        this.angularVelocity.z+=rel.z;*/
     },
 
 
@@ -341,20 +358,21 @@ OIMO.RigidBody.prototype = {
         this.linearVelocity.init();
         this.angularVelocity.init();
     },
-    setRotation:function(x,y,z){
-        /*var r = OIMO.EulerToAxis(x* OIMO.TO_RAD, y* OIMO.TO_RAD, z* OIMO.TO_RAD);
-        var rad = r[0];
-        var len = r[1]*r[1]+r[2]*r[2]+r[3]*r[3];
+    setOrientation:function(x,y,z){
+        // angle in radian
+        var r = OIMO.EulerToAxis(x, y, z);
+        var rad = r[0], ax = r[1], ay = r[2], az = r[3];
+        var len=ax*ax+ay*ay+az*az; 
         if(len>0){
             len=1/Math.sqrt(len);
-            r[1]*=len;
-            r[2]*=len;
-            r[3]*=len;
+            ax*=len;
+            ay*=len;
+            az*=len;
         }
         var sin=Math.sin(rad*0.5);
         var cos=Math.cos(rad*0.5);
-        this.body.orientation = new OIMO.Quat(cos,sin*r[1],sin*r[2],sin*r[3]);
-        //this.body.orientation = new OIMO.Quat(r[0], r[1], r[2], r[3]);*/
+        this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+        this.angularVelocity.init();
     },
     getMatrix:function(){
         var m = this.matrix.elements;

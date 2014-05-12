@@ -13,7 +13,7 @@
     #interface{ position: absolute; left:10px; top:10px; width:456px; height:20px; }
     #info{ pointer-events:none; position: absolute; left:10px; top:50px; width: 400px; height: 400px; }
 </style>
-<script src="js/PNGtoSCRIPT.js"></script>
+<script src="js/loth/Transcode.js"></script>
 </head>
 <body>
 <div id='container'></div>
@@ -53,7 +53,7 @@
     prevInit();
 
     function prevInit() {
-        var L = new PNGtoSCRIPT.Loader(["images/three.png", "images/oimo.dev.png"], init);
+        var L = new Transcode.Loader(["images/three.png", "images/oimo.dev.png"], init);
     }
     
     function init() {
@@ -81,8 +81,8 @@
 
         //add ground mesh
         var mat = new THREE.MeshLambertMaterial( { color: 0x151515 } );
-        var geo0 = new THREE.CubeGeometry( 100, 40, 400 );
-        var geo1 = new THREE.CubeGeometry( 400, 40, 400 );
+        var geo0 = new THREE.BoxGeometry( 100, 40, 400 );
+        var geo1 = new THREE.BoxGeometry( 400, 40, 400 );
         
         var mground0 = new THREE.Mesh( geo0, mat );
         mground0.position.y = -20;
@@ -92,7 +92,7 @@
         scene.add( mground1 );
 
         geoSphere = new THREE.SphereGeometry( 1 , 20, 10 );
-        geoBox = new THREE.CubeGeometry( 1, 1, 1 );
+        geoBox = new THREE.BoxGeometry( 1, 1, 1 );
 
         matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
         matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
@@ -232,7 +232,7 @@
         } fps++;
 
         var info =[
-            "Oimo.js DEV.1.1.0a<br><br>",
+            "Oimo.js DEV.1.1.1a<br><br>",
             "FPS: " + fpsint +" fps<br><br>",
             "Rigidbody: "+world.numRigidBodies+"<br>",
             "Contact: "+world.numContacts+"<br>",
