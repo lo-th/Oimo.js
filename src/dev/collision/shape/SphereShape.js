@@ -8,7 +8,7 @@ OIMO.SphereShape.prototype.calculateMassInfo = function(out){
     var mass=4/3*Math.PI*this.radius*this.radius*this.radius*this.density;
     out.mass=mass;
     var inertia=mass*this.radius*this.radius*2/5;
-    out.inertia.init( inertia,0,0,  0,inertia,0,  0,0,inertia );
+    out.inertia.init( inertia,0,0, 0,inertia,0, 0,0,inertia );
 }
 OIMO.SphereShape.prototype.updateProxy = function(){
     this.aabb.init(

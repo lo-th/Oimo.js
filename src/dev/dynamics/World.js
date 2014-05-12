@@ -26,7 +26,9 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     var numShapeTypes=3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
-    for(var i=0, l=numShapeTypes; i<l; i++){
+    var i=numShapeTypes;
+    while(i--){
+    //for(var i=0, l=numShapeTypes; i<l; i++){
         this.detectors[i]=[];
         this.detectors[i].length = numShapeTypes;
     }
@@ -159,18 +161,18 @@ OIMO.World.prototype = {
         while(body!==null){
             body.addedToIsland=false;
             if(body.sleeping){
-                var lv=body.linearVelocity;
+                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); }
+                /*var lv=body.linearVelocity;
                 var av=body.linearVelocity;
                 var p=body.position;
                 var sp=body.sleepPosition;
                 var o=body.orientation;
                 var so=body.sleepOrientation;
-                if(
-                lv.x!==0 || lv.y!==0 || lv.z!==0 ||
-                av.x!==0 || av.y!==0 || av.z!==0 ||
+               
+                if( lv.x!==0 || lv.y!==0 || lv.z!==0 || av.x!==0 || av.y!==0 || av.z!==0 ||
                 p.x!==sp.x || p.y!==sp.y || p.z!==sp.z ||
                 o.s!==so.s || o.x!==so.x || o.y!==so.y || o.z!==so.z
-                ){ body.awake(); }
+                ){ body.awake(); }*/
             }
             body=body.next;
         }
@@ -278,7 +280,7 @@ OIMO.World.prototype = {
         var next=contact.next;
         if(next)next.prev=prev;
         if(prev)prev.next=next;
-        if(this.contacts===contact)this.contacts=next;
+        if(this.contacts==contact)this.contacts=next;
         contact.prev=null;
         contact.next=null;
         contact.detach();
@@ -287,11 +289,13 @@ OIMO.World.prototype = {
         this.numContacts--;
     },
     calSleep:function(body){
-        if(!body.allowSleep){return false;}
-        var v=body.linearVelocity;
+        if(!body.allowSleep)return false;
+        if(body.linearVelocity.len()>0.04)return false;
+        if(body.angularVelocity.len()>0.25)return false;
+        /*var v=body.linearVelocity;
         if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
         v=body.angularVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
         return true;
     },
     solveIslands:function(){
@@ -328,9 +332,10 @@ OIMO.World.prototype = {
             }
             if(base.isLonely()){// update single body
                 if(base.isDynamic){
-                    base.linearVelocity.x+=this.gravity.x*this.timeStep;
+                    base.linearVelocity.addTime(this.gravity, this.timeStep);
+                    /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
-                    base.linearVelocity.z+=this.gravity.z*this.timeStep;
+                    base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
                 }
                 if(this.calSleep(base)){
                     base.sleepTime+=this.timeStep;
@@ -400,30 +405,34 @@ OIMO.World.prototype = {
             }while(stackCount!=0);
 
             // update velocities
-            var gx=this.gravity.x*this.timeStep;
+            var gVel = new OIMO.Vec3().addTime(this.gravity, this.timeStep)
+            /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
-            var gz=this.gravity.z*this.timeStep;
+            var gz=this.gravity.z*this.timeStep;*/
             var j = islandNumRigidBodies;
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body=this.islandRigidBodies[j];
                 if(body.isDynamic){
-                    body.linearVelocity.x+=gx;
+                    body.linearVelocity.addEqual(gVel);
+                    /*body.linearVelocity.x+=gx;
                     body.linearVelocity.y+=gy;
-                    body.linearVelocity.z+=gz;
+                    body.linearVelocity.z+=gz;*/
                 }
             }
 
             // randomizing order
             if(this.enableRandomizer){
                 j = islandNumConstraints;
-                while(j--){if(j!==0){
+                while(j--){
+                    if(j!==0){
                 //for(j=1, l=islandNumConstraints; j<l; j++){
-                    var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
-                    constraint=this.islandConstraints[j];
-                    this.islandConstraints[j]=this.islandConstraints[swap];
-                    this.islandConstraints[swap]=constraint;
-                }}
+                        var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
+                        constraint=this.islandConstraints[j];
+                        this.islandConstraints[j]=this.islandConstraints[swap];
+                        this.islandConstraints[swap]=constraint;
+                    }
+                }
             }
 
             // solve contraints

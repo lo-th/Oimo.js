@@ -87,6 +87,8 @@ var ThreeEngine = function () {
 	var debugAlpha = 0.3;
 	var jointColor = 0x30ff30;
 
+	var pool;
+
 	var postprocessing = { enabled  : false };
 
 	//-----------------------------------------------------
@@ -665,7 +667,7 @@ var ThreeEngine = function () {
 		        mesh=new THREE.Mesh(geo01b, debugMaterial);
 		        mesh.scale.set( s[0], s[1], s[2] );
 		        mesh.visible = false;
-		        //mesh=new THREE.Mesh(new THREE.CubeGeometry( s[0], s[1], s[2] ), debugMaterial);
+		        //mesh=new THREE.Mesh(new THREE.BoxGeometry( s[0], s[1], s[2] ), debugMaterial);
                 helper = new THREE.BoxHelper(mesh);
                 helper.material.color.set( debugColor );
                 helper.material.opacity = debugAlpha;
@@ -676,7 +678,7 @@ var ThreeEngine = function () {
 		        mesh=new THREE.Mesh(geo01b, debugMaterial);
 		        mesh.scale.set( s[0], s[1], s[2] );
 		        mesh.visible = false;
-		        //mesh=new THREE.Mesh(new THREE.CubeGeometry( s[0], s[1], s[2] ), debugMaterial);
+		        //mesh=new THREE.Mesh(new THREE.BoxGeometry( s[0], s[1], s[2] ), debugMaterial);
                 helper = new THREE.BoxHelper(mesh);
                 helper.material.color.setHex( debugColor );
                 helper.material.opacity = debugAlpha;
@@ -877,17 +879,23 @@ var ThreeEngine = function () {
         var geometry = new THREE.Geometry();
 
         var mesh, n;
+        var g, m;
         for(var i=0; i<types.length; i++){
             n = i*3;
-            if(types[i]==='cylinder') mesh = new THREE.Mesh( geo03 );
-            else if(types[i]==='sphere') mesh = new THREE.Mesh( geo02 );
-            else mesh = new THREE.Mesh( geo06 );
+            if(types[i]=='cylinder') g = geo03;
+            else if(types[i]=='sphere') g = geo02;
+            else g =  geo06 ;
 
-            mesh.scale.set( sizes[n+0], sizes[n+1], sizes[n+2] );
+            /*mesh.scale.set( sizes[n+0], sizes[n+1], sizes[n+2] );
             if(i===0) mesh.position.set( 0, 0, 0 );
-            else mesh.position.set( positions[n+0], positions[n+1], positions[n+2] );
+            else mesh.position.set( positions[n+0], positions[n+1], positions[n+2] );*/
 
-            THREE.GeometryUtils.merge( geometry, mesh );
+            if(i===0) m = new THREE.Matrix4().makeTranslation(0, 0, 0);
+            else  m = new THREE.Matrix4().makeTranslation(positions[n+0], positions[n+1], positions[n+2]);
+            m.scale(new THREE.Vector3(sizes[n+0], sizes[n+1], sizes[n+2]));
+
+            //THREE.GeometryUtils.merge( geometry, mesh );
+            geometry.merge(g,m);
         }
 
         var geo;
@@ -955,18 +963,18 @@ var ThreeEngine = function () {
 	var updateSnake = function () {
 		var mesh = content.children[10];
 		var ref, pos, mtx, rot;
-		for (var i=0; i!== mesh.bones.length; i++){
+		for (var i=0; i!== mesh.skeleton.bones.length; i++){
 			ref = content.children[i];
 			rot = ref.rotation;
 			pos = ref.position;
 
-			mesh.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
+			mesh.skeleton.bones[i].position.set(pos.x/10, pos.y/10, -pos.z /10);
 
-	        mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
+	        mesh.skeleton.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z+90*ToRad);
 	        //mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-270*ToRad);
 	         
-			mesh.bones[i].matrixAutoUpdate = true;
-			mesh.bones[i].matrixWorldNeedsUpdate = true;
+			mesh.skeleton.bones[i].matrixAutoUpdate = true;
+			mesh.skeleton.bones[i].matrixWorldNeedsUpdate = true;
 		}
 	}
 
@@ -1004,7 +1012,7 @@ var ThreeEngine = function () {
 	var updateSila = function () {
 		var mesh = content.children[23];
 		var ref, pos, mtx, rot;
-		for (var i=0; i!== mesh.bones.length; i++){
+		for (var i=0; i!== mesh.skeleton.bones.length; i++){
 			ref = content.children[i];
 			rot = ref.rotation;
 			pos = ref.position;
@@ -1014,18 +1022,18 @@ var ThreeEngine = function () {
 			//mesh.rotation.setFromRotationMatrix( mtx );
 
 			//mesh.bones[i].position.set(pos.x, pos.y, -pos.z);
-			mesh.bones[i].position.set( pos.x, pos.y-90, pos.z);
+			mesh.skeleton.bones[i].position.set( pos.x, pos.y-90, pos.z);
 			//mesh.bones[i].rotation.set( rot.x, rot.y, rot.z);
 
-			mesh.bones[i].rotation.set( rot.x, -rot.y-180*ToRad, -rot.z+90*ToRad);
+			mesh.skeleton.bones[i].rotation.set( rot.x, -rot.y-180*ToRad, -rot.z+90*ToRad);
 	//mesh.bones[i].rotation.set( rot.x, rot.y, rot.z);
 	//mesh.bones[i].rotation.set( rot.x, -rot.y+(180*ToRad), -rot.z+(90*ToRad));
 	//mesh.bones[i].rotation.set( rot.z+180*ToRad, rot.x+180*ToRad, rot.y+180*ToRad);
 	        //mesh.bones[i].rotation.set( -rot.x+0*ToRad, -rot.y-180*ToRad, -rot.z-180*ToRad);
 	       // mesh.bones[i].rotation.set( -rot.x, -rot.y+180*ToRad,-rot.z-90*ToRad);
 	         
-			mesh.bones[i].matrixAutoUpdate = true;
-			mesh.bones[i].matrixWorldNeedsUpdate = true;
+			mesh.skeleton.bones[i].matrixAutoUpdate = true;
+			mesh.skeleton.bones[i].matrixWorldNeedsUpdate = true;
 		}
 	}
 
@@ -1035,14 +1043,14 @@ var ThreeEngine = function () {
 		var pos = [];
 		var rot = [];
 
-		if(mesh.bones.length!==0){
-			var n = mesh.bones.length;
+		if(mesh.skeleton.bones.length!==0){
+			var n = mesh.skeleton.bones.length;
 			for (var i=0; i!==n ; i++){
 
-				pos[i] = [mesh.bones[i].position.x, mesh.bones[i].position.y+90, -mesh.bones[i].position.z];
+				pos[i] = [mesh.skeleton.bones[i].position.x, mesh.skeleton.bones[i].position.y+90, -mesh.skeleton.bones[i].position.z];
 				//rot[i] = [-mesh.bones[i].rotation.x, -mesh.bones[i].rotation.y, -mesh.bones[i].rotation.z];
 				//rot[i] = [ mesh.bones[i].rotation.y+0*ToRad, mesh.bones[i].rotation.x+0*ToRad, -mesh.bones[i].rotation.z-0*ToRad];
-				rot[i] = [ mesh.bones[i].rotation.x, -mesh.bones[i].rotation.y+(180*ToRad), -mesh.bones[i].rotation.z+(90*ToRad)];
+				rot[i] = [ mesh.skeleton.bones[i].rotation.x, -mesh.skeleton.bones[i].rotation.y+(180*ToRad), -mesh.skeleton.bones[i].rotation.z+(90*ToRad)];
 				rot[i] = rot[i].map(function(x) { return x * ToDeg; });
 
 				//pos[i] = [(mesh.bones[i].position.x*0.01).toFixed(3), ((mesh.bones[i].position.y+90)*0.01).toFixed(3), (mesh.bones[i].position.z*0.01).toFixed(3)];
@@ -1119,7 +1127,7 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 
 	var geo00 = new THREE.PlaneGeometry( 1, 1 );
-	var geo01 = new THREE.CubeGeometry( 1, 1, 1 );
+	var geo01 = new THREE.BoxGeometry( 1, 1, 1 );
 	var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
 	//var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
 	var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
@@ -1217,6 +1225,7 @@ var ThreeEngine = function () {
 
 	var initSea3DMesh = function (){
 		var name = seaList[seaN];
+		//pool = new SEA3D.Pool('res/model/droid.sea', populate)
 		var SeaLoader = new THREE.SEA3D(true);
 		
 		SeaLoader.onComplete = function( e ) {
@@ -1273,7 +1282,6 @@ var ThreeEngine = function () {
 			else vertex.z *= s;
 		}
 		geometry.computeFaceNormals();
-		geometry.computeCentroids();
 		geometry.computeVertexNormals();
 		geometry.verticesNeedUpdate = true;
 	}

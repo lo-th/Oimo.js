@@ -15,6 +15,7 @@
 </style>
 
 <script src="js/three.min.js"></script>
+<script src="js/BufferGeometryUtils.js"></script>
 <script src="build/Oimo.js"></script>
 
 </head>
@@ -82,7 +83,7 @@
         scene.add( light );
 
         geoSphere = new THREE.SphereGeometry( 1 , 20, 10 );
-        geoBox = new THREE.CubeGeometry( 1, 1, 1 );
+        geoBox = new THREE.BoxGeometry( 1, 1, 1 );
 
         matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
         matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
@@ -123,17 +124,15 @@
         sizes = [ 30,5,30,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  4,30,4,  23,10,3 ];
         positions = [ 0,0,0,  12,-16,12,  -12,-16,12,  12,-16,-12,  -12,-16,-12,  12,16,-12,  -12,16,-12,  0,25,-12 ];
 
-        chairGeometry = new THREE.Geometry();
-
-        var mesh, n;
+        var g = new THREE.Geometry();
+        var mesh, n, m;
         for(var i=0; i<types.length; i++){
             n = i*3;
-            mesh = new THREE.Mesh( geoBox );
-            mesh.scale.set( sizes[n+0], sizes[n+1], sizes[n+2] );
-            mesh.position.set( positions[n+0], positions[n+1], positions[n+2] );
-
-            THREE.GeometryUtils.merge( chairGeometry, mesh );
+            m = new THREE.Matrix4().makeTranslation(positions[n+0], positions[n+1], positions[n+2]);
+            m.scale(new THREE.Vector3(sizes[n+0], sizes[n+1], sizes[n+2]));
+            g.merge(geoBox,m);
         }
+        chairGeometry = THREE.BufferGeometryUtils.fromGeometry(g);
     }
 
     function populate(n) {

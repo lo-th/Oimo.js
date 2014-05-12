@@ -1,5 +1,5 @@
 OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-    this.elements = new Float32Array(9);//[];//new Float32Array(9);//new Float64Array(9);
+    this.elements = new OIMO_ARRAY_TYPE(9);
     var te = this.elements;
 
     this.init(

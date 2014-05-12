@@ -53,85 +53,86 @@ OIMO.SAPAxis.prototype = {
         while((this.numElements>>threshold)!=0)threshold++;
         threshold=threshold*this.numElements>>2;
         count=0;
-        var giveup=false;var elements=this.elements;
+        var giveup=false;
+        var elements=this.elements;
         for(var i=1, l=this.numElements; i<l; i++){
-        var tmp=elements[i];
-        var pivot=tmp.value;
-        var tmp2=elements[i-1];
-        if(tmp2.value>pivot){
-        var j=i;
-        do{
-        elements[j]=tmp2;
-        if(--j==0)break;
-        tmp2=elements[j-1];
-        }while(tmp2.value>pivot);
-        elements[j]=tmp;
-        count+=i-j;
-        if(count>threshold){
-        giveup=true;
-        break;
-        }
-        }
+            var tmp=elements[i];
+            var pivot=tmp.value;
+            var tmp2=elements[i-1];
+            if(tmp2.value>pivot){
+                var j=i;
+                do{
+                elements[j]=tmp2;
+                if(--j==0)break;
+                tmp2=elements[j-1];
+                }while(tmp2.value>pivot);
+                elements[j]=tmp;
+                count+=i-j;
+                if(count>threshold){
+                    giveup=true;
+                    break;
+                }
+            }
         }
         if(!giveup)return;
         count=2;var stack=this.stack;
         stack[0]=0;
         stack[1]=this.numElements-1;
         while(count>0){
-        var right=stack[--count];
-        var left=stack[--count];
-        var diff=right-left;
-        if(diff>16){
-        var mid=left+(diff>>1);
-        //var mid=left+(diff*0.5);
-        tmp=elements[mid];
-        elements[mid]=elements[right];
-        elements[right]=tmp;
-        pivot=tmp.value;
-        i=left-1;
-        j=right;
-        while(true){
-        var ei;
-        var ej;
-        do{
-        ei=elements[++i];
-        }while(ei.value<pivot);
-        do{
-        ej=elements[--j];
-        }while(pivot<ej.value&&j!=left);
-        if(i>=j)break;
-        elements[i]=ej;
-        elements[j]=ei;
-        }
-        elements[right]=elements[i];
-        elements[i]=tmp;
-        if(i-left>right-i){
-        stack[count++]=left;
-        stack[count++]=i-1;
-        stack[count++]=i+1;
-        stack[count++]=right;
-        }else{
-        stack[count++]=i+1;
-        stack[count++]=right;
-        stack[count++]=left;
-        stack[count++]=i-1;
-        }
-        }else{
-        for(i=left+1;i<=right;i++){
-        tmp=elements[i];
-        pivot=tmp.value;
-        tmp2=elements[i-1];
-        if(tmp2.value>pivot){
-        j=i;
-        do{
-        elements[j]=tmp2;
-        if(--j==0)break;
-        tmp2=elements[j-1];
-        }while(tmp2.value>pivot);
-        elements[j]=tmp;
-        }
-        }
-        }
+            var right=stack[--count];
+            var left=stack[--count];
+            var diff=right-left;
+            if(diff>16){
+            var mid=left+(diff>>1);
+            //var mid=left+(diff*0.5);
+            tmp=elements[mid];
+            elements[mid]=elements[right];
+            elements[right]=tmp;
+            pivot=tmp.value;
+            i=left-1;
+            j=right;
+            while(true){
+                var ei;
+                var ej;
+                do{
+                ei=elements[++i];
+                }while(ei.value<pivot);
+                do{
+                ej=elements[--j];
+                }while(pivot<ej.value&&j!=left);
+                if(i>=j)break;
+                elements[i]=ej;
+                elements[j]=ei;
+            }
+            elements[right]=elements[i];
+            elements[i]=tmp;
+            if(i-left>right-i){
+                stack[count++]=left;
+                stack[count++]=i-1;
+                stack[count++]=i+1;
+                stack[count++]=right;
+            }else{
+                stack[count++]=i+1;
+                stack[count++]=right;
+                stack[count++]=left;
+                stack[count++]=i-1;
+            }
+            }else{
+            for(i=left+1;i<=right;i++){
+            tmp=elements[i];
+            pivot=tmp.value;
+            tmp2=elements[i-1];
+            if(tmp2.value>pivot){
+            j=i;
+            do{
+            elements[j]=tmp2;
+            if(--j==0)break;
+            tmp2=elements[j-1];
+            }while(tmp2.value>pivot);
+            elements[j]=tmp;
+            }
+            }
+            }
         }
     },
     calculateTestCount:function(){

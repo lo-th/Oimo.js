@@ -6,7 +6,7 @@
  * @author LoTh / http://3dflashlo.wordpress.com/
  */
  
-var OIMO = { REVISION: 'DEV.1.1.0a' };
+var OIMO = { REVISION: 'DEV.1.1.1a' };
 
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;
@@ -17,6 +17,9 @@ OIMO.INV_SCALE = 0.01;
 OIMO.TO_RAD = Math.PI / 180;
 
 OIMO.nextID = 0;
+
+var OIMO_ARRAY_TYPE;
+if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array; }
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
 
     var broadPhaseType = BroadPhaseType || 2;
@@ -45,7 +48,9 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     var numShapeTypes=3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
-    for(var i=0, l=numShapeTypes; i<l; i++){
+    var i=numShapeTypes;
+    while(i--){
+    //for(var i=0, l=numShapeTypes; i<l; i++){
         this.detectors[i]=[];
         this.detectors[i].length = numShapeTypes;
     }
@@ -178,18 +183,18 @@ OIMO.World.prototype = {
         while(body!==null){
             body.addedToIsland=false;
             if(body.sleeping){
-                var lv=body.linearVelocity;
+                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); }
+                /*var lv=body.linearVelocity;
                 var av=body.linearVelocity;
                 var p=body.position;
                 var sp=body.sleepPosition;
                 var o=body.orientation;
                 var so=body.sleepOrientation;
-                if(
-                lv.x!==0 || lv.y!==0 || lv.z!==0 ||
-                av.x!==0 || av.y!==0 || av.z!==0 ||
+               
+                if( lv.x!==0 || lv.y!==0 || lv.z!==0 || av.x!==0 || av.y!==0 || av.z!==0 ||
                 p.x!==sp.x || p.y!==sp.y || p.z!==sp.z ||
                 o.s!==so.s || o.x!==so.x || o.y!==so.y || o.z!==so.z
-                ){ body.awake(); }
+                ){ body.awake(); }*/
             }
             body=body.next;
         }
@@ -297,7 +302,7 @@ OIMO.World.prototype = {
         var next=contact.next;
         if(next)next.prev=prev;
         if(prev)prev.next=next;
-        if(this.contacts===contact)this.contacts=next;
+        if(this.contacts==contact)this.contacts=next;
         contact.prev=null;
         contact.next=null;
         contact.detach();
@@ -306,11 +311,13 @@ OIMO.World.prototype = {
         this.numContacts--;
     },
     calSleep:function(body){
-        if(!body.allowSleep){return false;}
-        var v=body.linearVelocity;
+        if(!body.allowSleep)return false;
+        if(body.linearVelocity.len()>0.04)return false;
+        if(body.angularVelocity.len()>0.25)return false;
+        /*var v=body.linearVelocity;
         if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
         v=body.angularVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
         return true;
     },
     solveIslands:function(){
@@ -347,9 +354,10 @@ OIMO.World.prototype = {
             }
             if(base.isLonely()){// update single body
                 if(base.isDynamic){
-                    base.linearVelocity.x+=this.gravity.x*this.timeStep;
+                    base.linearVelocity.addTime(this.gravity, this.timeStep);
+                    /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
-                    base.linearVelocity.z+=this.gravity.z*this.timeStep;
+                    base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
                 }
                 if(this.calSleep(base)){
                     base.sleepTime+=this.timeStep;
@@ -419,30 +427,34 @@ OIMO.World.prototype = {
             }while(stackCount!=0);
 
             // update velocities
-            var gx=this.gravity.x*this.timeStep;
+            var gVel = new OIMO.Vec3().addTime(this.gravity, this.timeStep)
+            /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
-            var gz=this.gravity.z*this.timeStep;
+            var gz=this.gravity.z*this.timeStep;*/
             var j = islandNumRigidBodies;
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body=this.islandRigidBodies[j];
                 if(body.isDynamic){
-                    body.linearVelocity.x+=gx;
+                    body.linearVelocity.addEqual(gVel);
+                    /*body.linearVelocity.x+=gx;
                     body.linearVelocity.y+=gy;
-                    body.linearVelocity.z+=gz;
+                    body.linearVelocity.z+=gz;*/
                 }
             }
 
             // randomizing order
             if(this.enableRandomizer){
                 j = islandNumConstraints;
-                while(j--){if(j!==0){
+                while(j--){
+                    if(j!==0){
                 //for(j=1, l=islandNumConstraints; j<l; j++){
-                    var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
-                    constraint=this.islandConstraints[j];
-                    this.islandConstraints[j]=this.islandConstraints[swap];
-                    this.islandConstraints[swap]=constraint;
-                }}
+                        var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
+                        constraint=this.islandConstraints[j];
+                        this.islandConstraints[j]=this.islandConstraints[swap];
+                        this.islandConstraints[swap]=constraint;
+                    }
+                }
             }
 
             // solve contraints
@@ -535,10 +547,11 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     this.numJoints=0;
     this.addedToIsland=false;
     this.sleeping=false;
-    this.massInfo= new OIMO.MassInfo(); 
+    this.massInfo= new OIMO.MassInfo();
 
-    var len=ax*ax+ay*ay+az*az;
-    this.position=new OIMO.Vec3(x,y,z);
+    this.position=new OIMO.Vec3(x,y,z); 
+
+    var len=ax*ax+ay*ay+az*az; 
     if(len>0){
         len=1/Math.sqrt(len);
         ax*=len;
@@ -611,9 +624,10 @@ OIMO.RigidBody.prototype = {
             var relX=shape.relativePosition.x;
             var relY=shape.relativePosition.y;
             var relZ=shape.relativePosition.z;
-            tmpV.x+=relX*shapeMass;
+            /*tmpV.x+=relX*shapeMass;
             tmpV.y+=relY*shapeMass;
-            tmpV.z+=relZ*shapeMass;
+            tmpV.z+=relZ*shapeMass;*/
+            tmpV.addScale(shape.relativePosition, shapeMass);
             this.mass+=shapeMass;
             this.rotateInertia(shape.relativeRotation,this.massInfo.inertia,tmpM);
             this.localInertia.addEqual(tmpM);
@@ -656,7 +670,7 @@ OIMO.RigidBody.prototype = {
             te[7]+=zx;
         }
         this.inverseLocalInertia.invert(this.localInertia);
-        if(type===this.BODY_STATIC){
+        if(type==this.BODY_STATIC){
             this.inverseMass=0;
             this.inverseLocalInertia.init(0,0,0,0,0,0,0,0,0);
         }
@@ -669,23 +683,27 @@ OIMO.RigidBody.prototype = {
         this.sleepTime=0;
         var cs=this.contactLink;
         while(cs!=null){
-        cs.body.sleepTime=0;
-        cs.body.sleeping=false;
-        cs=cs.next;
+            cs.body.sleepTime=0;
+            cs.body.sleeping=false;
+            cs=cs.next;
         }
         var js=this.jointLink;
         while(js!=null){
-        js.body.sleepTime=0;
-        js.body.sleeping=false;
-        js=js.next;
+            js.body.sleepTime=0;
+            js.body.sleeping=false;
+            js=js.next;
         }
         for(var shape=this.shapes;shape!=null;shape=shape.next){
-        shape.updateProxy();
+            shape.updateProxy();
         }
     },
     sleep:function(){
         if(!this.allowSleep||this.sleeping)return;
-        this.linearVelocity.x=0;
+        this.linearVelocity.init();
+        this.angularVelocity.init();
+        this.sleepPosition.copy(this.position);
+        this.sleepOrientation.copy(this.orientation);
+        /*this.linearVelocity.x=0;
         this.linearVelocity.y=0;
         this.linearVelocity.z=0;
         this.angularVelocity.x=0;
@@ -693,11 +711,12 @@ OIMO.RigidBody.prototype = {
         this.angularVelocity.z=0;
         this.sleepPosition.x=this.position.x;
         this.sleepPosition.y=this.position.y;
-        this.sleepPosition.z=this.position.z;
-        this.sleepOrientation.s=this.orientation.s;
+        this.sleepPosition.z=this.position.z;*/
+        /*this.sleepOrientation.s=this.orientation.s;
         this.sleepOrientation.x=this.orientation.x;
         this.sleepOrientation.y=this.orientation.y;
-        this.sleepOrientation.z=this.orientation.z;
+        this.sleepOrientation.z=this.orientation.z;*/
+        
         this.sleepTime=0;
         this.sleeping=true;
         for(var shape=this.shapes;shape!=null;shape=shape.next){
@@ -709,47 +728,53 @@ OIMO.RigidBody.prototype = {
     },
     updatePosition:function(timeStep){
         switch(this.type){
-        case this.BODY_STATIC:
-            this.linearVelocity.x=0;
-            this.linearVelocity.y=0;
-            this.linearVelocity.z=0;
-            this.angularVelocity.x=0;
-            this.angularVelocity.y=0;
-            this.angularVelocity.z=0;
-        break;
-        case this.BODY_DYNAMIC:
-            var vx=this.linearVelocity.x;
-            var vy=this.linearVelocity.y;
-            var vz=this.linearVelocity.z;
-            this.position.x+=vx*timeStep;
-            this.position.y+=vy*timeStep;
-            this.position.z+=vz*timeStep;
-            vx=this.angularVelocity.x;
-            vy=this.angularVelocity.y;
-            vz=this.angularVelocity.z;
-            var os=this.orientation.s;
-            var ox=this.orientation.x;
-            var oy=this.orientation.y;
-            var oz=this.orientation.z;
-            timeStep*=0.5;
-            var s=(-vx*ox-vy*oy-vz*oz)*timeStep;
-            var x=(vx*os+vy*oz-vz*oy)*timeStep;
-            var y=(-vx*oz+vy*os+vz*ox)*timeStep;
-            var z=(vx*oy-vy*ox+vz*os)*timeStep;
-            os+=s;
-            ox+=x;
-            oy+=y;
-            oz+=z;
-            s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
-            this.orientation.s=os*s;
-            this.orientation.x=ox*s;
-            this.orientation.y=oy*s;
-            this.orientation.z=oz*s;
+            case this.BODY_STATIC:
+                this.linearVelocity.init();
+                this.angularVelocity.init();
+                /*this.linearVelocity.x=0;
+                this.linearVelocity.y=0;
+                this.linearVelocity.z=0;
+                this.angularVelocity.x=0;
+                this.angularVelocity.y=0;
+                this.angularVelocity.z=0;*/
+            break;
+            case this.BODY_DYNAMIC:
+                this.position.addTime(this.linearVelocity, timeStep);
+                /*var vx=this.linearVelocity.x;
+                var vy=this.linearVelocity.y;
+                var vz=this.linearVelocity.z;
+                this.position.x+=vx*timeStep;
+                this.position.y+=vy*timeStep;
+                this.position.z+=vz*timeStep;*/
 
-            
-        break;
-        default:
-            throw new Error("Invalid type.");
+                this.orientation.addTime(this.angularVelocity, timeStep);
+                
+               /* var vx=this.angularVelocity.x;
+                var vy=this.angularVelocity.y;
+                var vz=this.angularVelocity.z;
+                var os=this.orientation.s;
+                var ox=this.orientation.x;
+                var oy=this.orientation.y;
+                var oz=this.orientation.z;
+                timeStep*=0.5;
+                var s=(-vx*ox-vy*oy-vz*oz)*timeStep;
+                var x=(vx*os+vy*oz-vz*oy)*timeStep;
+                var y=(-vx*oz+vy*os+vz*ox)*timeStep;
+                var z=(vx*oy-vy*ox+vz*os)*timeStep;
+                os+=s;
+                ox+=x;
+                oy+=y;
+                oz+=z;
+                s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
+                this.orientation.s=os*s;
+                this.orientation.x=ox*s;
+                this.orientation.y=oy*s;
+                this.orientation.z=oz*s;*/
+
+                
+            break;
+            default:
+                throw new Error("Invalid type.");
         }
         this.syncShapes();
     },
@@ -817,28 +842,32 @@ OIMO.RigidBody.prototype = {
 
         this.rotateInertia(this.rotation,this.inverseLocalInertia,this.inverseInertia);
         for(var shape=this.shapes;shape!=null;shape=shape.next){
-        var relPos=shape.relativePosition;
-        var relRot=shape.relativeRotation;
-        var rot=shape.rotation;
-        var lx=relPos.x;
-        var ly=relPos.y;
-        var lz=relPos.z;
-        shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
-        shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
-        shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];
-        rot.mul(relRot,this.rotation);
-        shape.updateProxy();
+            //var relPos=shape.relativePosition;
+            //var relRot=shape.relativeRotation;
+            //var rot=shape.rotation;
+            /*var lx=relPos.x;
+            var ly=relPos.y;
+            var lz=relPos.z;
+            shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
+            shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
+            shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];*/
+
+            shape.position.mul(this.position,shape.relativePosition,this.rotation);
+            shape.rotation.mul(shape.relativeRotation,this.rotation);
+            shape.updateProxy();
         }
     },
     applyImpulse:function(position,force){
-        this.linearVelocity.x+=force.x*this.inverseMass;
+        this.linearVelocity.addScale(force, this.inverseMass);
+        /*this.linearVelocity.x+=force.x*this.inverseMass;
         this.linearVelocity.y+=force.y*this.inverseMass;
-        this.linearVelocity.z+=force.z*this.inverseMass;
+        this.linearVelocity.z+=force.z*this.inverseMass;*/
         var rel=new OIMO.Vec3();
         rel.sub(position,this.position).cross(rel,force).mulMat(this.inverseInertia,rel);
-        this.angularVelocity.x+=rel.x;
+        this.angularVelocity.addEqual(rel);
+        /*this.angularVelocity.x+=rel.x;
         this.angularVelocity.y+=rel.y;
-        this.angularVelocity.z+=rel.z;
+        this.angularVelocity.z+=rel.z;*/
     },
 
 
@@ -848,20 +877,21 @@ OIMO.RigidBody.prototype = {
         this.linearVelocity.init();
         this.angularVelocity.init();
     },
-    setRotation:function(x,y,z){
-        /*var r = OIMO.EulerToAxis(x* OIMO.TO_RAD, y* OIMO.TO_RAD, z* OIMO.TO_RAD);
-        var rad = r[0];
-        var len = r[1]*r[1]+r[2]*r[2]+r[3]*r[3];
+    setOrientation:function(x,y,z){
+        // angle in radian
+        var r = OIMO.EulerToAxis(x, y, z);
+        var rad = r[0], ax = r[1], ay = r[2], az = r[3];
+        var len=ax*ax+ay*ay+az*az; 
         if(len>0){
             len=1/Math.sqrt(len);
-            r[1]*=len;
-            r[2]*=len;
-            r[3]*=len;
+            ax*=len;
+            ay*=len;
+            az*=len;
         }
         var sin=Math.sin(rad*0.5);
         var cos=Math.cos(rad*0.5);
-        this.body.orientation = new OIMO.Quat(cos,sin*r[1],sin*r[2],sin*r[3]);
-        //this.body.orientation = new OIMO.Quat(r[0], r[1], r[2], r[3]);*/
+        this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+        this.angularVelocity.init();
     },
     getMatrix:function(){
         var m = this.matrix.elements;
@@ -1056,7 +1086,7 @@ OIMO.Performance = function(){
     this.totalTime=0;
 }
 OIMO.Mat44 = function(n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44){
-    this.elements = new Float32Array(16);
+    this.elements = new OIMO_ARRAY_TYPE(16);
     var te = this.elements;
     te[0] = ( n11 !== undefined ) ? n11 : 1; te[4] = n12 || 0; te[8] = n13 || 0; te[12] = n14 || 0;
     te[1] = n21 || 0; te[5] = ( n22 !== undefined ) ? n22 : 1; te[9] = n23 || 0; te[13] = n24 || 0;
@@ -1080,7 +1110,7 @@ OIMO.Mat44.prototype = {
     }
 }
 OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
-    this.elements = new Float32Array(9);//[];//new Float32Array(9);//new Float64Array(9);
+    this.elements = new OIMO_ARRAY_TYPE(9);
     var te = this.elements;
 
     this.init(
@@ -1366,6 +1396,24 @@ OIMO.Quat.prototype = {
         this.z=q1.z+q2.z;
         return this;
     },
+    addTime: function(v,t){
+        var os=this.s;
+        var ox=this.x;
+        var oy=this.y;
+        var oz=this.z;
+        t*=0.5;
+        var s=(-v.x*ox-v.y*oy-v.z*oz)*t;
+        var x=(v.x*os+v.y*oz-v.z*oy)*t;
+        var y=(-v.x*oz+v.y*os+v.z*ox)*t;
+        var z=(v.x*oy-v.y*ox+v.z*os)*t;
+        os+=s; ox+=x; oy+=y; oz+=z;
+        s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
+        this.s=os*s;
+        this.x=ox*s;
+        this.y=oy*s;
+        this.z=oz*s;
+        return this;
+    },
     sub: function(q1,q2){
         this.s=q1.s-q2.s;
         this.x=q1.x-q2.x;
@@ -1446,6 +1494,10 @@ OIMO.Quat.prototype = {
         this.z=q.z;
         return this;
     },
+    testDiff: function(q){
+        if(this.s!==q.s || this.x!==q.x || this.y!==q.y || this.z!==q.z) return true;
+        else return false;
+    },
     clone: function(q){
         return new OIMO.Quat(this.s,this.x,this.y,this.z);
     },
@@ -1469,6 +1521,12 @@ OIMO.Vec3.prototype = {
         this.z=z || 0;
         return this;
     },
+    set: function(x,y,z){
+        this.x=x;
+        this.y=y;
+        this.z=z;
+        return this;
+    },
     add: function(v1,v2){
         this.x=v1.x+v2.x;
         this.y=v1.y+v2.y;
@@ -1481,6 +1539,12 @@ OIMO.Vec3.prototype = {
         this.z+=v.z;
         return this;
     },
+    addTime: function(v, t){
+        this.x+=v.x*t;
+        this.y+=v.y*t;
+        this.z+=v.z*t;
+        return this;
+    },
     sub: function(v1,v2){
         this.x=v1.x-v2.x;
         this.y=v1.y-v2.y;
@@ -1491,6 +1555,12 @@ OIMO.Vec3.prototype = {
         this.x-=v.x;
         this.y-=v.y;
         this.z-=v.z;
+        return this;
+    },
+    addScale: function(v,s){
+        this.x+=v.x*s;
+        this.y+=v.y*s;
+        this.z+=v.z*s;
         return this;
     },
     scale: function(v,s){
@@ -1507,7 +1577,7 @@ OIMO.Vec3.prototype = {
     },
     dot: function(v){
         return this.x*v.x+this.y*v.y+this.z*v.z;
-        },
+    },
     cross: function(v1,v2){
         var x=v1.y*v2.z-v1.z*v2.y;
         var y=v1.z*v2.x-v1.x*v2.z;
@@ -1517,9 +1587,15 @@ OIMO.Vec3.prototype = {
         this.z=z;
         return this;
     },
+    mul: function(o, v, m){
+        var te = m.elements;
+        this.x=o.x+v.x*te[0]+v.y*te[1]+v.z*te[2];
+        this.y=o.y+v.x*te[3]+v.y*te[4]+v.z*te[5];
+        this.z=o.z+v.x*te[6]+v.y*te[7]+v.z*te[8];
+        return this;
+    },
     mulMat: function(m,v){
         var te = m.elements;
-
         var x=te[0]*v.x+te[1]*v.y+te[2]*v.z;
         var y=te[3]*v.x+te[4]*v.y+te[5]*v.z;
         var z=te[6]*v.x+te[7]*v.y+te[8]*v.z;
@@ -1545,11 +1621,22 @@ OIMO.Vec3.prototype = {
     length: function(){
         return Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z);
     },
+    len: function(){
+        return (this.x*this.x+this.y*this.y+this.z*this.z);
+    },
     copy: function(v){
         this.x=v.x;
         this.y=v.y;
         this.z=v.z;
         return this;
+    },
+    testZero: function(){
+        if(this.x!==0 || this.y!==0 || this.z!==0) return true;
+        else return false;
+    },
+    testDiff: function(v){
+        if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
+        else return false;
     },
     clone: function(){
         return new OIMO.Vec3(this.x,this.y,this.z);
@@ -5155,25 +5242,14 @@ OIMO.BoxShape = function(config,Width,Height,Depth){
     OIMO.Shape.call( this, config);
   
     this.width=Width;
-    this.halfWidth=Width*0.5;
     this.height=Height;
-    this.halfHeight=Height*0.5;
     this.depth=Depth;
+    this.halfWidth=Width*0.5;
+    this.halfHeight=Height*0.5;
     this.halfDepth=Depth*0.5;
-    this.normalDirectionWidth=new OIMO.Vec3();
-    this.normalDirectionHeight=new OIMO.Vec3();
-    this.normalDirectionDepth=new OIMO.Vec3();
-    this.halfDirectionWidth=new OIMO.Vec3();
-    this.halfDirectionHeight=new OIMO.Vec3();
-    this.halfDirectionDepth=new OIMO.Vec3();
-    this.vertex1=new OIMO.Vec3();
-    this.vertex2=new OIMO.Vec3();
-    this.vertex3=new OIMO.Vec3();
-    this.vertex4=new OIMO.Vec3();
-    this.vertex5=new OIMO.Vec3();
-    this.vertex6=new OIMO.Vec3();
-    this.vertex7=new OIMO.Vec3();
-    this.vertex8=new OIMO.Vec3();
+
+    this.dimentions = new OIMO_ARRAY_TYPE(18);
+    this.elements = new OIMO_ARRAY_TYPE(24);
     this.type=OIMO.SHAPE_BOX;
 }
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
@@ -5188,74 +5264,92 @@ OIMO.BoxShape.prototype.calculateMassInfo = function(out){
 }
 OIMO.BoxShape.prototype.updateProxy = function(){
     var te = this.rotation.elements;
-    this.normalDirectionWidth.x=te[0];
-    this.normalDirectionWidth.y=te[3];
-    this.normalDirectionWidth.z=te[6];
-    this.normalDirectionHeight.x=te[1];
-    this.normalDirectionHeight.y=te[4];
-    this.normalDirectionHeight.z=te[7];
-    this.normalDirectionDepth.x=te[2];
-    this.normalDirectionDepth.y=te[5];
-    this.normalDirectionDepth.z=te[8];
-    this.halfDirectionWidth.x=te[0]*this.halfWidth;
-    this.halfDirectionWidth.y=te[3]*this.halfWidth;
-    this.halfDirectionWidth.z=te[6]*this.halfWidth;
-    this.halfDirectionHeight.x=te[1]*this.halfHeight;
-    this.halfDirectionHeight.y=te[4]*this.halfHeight;
-    this.halfDirectionHeight.z=te[7]*this.halfHeight;
-    this.halfDirectionDepth.x=te[2]*this.halfDepth;
-    this.halfDirectionDepth.y=te[5]*this.halfDepth;
-    this.halfDirectionDepth.z=te[8]*this.halfDepth;
 
-    var wx=this.halfDirectionWidth.x;
-    var wy=this.halfDirectionWidth.y;
-    var wz=this.halfDirectionWidth.z;
-    var hx=this.halfDirectionHeight.x;
-    var hy=this.halfDirectionHeight.y;
-    var hz=this.halfDirectionHeight.z;
-    var dx=this.halfDirectionDepth.x;
-    var dy=this.halfDirectionDepth.y;
-    var dz=this.halfDirectionDepth.z;
+    var di=this.dimentions;
+    // Width
+    di[0]=te[0];
+    di[1]=te[3];
+    di[2]=te[6];
+    // Height
+    di[3]=te[1];
+    di[4]=te[4];
+    di[5]=te[7];
+    // Depth
+    di[6]=te[2];
+    di[7]=te[5];
+    di[8]=te[8];
+    // halp Width
+    di[9]=te[0]*this.halfWidth;
+    di[10]=te[3]*this.halfWidth;
+    di[11]=te[6]*this.halfWidth;
+    // halp Height
+    di[12]=te[1]*this.halfHeight;
+    di[13]=te[4]*this.halfHeight;
+    di[14]=te[7]*this.halfHeight;
+    // halp Depth
+    di[15]=te[2]*this.halfDepth;
+    di[16]=te[5]*this.halfDepth;
+    di[17]=te[8]*this.halfDepth;
+
+    var wx=di[9];
+    var wy=di[10];
+    var wz=di[11];
+    var hx=di[12];
+    var hy=di[13];
+    var hz=di[14];
+    var dx=di[15];
+    var dy=di[16];
+    var dz=di[17];
+
     var x=this.position.x;
     var y=this.position.y;
     var z=this.position.z;
 
-    this.vertex1.x = x+wx+hx+dx;
-    this.vertex1.y = y+wy+hy+dy;
-    this.vertex1.z = z+wz+hz+dz;
-    this.vertex2.x = x+wx+hx-dx;
-    this.vertex2.y = y+wy+hy-dy;
-    this.vertex2.z = z+wz+hz-dz;
-    this.vertex3.x = x+wx-hx+dx;
-    this.vertex3.y = y+wy-hy+dy;
-    this.vertex3.z = z+wz-hz+dz;
-    this.vertex4.x = x+wx-hx-dx;
-    this.vertex4.y = y+wy-hy-dy;
-    this.vertex4.z = z+wz-hz-dz;
-    this.vertex5.x = x-wx+hx+dx;
-    this.vertex5.y = y-wy+hy+dy;
-    this.vertex5.z = z-wz+hz+dz;
-    this.vertex6.x = x-wx+hx-dx;
-    this.vertex6.y = y-wy+hy-dy;
-    this.vertex6.z = z-wz+hz-dz;
-    this.vertex7.x = x-wx-hx+dx;
-    this.vertex7.y = y-wy-hy+dy;
-    this.vertex7.z = z-wz-hz+dz;
-    this.vertex8.x = x-wx-hx-dx;
-    this.vertex8.y = y-wy-hy-dy;
-    this.vertex8.z = z-wz-hz-dz;
+    var v=this.elements;
+    //v1
+    v[0]=x+wx+hx+dx;
+    v[1]=y+wy+hy+dy;
+    v[2]=z+wz+hz+dz;
+    //v2
+    v[3]=x+wx+hx-dx;
+    v[4]=y+wy+hy-dy;
+    v[5]=z+wz+hz-dz;
+    //v3
+    v[6]=x+wx-hx+dx;
+    v[7]=y+wy-hy+dy;
+    v[8]=z+wz-hz+dz;
+    //v4
+    v[9]=x+wx-hx-dx;
+    v[10]=y+wy-hy-dy;
+    v[11]=z+wz-hz-dz;
+    //v5
+    v[12]=x-wx+hx+dx;
+    v[13]=y-wy+hy+dy;
+    v[14]=z-wz+hz+dz;
+    //v6
+    v[15]=x-wx+hx-dx;
+    v[16]=y-wy+hy-dy;
+    v[17]=z-wz+hz-dz;
+    //v7
+    v[18]=x-wx-hx+dx;
+    v[19]=y-wy-hy+dy;
+    v[20]=z-wz-hz+dz;
+    //v8
+    v[21]=x-wx-hx-dx;
+    v[22]=y-wy-hy-dy;
+    v[23]=z-wz-hz-dz;
 
-    var w = (this.halfDirectionWidth.x<0) ? -this.halfDirectionWidth.x : this.halfDirectionWidth.x; 
-    var h = (this.halfDirectionWidth.y<0) ? -this.halfDirectionWidth.y : this.halfDirectionWidth.y;
-    var d = (this.halfDirectionWidth.z<0) ? -this.halfDirectionWidth.z : this.halfDirectionWidth.z;
+    var w = (di[9]<0) ? -di[9] : di[9]; 
+    var h = (di[10]<0) ? -di[10] : di[10];
+    var d = (di[11]<0) ? -di[11] : di[11];
 
-    w = (this.halfDirectionHeight.x<0) ? w-this.halfDirectionHeight.x : w+this.halfDirectionHeight.x; 
-    h = (this.halfDirectionHeight.y<0) ? h-this.halfDirectionHeight.y : h+this.halfDirectionHeight.y;
-    d = (this.halfDirectionHeight.z<0) ? d-this.halfDirectionHeight.z : d+this.halfDirectionHeight.z;
+    w = (di[12]<0) ? w-di[12] : w+di[12]; 
+    h = (di[13]<0) ? h-di[13] : h+di[13];
+    d = (di[14]<0) ? d-di[14] : d+di[14];
 
-    w = (this.halfDirectionDepth.x<0) ? w-this.halfDirectionDepth.x : w+this.halfDirectionDepth.x; 
-    h = (this.halfDirectionDepth.y<0) ? h-this.halfDirectionDepth.y : h+this.halfDirectionDepth.y;
-    d = (this.halfDirectionDepth.z<0) ? d-this.halfDirectionDepth.z : d+this.halfDirectionDepth.z;
+    w = (di[15]<0) ? w-di[15] : w+di[15]; 
+    h = (di[16]<0) ? h-di[16] : h+di[16];
+    d = (di[17]<0) ? d-di[17] : d+di[17];
     
     this.aabb.init(
         this.position.x-w-0.005,this.position.x+w+0.005,
@@ -5276,7 +5370,7 @@ OIMO.SphereShape.prototype.calculateMassInfo = function(out){
     var mass=4/3*Math.PI*this.radius*this.radius*this.radius*this.density;
     out.mass=mass;
     var inertia=mass*this.radius*this.radius*2/5;
-    out.inertia.init( inertia,0,0,  0,inertia,0,  0,0,inertia );
+    out.inertia.init( inertia,0,0, 0,inertia,0, 0,0,inertia );
 }
 OIMO.SphereShape.prototype.updateProxy = function(){
     this.aabb.init(
@@ -5299,13 +5393,10 @@ OIMO.CollisionDetector.prototype = {
 }
 OIMO.BoxBoxCollisionDetector = function(){
     OIMO.CollisionDetector.call( this );
-
-    this.clipVertices1=[];// vector 24
-    this.clipVertices2=[];// vector 24
-    this.clipVertices1.length = 24;
-    this.clipVertices2.length = 24;
-    this.used=[];// vector 8
-    this.used.length = 8;
+    this.clipVertices1=new OIMO_ARRAY_TYPE(24);
+    this.clipVertices2=new OIMO_ARRAY_TYPE(24);
+    this.used=new OIMO_ARRAY_TYPE(8);
+    
     this.INF = 1/0;
 }
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
@@ -5319,6 +5410,12 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
         b1=(shape2);
         b2=(shape1);
     }
+    var V1 = b1.elements;
+    var V2 = b2.elements;
+
+    var D1 = b1.dimentions;
+    var D2 = b2.dimentions;
+
     var p1=b1.position;
     var p2=b2.position;
     var p1x=p1.x;
@@ -5336,42 +5433,45 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var w2=b2.halfWidth;
     var h2=b2.halfHeight;
     var d2=b2.halfDepth;
-    var d1x=b1.halfDirectionWidth.x;
-    var d1y=b1.halfDirectionWidth.y;
-    var d1z=b1.halfDirectionWidth.z;
-    var d2x=b1.halfDirectionHeight.x;
-    var d2y=b1.halfDirectionHeight.y;
-    var d2z=b1.halfDirectionHeight.z;
-    var d3x=b1.halfDirectionDepth.x;
-    var d3y=b1.halfDirectionDepth.y;
-    var d3z=b1.halfDirectionDepth.z;
-    var d4x=b2.halfDirectionWidth.x;
-    var d4y=b2.halfDirectionWidth.y;
-    var d4z=b2.halfDirectionWidth.z;
-    var d5x=b2.halfDirectionHeight.x;
-    var d5y=b2.halfDirectionHeight.y;
-    var d5z=b2.halfDirectionHeight.z;
-    var d6x=b2.halfDirectionDepth.x;
-    var d6y=b2.halfDirectionDepth.y;
-    var d6z=b2.halfDirectionDepth.z;
-    var a1x=b1.normalDirectionWidth.x;
-    var a1y=b1.normalDirectionWidth.y;
-    var a1z=b1.normalDirectionWidth.z;
-    var a2x=b1.normalDirectionHeight.x;
-    var a2y=b1.normalDirectionHeight.y;
-    var a2z=b1.normalDirectionHeight.z;
-    var a3x=b1.normalDirectionDepth.x;
-    var a3y=b1.normalDirectionDepth.y;
-    var a3z=b1.normalDirectionDepth.z;
-    var a4x=b2.normalDirectionWidth.x;
-    var a4y=b2.normalDirectionWidth.y;
-    var a4z=b2.normalDirectionWidth.z;
-    var a5x=b2.normalDirectionHeight.x;
-    var a5y=b2.normalDirectionHeight.y;
-    var a5z=b2.normalDirectionHeight.z;
-    var a6x=b2.normalDirectionDepth.x;
-    var a6y=b2.normalDirectionDepth.y;
-    var a6z=b2.normalDirectionDepth.z;
+
+    var a1x=D1[0];
+    var a1y=D1[1];
+    var a1z=D1[2];
+    var a2x=D1[3];
+    var a2y=D1[4];
+    var a2z=D1[5];
+    var a3x=D1[6];
+    var a3y=D1[7];
+    var a3z=D1[8];
+    var d1x=D1[9];
+    var d1y=D1[10];
+    var d1z=D1[11];
+    var d2x=D1[12];
+    var d2y=D1[13];
+    var d2z=D1[14];
+    var d3x=D1[15];
+    var d3y=D1[16];
+    var d3z=D1[17];
+
+    var a4x=D2[0];
+    var a4y=D2[1];
+    var a4z=D2[2];
+    var a5x=D2[3];
+    var a5y=D2[4];
+    var a5z=D2[5];
+    var a6x=D2[6];
+    var a6y=D2[7];
+    var a6z=D2[8];
+    var d4x=D2[9];
+    var d4y=D2[10];
+    var d4z=D2[11];
+    var d5x=D2[12];
+    var d5y=D2[13];
+    var d5z=D2[14];
+    var d6x=D2[15];
+    var d6y=D2[16];
+    var d6z=D2[17];
+    
     var a7x=a1y*a4z-a1z*a4y;
     var a7y=a1z*a4x-a1x*a4z;
     var a7z=a1x*a4y-a1y*a4x;
@@ -6158,15 +6258,15 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var v2x;
     var v2y;
     var v2z;
-    v=b1.vertex1;
-    v1x=v.x;
-    v1y=v.y;
-    v1z=v.z;
+    //vertex1;
+    v1x=V1[0];
+    v1y=V1[1];
+    v1z=V1[2];
     maxDistance=nx*v1x+ny*v1y+nz*v1z;
-    v=b1.vertex2;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex2;
+    vx=V1[3];
+    vy=V1[4];
+    vz=V1[5];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6174,10 +6274,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex3;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex3;
+    vx=V1[6];
+    vy=V1[7];
+    vz=V1[8];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6185,10 +6285,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex4;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex4;
+    vx=V1[9];
+    vy=V1[10];
+    vz=V1[11];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6196,10 +6296,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex5;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex5;
+    vx=V1[12];
+    vy=V1[13];
+    vz=V1[14];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6207,10 +6307,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex6;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex6;
+    vx=V1[15];
+    vy=V1[16];
+    vz=V1[17];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6218,10 +6318,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex7;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex7;
+    vx=V1[18];
+    vy=V1[19];
+    vz=V1[20];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6229,10 +6329,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b1.vertex8;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex8;
+    vx=V1[21];
+    vy=V1[22];
+    vz=V1[23];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance>maxDistance){
     maxDistance=distance;
@@ -6240,15 +6340,15 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v1y=vy;
     v1z=vz;
     }
-    v=b2.vertex1;
-    v2x=v.x;
-    v2y=v.y;
-    v2z=v.z;
+    //vertex1;
+    v2x=V2[0];
+    v2y=V2[1];
+    v2z=V2[2];
     maxDistance=nx*v2x+ny*v2y+nz*v2z;
-    v=b2.vertex2;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex2;
+    vx=V2[3];
+    vy=V2[4];
+    vz=V2[5];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6256,10 +6356,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex3;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex3;
+    vx=V2[6];
+    vy=V2[7];
+    vz=V2[8];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6267,10 +6367,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex4;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex4;
+    vx=V2[9];
+    vy=V2[10];
+    vz=V2[11];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6278,10 +6378,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex5;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex5;
+    vx=V2[12];
+    vy=V2[13];
+    vz=V2[14];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6289,10 +6389,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex6;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex6;
+    vx=V2[15];
+    vy=V2[16];
+    vz=V2[17];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6300,10 +6400,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex7;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex7;
+    vx=V2[18];
+    vy=V2[19];
+    vz=V2[20];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6311,10 +6411,10 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     v2y=vy;
     v2z=vz;
     }
-    v=b2.vertex8;
-    vx=v.x;
-    vy=v.y;
-    vz=v.z;
+    //vertex8;
+    vx=V2[21];
+    vy=V2[22];
+    vz=V2[23];
     distance=nx*vx+ny*vy+nz*vz;
     if(distance<maxDistance){
     maxDistance=distance;
@@ -6375,112 +6475,112 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     switch(minDotIndex){
     case 0:
-    v=b1.vertex1;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex3;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex4;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex2;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex1;
+    q1x=V1[0];
+    q1y=V1[1];
+    q1z=V1[2];
+    //vertex3;
+    q2x=V1[6];
+    q2y=V1[7];
+    q2z=V1[8];
+    //vertex4;
+    q3x=V1[9];
+    q3y=V1[10];
+    q3z=V1[11];
+    //vertex2;
+    q4x=V1[3];
+    q4y=V1[4];
+    q4z=V1[5];
     break;
     case 1:
-    v=b1.vertex6;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex8;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex7;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex5;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex6;
+    q1x=V1[15];
+    q1y=V1[16];
+    q1z=V1[17];
+    //vertex8;
+    q2x=V1[21];
+    q2y=V1[22];
+    q2z=V1[23];
+    //vertex7;
+    q3x=V1[18];
+    q3y=V1[19];
+    q3z=V1[20];
+    //vertex5;
+    q4x=V1[12];
+    q4y=V1[13];
+    q4z=V1[14];
     break;
     case 2:
-    v=b1.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex1;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex2;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex5;
+    q1x=V1[12];
+    q1y=V1[13];
+    q1z=V1[14];
+    //vertex1;
+    q2x=V1[0];
+    q2y=V1[1];
+    q2z=V1[2];
+    //vertex2;
+    q3x=V1[3];
+    q3y=V1[4];
+    q3z=V1[5];
+    //vertex6;
+    q4x=V1[15];
+    q4y=V1[16];
+    q4z=V1[17];
     break;
     case 3:
-    v=b1.vertex8;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex7;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex8;
+    q1x=V1[21];
+    q1y=V1[22];
+    q1z=V1[23];
+    //vertex4;
+    q2x=V1[9];
+    q2y=V1[10];
+    q2z=V1[11];
+    //vertex3;
+    q3x=V1[6];
+    q3y=V1[7];
+    q3z=V1[8];
+    //vertex7;
+    q4x=V1[18];
+    q4y=V1[19];
+    q4z=V1[20];
     break;
     case 4:
-    v=b1.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex7;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex1;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex5;
+    q1x=V1[12];
+    q1y=V1[13];
+    q1z=V1[14];
+    //vertex7;
+    q2x=V1[18];
+    q2y=V1[19];
+    q2z=V1[20];
+    //vertex3;
+    q3x=V1[6];
+    q3y=V1[7];
+    q3z=V1[8];
+    //vertex1;
+    q4x=V1[0];
+    q4y=V1[1];
+    q4z=V1[2];
     break;
     case 5:
-    v=b1.vertex2;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b1.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b1.vertex8;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b1.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex2;
+    q1x=V1[3];
+    q1y=V1[4];
+    q1z=V1[5];
+    //vertex4;
+    q2x=V1[6];
+    q2y=V1[7];
+    q2z=V1[8];
+    //vertex8;
+    q3x=V1[21];
+    q3y=V1[22];
+    q3z=V1[23];
+    //vertex6;
+    q4x=V1[15];
+    q4y=V1[16];
+    q4z=V1[17];
     break;
     }
     }else{
@@ -6513,112 +6613,112 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     switch(minDotIndex){
     case 0:
-    v=b2.vertex1;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex3;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex4;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex2;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex1;
+    q1x=V2[0];
+    q1y=V2[1];
+    q1z=V2[2];
+    //vertex3;
+    q2x=V2[6];
+    q2y=V2[7];
+    q2z=V2[8];
+    //vertex4;
+    q3x=V2[9];
+    q3y=V2[10];
+    q3z=V2[11];
+    //vertex2;
+    q4x=V2[3];
+    q4y=V2[4];
+    q4z=V2[5];
     break;
     case 1:
-    v=b2.vertex6;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex8;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex7;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex5;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex6;
+    q1x=V2[15];
+    q1y=V2[16];
+    q1z=V2[17];
+    //vertex8;
+    q2x=V2[21];
+    q2y=V2[22];
+    q2z=V2[23];
+    //vertex7;
+    q3x=V2[18];
+    q3y=V2[19];
+    q3z=V2[20];
+    //vertex5;
+    q4x=V2[12];
+    q4y=V2[13];
+    q4z=V2[14];
     break;
     case 2:
-    v=b2.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex1;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex2;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex5;
+    q1x=V2[12];
+    q1y=V2[13];
+    q1z=V2[14];
+    //vertex1;
+    q2x=V2[0];
+    q2y=V2[1];
+    q2z=V2[2];
+    //vertex2;
+    q3x=V2[3];
+    q3y=V2[4];
+    q3z=V2[5];
+    //vertex6;
+    q4x=V2[15];
+    q4y=V2[16];
+    q4z=V2[17];
     break;
     case 3:
-    v=b2.vertex8;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex7;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex8;
+    q1x=V2[21];
+    q1y=V2[22];
+    q1z=V2[23];
+    //vertex4;
+    q2x=V2[9];
+    q2y=V2[10];
+    q2z=V2[11];
+    //vertex3;
+    q3x=V2[6];
+    q3y=V2[7];
+    q3z=V2[8];
+    //vertex7;
+    q4x=V2[18];
+    q4y=V2[19];
+    q4z=V2[20];
     break;
     case 4:
-    v=b2.vertex5;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex7;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex3;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex1;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //ertex5;
+    q1x=V2[12];
+    q1y=V2[13];
+    q1z=V2[14];
+    //vertex7;
+    q2x=V2[18];
+    q2y=V2[19];
+    q2z=V2[20];
+    //vertex3;
+    q3x=V2[6];
+    q3y=V2[7];
+    q3z=V2[8];
+    //vertex1;
+    q4x=V2[0];
+    q4y=V2[1];
+    q4z=V2[2];
     break;
     case 5:
-    v=b2.vertex2;
-    q1x=v.x;
-    q1y=v.y;
-    q1z=v.z;
-    v=b2.vertex4;
-    q2x=v.x;
-    q2y=v.y;
-    q2z=v.z;
-    v=b2.vertex8;
-    q3x=v.x;
-    q3y=v.y;
-    q3z=v.z;
-    v=b2.vertex6;
-    q4x=v.x;
-    q4y=v.y;
-    q4z=v.z;
+    //vertex2;
+    q1x=V2[3];
+    q1y=V2[4];
+    q1z=V2[5];
+    //vertex4;
+    q2x=V2[9];
+    q2y=V2[10];
+    q2z=V2[11];
+    //vertex8;
+    q3x=V2[21];
+    q3y=V2[22];
+    q3z=V2[23];
+    //vertex6;
+    q4x=V2[15];
+    q4y=V2[16];
+    q4z=V2[17];
     break;
     }
     }
@@ -6957,6 +7057,9 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         s=(shape1);
         b=(shape2);
     }
+
+    var D = b.dimentions;
+
     var ps=s.position;
     var psx=ps.x;
     var psy=ps.y;
@@ -6966,18 +7069,17 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
     var pby=pb.y;
     var pbz=pb.z;
     var rad=s.radius;
-    var nw=b.normalDirectionWidth;
-    var nh=b.normalDirectionHeight;
-    var nd=b.normalDirectionDepth;
+
     var hw=b.halfWidth;
     var hh=b.halfHeight;
     var hd=b.halfDepth;
+
     var dx=psx-pbx;
     var dy=psy-pby;
     var dz=psz-pbz;
-    var sx=nw.x*dx+nw.y*dy+nw.z*dz;
-    var sy=nh.x*dx+nh.y*dy+nh.z*dz;
-    var sz=nd.x*dx+nd.y*dy+nd.z*dz;
+    var sx=D[0]*dx+D[1]*dy+D[2]*dz;
+    var sy=D[3]*dx+D[4]*dy+D[5]*dz;
+    var sz=D[6]*dx+D[7]*dy+D[8]*dz;
     var cx;
     var cy;
     var cz;
@@ -7026,27 +7128,27 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
                 len=dx-hw;
             if(sx<0){
                 sx=-hw;
-                dx=nw.x;
-                dy=nw.y;
-                dz=nw.z;
+                dx=D[0];
+                dy=D[1];
+                dz=D[2];
             }else{
                 sx=hw;
-                dx=-nw.x;
-                dy=-nw.y;
-                dz=-nw.z;
+                dx=-D[0];
+                dy=-D[1];
+                dz=-D[2];
             }
         }else{
             len=dz-hd;
             if(sz<0){
                 sz=-hd;
-                dx=nd.x;
-                dy=nd.y;
-                dz=nd.z;
+                dx=D[6];
+                dy=D[7];
+                dz=D[8];
             }else{
                 sz=hd;
-                dx=-nd.x;
-                dy=-nd.y;
-                dz=-nd.z;
+                dx=-D[6];
+                dy=-D[7];
+                dz=-D[8];
             }
         }
         }else{
@@ -7054,38 +7156,38 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
                 len=dy-hh;
                 if(sy<0){
                     sy=-hh;
-                    dx=nh.x;
-                    dy=nh.y;
-                    dz=nh.z;
+                    dx=D[3];
+                    dy=D[4];
+                    dz=D[5];
                 }else{
                     sy=hh;
-                    dx=-nh.x;
-                    dy=-nh.y;
-                    dz=-nh.z;
+                    dx=-D[3];
+                    dy=-D[4];
+                    dz=-D[5];
                 }
             }else{
                 len=dz-hd;
                 if(sz<0){
                     sz=-hd;
-                    dx=nd.x;
-                    dy=nd.y;
-                    dz=nd.z;
+                    dx=D[6];
+                    dy=D[7];
+                    dz=D[8];
                 }else{
                     sz=hd;
-                    dx=-nd.x;
-                    dy=-nd.y;
-                    dz=-nd.z;
+                    dx=-D[6];
+                    dy=-D[7];
+                    dz=-D[8];
             }
         }
     }
-    cx=pbx+sx*nw.x+sy*nh.x+sz*nd.x;
-    cy=pby+sx*nw.y+sy*nh.y+sz*nd.y;
-    cz=pbz+sx*nw.z+sy*nh.z+sz*nd.z;
+    cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+    cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+    cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
     manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
     }else{
-        cx=pbx+sx*nw.x+sy*nh.x+sz*nd.x;
-        cy=pby+sx*nw.y+sy*nh.y+sz*nd.y;
-        cz=pbz+sx*nw.z+sy*nh.z+sz*nd.z;
+        cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+        cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+        cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
         dx=cx-ps.x;
         dy=cy-ps.y;
         dz=cz-ps.z;
@@ -7399,85 +7501,86 @@ OIMO.SAPAxis.prototype = {
         while((this.numElements>>threshold)!=0)threshold++;
         threshold=threshold*this.numElements>>2;
         count=0;
-        var giveup=false;var elements=this.elements;
+        var giveup=false;
+        var elements=this.elements;
         for(var i=1, l=this.numElements; i<l; i++){
-        var tmp=elements[i];
-        var pivot=tmp.value;
-        var tmp2=elements[i-1];
-        if(tmp2.value>pivot){
-        var j=i;
-        do{
-        elements[j]=tmp2;
-        if(--j==0)break;
-        tmp2=elements[j-1];
-        }while(tmp2.value>pivot);
-        elements[j]=tmp;
-        count+=i-j;
-        if(count>threshold){
-        giveup=true;
-        break;
-        }
-        }
+            var tmp=elements[i];
+            var pivot=tmp.value;
+            var tmp2=elements[i-1];
+            if(tmp2.value>pivot){
+                var j=i;
+                do{
+                elements[j]=tmp2;
+                if(--j==0)break;
+                tmp2=elements[j-1];
+                }while(tmp2.value>pivot);
+                elements[j]=tmp;
+                count+=i-j;
+                if(count>threshold){
+                    giveup=true;
+                    break;
+                }
+            }
         }
         if(!giveup)return;
         count=2;var stack=this.stack;
         stack[0]=0;
         stack[1]=this.numElements-1;
         while(count>0){
-        var right=stack[--count];
-        var left=stack[--count];
-        var diff=right-left;
-        if(diff>16){
-        var mid=left+(diff>>1);
-        //var mid=left+(diff*0.5);
-        tmp=elements[mid];
-        elements[mid]=elements[right];
-        elements[right]=tmp;
-        pivot=tmp.value;
-        i=left-1;
-        j=right;
-        while(true){
-        var ei;
-        var ej;
-        do{
-        ei=elements[++i];
-        }while(ei.value<pivot);
-        do{
-        ej=elements[--j];
-        }while(pivot<ej.value&&j!=left);
-        if(i>=j)break;
-        elements[i]=ej;
-        elements[j]=ei;
-        }
-        elements[right]=elements[i];
-        elements[i]=tmp;
-        if(i-left>right-i){
-        stack[count++]=left;
-        stack[count++]=i-1;
-        stack[count++]=i+1;
-        stack[count++]=right;
-        }else{
-        stack[count++]=i+1;
-        stack[count++]=right;
-        stack[count++]=left;
-        stack[count++]=i-1;
-        }
-        }else{
-        for(i=left+1;i<=right;i++){
-        tmp=elements[i];
-        pivot=tmp.value;
-        tmp2=elements[i-1];
-        if(tmp2.value>pivot){
-        j=i;
-        do{
-        elements[j]=tmp2;
-        if(--j==0)break;
-        tmp2=elements[j-1];
-        }while(tmp2.value>pivot);
-        elements[j]=tmp;
-        }
-        }
-        }
+            var right=stack[--count];
+            var left=stack[--count];
+            var diff=right-left;
+            if(diff>16){
+            var mid=left+(diff>>1);
+            //var mid=left+(diff*0.5);
+            tmp=elements[mid];
+            elements[mid]=elements[right];
+            elements[right]=tmp;
+            pivot=tmp.value;
+            i=left-1;
+            j=right;
+            while(true){
+                var ei;
+                var ej;
+                do{
+                ei=elements[++i];
+                }while(ei.value<pivot);
+                do{
+                ej=elements[--j];
+                }while(pivot<ej.value&&j!=left);
+                if(i>=j)break;
+                elements[i]=ej;
+                elements[j]=ei;
+            }
+            elements[right]=elements[i];
+            elements[i]=tmp;
+            if(i-left>right-i){
+                stack[count++]=left;
+                stack[count++]=i-1;
+                stack[count++]=i+1;
+                stack[count++]=right;
+            }else{
+                stack[count++]=i+1;
+                stack[count++]=right;
+                stack[count++]=left;
+                stack[count++]=i-1;
+            }
+            }else{
+            for(i=left+1;i<=right;i++){
+            tmp=elements[i];
+            pivot=tmp.value;
+            tmp2=elements[i-1];
+            if(tmp2.value>pivot){
+            j=i;
+            do{
+            elements[j]=tmp2;
+            if(--j==0)break;
+            tmp2=elements[j-1];
+            }while(tmp2.value>pivot);
+            elements[j]=tmp;
+            }
+            }
+            }
         }
     },
     calculateTestCount:function(){
