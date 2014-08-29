@@ -1,3 +1,7 @@
+/**
+* An axis-aligned bounding box.
+* @author saharan
+*/
 OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
     this.minX=minX || 0;
     this.maxX=maxX || 0;
@@ -19,6 +23,11 @@ OIMO.AABB.prototype = {
         this.minZ=minZ;
         this.maxZ=maxZ;
     },
+    /**
+    * Set this AABB to the combined AABB of aabb1 and aabb2.
+    * @param   aabb1
+    * @param   aabb2
+    */
     combine:function(aabb1,aabb2){
         this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
         this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
@@ -26,20 +35,32 @@ OIMO.AABB.prototype = {
         this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
         this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
         this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
-
-        /*var margin=0;
+        /*
+        var margin=0;
         this.minX-=margin;
         this.minY-=margin;
         this.minZ-=margin;
         this.maxX+=margin;
         this.maxY+=margin;
-        this.maxZ+=margin;*/
+        this.maxZ+=margin;
+        */
     },
+    /**
+    * Get the surface area.
+    * @return
+    */
     surfaceArea:function(){
         var h=this.maxY-this.minY;
         var d=this.maxZ-this.minZ;
         return 2*((this.maxX-this.minX)*(h+d)+h*d);
     },
+    /**
+    * Get whether the AABB intersects with the point or not.
+    * @param   x
+    * @param   y
+    * @param   z
+    * @return
+    */
     intersectsWithPoint:function(x,y,z){
         return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
     }

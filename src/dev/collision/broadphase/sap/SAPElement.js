@@ -1,10 +1,22 @@
+/**
+* An element of proxies.
+* @author saharan
+*/
 OIMO.SAPElement = function(proxy,max){
-    this.pair = null;
-    this.min1 = null;
-    this.max1 = null;
-    this.min2 = null;
-    this.max2 = null;
+    // The parent proxy
     this.proxy=proxy;
-    this.max=max;
-    this.value=0;
+	// The pair element.
+    this.pair = null;
+    // The minimum element on other axis.
+    this.min1 = null;
+    // The maximum element on other axis.
+    this.max1 = null;
+    // The minimum element on other axis.
+    this.min2 = null;
+    // The maximum element on other axis.
+    this.max2 = null;
+    // Whether the element has maximum value or not.
+    this.max = max;
+    // The value of the element.
+    this.value = 0;
 };

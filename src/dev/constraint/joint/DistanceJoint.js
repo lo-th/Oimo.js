@@ -1,8 +1,13 @@
+/**
+* A distance joint limits the distance between two anchor points on rigid bodies.
+* @author saharan
+*/
 OIMO.DistanceJoint = function(config,minDistance,maxDistance){
     OIMO.Joint.call( this, config);
-
     this.type=this.JOINT_DISTANCE;
+    
     this.normal=new OIMO.Vec3();
+    // The limit and motor information of the joint.
     this.limitMotor=new OIMO.LimitMotor(this.normal,true);
     this.limitMotor.lowerLimit=minDistance;
     this.limitMotor.upperLimit=maxDistance;

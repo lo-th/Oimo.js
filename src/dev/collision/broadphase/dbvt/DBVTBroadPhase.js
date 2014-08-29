@@ -1,3 +1,7 @@
+/**
+* A broad-phase algorithm using dynamic bounding volume tree.
+* @author saharan
+*/
 OIMO.DBVTBroadPhase = function(){
     OIMO.BroadPhase.call( this);
     this.types = 0x3;
@@ -53,7 +57,7 @@ OIMO.DBVTBroadPhase.prototype.collectPairs = function () {
     trueB.minX<leafB.minX||trueB.maxX>leafB.maxX||
     trueB.minY<leafB.minY||trueB.maxY>leafB.maxY||
     trueB.minZ<leafB.minZ||trueB.maxZ>leafB.maxZ
-    ){
+    ){// the leaf needs correcting
     var margin=0.1;
     this.tree.deleteLeaf(leaf);
     leafB.minX=trueB.minX-margin;
@@ -102,7 +106,7 @@ OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
     ){
     continue;
     }
-    if(stackCount+4>=this.maxStack){
+    if(stackCount+4>=this.maxStack){// expand the stack
     //this.maxStack<<=1;
     this.maxStack*=2;
     var newStack=[];// vector

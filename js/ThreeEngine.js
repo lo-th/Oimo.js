@@ -5,8 +5,10 @@
     http://3dflashlo.wordpress.com/
 */
 
+'use strict';
+
 var ThreeEngine = function () {
-	'use strict';
+	
 	// containe background object
 	var back = new THREE.Object3D();
 	// containe all object from simulation
@@ -111,16 +113,17 @@ var ThreeEngine = function () {
 
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
-		scene.add(camera);
+		//scene.add(camera);
 
 		sceneSky = new THREE.Scene();
 		cameraSky = new THREE.PerspectiveCamera( 60, 1, 1, 999999 );
 		sceneSky.add(cameraSky);
 
 		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , depthWrite: false} );// side:THREE.BackSide,
-		var skyGeo;
-		if(isBuffered) skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry(20000, 20, 12));
-		else skyGeo = new THREE.SphereGeometry(20000, 20, 12);
+		//var skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.IcosahedronGeometry(20000, 2));
+		var skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry(20000, 20, 12));
+		//if(isBuffered) skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry(20000, 20, 12));
+		//else skyGeo = new THREE.SphereGeometry(20000, 20, 12);
 		//sky = new THREE.Mesh(new THREE.IcosahedronGeometry(20000,1), materialSky);
 		sky = new THREE.Mesh(skyGeo, materialSky);
 		sky.rotation.y = 180*ToRad;
@@ -489,7 +492,7 @@ var ThreeEngine = function () {
 			poolTextures[i] = new eightBall(i);
 		}
 
-		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:debugAlpha} );
+		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:0});//debugAlpha} );
 		jointMaterial = new THREE.LineBasicMaterial( { color: jointColor } );
 		
 		baseMaterial();
@@ -666,10 +669,11 @@ var ThreeEngine = function () {
 		    case 2: case 'box': 
 		        mesh=new THREE.Mesh(geo01b, debugMaterial);
 		        mesh.scale.set( s[0], s[1], s[2] );
-		        mesh.visible = false;
+		        //mesh.visible = false;
 		        //mesh=new THREE.Mesh(new THREE.BoxGeometry( s[0], s[1], s[2] ), debugMaterial);
                 helper = new THREE.BoxHelper(mesh);
                 helper.material.color.set( debugColor );
+                //helper.material.depthTest = false;
                 helper.material.opacity = debugAlpha;
                 helper.material.transparent = true;
 		        mesh.add( helper );
@@ -677,7 +681,7 @@ var ThreeEngine = function () {
 		    case 22: case 'ground': 
 		        mesh=new THREE.Mesh(geo01b, debugMaterial);
 		        mesh.scale.set( s[0], s[1], s[2] );
-		        mesh.visible = false;
+		        //mesh.visible = false;
 		        //mesh=new THREE.Mesh(new THREE.BoxGeometry( s[0], s[1], s[2] ), debugMaterial);
                 helper = new THREE.BoxHelper(mesh);
                 helper.material.color.setHex( debugColor );
@@ -799,7 +803,8 @@ var ThreeEngine = function () {
 	    		break;
 	    		case 13: case 'carBody':
 	    		    mesh = new THREE.Mesh(carBodyBuffer, getMaterial('mat02')); 
-	    		    mesh.scale.set( 100, 100, 100 );
+	    		   // mesh.scale.set( 100, 100, 100 );
+	    		    mesh.scale.set( 1, 1, 1 );
 	    		    followObject = mesh;
 	    		break;
 	    		case 14: case 'vanBody':
@@ -883,8 +888,8 @@ var ThreeEngine = function () {
         for(var i=0; i<types.length; i++){
             n = i*3;
             if(types[i]=='cylinder') g = geo03;
-            else if(types[i]=='sphere') g = geo02;
-            else g =  geo06 ;
+            else if(types[i]=='sphere') new THREE.SphereGeometry( 1 , 20, 10 );//g = geo02;
+            else g = new THREE.BoxGeometry( 1, 1, 1 );// geo06 ;
 
             /*mesh.scale.set( sizes[n+0], sizes[n+1], sizes[n+2] );
             if(i===0) mesh.position.set( 0, 0, 0 );
@@ -1159,68 +1164,39 @@ var ThreeEngine = function () {
 	
 
 	var defineGeometry = function(){
-		var sbox = getSeaGeometry('box');
+		var sbox = getGeometry('box');
 		geo06 = sbox.clone();
-		if(isBuffered){
-			geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
-			geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
-			geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
-			geo03b = THREE.BufferGeometryUtils.fromGeometry( getSeaGeometry('cyl') );
-			geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
-			geo05b = THREE.BufferGeometryUtils.fromGeometry( geo05 );
-			geoBulletb = THREE.BufferGeometryUtils.fromGeometry( getSeaGeometry('bullet') );
-			//smoothCube = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('box'));
-			smoothCube = THREE.BufferGeometryUtils.fromGeometry(sbox.clone());
-			diceBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('dice'));
-			colomnBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('column'));
-			colomnBaseBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnBase'));
-			colomnTopBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('columnTop'));
-			carBodyBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('carBody'));
-			carWheelBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('wheel'));
-			vanWheelBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('vanWheel'));
-			vanBodyBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('vanBody', 1, 'x'));
-			vanBottomLeftBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('vanBody', 1, 'z',1));
-			vanBottomRightBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('vanBody', 1, 'z', 2));
-			vanFrontBuffer = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('vanBody', 1, 'x', 3));
+		geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
+		geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
+		geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
+		geo03b = getSeaGeometry('cyl');
+		geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
+		geo05b = THREE.BufferGeometryUtils.fromGeometry( geo05 );
+		geoBulletb = getSeaGeometry('bullet');
+		smoothCube = THREE.BufferGeometryUtils.fromGeometry(sbox.clone());
+		diceBuffer = getSeaGeometry('dice');
+		colomnBuffer = getSeaGeometry('column');
+		colomnBaseBuffer = getSeaGeometry('columnBase');
+		colomnTopBuffer = getSeaGeometry('columnTop');
+		carBodyBuffer = getSeaGeometry('carBody');
+		carWheelBuffer = getSeaGeometry('wheel');
+		vanWheelBuffer = getSeaGeometry('vanWheel');
+		vanBodyBuffer = getSeaGeometry('vanBody', 1, 'x');
+		vanBottomLeftBuffer = getSeaGeometry('vanBody', 1, 'z',1);
+		vanBottomRightBuffer = getSeaGeometry('vanBody', 1, 'z', 3);
+		vanFrontBuffer = getSeaGeometry('vanBody', 1, 'x', 2);
 
-			gyroBuffer0 = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('gyro', 1, 'x'));
-			gyroBuffer1 = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('gyro', 1, 'z', 1));
-			gyroBuffer2 = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('gyro', 1, 'z', 1, 1));
-			gyroBuffer3 = THREE.BufferGeometryUtils.fromGeometry(getSeaGeometry('gyro', 1, 'x', 1, 2));
-
-	    } else {
-	    	geo00b = geo00;
-			geo01b = geo01;
-			geo02b = geo02;
-			geo03b = getSeaGeometry('cyl') ;
-			geo04b = geo04;
-			geo05b = geo05;
-			geoBulletb = getSeaGeometry('bullet');
-	    	smoothCube = sbox.clone();//getSeaGeometry('box');
-	    	diceBuffer = getSeaGeometry('dice');
-			colomnBuffer = getSeaGeometry('column');
-			colomnBaseBuffer = getSeaGeometry('columnBase');
-			colomnTopBuffer = getSeaGeometry('columnTop');
-			carBodyBuffer = getSeaGeometry('carBody');
-			carWheelBuffer = getSeaGeometry('wheel');
-			vanWheelBuffer = getSeaGeometry('vanWheel');
-			vanBodyBuffer = getSeaGeometry('vanBody',1, 'x');
-			vanBottomLeftBuffer = getSeaGeometry('vanBody',1, 'z', 0);
-			vanBottomRightBuffer = getSeaGeometry('vanBody',1, 'z', 1);
-			vanFrontBuffer = getSeaGeometry('vanBody',1, 'x', 2);
-
-			gyroBuffer0 = getSeaGeometry('gyro', 1, 'x');
-			gyroBuffer1 = getSeaGeometry('gyro', 1, 'z', 1);
-			gyroBuffer2 = getSeaGeometry('gyro', 1, 'z', 1, 1);
-			gyroBuffer3 = getSeaGeometry('gyro', 1, 'x', 1, 2);
-	    }
+		gyroBuffer0 = getSeaGeometry('gyro', 1, 'x');
+		gyroBuffer1 = getSeaGeometry('gyro', 1, 'z', 1);
+		gyroBuffer2 = getSeaGeometry('gyro', 1, 'z', 1, 1);
+		gyroBuffer3 = getSeaGeometry('gyro', 1, 'x', 1, 2);
 	}
 
 	//-----------------------------------------------------
 	//  SEA3D IMPORT
 	//-----------------------------------------------------
 
-	var seaList = ['dice_low', 'snake', 'wheel', 'column', 'sila', 'gyro', 'van', 'geo','droid'];
+	var seaList = ['geo', 'snake', 'sila', 'gyro', 'droid'];
 	var seaN = 0;
 
 	var initSea3DMesh = function (){
@@ -1241,13 +1217,14 @@ var ThreeEngine = function () {
 				isLoading = false;
 			} 
 		}
-
+		//SeaLoader.parser = THREE.SEA3D.BUFFER;
+		//SeaLoader.parser = THREE.SEA3D.DEFAULT;
 		SeaLoader.load( PATH+'models/'+name+'.sea' );
 		//loadInfo.innerHTML = "Loading sea3d model : "+ name;
 		document.getElementById("output").innerHTML = "Loading sea3d model : "+ name;
 	}
 
-	var getSeaGeometry = function (name, scale, axe, child, deep){
+	var getGeometry = function (name, scale, axe, child, deep){
 		var c = child || 0;
 		var d = deep || 0;
 		var a = axe || "z";
@@ -1261,6 +1238,21 @@ var ThreeEngine = function () {
 		return m;
 	}
 
+	var getSeaGeometry = function (name, scale, axe, child, deep){
+		var c = child || 0;
+		var d = deep || 0;
+		var a = axe || "z";
+		var s = scale || 1;
+		var m; 
+		if(c === 0 && d === 0) m = getMeshByName(name).geometry;
+		else if(c >= 1 && d === 0) m = getMeshByName(name).children[c-1].geometry;
+		else if(c >= 1 && d === 1) m = getMeshByName(name).children[0].children[c-1].geometry;
+		else if(c >= 1 && d === 2) m = getMeshByName(name).children[0].children[0].children[c-1].geometry;
+		scaleGeometry(m, s, a);
+		if(isBuffered) return THREE.BufferGeometryUtils.fromGeometry(m);
+		else return m;
+	}
+
 	var getMeshByName = function (name){
 		for (var i=0; i !== meshs.length; i++){
 			if(meshs[i].name === name){
@@ -1271,8 +1263,16 @@ var ThreeEngine = function () {
 
 	var scaleGeometry = function (geometry, scale, Axe) {
 		var s = 1;//scale || 1;
-		var axe = Axe || 'z' 
-		for( var i = 0; i < geometry.vertices.length; i++) {
+		var axe = Axe || 'z';
+		var mtx = new THREE.Matrix4();
+		switch(axe){
+            case 'x': mtx.makeScale(-s, s, s); break;
+            case 'y': mtx.makeScale(s, -s, s); break;
+            case 'z': mtx.makeScale(s, s, -s); break;
+        }
+        geometry.applyMatrix(mtx);
+		
+		/*for( var i = 0; i < geometry.vertices.length; i++) {
 			var vertex	= geometry.vertices[i];
 			if(axe==='x')vertex.x *= -s;
 			else vertex.x *= s;
@@ -1280,10 +1280,10 @@ var ThreeEngine = function () {
 			else vertex.y *= s;
 			if(axe==='z')vertex.z *= -s;
 			else vertex.z *= s;
-		}
-		geometry.computeFaceNormals();
-		geometry.computeVertexNormals();
-		geometry.verticesNeedUpdate = true;
+		}*/
+		//geometry.computeFaceNormals();
+		//geometry.computeVertexNormals();
+		//geometry.verticesNeedUpdate = true;
 	}
 
 	//-----------------------------------------------------
@@ -1308,13 +1308,12 @@ var ThreeEngine = function () {
 	//-----------------------------------------------------
 
 	var update = function () {
-		requestAnimationFrame( update, renderer.domElement );
+		
 
 		startTime = Date.now();
 
 		var delta = clock.getDelta();
 		
-
 		if(followObject) cameraFollow(followObject.position);
 
 		if(followSpecial === 'gyro'){
@@ -1330,13 +1329,11 @@ var ThreeEngine = function () {
 			movePlayer(delta);
 		}
 		
-
 		// test 
 		/*looker.position.copy(center);
 		looker.position.y = 10;
 		var dir=Math.atan2(center.z-marker.position.z,center.x-marker.position.x);
 		looker.rotation.y = -dir+(90*ToRad);*/
-
 
 		//renderer.render( sceneSky, cameraSky );
 		//renderer.render( scene, camera );
@@ -1360,6 +1357,8 @@ var ThreeEngine = function () {
 	    if(ms > maxms)maxms = ms;
 	    if (time - 1000 > time_prev) { time_prev = time; fpstxt = fps; fps = 0; } 
 	    fps++;
+
+	    requestAnimationFrame( update, renderer.domElement );
 	}
 
 

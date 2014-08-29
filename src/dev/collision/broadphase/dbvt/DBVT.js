@@ -1,4 +1,9 @@
+/**
+* A dynamic bounding volume tree for the broad-phase algorithm.
+* @author saharan
+*/
 OIMO.DBVT = function(){
+    // The root of the tree.
     this.root=null;
     this.freeNodes=[];// vector
     this.freeNodes.length = 16384;
@@ -8,11 +13,18 @@ OIMO.DBVT = function(){
 
 OIMO.DBVT.prototype = {
     constructor: OIMO.DBVT,
-
+    /**
+    * Move a leaf.
+    * @param   leaf
+    */
     moveLeaf:function(leaf){
         this.deleteLeaf(leaf);
         this.insertLeaf(leaf);
     },
+    /**
+    * Insert a leaf to the tree.
+    * @param   node
+    */
     insertLeaf:function(leaf){
         if(this.root==null){
             this.root=leaf;
@@ -22,7 +34,7 @@ OIMO.DBVT.prototype = {
         var sibling=this.root;
         var oldArea;
         var newArea;
-        while(sibling.proxy==null){
+        while(sibling.proxy==null){ // descend the node to search the best pair
             var c1=sibling.child1;
             var c2=sibling.child2;
             var b=sibling.aabb;
@@ -32,32 +44,36 @@ OIMO.DBVT.prototype = {
             this.aabb.combine(lb,b);
             newArea=this.aabb.surfaceArea();
             var creatingCost=newArea*2;
-            var incrementalCost=(newArea-oldArea)*2;
+            var incrementalCost=(newArea-oldArea)*2; // cost of creating a new pair with the node
             var discendingCost1=incrementalCost;
             this.aabb.combine(lb,c1b);
             if(c1.proxy!=null){
+                // leaf cost = area(combined aabb)
                 discendingCost1+=this.aabb.surfaceArea();
             }else{
+                // node cost = area(combined aabb) - area(old aabb)
                 discendingCost1+=this.aabb.surfaceArea()-c1b.surfaceArea();
             }
             var discendingCost2=incrementalCost;
             this.aabb.combine(lb,c2b);
             if(c2.proxy!=null){
+                // leaf cost = area(combined aabb)
                 discendingCost2+=this.aabb.surfaceArea();
             }else{
+                // node cost = area(combined aabb) - area(old aabb)
                 discendingCost2+=this.aabb.surfaceArea()-c2b.surfaceArea();
             }
             if(discendingCost1<discendingCost2){
                 if(creatingCost<discendingCost1){
-                    break;
+                    break;// stop descending
                 }else{
-                    sibling=c1;
+                    sibling=c1;// descend into first child
                 }
             }else{
                 if(creatingCost<discendingCost2){
-                    break;
+                    break;// stop descending
                 }else{
-                    sibling=c2;
+                    sibling=c2;// descend into second child
                 }
             }
         }
@@ -107,6 +123,10 @@ OIMO.DBVT.prototype = {
         if(hasChild)text=this.print(node.child2,indent+1,text);
         return text;
     },
+    /**
+    * Delete a leaf from the tree.
+    * @param   node
+    */
     deleteLeaf:function(leaf){
         if(leaf==this.root){
             this.root=null;
@@ -168,6 +188,7 @@ OIMO.DBVT.prototype = {
 
             // Is L-L higher than L-R?
             if(llh>lrh){
+                // set N to L-R
                 l.child2=node;
                 node.parent=l;
 

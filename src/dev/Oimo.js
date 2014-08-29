@@ -16,6 +16,8 @@ OIMO.INV_SCALE = 0.01;
 
 OIMO.TO_RAD = Math.PI / 180;
 
+// Global identification of next shape.
+// This will be incremented every time a shape is created.
 OIMO.nextID = 0;
 
 var OIMO_ARRAY_TYPE;

@@ -1,52 +1,38 @@
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
 
-    // The time between each step
-    this.timeStep= TimeStep || 1/60;
-    // The number of iterations for constraint solvers.
-    this.numIterations = Iterations || 8;
-     // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
     var broadPhaseType = BroadPhaseType || 2;
+    this.timeStep= TimeStep || 1/60;
+    this.numIterations = Iterations || 8;
+
+    this.rigidBodies=null;
+    this.numRigidBodies=0;
+    this.contacts=null;
+    this.unusedContacts=null;
+    this.numContacts=0;
+    this.numContactPoints=0;
+    this.joints=null;
+    this.numJoints=0;
+    this.numIslands=0;
+    
     switch(broadPhaseType){
         case 1: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
         case 2: default: this.broadPhase=new OIMO.SAPBroadPhase(); break;
         case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
     }
-    // Whether the constraints randomizer is enabled or not.
-    this.enableRandomizer=true;
 
-    // The rigid body list
-    this.rigidBodies=null;
-    // number of rigid body
-    this.numRigidBodies=0;
-    // The contact list
-    this.contacts=null;
-    this.unusedContacts=null;
-    // The number of contact
-    this.numContacts=0;
-    // The number of contact points
-    this.numContactPoints=0;
-    //  The joint list
-    this.joints=null;
-    // The number of joints.
-    this.numJoints=0;
-    // The number of simulation islands.
-    this.numIslands=0;
     
-   
-    // The gravity in the world.
     this.gravity=new OIMO.Vec3(0,-9.80665,0);
-
-    // This is the detailed information of the performance. 
-    this.performance = new OIMO.Performance();
-
+    this.performance=new OIMO.Performance();
     var numShapeTypes=3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
     var i=numShapeTypes;
     while(i--){
+    //for(var i=0, l=numShapeTypes; i<l; i++){
         this.detectors[i]=[];
         this.detectors[i].length = numShapeTypes;
     }
+
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_SPHERE]=new OIMO.SphereSphereCollisionDetector();
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_BOX]=new OIMO.SphereBoxCollisionDetector(false);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_SPHERE]=new OIMO.SphereBoxCollisionDetector(true);
@@ -63,14 +49,12 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     this.maxIslandConstraints=128;
     this.islandConstraints=[];
     this.islandConstraints.length = this.maxIslandConstraints;
-
+    this.enableRandomizer=true;
 };
 
 OIMO.World.prototype = {
     constructor: OIMO.World,
-    /**
-    * Reset the randomizer and remove all rigid bodies, shapes, joints and any object from the world.
-	*/
+  
     clear:function(){
         this.randX=65535;
         while(this.joints!==null){
@@ -84,11 +68,6 @@ OIMO.World.prototype = {
         }
         OIMO.nextID=0;
     },
-    /**
-    * I'll add a rigid body to the world. 
-    * Rigid body that has been added will be the operands of each step.
-    * @param  rigidBody  Rigid body that you want to add
-    */
     addRigidBody:function(rigidBody){
         if(rigidBody.parent){
             throw new Error("It is not possible to be added to more than one world one of the rigid body");
@@ -102,29 +81,24 @@ OIMO.World.prototype = {
         this.rigidBodies = rigidBody;
         this.numRigidBodies++;
     },
-    /**
-    * I will remove the rigid body from the world. 
-    * Rigid body that has been deleted is excluded from the calculation on a step-by-step basis.
-    * @param  rigidBody  Rigid body to be removed
-    */
     removeRigidBody:function(rigidBody){
         var remove=rigidBody;
         if(remove.parent!==this)return;
         remove.awake();
         var js=remove.jointLink;
         while(js!=null){
-	        var joint=js.joint;
-	        js=js.next;
-	        this.removeJoint(joint);
+        var joint=js.joint;
+        js=js.next;
+        this.removeJoint(joint);
         }
         for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
             this.removeShape(shape);
         }
         var prev=remove.prev;
         var next=remove.next;
-        if(prev!==null) prev.next=next;
-        if(next!==null) next.prev=prev;
-        if(this.rigidBodies==remove) this.rigidBodies=next;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
+        if(this.rigidBodies===remove)this.rigidBodies=next;
         remove.prev=null;
         remove.next=null;
         remove.parent=null;
@@ -144,13 +118,6 @@ OIMO.World.prototype = {
         }
         return result;
     },
-
-    /**
-    * I'll add a shape to the world..
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
-    * Shape will be added to the world automatically, please do not call from outside this method.
-    * @param  shape  Shape you want to add
-    */
     addShape:function(shape){
         if(!shape.parent || !shape.parent.parent){
             throw new Error("It is not possible to be added alone to shape world");
@@ -159,23 +126,10 @@ OIMO.World.prototype = {
         shape.updateProxy();
         this.broadPhase.addProxy(shape.proxy);
     },
-
-    /**
-    * I will remove the shape from the world.
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
-    * Shape will be added to the world automatically, please do not call from outside this method.
-    * @param  shape  Shape you want to delete
-    */
     removeShape:function(shape){
         this.broadPhase.removeProxy(shape.proxy);
         shape.proxy=null;
     },
-
-    /**
-    * I'll add a joint to the world. 
-    * Joint that has been added will be the operands of each step.
-    * @param  shape Joint to be added
-    */
     addJoint:function(joint){
         if(joint.parent){
             throw new Error("It is not possible to be added to more than one world one of the joint");
@@ -187,12 +141,6 @@ OIMO.World.prototype = {
         joint.awake();
         joint.attach();
     },
-
-    /**
-    * I will remove the joint from the world. 
-    * Joint that has been added will be the operands of each step.
-    * @param  shape Joint to be deleted
-    */
     removeJoint:function(joint){
         var remove=joint;
         var prev=remove.prev;
@@ -207,20 +155,13 @@ OIMO.World.prototype = {
         remove.detach();
         remove.parent=null;
     },
-
-    /**
-    * I will proceed only time step seconds time of World.
-    */
     step:function(){
-        var time0, time1, time2, time3;
-
-        time0=Date.now();
+        var time1=Date.now();
         var body=this.rigidBodies;
-
         while(body!==null){
             body.addedToIsland=false;
             if(body.sleeping){
-                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); } // awake the body
+                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); }
                 /*var lv=body.linearVelocity;
                 var av=body.linearVelocity;
                 var p=body.position;
@@ -235,15 +176,23 @@ OIMO.World.prototype = {
             }
             body=body.next;
         }
+        this.updateContacts();
+        this.solveIslands();
 
-        
+        var time2=Date.now();
 
-        //------------------------------------------------------
-        //   UPDATE CONTACT
-        //------------------------------------------------------
+        // fps update
+        if (time2 - 1000 > this.performance.time_prev) {
+            this.performance.time_prev = time2;
+            this.performance.fpsint = this.performance.fps; 
+            this.performance.fps = 0;
+        } this.performance.fps++;
 
-        // broad phase
-        time1=Date.now();
+        this.performance.totalTime=time2-time1;
+        this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+    },
+    updateContacts:function(){
+        var time1=Date.now();
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
@@ -271,7 +220,7 @@ OIMO.World.prototype = {
                 var contact=link.contact;
                 if(contact.shape1==s1&&contact.shape2==s2){
                     contact.persisting=true;
-                    exists=true;// contact already exists
+                    exists=true;
                     break;
                 }
                 link=link.next;
@@ -280,10 +229,8 @@ OIMO.World.prototype = {
                 this.addContact(s1,s2);
             }
         }
-        time2=Date.now();
+        var time2=Date.now();
         this.performance.broadPhaseTime=time2-time1;
-
-        // update & narrow phase
         this.numContactPoints=0;
         contact=this.contacts;
         while(contact!==null){
@@ -291,9 +238,9 @@ OIMO.World.prototype = {
                 var aabb1=contact.shape1.aabb;
                 var aabb2=contact.shape2.aabb;
                 if(
-	                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
-	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
-	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
+                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
+                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
+                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
                 ){
                     var next=contact.next;
                     this.removeContact(contact);
@@ -311,15 +258,49 @@ OIMO.World.prototype = {
             contact.constraint.addedToIsland=false;
             contact=contact.next;
         }
-        time3=Date.now();
+        var time3=Date.now();
         this.performance.narrowPhaseTime=time3-time2;
-
-        //------------------------------------------------------
-        //   SOLVE ISLANDS
-        //------------------------------------------------------
-
+    },
+    addContact:function(s1,s2){
+        var newContact;
+        if(this.unusedContacts!==null){
+            newContact=this.unusedContacts;
+            this.unusedContacts=this.unusedContacts.next;
+        }else{
+            newContact=new OIMO.Contact();
+        }
+        newContact.attach(s1,s2);
+        newContact.detector=this.detectors[s1.type][s2.type];
+        if(this.contacts)(this.contacts.prev=newContact).next=this.contacts;
+        this.contacts=newContact;
+        this.numContacts++;
+    },
+    removeContact:function(contact){
+        var prev=contact.prev;
+        var next=contact.next;
+        if(next)next.prev=prev;
+        if(prev)prev.next=next;
+        if(this.contacts==contact)this.contacts=next;
+        contact.prev=null;
+        contact.next=null;
+        contact.detach();
+        contact.next=this.unusedContacts;
+        this.unusedContacts=contact;
+        this.numContacts--;
+    },
+    calSleep:function(body){
+        if(!body.allowSleep)return false;
+        if(body.linearVelocity.len()>0.04)return false;
+        if(body.angularVelocity.len()>0.25)return false;
+        /*var v=body.linearVelocity;
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
+        v=body.angularVelocity;
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
+        return true;
+    },
+    solveIslands:function(){
         var invTimeStep=1/this.timeStep;
-        //var body;
+        var body;
         var joint;
         var constraint;
         var num;
@@ -328,9 +309,8 @@ OIMO.World.prototype = {
         }
         // expand island buffers
         if(this.maxIslandRigidBodies<this.numRigidBodies){
-            this.maxIslandRigidBodies=this.numRigidBodies<<1;
-            //this.maxIslandRigidBodies=this.numRigidBodies*2;
-
+            //this.maxIslandRigidBodies=this.numRigidBodies<<1;
+            this.maxIslandRigidBodies=this.numRigidBodies*2;
             this.islandRigidBodies=[];
             this.islandStack=[];
             this.islandRigidBodies.length = this.maxIslandRigidBodies;
@@ -338,17 +318,17 @@ OIMO.World.prototype = {
         }
         var numConstraints=this.numJoints+this.numContacts;
         if(this.maxIslandConstraints<numConstraints){
-            this.maxIslandConstraints=numConstraints<<1;
-            //this.maxIslandConstraints=numConstraints*2;
+            //this.maxIslandConstraints=numConstraints<<1;
+            this.maxIslandConstraints=numConstraints*2;
             this.islandConstraints=[];
             this.islandConstraints.length = this.maxIslandConstraints;
         }
-        time1=Date.now();
+        var time1=Date.now();
         this.numIslands=0;
         // build and solve simulation islands
         for(var base=this.rigidBodies; base!==null; base=base.next){
             if(base.addedToIsland || base.isStatic || base.sleeping){
-                continue;// ignore
+                    continue;// ignore
             }
             if(base.isLonely()){// update single body
                 if(base.isDynamic){
@@ -425,7 +405,7 @@ OIMO.World.prototype = {
             }while(stackCount!=0);
 
             // update velocities
-            var gVel = new OIMO.Vec3().addTime(this.gravity, this.timeStep);
+            var gVel = new OIMO.Vec3().addTime(this.gravity, this.timeStep)
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
@@ -443,9 +423,10 @@ OIMO.World.prototype = {
 
             // randomizing order
             if(this.enableRandomizer){
-                //for(var j=1, l=islandNumConstraints; j<l; j++){
                 j = islandNumConstraints;
-                while(j--){ if(j!==0){     
+                while(j--){
+                    if(j!==0){
+                //for(j=1, l=islandNumConstraints; j<l; j++){
                         var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                         constraint=this.islandConstraints[j];
                         this.islandConstraints[j]=this.islandConstraints[swap];
@@ -510,60 +491,7 @@ OIMO.World.prototype = {
             }
             this.numIslands++;
         }
-        time2=Date.now();
+        var time2=Date.now();
         this.performance.solvingTime=time2-time1;
-
-
-        //------------------------------------------------------
-        //   END SIMULATION
-        //------------------------------------------------------
-
-        time2=Date.now();
-        // fps update
-        if (time2 - 1000 > this.performance.time_prev) {
-            this.performance.time_prev = time2;
-            this.performance.fpsint = this.performance.fps; 
-            this.performance.fps = 0;
-        } this.performance.fps++;
-
-        this.performance.totalTime=time2-time0;
-        this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
-    },
-    addContact:function(s1,s2){
-        var newContact;
-        if(this.unusedContacts!==null){
-            newContact=this.unusedContacts;
-            this.unusedContacts=this.unusedContacts.next;
-        }else{
-            newContact=new OIMO.Contact();
-        }
-        newContact.attach(s1,s2);
-        newContact.detector=this.detectors[s1.type][s2.type];
-        if(this.contacts)(this.contacts.prev=newContact).next=this.contacts;
-        this.contacts=newContact;
-        this.numContacts++;
-    },
-    removeContact:function(contact){
-        var prev=contact.prev;
-        var next=contact.next;
-        if(next)next.prev=prev;
-        if(prev)prev.next=next;
-        if(this.contacts==contact)this.contacts=next;
-        contact.prev=null;
-        contact.next=null;
-        contact.detach();
-        contact.next=this.unusedContacts;
-        this.unusedContacts=contact;
-        this.numContacts--;
-    },
-    calSleep:function(body){
-        if(!body.allowSleep)return false;
-        if(body.linearVelocity.len()>0.04)return false;
-        if(body.angularVelocity.len()>0.25)return false;
-        /*var v=body.linearVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
-        v=body.angularVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
-        return true;
     }
 }

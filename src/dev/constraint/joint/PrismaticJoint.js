@@ -1,7 +1,14 @@
+/**
+* A prismatic joint allows only for relative translation of rigid bodies along the axis.
+* @author saharan
+*/
 OIMO.PrismaticJoint = function(config,lowerTranslation,upperTranslation){
     OIMO.Joint.call( this, config);
+    this.type=this.JOINT_PRISMATIC;
 
+    // The axis in the first body's coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    // The axis in the second body's coordinate system.
     this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
     this.localAxis1X=this.localAxis1.x;
     this.localAxis1Y=this.localAxis1.y;
@@ -9,11 +16,12 @@ OIMO.PrismaticJoint = function(config,lowerTranslation,upperTranslation){
     this.localAxis2X=this.localAxis2.x;
     this.localAxis2Y=this.localAxis2.y;
     this.localAxis2Z=this.localAxis2.z;
-    this.type=this.JOINT_PRISMATIC;
+    
     this.nor=new OIMO.Vec3();
     this.tan=new OIMO.Vec3();
     this.bin=new OIMO.Vec3();
     this.ac=new OIMO.AngularConstraint(this,new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+    // The translational limit and motor information of the joint.
     this.limitMotor=new OIMO.LimitMotor(this.nor,true);
     this.limitMotor.lowerLimit=lowerTranslation;
     this.limitMotor.upperLimit=upperTranslation;
@@ -54,9 +62,11 @@ OIMO.PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var bx=ny*tz-nz*ty;
     var by=nz*tx-nx*tz;
     var bz=nx*ty-ny*tx;
+
     this.nor.init(nx,ny,nz);
     this.tan.init(tx,ty,tz);
     this.bin.init(bx,by,bz);
+    
     this.ac.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
 }

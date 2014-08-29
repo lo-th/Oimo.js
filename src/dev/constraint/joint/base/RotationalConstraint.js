@@ -1,3 +1,7 @@
+/**
+* A rotational constraint for various joints.
+* @author saharan
+*/
 OIMO.RotationalConstraint = function(joint,limitMotor){
     this.cfm=NaN;
     this.i1e00=NaN;
@@ -34,7 +38,7 @@ OIMO.RotationalConstraint = function(joint,limitMotor){
     this.lowerLimit=NaN;
     this.upperLimit=NaN;
     this.limitVelocity=NaN;
-    this.limitState=0;
+    this.limitState=0; // -1: at lower, 0: locked, 1: at upper, 2: free
     this.enableMotor=false;
     this.motorSpeed=NaN;
     this.maxMotorForce=NaN;
@@ -90,44 +94,45 @@ OIMO.RotationalConstraint.prototype = {
         var enableLimit=this.lowerLimit<=this.upperLimit;
         var angle=this.limitMotor.angle;
         if(enableLimit){
-        if(this.lowerLimit==this.upperLimit){
-        if(this.limitState!=0){
-        this.limitState=0;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.lowerLimit-angle;
-        }else if(angle<this.lowerLimit){
-        if(this.limitState!=-1){
-        this.limitState=-1;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.lowerLimit-angle;
-        }else if(angle>this.upperLimit){
-        if(this.limitState!=1){
-        this.limitState=1;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.upperLimit-angle;
+            if(this.lowerLimit==this.upperLimit){
+                if(this.limitState!=0){
+                    this.limitState=0;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.lowerLimit-angle;
+            }else if(angle<this.lowerLimit){
+                if(this.limitState!=-1){
+                    this.limitState=-1;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.lowerLimit-angle;
+            }else if(angle>this.upperLimit){
+                if(this.limitState!=1){
+                    this.limitState=1;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.upperLimit-angle;
+            }else{
+                this.limitState=2;
+                this.limitImpulse=0;
+                this.limitVelocity=0;
+            }
+            if(!enableSpring){
+                if(this.limitVelocity>0.02)this.limitVelocity-=0.02;
+                else if(this.limitVelocity<-0.02)this.limitVelocity+=0.02;
+                else this.limitVelocity=0;
+            }
         }else{
-        this.limitState=2;
-        this.limitImpulse=0;
-        this.limitVelocity=0;
-        }
-        if(!enableSpring){
-        if(this.limitVelocity>0.02)this.limitVelocity-=0.02;
-        else if(this.limitVelocity<-0.02)this.limitVelocity+=0.02;
-        else this.limitVelocity=0;
-        }
-        }else{
-        this.limitState=2;
-        this.limitImpulse=0;
+            this.limitState=2;
+            this.limitImpulse=0;
         }
         if(this.enableMotor&&(this.limitState!=0||enableSpring)){
-        this.maxMotorImpulse=this.maxMotorForce*timeStep;
+            this.maxMotorImpulse=this.maxMotorForce*timeStep;
         }else{
-        this.motorImpulse=0;
-        this.maxMotorImpulse=0;
+            this.motorImpulse=0;
+            this.maxMotorImpulse=0;
         }
+
         this.a1x=this.ax*this.i1e00+this.ay*this.i1e01+this.az*this.i1e02;
         this.a1y=this.ax*this.i1e10+this.ay*this.i1e11+this.az*this.i1e12;
         this.a1z=this.ax*this.i1e20+this.ay*this.i1e21+this.az*this.i1e22;
@@ -136,17 +141,20 @@ OIMO.RotationalConstraint.prototype = {
         this.a2z=this.ax*this.i2e20+this.ay*this.i2e21+this.az*this.i2e22;
         this.motorDenom=this.ax*(this.a1x+this.a2x)+this.ay*(this.a1y+this.a2y)+this.az*(this.a1z+this.a2z);
         this.invMotorDenom=1/this.motorDenom;
+
         if(enableSpring&&this.limitState!=2){
-        var omega=6.2831853*frequency;
-        var k=omega*omega*timeStep;
-        var dmp=invTimeStep/(k+2*this.limitMotor.dampingRatio*omega);
-        this.cfm=this.motorDenom*dmp;
-        this.limitVelocity*=k*dmp;
+            var omega=6.2831853*frequency;
+            var k=omega*omega*timeStep;
+            var dmp=invTimeStep/(k+2*this.limitMotor.dampingRatio*omega);
+            this.cfm=this.motorDenom*dmp;
+            this.limitVelocity*=k*dmp;
         }else{
-        this.cfm=0;
-        this.limitVelocity*=invTimeStep*0.05;
+            this.cfm=0;
+            this.limitVelocity*=invTimeStep*0.05;
         }
+
         this.invDenom=1/(this.motorDenom+this.cfm);
+        
         this.limitImpulse*=0.95;
         this.motorImpulse*=0.95;
         var totalImpulse=this.limitImpulse+this.motorImpulse;
@@ -159,24 +167,29 @@ OIMO.RotationalConstraint.prototype = {
     },
     solve:function(){
         var rvn=this.ax*(this.a2.x-this.a1.x)+this.ay*(this.a2.y-this.a1.y)+this.az*(this.a2.z-this.a1.z);
+
+        // motor part
         var newMotorImpulse;
         if(this.enableMotor){
-        newMotorImpulse=(rvn-this.motorSpeed)*this.invMotorDenom;
-        var oldMotorImpulse=this.motorImpulse;
-        this.motorImpulse+=newMotorImpulse;
-        if(this.motorImpulse>this.maxMotorImpulse)this.motorImpulse=this.maxMotorImpulse;
-        else if(this.motorImpulse<-this.maxMotorImpulse)this.motorImpulse=-this.maxMotorImpulse;
-        newMotorImpulse=this.motorImpulse-oldMotorImpulse;
-        rvn-=newMotorImpulse*this.motorDenom;
+            newMotorImpulse=(rvn-this.motorSpeed)*this.invMotorDenom;
+            var oldMotorImpulse=this.motorImpulse;
+            this.motorImpulse+=newMotorImpulse;
+            if(this.motorImpulse>this.maxMotorImpulse)this.motorImpulse=this.maxMotorImpulse;
+            else if(this.motorImpulse<-this.maxMotorImpulse)this.motorImpulse=-this.maxMotorImpulse;
+            newMotorImpulse=this.motorImpulse-oldMotorImpulse;
+            rvn-=newMotorImpulse*this.motorDenom;
         }else newMotorImpulse=0;
+
+        // limit part
         var newLimitImpulse;
         if(this.limitState!=2){
-        newLimitImpulse=(rvn-this.limitVelocity-this.limitImpulse*this.cfm)*this.invDenom;
-        var oldLimitImpulse=this.limitImpulse;
-        this.limitImpulse+=newLimitImpulse;
-        if(this.limitImpulse*this.limitState<0)this.limitImpulse=0;
-        newLimitImpulse=this.limitImpulse-oldLimitImpulse;
+            newLimitImpulse=(rvn-this.limitVelocity-this.limitImpulse*this.cfm)*this.invDenom;
+            var oldLimitImpulse=this.limitImpulse;
+            this.limitImpulse+=newLimitImpulse;
+            if(this.limitImpulse*this.limitState<0)this.limitImpulse=0;
+            newLimitImpulse=this.limitImpulse-oldLimitImpulse;
         }else newLimitImpulse=0;
+
         var totalImpulse=newLimitImpulse+newMotorImpulse;
         this.a1.x+=totalImpulse*this.a1x;
         this.a1.y+=totalImpulse*this.a1y;

@@ -1,16 +1,26 @@
+/**
+* A box shape.
+* @author saharan
+* @author loth
+*/
 OIMO.BoxShape = function(config,Width,Height,Depth){
-    OIMO.Shape.call( this, config);
-  
-    this.width=Width;
-    this.height=Height;
-    this.depth=Depth;
-    this.halfWidth=Width*0.5;
-    this.halfHeight=Height*0.5;
-    this.halfDepth=Depth*0.5;
+    OIMO.Shape.call( this, config );
+    // The width of the box.
+    this.width = Width;
+    // The height of the box.
+    this.height = Height;
+    // The depth of the box.
+    this.depth = Depth;
+    // The half-width of the box.
+    this.halfWidth = Width*0.5;
+    // The half-height of the box.
+    this.halfHeight = Height*0.5;
+    // The half-depth of the box.
+    this.halfDepth = Depth*0.5;
 
     this.dimentions = new OIMO_ARRAY_TYPE(18);
     this.elements = new OIMO_ARRAY_TYPE(24);
-    this.type=OIMO.SHAPE_BOX;
+    this.type = OIMO.SHAPE_BOX;
 }
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.BoxShape.prototype.calculateMassInfo = function(out){
@@ -24,8 +34,7 @@ OIMO.BoxShape.prototype.calculateMassInfo = function(out){
 }
 OIMO.BoxShape.prototype.updateProxy = function(){
     var te = this.rotation.elements;
-
-    var di=this.dimentions;
+    var di = this.dimentions;
     // Width
     di[0]=te[0];
     di[1]=te[3];

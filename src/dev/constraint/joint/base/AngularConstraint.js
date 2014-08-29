@@ -1,3 +1,7 @@
+/**
+* An angular constraint for all axes for various joints.
+* @author saharan
+*/
 OIMO.AngularConstraint = function(joint,targetOrientation){
     this.i1e00=NaN;
     this.i1e01=NaN;
@@ -95,7 +99,8 @@ OIMO.AngularConstraint.prototype = {
         this.d20=(v10*v21-v11*v20)*inv;
         this.d21=(v01*v20-v00*v21)*inv;
         this.d22=(v00*v11-v01*v10)*inv;
-        this.relativeOrientation.invert(this.b1.orientation);
+        
+        this.relativeOrientation.invert(this.b1.orientation);// error = b2 - b1 - target
         this.relativeOrientation.mul(this.targetOrientation,this.relativeOrientation);
         this.relativeOrientation.mul(this.b2.orientation,this.relativeOrientation);
         inv=this.relativeOrientation.s*2;
@@ -104,14 +109,14 @@ OIMO.AngularConstraint.prototype = {
         this.velz=this.relativeOrientation.z*inv;
         var len=Math.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
         if(len>0.02){
-        len=(0.02-len)/len*invTimeStep*0.05;
-        this.velx*=len;
-        this.vely*=len;
-        this.velz*=len;
+            len=(0.02-len)/len*invTimeStep*0.05;
+            this.velx*=len;
+            this.vely*=len;
+            this.velz*=len;
         }else{
-        this.velx=0;
-        this.vely=0;
-        this.velz=0;
+            this.velx=0;
+            this.vely=0;
+            this.velz=0;
         }
         this.a1.x+=this.impx*this.i1e00+this.impy*this.i1e01+this.impz*this.i1e02;
         this.a1.y+=this.impx*this.i1e10+this.impy*this.i1e11+this.impz*this.i1e12;
