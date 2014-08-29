@@ -69,7 +69,7 @@ var ThreeEngine = function () {
 	var followSpecial = null;
 	var player = null;
 
-	var isBuffered = true;
+	//var isBuffered = true;
 	var isDebug = true;
 
 	var materialType=0;
@@ -120,18 +120,14 @@ var ThreeEngine = function () {
 		sceneSky.add(cameraSky);
 
 		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , depthWrite: false} );// side:THREE.BackSide,
-		//var skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.IcosahedronGeometry(20000, 2));
-		var skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry(20000, 20, 12));
-		//if(isBuffered) skyGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry(20000, 20, 12));
-		//else skyGeo = new THREE.SphereGeometry(20000, 20, 12);
-		//sky = new THREE.Mesh(new THREE.IcosahedronGeometry(20000,1), materialSky);
+		var skyGeo = new THREE.BufferGeometry();
+        skyGeo.fromGeometry( new THREE.SphereGeometry(20000, 20, 12) );
 		sky = new THREE.Mesh(skyGeo, materialSky);
 		sky.rotation.y = 180*ToRad;
-		sky.scale.set(1,1,-1)
+		sky.scale.set(1,1,-1);
 		
 		sceneSky.add(sky);
 		
-
         scene.add(back);
 		scene.add(content);
 		scene.add(contentPlus);
@@ -351,8 +347,10 @@ var ThreeEngine = function () {
 
 	var changeMaterialType = function(){
 		materialType++;
-		if(isBuffered) {if(materialType==3)materialType=0;}
-		else {if(materialType==4)materialType=0;}
+		//if(isBuffered) {if(materialType==3)materialType=0;}
+		//else {}
+
+		if(materialType==3)materialType=0;
 
 		baseMaterial();
 
@@ -747,7 +745,7 @@ var ThreeEngine = function () {
 	    		    mesh=new THREE.Mesh(smoothCube, getMaterial('mat01'));
 	    		    mesh.scale.set( s[0], s[1], s[2] ); 
 	    		break; // box
-	    		case 3: case 'cylinder': mesh=new THREE.Mesh(geo03b, getMaterial('mat03')); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
+	    		case 3: case 'cylinder': mesh=new THREE.Mesh(smoothCyl, getMaterial('mat03')); mesh.scale.set( s[0], s[1], s[2] ); break; // Cylinder
 
 	    		case 4: case 'dice': mesh=new THREE.Mesh(diceBuffer, getMaterial('mat04')); mesh.scale.set( s[0], s[1], s[2] ); break; // dice
 	    		case 5: case 'wheel':
@@ -766,7 +764,7 @@ var ThreeEngine = function () {
 	    		case 10: case 'bone':
 	    		    mesh = new THREE.Object3D();
 	    		    var Bmat = new THREE.MeshBasicMaterial( { map: bonesFlag(boneindex), side:THREE.DoubleSide } );
-	    		    meshFlag=new THREE.Mesh(geo00, Bmat ); 
+	    		    meshFlag=new THREE.Mesh(geo00b, Bmat ); 
 	    		    mesh.scale.set( s[0], s[1], s[2] ); 
 	    		    mesh.add(meshFlag);
 
@@ -898,15 +896,11 @@ var ThreeEngine = function () {
             if(i===0) m = new THREE.Matrix4().makeTranslation(0, 0, 0);
             else  m = new THREE.Matrix4().makeTranslation(positions[n+0], positions[n+1], positions[n+2]);
             m.scale(new THREE.Vector3(sizes[n+0], sizes[n+1], sizes[n+2]));
-
-            //THREE.GeometryUtils.merge( geometry, mesh );
             geometry.merge(g,m);
         }
 
-        var geo;
-
-        if(isBuffered) geo = THREE.BufferGeometryUtils.fromGeometry( geometry );
-        else geo = geometry;
+        var geo = new THREE.BufferGeometry();
+        geo.fromGeometry( geometry );
 
         return new THREE.Mesh(geo, material);
     }
@@ -1131,18 +1125,10 @@ var ThreeEngine = function () {
 	//  DEFINE FINAL GEOMETRY
 	//-----------------------------------------------------
 
-	var geo00 = new THREE.PlaneGeometry( 1, 1 );
-	var geo01 = new THREE.BoxGeometry( 1, 1, 1 );
-	var geo02 = new THREE.SphereGeometry( 1, 32, 16 );
-	//var geo03 = new THREE.CylinderGeometry( 1, 1, 1, 16 );
-	var geo04 = new THREE.SphereGeometry( 1, 32, 16 );
-	var geo05 = new THREE.SphereGeometry( 1, 12, 8 );
-	var geo06;
-	var geoBullet =  new THREE.SphereGeometry(1,12,8);
-
-	var geo00b,geo01b,geo02b,geo03b,geo04b,geo05b, geoBulletb;
+	var geo00b,geo01b,geo02b,geo04b,geo05b, geoBulletb;
 	var cyl1, cyl2;
 	var smoothCube;
+	var smoothCyl;
 	var diceBuffer;
 	var colomnBuffer;
 	var colomnBaseBuffer;
@@ -1161,19 +1147,26 @@ var ThreeEngine = function () {
 	var gyroBuffer2;
 	var gyroBuffer3;
 
-	
-
 	var defineGeometry = function(){
-		var sbox = getGeometry('box');
-		geo06 = sbox.clone();
-		geo00b = THREE.BufferGeometryUtils.fromGeometry( geo00 );
-		geo01b = THREE.BufferGeometryUtils.fromGeometry( geo01 );
-		geo02b = THREE.BufferGeometryUtils.fromGeometry( geo02 );
-		geo03b = getSeaGeometry('cyl');
-		geo04b = THREE.BufferGeometryUtils.fromGeometry( geo04 );
-		geo05b = THREE.BufferGeometryUtils.fromGeometry( geo05 );
+
+		geo00b = new THREE.BufferGeometry();
+        geo00b.fromGeometry( new THREE.PlaneGeometry( 1, 1 ) );
+
+        geo01b = new THREE.BufferGeometry();
+        geo01b.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
+
+        geo02b = new THREE.BufferGeometry();
+        geo02b.fromGeometry( new THREE.SphereGeometry( 1, 32, 16 ) );
+
+        geo04b = new THREE.BufferGeometry();
+        geo04b.fromGeometry( new THREE.SphereGeometry( 1, 32, 16 ) );
+
+        geo05b = new THREE.BufferGeometry();
+        geo05b.fromGeometry( new THREE.SphereGeometry( 1, 12, 8 ) );
+
+		smoothCyl = getSeaGeometry('cyl');
 		geoBulletb = getSeaGeometry('bullet');
-		smoothCube = THREE.BufferGeometryUtils.fromGeometry(sbox.clone());
+		smoothCube = getSeaGeometry('box');
 		diceBuffer = getSeaGeometry('dice');
 		colomnBuffer = getSeaGeometry('column');
 		colomnBaseBuffer = getSeaGeometry('columnBase');
@@ -1249,8 +1242,13 @@ var ThreeEngine = function () {
 		else if(c >= 1 && d === 1) m = getMeshByName(name).children[0].children[c-1].geometry;
 		else if(c >= 1 && d === 2) m = getMeshByName(name).children[0].children[0].children[c-1].geometry;
 		scaleGeometry(m, s, a);
-		if(isBuffered) return THREE.BufferGeometryUtils.fromGeometry(m);
-		else return m;
+
+		//var geo = new THREE.BufferGeometry();
+        //geo.fromGeometry( m );
+
+        return m;//geo;
+		//if(isBuffered) return THREE.BufferGeometryUtils.fromGeometry(m);
+		//else return m;
 	}
 
 	var getMeshByName = function (name){

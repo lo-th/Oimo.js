@@ -18,7 +18,6 @@
     <a href="https://github.com/lo-th/Oimo.js">Oimo.js</a> web worker example
 </div>
 <script src="js/three.min.js"></script>
-<script src="js/BufferGeometryUtils.js"></script>
 <script src="js/Detector.js"></script>
 
 <!-- Worker script, will be run in separate thread -->
@@ -207,7 +206,9 @@
         var cubeMaterial = new THREE.MeshPhongMaterial( { color: 0xCC8888 } );
         var sphereMaterial = new THREE.MeshPhongMaterial( { color: 0x8888CC } );
 
-        geometry = THREE.BufferGeometryUtils.fromGeometry( new THREE.PlaneGeometry( 400, 400, 1, 1 ) );
+        //geometry = THREE.BufferGeometryUtils.fromGeometry( new THREE.PlaneGeometry( 400, 400, 1, 1 ) );
+        geometry = new THREE.BufferGeometry();
+        geometry.fromGeometry( new THREE.PlaneGeometry( 400, 400, 1, 1 ) );
         
         var mesh = new THREE.Mesh( geometry, material );
         mesh.castShadow = true;
@@ -216,7 +217,9 @@
         scene.add( mesh );
            
         // cubes
-        var cubeGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.BoxGeometry( 0.5,  0.5,  0.5, 1, 1, 1));
+        //var cubeGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.BoxGeometry( 0.5,  0.5,  0.5, 1, 1, 1));
+        var cubeGeo = new THREE.BufferGeometry();
+        cubeGeo.fromGeometry( new THREE.BoxGeometry( 0.5,  0.5,  0.5, 1, 1, 1) );
         
 
         for(var i=0; i<N*0.5; i++){
@@ -226,8 +229,10 @@
             scene.add( mesh );
         }
 
-        // cubes
-        var sphereGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry( 0.25, 16, 8));
+        // sphere
+        //var sphereGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry( 0.25, 16, 8));
+        var sphereGeo = new THREE.BufferGeometry();
+        sphereGeo.fromGeometry( new THREE.SphereGeometry( 0.25, 16, 8) );
         
 
         for(var i=0; i<N*0.5; i++){
