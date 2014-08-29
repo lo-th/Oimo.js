@@ -149,11 +149,10 @@ var ThreeEngine = function () {
 		var mLine = new THREE.Line( mgeo, mMaterial, THREE.LinePieces );
 		marker.add( mLine );*/
 
-		
-
 		initLights();
 
 		MaxAnistropy = renderer.getMaxAnisotropy();
+
 		if(isReflect) initReflectBall();
 		
 		initMaterial();
@@ -168,27 +167,27 @@ var ThreeEngine = function () {
 		planeBG.visible = false;
 
 		initSea3DMesh();
+
 		moveCamera();
 		
 	    changeView(45,60,1000);
 
 
-		//initPostprocessing();
+		if(postprocessing.enabled)initPostprocessing();
+		
 	    initListener();
 	    
 	    //initBackPlane();
 	    update();
 	}
 
-	
-
 	function initPostprocessing() {
 		var bgPass = new THREE.RenderPass( sceneSky, cameraSky );
 		var renderPass = new THREE.RenderPass( scene, camera );
 		var bokehPass = new THREE.BokehPass( scene, camera, {
-			focus: 		1.0,//1.0,
-			aperture:	0.025,
-			maxblur:	1.0,//1.0,
+			focus: 		1.02,//1.0,
+			aperture:	0.05,//0.025
+			maxblur:	2,//1.0,
 
 			width:  window.innerWidth,
 			height: window.innerHeight
@@ -197,7 +196,7 @@ var ThreeEngine = function () {
 		bokehPass.renderToScreen = true;
 		
 		var colorCorrectionPass = new THREE.ShaderPass( THREE.ColorCorrectionShader );
-		colorCorrectionPass.uniforms[ "powRGB" ].value = new THREE.Vector3( 1.0, 1.0, 1.0 );
+		colorCorrectionPass.uniforms[ "powRGB" ].value = new THREE.Vector3( 1.1, 1.1, 1.1 );
 		colorCorrectionPass.uniforms[ "mulRGB" ].value = new THREE.Vector3( 1.3, 1.3, 1.3 );
 		
 		var composer = new THREE.EffectComposer( renderer );

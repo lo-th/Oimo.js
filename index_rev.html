@@ -120,7 +120,7 @@
 
     	    			mtx.fromArray( m[i] );
         	    		mesh.position.setFromMatrixPosition( mtx );
-				    	mesh.rotation.setFromRotationMatrix( mtx );
+				    	mesh.quaternion.setFromRotationMatrix( mtx );
 
 				    	if(mesh.material){
 					    	if(mesh.material.name == "mat01sleep") mesh.material = TE.materials[0];
