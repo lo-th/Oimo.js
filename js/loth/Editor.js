@@ -13,7 +13,7 @@ var Editor = function (Pos) {
 	var open = false;
 
     var container = document.createElement( 'div' );
-	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode;  pointer-events:none; display:none; background: linear-gradient(45deg, #1d1f20, #2f3031);';
+	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode; pointer-events:none; display:none; background: linear-gradient(45deg, #1d1f20, #2f3031);';
 	container.id = 'Editor';
 
 	var show = function(mode){
@@ -55,7 +55,7 @@ var Editor = function (Pos) {
 
 	var colors = ['#303030', '#b10dc9', '#0074d9', '#ff851b'];
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
-	var bstyle =unselect+ ' font-size:14px; margin-right:4px; -webkit-border-radius:20px; border-radius:20px;  border:2px solid #252525; background:'+colors[0]+'; height:19px; padding:2px 2px; text-align:center;';
+	var bstyle =unselect+ ' font-size:14px; margin-right:4px; -webkit-border-radius:40px; border-radius:40px;  border:2px solid #343434; background:'+colors[0]+'; height:19px; padding:2px 2px; text-align:center;';
 
 	var bbMenu = [];
 	var nscript;
@@ -77,7 +77,7 @@ var Editor = function (Pos) {
 	var outColor = 'ffffff';
 	var selColor = '1a94ff';
 	var icColor = document.createElement( 'div' );
-	icColor.style.cssText = "-webkit-border-radius:40px; border-radius:40px; position:absolute; width:46px; height:46px; pointer-events:none; background-color: rgba(0,0,0,0); pointer-events:none;";
+	icColor.style.cssText = "-webkit-border-radius:60px; border-radius:60px; position:absolute; width:46px; height:46px; pointer-events:none; background-color: rgba(0,0,0,0); pointer-events:none;";
 	var icRun = document.createElement( 'div' );
 	icRun.style.cssText = "position:absolute; width:46px; height:46px; pointer-events:none;";
 	icRun.innerHTML = icon_update; 
@@ -127,13 +127,16 @@ var Editor = function (Pos) {
 	MainEditor.id = 'mEditor';
 	MainEditor.name = 'MainEditor';
 	MainEditor.src = "demos/mainEditor.html";
-	MainEditor.style.cssText =unselect+"  top:70px; bottom:0px; left:10px; right:0;  margin:0; padding:0; position:absolute; height:calc(100% - 70px); width:calc(100% - 10px); display:block; pointer-events:auto; border:none;"
+	MainEditor.style.cssText = unselect+"  top:70px; bottom:0px; left:0; margin:0; padding:0; position:absolute; height:calc(100% - 74px); width:calc(100% - 4px); display:block; pointer-events:auto; border:none;"
 	container.appendChild( MainEditor );
 
 
 	var importScript = function(name){
 		MainEditor.contentWindow.setBase(Editor);
-		MainEditor.contentWindow.loadfile(name+".html");
+		
+		//if(name =='demo00')
+			MainEditor.contentWindow.loadfileJS(name+".js");
+		//else MainEditor.contentWindow.loadfile(name+".html");
 	}
 
 	var testCurrentDemo = function(){

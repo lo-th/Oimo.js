@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<script>
-function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 
 function initDemo()
@@ -24,4 +21,3 @@ function initDemo()
         ADD({ type:"dice", size:[s,s,s], pos:[px,1+(100*i),pz], config:[s/10, 0.5, 0.5], move:true });
     }
 }
-</script>

@@ -1,6 +1,3 @@
-<meta charset="utf-8">
-<script>
-function CLEAR(o){};
 CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 
 function initDemo()
@@ -34,4 +31,3 @@ function initDemo()
     
     ADD({type:"box", size:[120, 120, 120], pos:[x, y + 100, z - 600],  config:[1,0.5,0.5], move:true});
 }
-</script>

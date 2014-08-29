@@ -1593,7 +1593,6 @@ var ThreeEngine = function () {
 			var i = bullets.length;
 			while(i--){
 				if(bullets[i].position.y < -200){
-					
 					OimoWorker.postMessage({tell:"REMOVE", type:'object', n:bullets[i].name});
 					bullets.splice(i,1);
 				}
