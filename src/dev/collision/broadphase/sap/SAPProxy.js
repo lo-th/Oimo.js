@@ -1,8 +1,14 @@
+/**
+* A proxy for sweep and prune broad-phase.
+* @author saharan
+*/
 OIMO.SAPProxy = function(sap,shape){
     OIMO.Proxy.call( this, shape);
-
+    // Type of the axis to which the proxy belongs to. [0:none, 1:dynamic, 2:static]
     this.belongsTo = 0;
+    // The maximum elements on each axis.
     this.max = [];
+    // The minimum elements on each axis.
     this.min = [];
     
     this.sap=sap;
@@ -29,6 +35,10 @@ OIMO.SAPProxy = function(sap,shape){
     this.min[2].max2=this.max[1];
 };
 OIMO.SAPProxy.prototype = Object.create( OIMO.Proxy.prototype );
+/**
+* Returns whether the proxy is dynamic or not.
+* @return
+*/
 OIMO.SAPProxy.prototype.isDynamic = function () {
     var body=this.shape.parent;
     return body.isDynamic&&!body.sleeping;

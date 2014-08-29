@@ -1,7 +1,14 @@
+/**
+* ...
+* @author saharan
+*/
 OIMO.ContactConstraint = function(manifold){
     OIMO.Constraint.call( this);
-
+    // The contact manifold of the constraint.
+    this.manifold=manifold;
+    // The coefficient of restitution of the constraint.
     this.restitution=NaN;
+    // The coefficient of friction of the constraint.
     this.friction=NaN;
     this.p1=null;
     this.p2=null;
@@ -32,8 +39,7 @@ OIMO.ContactConstraint = function(manifold){
     this.m1=NaN;
     this.m2=NaN;
     this.num=0;
-
-    this.manifold=manifold;
+    
     this.ps=manifold.points;
     this.cs=new OIMO.ContactPointDataBuffer();
     this.cs.next=new OIMO.ContactPointDataBuffer();
@@ -41,6 +47,9 @@ OIMO.ContactConstraint = function(manifold){
     this.cs.next.next.next=new OIMO.ContactPointDataBuffer();
 }
 OIMO.ContactConstraint.prototype = Object.create( OIMO.Constraint.prototype );
+/**
+* Attach the constraint to the bodies.
+*/
 OIMO.ContactConstraint.prototype.attach = function(){
     this.p1=this.body1.position;
     this.p2=this.body2.position;
@@ -51,6 +60,9 @@ OIMO.ContactConstraint.prototype.attach = function(){
     this.i1=this.body1.inverseInertia;
     this.i2=this.body2.inverseInertia;
 }
+/**
+* Detach the constraint from the bodies.
+*/
 OIMO.ContactConstraint.prototype.detach = function(){
     this.p1=null;
     this.p2=null;
@@ -305,17 +317,17 @@ OIMO.ContactConstraint.prototype.preSolve = function(timeStep,invTimeStep){
     c.norImp=norImp;
     c.tanImp=0;
     c.binImp=0;
-    rvn=0;
+    rvn=0; // disable bouncing
     }else{
     c.norImp=0;
     c.tanImp=0;
     c.binImp=0;
     }
     if(rvn>-1){
-    rvn=0;
+    rvn=0; // disable bouncing
     }
     var norTar=this.restitution*-rvn;
-    var sepV=-(p.penetration+0.005)*invTimeStep*0.05;
+    var sepV=-(p.penetration+0.005)*invTimeStep*0.05; // allow 0.5cm error
     if(norTar<sepV)norTar=sepV;
     c.norTar=norTar;
     c.last=i==this.num-1;
@@ -337,81 +349,88 @@ OIMO.ContactConstraint.prototype.solve = function(){
     var av2z=this.av2.z;
     var c=this.cs;
     while(true){
-    var oldImp1;
-    var newImp1;
-    var oldImp2;
-    var newImp2;
-    var rvn;
-    var norImp=c.norImp;
-    var tanImp=c.tanImp;
-    var binImp=c.binImp;
-    var max=-norImp*this.friction;
-    var rvX=lv2x-lv1x;
-    var rvY=lv2y-lv1y;
-    var rvZ=lv2z-lv1z;
-    rvn=
-    rvX*c.tanX+rvY*c.tanY+rvZ*c.tanZ+
-    av2x*c.tanT2X+av2y*c.tanT2Y+av2z*c.tanT2Z-
-    av1x*c.tanT1X-av1y*c.tanT1Y-av1z*c.tanT1Z
-    ;
-    oldImp1=tanImp;
-    newImp1=rvn*c.tanDen;
-    tanImp+=newImp1;
-    rvn=
-    rvX*c.binX+rvY*c.binY+rvZ*c.binZ+
-    av2x*c.binT2X+av2y*c.binT2Y+av2z*c.binT2Z-
-    av1x*c.binT1X-av1y*c.binT1Y-av1z*c.binT1Z
-    ;
-    oldImp2=binImp;
-    newImp2=rvn*c.binDen;
-    binImp+=newImp2;
-    var len=tanImp*tanImp+binImp*binImp;
-    if(len>max*max){
-    len=max/Math.sqrt(len);
-    tanImp*=len;
-    binImp*=len;
-    }
-    newImp1=tanImp-oldImp1;
-    newImp2=binImp-oldImp2;
-    lv1x+=c.tanU1X*newImp1+c.binU1X*newImp2;
-    lv1y+=c.tanU1Y*newImp1+c.binU1Y*newImp2;
-    lv1z+=c.tanU1Z*newImp1+c.binU1Z*newImp2;
-    av1x+=c.tanTU1X*newImp1+c.binTU1X*newImp2;
-    av1y+=c.tanTU1Y*newImp1+c.binTU1Y*newImp2;
-    av1z+=c.tanTU1Z*newImp1+c.binTU1Z*newImp2;
-    lv2x-=c.tanU2X*newImp1+c.binU2X*newImp2;
-    lv2y-=c.tanU2Y*newImp1+c.binU2Y*newImp2;
-    lv2z-=c.tanU2Z*newImp1+c.binU2Z*newImp2;
-    av2x-=c.tanTU2X*newImp1+c.binTU2X*newImp2;
-    av2y-=c.tanTU2Y*newImp1+c.binTU2Y*newImp2;
-    av2z-=c.tanTU2Z*newImp1+c.binTU2Z*newImp2;
-    rvn=
-    (lv2x-lv1x)*c.norX+(lv2y-lv1y)*c.norY+(lv2z-lv1z)*c.norZ+
-    av2x*c.norT2X+av2y*c.norT2Y+av2z*c.norT2Z-
-    av1x*c.norT1X-av1y*c.norT1Y-av1z*c.norT1Z
-    ;
-    oldImp1=norImp;
-    newImp1=(rvn-c.norTar)*c.norDen;
-    norImp+=newImp1;
-    if(norImp>0)norImp=0;
-    newImp1=norImp-oldImp1;
-    lv1x+=c.norU1X*newImp1;
-    lv1y+=c.norU1Y*newImp1;
-    lv1z+=c.norU1Z*newImp1;
-    av1x+=c.norTU1X*newImp1;
-    av1y+=c.norTU1Y*newImp1;
-    av1z+=c.norTU1Z*newImp1;
-    lv2x-=c.norU2X*newImp1;
-    lv2y-=c.norU2Y*newImp1;
-    lv2z-=c.norU2Z*newImp1;
-    av2x-=c.norTU2X*newImp1;
-    av2y-=c.norTU2Y*newImp1;
-    av2z-=c.norTU2Z*newImp1;
-    c.norImp=norImp;
-    c.tanImp=tanImp;
-    c.binImp=binImp;
-    if(c.last)break;
-    c=c.next;
+        var oldImp1;
+        var newImp1;
+        var oldImp2;
+        var newImp2;
+        var rvn;
+        var norImp=c.norImp;
+        var tanImp=c.tanImp;
+        var binImp=c.binImp;
+        var max=-norImp*this.friction;
+        var rvX=lv2x-lv1x;
+        var rvY=lv2y-lv1y;
+        var rvZ=lv2z-lv1z;
+        rvn=
+        rvX*c.tanX+rvY*c.tanY+rvZ*c.tanZ+
+        av2x*c.tanT2X+av2y*c.tanT2Y+av2z*c.tanT2Z-
+        av1x*c.tanT1X-av1y*c.tanT1Y-av1z*c.tanT1Z
+        ;
+        oldImp1=tanImp;
+        newImp1=rvn*c.tanDen;
+        tanImp+=newImp1;
+        rvn=
+        rvX*c.binX+rvY*c.binY+rvZ*c.binZ+
+        av2x*c.binT2X+av2y*c.binT2Y+av2z*c.binT2Z-
+        av1x*c.binT1X-av1y*c.binT1Y-av1z*c.binT1Z
+        ;
+        oldImp2=binImp;
+        newImp2=rvn*c.binDen;
+        binImp+=newImp2;
+
+        // cone friction clamp
+        var len=tanImp*tanImp+binImp*binImp;
+        if(len>max*max){
+            len=max/Math.sqrt(len);
+            tanImp*=len;
+            binImp*=len;
+        }
+        newImp1=tanImp-oldImp1;
+        newImp2=binImp-oldImp2;
+
+        lv1x+=c.tanU1X*newImp1+c.binU1X*newImp2;
+        lv1y+=c.tanU1Y*newImp1+c.binU1Y*newImp2;
+        lv1z+=c.tanU1Z*newImp1+c.binU1Z*newImp2;
+        av1x+=c.tanTU1X*newImp1+c.binTU1X*newImp2;
+        av1y+=c.tanTU1Y*newImp1+c.binTU1Y*newImp2;
+        av1z+=c.tanTU1Z*newImp1+c.binTU1Z*newImp2;
+        lv2x-=c.tanU2X*newImp1+c.binU2X*newImp2;
+        lv2y-=c.tanU2Y*newImp1+c.binU2Y*newImp2;
+        lv2z-=c.tanU2Z*newImp1+c.binU2Z*newImp2;
+        av2x-=c.tanTU2X*newImp1+c.binTU2X*newImp2;
+        av2y-=c.tanTU2Y*newImp1+c.binTU2Y*newImp2;
+        av2z-=c.tanTU2Z*newImp1+c.binTU2Z*newImp2;
+
+        // restitution part
+        rvn=
+        (lv2x-lv1x)*c.norX+(lv2y-lv1y)*c.norY+(lv2z-lv1z)*c.norZ+
+        av2x*c.norT2X+av2y*c.norT2Y+av2z*c.norT2Z-
+        av1x*c.norT1X-av1y*c.norT1Y-av1z*c.norT1Z;
+
+        oldImp1=norImp;
+        newImp1=(rvn-c.norTar)*c.norDen;
+        norImp+=newImp1;
+        if(norImp>0)norImp=0;
+        newImp1=norImp-oldImp1;
+        lv1x+=c.norU1X*newImp1;
+        lv1y+=c.norU1Y*newImp1;
+        lv1z+=c.norU1Z*newImp1;
+        av1x+=c.norTU1X*newImp1;
+        av1y+=c.norTU1Y*newImp1;
+        av1z+=c.norTU1Z*newImp1;
+        lv2x-=c.norU2X*newImp1;
+        lv2y-=c.norU2Y*newImp1;
+        lv2z-=c.norU2Z*newImp1;
+        av2x-=c.norTU2X*newImp1;
+        av2y-=c.norTU2Y*newImp1;
+        av2z-=c.norTU2Z*newImp1;
+
+        c.norImp=norImp;
+        c.tanImp=tanImp;
+        c.binImp=binImp;
+
+        if(c.last)break;
+        c=c.next;
     }
     this.lv1.x=lv1x;
     this.lv1.y=lv1y;
@@ -428,7 +447,9 @@ OIMO.ContactConstraint.prototype.solve = function(){
 }
 OIMO.ContactConstraint.prototype.postSolve = function(){
     var c=this.cs;
-    for(var i=0;i<this.num;i++){
+    var i = this.num;
+    while(i--){
+    //for(var i=0;i<this.num;i++){
         var p=this.ps[i];
         p.normal.x=c.norX;
         p.normal.y=c.norY;

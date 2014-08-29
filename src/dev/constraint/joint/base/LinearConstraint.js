@@ -1,3 +1,7 @@
+/**
+* A linear constraint for all axes for various joints.
+* @author saharan
+*/
 OIMO.LinearConstraint = function(joint){
     this.m1=NaN;
     this.m2=NaN;
@@ -129,6 +133,24 @@ OIMO.LinearConstraint.prototype = {
         this.az2x=this.r2y*this.i2e00+-this.r2x*this.i2e01;
         this.az2y=this.r2y*this.i2e10+-this.r2x*this.i2e11;
         this.az2z=this.r2y*this.i2e20+-this.r2x*this.i2e21;
+
+        // calculate point-to-point mass matrix
+        // from impulse equation
+        // 
+        // M = ([/m] - [r^][/I][r^]) ^ -1
+        // 
+        // where
+        // 
+        // [/m] = |1/m, 0, 0|
+        //        |0, 1/m, 0|
+        //        |0, 0, 1/m|
+        // 
+        // [r^] = |0, -rz, ry|
+        //        |rz, 0, -rx|
+        //        |-ry, rx, 0|
+        // 
+        // [/I] = Inverted moment inertia
+
         var k00=this.m1+this.m2;
         var k01=0;
         var k02=0;
@@ -138,6 +160,7 @@ OIMO.LinearConstraint.prototype = {
         var k20=0;
         var k21=0;
         var k22=k00;
+
         k00+=this.i1e11*this.r1z*this.r1z-(this.i1e21+this.i1e12)*this.r1y*this.r1z+this.i1e22*this.r1y*this.r1y;
         k01+=(this.i1e20*this.r1y+this.i1e12*this.r1x)*this.r1z-this.i1e10*this.r1z*this.r1z-this.i1e22*this.r1x*this.r1y;
         k02+=(this.i1e10*this.r1y-this.i1e11*this.r1x)*this.r1z-this.i1e20*this.r1y*this.r1y+this.i1e21*this.r1x*this.r1y;
@@ -147,6 +170,7 @@ OIMO.LinearConstraint.prototype = {
         k20+=(this.i1e01*this.r1y-this.i1e11*this.r1x)*this.r1z-this.i1e02*this.r1y*this.r1y+this.i1e12*this.r1x*this.r1y;
         k21+=(this.i1e10*this.r1x-this.i1e00*this.r1y)*this.r1z-this.i1e12*this.r1x*this.r1x+this.i1e02*this.r1x*this.r1y;
         k22+=this.i1e00*this.r1y*this.r1y-(this.i1e10+this.i1e01)*this.r1x*this.r1y+this.i1e11*this.r1x*this.r1x;
+
         k00+=this.i2e11*this.r2z*this.r2z-(this.i2e21+this.i2e12)*this.r2y*this.r2z+this.i2e22*this.r2y*this.r2y;
         k01+=(this.i2e20*this.r2y+this.i2e12*this.r2x)*this.r2z-this.i2e10*this.r2z*this.r2z-this.i2e22*this.r2x*this.r2y;
         k02+=(this.i2e10*this.r2y-this.i2e11*this.r2x)*this.r2z-this.i2e20*this.r2y*this.r2y+this.i2e21*this.r2x*this.r2y;
@@ -156,6 +180,7 @@ OIMO.LinearConstraint.prototype = {
         k20+=(this.i2e01*this.r2y-this.i2e11*this.r2x)*this.r2z-this.i2e02*this.r2y*this.r2y+this.i2e12*this.r2x*this.r2y;
         k21+=(this.i2e10*this.r2x-this.i2e00*this.r2y)*this.r2z-this.i2e12*this.r2x*this.r2x+this.i2e02*this.r2x*this.r2y;
         k22+=this.i2e00*this.r2y*this.r2y-(this.i2e10+this.i2e01)*this.r2x*this.r2y+this.i2e11*this.r2x*this.r2x;
+
         var inv=1/(
         k00*(k11*k22-k21*k12)+
         k10*(k21*k02-k01*k22)+
@@ -170,23 +195,26 @@ OIMO.LinearConstraint.prototype = {
         this.d20=(k10*k21-k11*k20)*inv;
         this.d21=(k01*k20-k00*k21)*inv;
         this.d22=(k00*k11-k01*k10)*inv;
+
         this.velx=this.p2.x-this.p1.x;
         this.vely=this.p2.y-this.p1.y;
         this.velz=this.p2.z-this.p1.z;
         var len=Math.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
         if(len>0.005){
-        len=(0.005-len)/len*invTimeStep*0.05;
-        this.velx*=len;
-        this.vely*=len;
-        this.velz*=len;
+            len=(0.005-len)/len*invTimeStep*0.05;
+            this.velx*=len;
+            this.vely*=len;
+            this.velz*=len;
         }else{
-        this.velx=0;
-        this.vely=0;
-        this.velz=0;
+            this.velx=0;
+            this.vely=0;
+            this.velz=0;
         }
+
         this.impx*=0.95;
         this.impy*=0.95;
         this.impz*=0.95;
+        
         this.l1.x+=this.impx*this.m1;
         this.l1.y+=this.impy*this.m1;
         this.l1.z+=this.impz*this.m1;

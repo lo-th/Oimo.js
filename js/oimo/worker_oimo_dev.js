@@ -35,6 +35,8 @@ var Gravity = -10, newGravity = -10;
 
 var timer, delay, timerStep, timeStart=0;
 var ToRad = Math.PI / 180;
+var ARRAY_TYPE;
+if(!ARRAY_TYPE) { ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array; }
 
 // array variable
 var bodys = [];
@@ -45,7 +47,7 @@ var matrixJoint = [];
 var types = [], sizes = [];
 var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
 
-var infos = new Float32Array(13);
+var infos = new ARRAY_TYPE(13);
 var currentDemo = 0;
 var maxDemo = 10;
 
@@ -206,7 +208,7 @@ var update = function(){
     }
 
     // body info
-    i =  bodys.length;
+    i = bodys.length;
     while (i--) {
         if( wakeup ) bodys[i].awake();
         matrix[i] = bodys[i].getMatrix();

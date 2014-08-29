@@ -1,8 +1,16 @@
+/**
+* A wheel joint allows for relative rotation between two rigid bodies along two axes.
+* The wheel joint also allows for relative translation for the suspension.
+*/
 OIMO.WheelJoint = function(config){
     OIMO.Joint.call( this, config);
+    this.type=this.JOINT_WHEEL;
 
+    // The first axis in local coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    // The second axis in local coordinate system.
     this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+
     var len;
     this.localAxis1X=this.localAxis1.x;
     this.localAxis1Y=this.localAxis1.y;
@@ -40,15 +48,20 @@ OIMO.WheelJoint = function(config){
         this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
         this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
     }
-    this.type=this.JOINT_WHEEL;
+
     this.nor=new OIMO.Vec3();
     this.tan=new OIMO.Vec3();
     this.bin=new OIMO.Vec3();
+
+    // The translational limit and motor information of the joint.
     this.translationalLimitMotor=new OIMO.LimitMotor(this.tan,true);
     this.translationalLimitMotor.frequency=8;
     this.translationalLimitMotor.dampingRatio=1;
+    // The first rotational limit and motor information of the joint.
     this.rotationalLimitMotor1=new OIMO.LimitMotor(this.tan,false);
+    // The second rotational limit and motor information of the joint.
     this.rotationalLimitMotor2=new OIMO.LimitMotor(this.bin,false);
+
     this.t3=new OIMO.Translational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.translationalLimitMotor,new OIMO.LimitMotor(this.bin,true));
     this.t3.weight=1;
     this.r3=new OIMO.Rotational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
@@ -76,51 +89,51 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
     
     this.r3.limitMotor1.angle=x1*x2+y1*y2+z1*z2;
-    if(
-    x1*(angAxis1Y*z2-angAxis1Z*y2)+
-    y1*(angAxis1Z*x2-angAxis1X*z2)+
-    z1*(angAxis1X*y2-angAxis1Y*x2)<0
-    ){
-    this.rotationalLimitMotor1.angle=-this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
+    if( x1*(angAxis1Y*z2-angAxis1Z*y2)+ y1*(angAxis1Z*x2-angAxis1X*z2)+ z1*(angAxis1X*y2-angAxis1Y*x2)<0 ){
+        this.rotationalLimitMotor1.angle=-this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
     }else{
-    this.rotationalLimitMotor1.angle=this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
+        this.rotationalLimitMotor1.angle=this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
     }
-    if(
-    x2*(angAxis2Y*z1-angAxis2Z*y1)+
-    y2*(angAxis2Z*x1-angAxis2X*z1)+
-    z2*(angAxis2X*y1-angAxis2Y*x1)<0
-    ){
-    this.rotationalLimitMotor2.angle=this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
+    if( x2*(angAxis2Y*z1-angAxis2Z*y1)+ y2*(angAxis2Z*x1-angAxis2X*z1)+ z2*(angAxis2X*y1-angAxis2Y*x1)<0 ){
+        this.rotationalLimitMotor2.angle=this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
     }else{
-    this.rotationalLimitMotor2.angle=-this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
+        this.rotationalLimitMotor2.angle=-this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
     }
+
     var nx=y2*z1-z2*y1;
     var ny=z2*x1-x2*z1;
     var nz=x2*y1-y2*x1;
+
     tmp1X=Math.sqrt(nx*nx+ny*ny+nz*nz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     nx*=tmp1X;
     ny*=tmp1X;
     nz*=tmp1X;
+
     var tx=ny*z2-nz*y2;
     var ty=nz*x2-nx*z2;
     var tz=nx*y2-ny*x2;
+
     tmp1X=Math.sqrt(tx*tx+ty*ty+tz*tz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     tx*=tmp1X;
     ty*=tmp1X;
     tz*=tmp1X;
+
     var bx=y1*nz-z1*ny;
     var by=z1*nx-x1*nz;
     var bz=x1*ny-y1*nx;
+
     tmp1X=Math.sqrt(bx*bx+by*by+bz*bz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     bx*=tmp1X;
     by*=tmp1X;
     bz*=tmp1X;
+
     this.nor.init(nx,ny,nz);
     this.tan.init(tx,ty,tz);
     this.bin.init(bx,by,bz);
+    
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
 }

@@ -16,45 +16,61 @@ OIMO.INV_SCALE = 0.01;
 
 OIMO.TO_RAD = Math.PI / 180;
 
+// Global identification of next shape.
+// This will be incremented every time a shape is created.
 OIMO.nextID = 0;
 
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array; }
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
 
-    var broadPhaseType = BroadPhaseType || 2;
+    // The time between each step
     this.timeStep= TimeStep || 1/60;
+    // The number of iterations for constraint solvers.
     this.numIterations = Iterations || 8;
-
-    this.rigidBodies=null;
-    this.numRigidBodies=0;
-    this.contacts=null;
-    this.unusedContacts=null;
-    this.numContacts=0;
-    this.numContactPoints=0;
-    this.joints=null;
-    this.numJoints=0;
-    this.numIslands=0;
-    
+     // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
+    var broadPhaseType = BroadPhaseType || 2;
     switch(broadPhaseType){
         case 1: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
         case 2: default: this.broadPhase=new OIMO.SAPBroadPhase(); break;
         case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
     }
+    // Whether the constraints randomizer is enabled or not.
+    this.enableRandomizer=true;
 
+    // The rigid body list
+    this.rigidBodies=null;
+    // number of rigid body
+    this.numRigidBodies=0;
+    // The contact list
+    this.contacts=null;
+    this.unusedContacts=null;
+    // The number of contact
+    this.numContacts=0;
+    // The number of contact points
+    this.numContactPoints=0;
+    //  The joint list
+    this.joints=null;
+    // The number of joints.
+    this.numJoints=0;
+    // The number of simulation islands.
+    this.numIslands=0;
     
+   
+    // The gravity in the world.
     this.gravity=new OIMO.Vec3(0,-9.80665,0);
-    this.performance=new OIMO.Performance();
+
+    // This is the detailed information of the performance. 
+    this.performance = new OIMO.Performance();
+
     var numShapeTypes=3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
     var i=numShapeTypes;
     while(i--){
-    //for(var i=0, l=numShapeTypes; i<l; i++){
         this.detectors[i]=[];
         this.detectors[i].length = numShapeTypes;
     }
-
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_SPHERE]=new OIMO.SphereSphereCollisionDetector();
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_BOX]=new OIMO.SphereBoxCollisionDetector(false);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_SPHERE]=new OIMO.SphereBoxCollisionDetector(true);
@@ -71,12 +87,14 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     this.maxIslandConstraints=128;
     this.islandConstraints=[];
     this.islandConstraints.length = this.maxIslandConstraints;
-    this.enableRandomizer=true;
+
 };
 
 OIMO.World.prototype = {
     constructor: OIMO.World,
-  
+    /**
+    * Reset the randomizer and remove all rigid bodies, shapes, joints and any object from the world.
+	*/
     clear:function(){
         this.randX=65535;
         while(this.joints!==null){
@@ -90,6 +108,11 @@ OIMO.World.prototype = {
         }
         OIMO.nextID=0;
     },
+    /**
+    * I'll add a rigid body to the world. 
+    * Rigid body that has been added will be the operands of each step.
+    * @param  rigidBody  Rigid body that you want to add
+    */
     addRigidBody:function(rigidBody){
         if(rigidBody.parent){
             throw new Error("It is not possible to be added to more than one world one of the rigid body");
@@ -103,24 +126,29 @@ OIMO.World.prototype = {
         this.rigidBodies = rigidBody;
         this.numRigidBodies++;
     },
+    /**
+    * I will remove the rigid body from the world. 
+    * Rigid body that has been deleted is excluded from the calculation on a step-by-step basis.
+    * @param  rigidBody  Rigid body to be removed
+    */
     removeRigidBody:function(rigidBody){
         var remove=rigidBody;
         if(remove.parent!==this)return;
         remove.awake();
         var js=remove.jointLink;
         while(js!=null){
-        var joint=js.joint;
-        js=js.next;
-        this.removeJoint(joint);
+	        var joint=js.joint;
+	        js=js.next;
+	        this.removeJoint(joint);
         }
         for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
             this.removeShape(shape);
         }
         var prev=remove.prev;
         var next=remove.next;
-        if(prev!==null)prev.next=next;
-        if(next!==null)next.prev=prev;
-        if(this.rigidBodies===remove)this.rigidBodies=next;
+        if(prev!==null) prev.next=next;
+        if(next!==null) next.prev=prev;
+        if(this.rigidBodies==remove) this.rigidBodies=next;
         remove.prev=null;
         remove.next=null;
         remove.parent=null;
@@ -140,6 +168,13 @@ OIMO.World.prototype = {
         }
         return result;
     },
+
+    /**
+    * I'll add a shape to the world..
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
+    * Shape will be added to the world automatically, please do not call from outside this method.
+    * @param  shape  Shape you want to add
+    */
     addShape:function(shape){
         if(!shape.parent || !shape.parent.parent){
             throw new Error("It is not possible to be added alone to shape world");
@@ -148,10 +183,23 @@ OIMO.World.prototype = {
         shape.updateProxy();
         this.broadPhase.addProxy(shape.proxy);
     },
+
+    /**
+    * I will remove the shape from the world.
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
+    * Shape will be added to the world automatically, please do not call from outside this method.
+    * @param  shape  Shape you want to delete
+    */
     removeShape:function(shape){
         this.broadPhase.removeProxy(shape.proxy);
         shape.proxy=null;
     },
+
+    /**
+    * I'll add a joint to the world. 
+    * Joint that has been added will be the operands of each step.
+    * @param  shape Joint to be added
+    */
     addJoint:function(joint){
         if(joint.parent){
             throw new Error("It is not possible to be added to more than one world one of the joint");
@@ -163,6 +211,12 @@ OIMO.World.prototype = {
         joint.awake();
         joint.attach();
     },
+
+    /**
+    * I will remove the joint from the world. 
+    * Joint that has been added will be the operands of each step.
+    * @param  shape Joint to be deleted
+    */
     removeJoint:function(joint){
         var remove=joint;
         var prev=remove.prev;
@@ -177,13 +231,20 @@ OIMO.World.prototype = {
         remove.detach();
         remove.parent=null;
     },
+
+    /**
+    * I will proceed only time step seconds time of World.
+    */
     step:function(){
-        var time1=Date.now();
+        var time0, time1, time2, time3;
+
+        time0=Date.now();
         var body=this.rigidBodies;
+
         while(body!==null){
             body.addedToIsland=false;
             if(body.sleeping){
-                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); }
+                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); } // awake the body
                 /*var lv=body.linearVelocity;
                 var av=body.linearVelocity;
                 var p=body.position;
@@ -198,23 +259,15 @@ OIMO.World.prototype = {
             }
             body=body.next;
         }
-        this.updateContacts();
-        this.solveIslands();
 
-        var time2=Date.now();
+        
 
-        // fps update
-        if (time2 - 1000 > this.performance.time_prev) {
-            this.performance.time_prev = time2;
-            this.performance.fpsint = this.performance.fps; 
-            this.performance.fps = 0;
-        } this.performance.fps++;
+        //------------------------------------------------------
+        //   UPDATE CONTACT
+        //------------------------------------------------------
 
-        this.performance.totalTime=time2-time1;
-        this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
-    },
-    updateContacts:function(){
-        var time1=Date.now();
+        // broad phase
+        time1=Date.now();
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
@@ -242,7 +295,7 @@ OIMO.World.prototype = {
                 var contact=link.contact;
                 if(contact.shape1==s1&&contact.shape2==s2){
                     contact.persisting=true;
-                    exists=true;
+                    exists=true;// contact already exists
                     break;
                 }
                 link=link.next;
@@ -251,8 +304,10 @@ OIMO.World.prototype = {
                 this.addContact(s1,s2);
             }
         }
-        var time2=Date.now();
+        time2=Date.now();
         this.performance.broadPhaseTime=time2-time1;
+
+        // update & narrow phase
         this.numContactPoints=0;
         contact=this.contacts;
         while(contact!==null){
@@ -260,9 +315,9 @@ OIMO.World.prototype = {
                 var aabb1=contact.shape1.aabb;
                 var aabb2=contact.shape2.aabb;
                 if(
-                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
-                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
-                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
+	                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
+	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
+	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
                 ){
                     var next=contact.next;
                     this.removeContact(contact);
@@ -280,49 +335,15 @@ OIMO.World.prototype = {
             contact.constraint.addedToIsland=false;
             contact=contact.next;
         }
-        var time3=Date.now();
+        time3=Date.now();
         this.performance.narrowPhaseTime=time3-time2;
-    },
-    addContact:function(s1,s2){
-        var newContact;
-        if(this.unusedContacts!==null){
-            newContact=this.unusedContacts;
-            this.unusedContacts=this.unusedContacts.next;
-        }else{
-            newContact=new OIMO.Contact();
-        }
-        newContact.attach(s1,s2);
-        newContact.detector=this.detectors[s1.type][s2.type];
-        if(this.contacts)(this.contacts.prev=newContact).next=this.contacts;
-        this.contacts=newContact;
-        this.numContacts++;
-    },
-    removeContact:function(contact){
-        var prev=contact.prev;
-        var next=contact.next;
-        if(next)next.prev=prev;
-        if(prev)prev.next=next;
-        if(this.contacts==contact)this.contacts=next;
-        contact.prev=null;
-        contact.next=null;
-        contact.detach();
-        contact.next=this.unusedContacts;
-        this.unusedContacts=contact;
-        this.numContacts--;
-    },
-    calSleep:function(body){
-        if(!body.allowSleep)return false;
-        if(body.linearVelocity.len()>0.04)return false;
-        if(body.angularVelocity.len()>0.25)return false;
-        /*var v=body.linearVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
-        v=body.angularVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
-        return true;
-    },
-    solveIslands:function(){
+
+        //------------------------------------------------------
+        //   SOLVE ISLANDS
+        //------------------------------------------------------
+
         var invTimeStep=1/this.timeStep;
-        var body;
+        //var body;
         var joint;
         var constraint;
         var num;
@@ -331,8 +352,9 @@ OIMO.World.prototype = {
         }
         // expand island buffers
         if(this.maxIslandRigidBodies<this.numRigidBodies){
-            //this.maxIslandRigidBodies=this.numRigidBodies<<1;
-            this.maxIslandRigidBodies=this.numRigidBodies*2;
+            this.maxIslandRigidBodies=this.numRigidBodies<<1;
+            //this.maxIslandRigidBodies=this.numRigidBodies*2;
+
             this.islandRigidBodies=[];
             this.islandStack=[];
             this.islandRigidBodies.length = this.maxIslandRigidBodies;
@@ -340,17 +362,17 @@ OIMO.World.prototype = {
         }
         var numConstraints=this.numJoints+this.numContacts;
         if(this.maxIslandConstraints<numConstraints){
-            //this.maxIslandConstraints=numConstraints<<1;
-            this.maxIslandConstraints=numConstraints*2;
+            this.maxIslandConstraints=numConstraints<<1;
+            //this.maxIslandConstraints=numConstraints*2;
             this.islandConstraints=[];
             this.islandConstraints.length = this.maxIslandConstraints;
         }
-        var time1=Date.now();
+        time1=Date.now();
         this.numIslands=0;
         // build and solve simulation islands
         for(var base=this.rigidBodies; base!==null; base=base.next){
             if(base.addedToIsland || base.isStatic || base.sleeping){
-                    continue;// ignore
+                continue;// ignore
             }
             if(base.isLonely()){// update single body
                 if(base.isDynamic){
@@ -427,7 +449,7 @@ OIMO.World.prototype = {
             }while(stackCount!=0);
 
             // update velocities
-            var gVel = new OIMO.Vec3().addTime(this.gravity, this.timeStep)
+            var gVel = new OIMO.Vec3().addTime(this.gravity, this.timeStep);
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
@@ -445,10 +467,9 @@ OIMO.World.prototype = {
 
             // randomizing order
             if(this.enableRandomizer){
+                //for(var j=1, l=islandNumConstraints; j<l; j++){
                 j = islandNumConstraints;
-                while(j--){
-                    if(j!==0){
-                //for(j=1, l=islandNumConstraints; j<l; j++){
+                while(j--){ if(j!==0){     
                         var swap=(this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                         constraint=this.islandConstraints[j];
                         this.islandConstraints[j]=this.islandConstraints[swap];
@@ -513,10 +534,69 @@ OIMO.World.prototype = {
             }
             this.numIslands++;
         }
-        var time2=Date.now();
+        time2=Date.now();
         this.performance.solvingTime=time2-time1;
+
+
+        //------------------------------------------------------
+        //   END SIMULATION
+        //------------------------------------------------------
+
+        time2=Date.now();
+        // fps update
+        if (time2 - 1000 > this.performance.time_prev) {
+            this.performance.time_prev = time2;
+            this.performance.fpsint = this.performance.fps; 
+            this.performance.fps = 0;
+        } this.performance.fps++;
+
+        this.performance.totalTime=time2-time0;
+        this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+    },
+    addContact:function(s1,s2){
+        var newContact;
+        if(this.unusedContacts!==null){
+            newContact=this.unusedContacts;
+            this.unusedContacts=this.unusedContacts.next;
+        }else{
+            newContact=new OIMO.Contact();
+        }
+        newContact.attach(s1,s2);
+        newContact.detector=this.detectors[s1.type][s2.type];
+        if(this.contacts)(this.contacts.prev=newContact).next=this.contacts;
+        this.contacts=newContact;
+        this.numContacts++;
+    },
+    removeContact:function(contact){
+        var prev=contact.prev;
+        var next=contact.next;
+        if(next)next.prev=prev;
+        if(prev)prev.next=next;
+        if(this.contacts==contact)this.contacts=next;
+        contact.prev=null;
+        contact.next=null;
+        contact.detach();
+        contact.next=this.unusedContacts;
+        this.unusedContacts=contact;
+        this.numContacts--;
+    },
+    calSleep:function(body){
+        if(!body.allowSleep)return false;
+        if(body.linearVelocity.len()>0.04)return false;
+        if(body.angularVelocity.len()>0.25)return false;
+        /*var v=body.linearVelocity;
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
+        v=body.angularVelocity;
+        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
+        return true;
     }
 }
+/**
+* The class of rigid body. 
+* Rigid body has the shape of a single or multiple collision processing, 
+* I can set the parameters individually.
+* @author saharan
+*/
 OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var rad = Rad || 0;
     var ax = Ax || 0;
@@ -527,28 +607,25 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var z = Z || 0;
     
     this.name = "";
+    // It is a kind of rigid body that represents the dynamic rigid body.
     this.BODY_DYNAMIC=0x1;
+    // It is a kind of rigid body that represents the static rigid body.
     this.BODY_STATIC=0x2;
+    // The maximum number of shapes that can be added to a one rigid.
     this.MAX_SHAPES=64;
+
     this.prev=null;
     this.next=null;
+
+    // I represent the kind of rigid body.
+    // Please do not change from the outside this variable. 
+    // If you want to change the type of rigid body, always 
+    // Please specify the type you want to set the arguments of setupMass method.
     this.type=0;
-    this.isDynamic=false;
-    this.isStatic=false;
-    this.position=null;
-    this.mass=NaN;
-    this.inverseMass=NaN;
-    this.shapes=null;
-    this.numShapes=0;
-    this.parent=null;
-    this.contactLink=null;
-    this.numContacts=0;
-    this.jointLink=null;
-    this.numJoints=0;
-    this.addedToIsland=false;
-    this.sleeping=false;
+
     this.massInfo= new OIMO.MassInfo();
 
+    // It is the world coordinate of the center of gravity.
     this.position=new OIMO.Vec3(x,y,z); 
 
     var len=ax*ax+ay*ay+az*az; 
@@ -560,21 +637,70 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     }
     var sin=Math.sin(rad*0.5);
     var cos=Math.cos(rad*0.5);
+    // It is a quaternion that represents the attitude.
     this.orientation=new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+    // Is the translational velocity.
     this.linearVelocity=new OIMO.Vec3();
+    // Is the angular velocity.
     this.angularVelocity=new OIMO.Vec3();
-    this.sleepPosition=new OIMO.Vec3();
-    this.sleepOrientation=new OIMO.Quat();
 
-    this.rotation=new OIMO.Mat33();
-    this.inverseInertia=new OIMO.Mat33();
-    this.localInertia=new OIMO.Mat33();
-    this.inverseLocalInertia=new OIMO.Mat33();
-
+    // return matrix for three.js
     this.matrix = new OIMO.Mat44();
 
+    //--------------------------------------------
+    //  Please do not change from the outside this variables.
+    //--------------------------------------------
+
+    // It is a world that rigid body has been added.
+    this.parent=null;
+    this.contactLink=null;
+    this.numContacts=0;
+
+    // An array of shapes that are included in the rigid body.
+    this.shapes=null;
+    // The number of shapes that are included in the rigid body.
+    this.numShapes=0;
+
+    // It is the link array of joint that is connected to the rigid body.
+    this.jointLink=null;
+    // The number of joints that are connected to the rigid body.
+    this.numJoints=0;
+
+    // It is the world coordinate of the center of gravity in the sleep just before.
+    this.sleepPosition=new OIMO.Vec3();
+    // It is a quaternion that represents the attitude of sleep just before.
+    this.sleepOrientation=new OIMO.Quat();
+    // I will show this rigid body to determine whether it is a rigid body static.
+    this.isStatic=false;
+    // I indicates that this rigid body to determine whether it is a rigid body dynamic. 
+    this.isDynamic=false;
+    // It is a rotation matrix representing the orientation.
+    this.rotation=new OIMO.Mat33();
+
+    //--------------------------------------------
+    // It will be recalculated automatically from the shape, which is included.
+    //--------------------------------------------
+    
+    // This is the weight. 
+    this.mass=NaN;
+    // It is the reciprocal of the mass.
+    this.inverseMass=NaN;
+    // It is the inverse of the inertia tensor in the world system.
+    this.inverseInertia=new OIMO.Mat33();
+    // It is the inertia tensor in the initial state.
+    this.localInertia=new OIMO.Mat33();
+    // It is the inverse of the inertia tensor in the initial state.
+    this.inverseLocalInertia=new OIMO.Mat33();
+
+
+    // I indicates rigid body whether it has been added to the simulation Island.
+    this.addedToIsland=false;
+    // It shows how to sleep rigid body.
     this.allowSleep=true;
+    // This is the time from when the rigid body at rest.
     this.sleepTime=0;
+    // I shows rigid body to determine whether it is a sleep state.
+    this.sleeping=false;
 }
 
 OIMO.RigidBody.prototype = {
@@ -605,6 +731,14 @@ OIMO.RigidBody.prototype = {
         if(this.parent)this.parent.removeShape(remove);
         this.numShapes--;
     },
+    /**
+    * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
+    * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
+    * If the parameter adjustPosition is set to true, the shapes' relative positions and
+    * the rigid body's position will be adjusted to the center of gravity.
+    * @param   type
+    * @param   adjustPosition
+    */
     setupMass:function(Type,AdjustPosition){
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
         var type = Type || this.BODY_DYNAMIC;
@@ -1718,54 +1852,100 @@ OIMO.Distance3d = function(p1, p2){
     var zd = p2[2]-p1[2];
     return Math.sqrt(xd*xd + yd*yd + zd*zd);
 }
+/**
+* The base class of all type of the constraints.
+* @author saharan
+*/
 OIMO.Constraint = function(){
+    // The parent world of the constraint.
     this.parent=null;
+    // The first body of the constraint.
     this.body1=null;
+    // The second body of the constraint.
     this.body2=null;
+    // Internal
     this.addedToIsland=false;
 }
 
 OIMO.Constraint.prototype = {
     constructor: OIMO.Constraint,
-
+    /**
+    * Prepare for solving the constraint.
+    * @param   timeStep
+    * @param   invTimeStep
+    */
     preSolve:function(timeStep,invTimeStep){
         throw new Error("Inheritance error.");
     },
+    /**
+    * Solve the constraint.
+    * This is usually called iteratively.
+    */
     solve:function(){
         throw new Error("Inheritance error.");
     },
+    /**
+    * Do the post-processing.
+    */
     postSolve:function(){
         throw new Error("Inheritance error.");
     }
 }
+/**
+* Joints are used to constrain the motion between two rigid bodies.
+* @author saharan
+*/
 OIMO.Joint = function(config){
     OIMO.Constraint.call( this );
 
     this.name = "";
+    // Distance joint
     this.JOINT_DISTANCE=0x1;
+    // Ball-and-socket joint
     this.JOINT_BALL_AND_SOCKET=0x2;
+    //  Hinge joint
     this.JOINT_HINGE=0x3;
+    //  Wheel joint
     this.JOINT_WHEEL=0x4;
+    //  Slider joint
     this.JOINT_SLIDER=0x5;
+    //  Prismatic joint
     this.JOINT_PRISMATIC=0x6;
+
+    // The type of the joint.
     this.type=0;
+    //  The previous joint in the world.
     this.prev=null;
+    // The next joint in the world.
     this.next=null;
+
     this.body1=config.body1;
     this.body2=config.body2;
+
+    // The anchor point on the first rigid body in local coordinate system.
     this.localAnchorPoint1=new OIMO.Vec3().copy(config.localAnchorPoint1);
+    // The anchor point on the second rigid body in local coordinate system.
     this.localAnchorPoint2=new OIMO.Vec3().copy(config.localAnchorPoint2);
+    // The anchor point on the first rigid body in world coordinate system relative to the body's origin.
     this.relativeAnchorPoint1=new OIMO.Vec3();
+    // The anchor point on the second rigid body in world coordinate system relative to the body's origin.
     this.relativeAnchorPoint2=new OIMO.Vec3();
+    //  The anchor point on the first rigid body in world coordinate system.
     this.anchorPoint1=new OIMO.Vec3();
+    // The anchor point on the second rigid body in world coordinate system.
     this.anchorPoint2=new OIMO.Vec3();
+    //  Whether allow collision between connected rigid bodies or not.
     this.allowCollision=config.allowCollision;
+
     this.b1Link=new OIMO.JointLink(this);
     this.b2Link=new OIMO.JointLink(this);
 
     this.matrix = new OIMO.Mat44();
 }
 OIMO.Joint.prototype = Object.create( OIMO.Constraint.prototype );
+/**
+* Update all the anchor points.
+*/
 OIMO.Joint.prototype.updateAnchorPoints = function () {
     var p1=this.body1.position;
     var p2=this.body2.position;
@@ -1805,6 +1985,9 @@ OIMO.Joint.prototype.updateAnchorPoints = function () {
     this.anchorPoint2.y=p2y;
     this.anchorPoint2.z=p2z;
 }
+/**
+* Attach the joint from the bodies.
+*/
 OIMO.Joint.prototype.attach = function () {
     this.b1Link.body=this.body2;
     this.b2Link.body=this.body1;
@@ -1827,6 +2010,7 @@ OIMO.Joint.prototype.detach = function () {
     this.b1Link.next=null;
     this.b1Link.body=null;
     this.body1.numJoints--;
+
     prev=this.b2Link.prev;
     next=this.b2Link.next;
     if(prev!=null)prev.next=next;
@@ -1836,9 +2020,13 @@ OIMO.Joint.prototype.detach = function () {
     this.b2Link.next=null;
     this.b2Link.body=null;
     this.body2.numJoints--;
+
     this.b1Link.body=null;
     this.b2Link.body=null;
 }
+/**
+* Awake the bodies.
+*/
 OIMO.Joint.prototype.awake = function () {
     this.body1.awake();
     this.body2.awake();
@@ -1850,7 +2038,10 @@ OIMO.Joint.prototype.solve = function () {
 OIMO.Joint.prototype.postSolve = function () {
 }
 
-// for three js
+
+/**
+* Three js add
+*/
 OIMO.Joint.prototype.getMatrix = function () {
     var m = this.matrix.elements;
     var p1 = this.anchorPoint1;
@@ -1867,53 +2058,105 @@ OIMO.Joint.prototype.getMatrix = function () {
 
     return m;
 }
+/**
+* A joint configuration holds all configuration data for constructing a joint.
+* Joint configurations can be reused safely.
+* @author saharan
+*/
 OIMO.JointConfig = function(){
+	// The first rigid body of the joint.
     this.body1 = null;
+    // The second rigid body of the joint.
     this.body2 = null;
+    // The anchor point on the first rigid body in local coordinate system.
     this.localAnchorPoint1=new OIMO.Vec3();
+    //  The anchor point on the second rigid body in local coordinate system.
     this.localAnchorPoint2=new OIMO.Vec3();
+    // The axis in the first body's coordinate system.
+	// his property is available in some joints.
     this.localAxis1=new OIMO.Vec3();
+    // The axis in the second body's coordinate system.
+	// This property is available in some joints.
     this.localAxis2=new OIMO.Vec3();
+    //  Whether allow collision between connected rigid bodies or not.
     this.allowCollision=false;
 }
+/**
+* A link list of joints.
+* @author saharan
+*/
 OIMO.JointLink = function(joint){
+	// The previous joint link.
     this.prev = null;
+    // The next joint link.
     this.next = null;
+    // The other rigid body connected to the joint.
     this.body = null;
+    // The joint of the link.
     this.joint = joint;
 }
+/**
+* An information of limit and motor.
+* @author saharan
+*/
 OIMO.LimitMotor = function(axis,fixed){
+    // The axis of the constraint.
     this.axis=axis;
+    // The current angle for rotational constraints.
     this.angle=0;
+    // The lower limit. Set lower > upper to disable.
     if(fixed)this.lowerLimit=0;
     else this.lowerLimit=1;
+    //  The upper limit. Set lower > upper to disable.
     this.upperLimit=0;
+    // The target motor speed.
     this.motorSpeed=0;
+    // The maximum motor force or torque. Set 0 to disable.
     this.maxMotorForce=0;
+    // The frequency of the spring. Set 0 to disable.
     this.frequency=0;
+    // The damping ratio of the spring. Set 0 for no damping, 1 for critical damping.
     this.dampingRatio=0;
 }
 
 OIMO.LimitMotor.prototype = {
     constructor: OIMO.LimitMotor,
-
+    /**
+    * Set limit data into this constraint.
+    * @param   lowerLimit
+    * @param   upperLimit
+    */
     setLimit:function(lowerLimit,upperLimit){
         this.lowerLimit=lowerLimit;
         this.upperLimit=upperLimit;
-        },
+    },
+    /**
+    * Set motor data into this constraint.
+    * @param   motorSpeed
+    * @param   maxMotorForce
+    */
     setMotor:function(motorSpeed,maxMotorForce){
         this.motorSpeed=motorSpeed;
         this.maxMotorForce=maxMotorForce;
-        },
+    },
+    /**
+    * Set spring data into this constraint.
+    * @param   frequency
+    * @param   dampingRatio
+    */
     setSpring:function(frequency,dampingRatio){
         this.frequency=frequency;
         this.dampingRatio=dampingRatio;
     }
 }
+/**
+* A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+* @author saharan
+*/
 OIMO.BallAndSocketJoint = function(config){
     OIMO.Joint.call( this, config);
-
     this.type=this.JOINT_BALL_AND_SOCKET;
+    
     this.lc=new OIMO.LinearConstraint(this);
 }
 OIMO.BallAndSocketJoint.prototype = Object.create( OIMO.Joint.prototype );
@@ -1926,11 +2169,16 @@ OIMO.BallAndSocketJoint.prototype.solve = function () {
 }
 OIMO.BallAndSocketJoint.prototype.postSolve = function () {
 }
+/**
+* A distance joint limits the distance between two anchor points on rigid bodies.
+* @author saharan
+*/
 OIMO.DistanceJoint = function(config,minDistance,maxDistance){
     OIMO.Joint.call( this, config);
-
     this.type=this.JOINT_DISTANCE;
+    
     this.normal=new OIMO.Vec3();
+    // The limit and motor information of the joint.
     this.limitMotor=new OIMO.LimitMotor(this.normal,true);
     this.limitMotor.lowerLimit=minDistance;
     this.limitMotor.upperLimit=maxDistance;
@@ -1952,37 +2200,51 @@ OIMO.DistanceJoint.prototype.solve = function () {
 }
 OIMO.DistanceJoint.prototype.postSolve = function () {
 }
+/**
+* A hinge joint allows only for relative rotation of rigid bodies along the axis.
+* @author saharan
+*/
 OIMO.HingeJoint = function(config,lowerAngleLimit,upperAngleLimit){
     OIMO.Joint.call( this, config);
+    this.type=this.JOINT_HINGE;
 
+    // The axis in the first body's coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    // The axis in the second body's coordinate system.
     this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
     var len;
     this.localAxis1X=this.localAxis1.x;
     this.localAxis1Y=this.localAxis1.y;
     this.localAxis1Z=this.localAxis1.z;
+
     this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
     this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
     this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+
     len=1/Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
     this.localAngAxis1X*=len;
     this.localAngAxis1Y*=len;
     this.localAngAxis1Z*=len;
+
     this.localAxis2X=this.localAxis2.x;
     this.localAxis2Y=this.localAxis2.y;
     this.localAxis2Z=this.localAxis2.z;
+
+    // make angle axis 2
     var arc=new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
     var tarc = arc.elements;
     this.localAngAxis2X=this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
     this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
     this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
-    this.type=this.JOINT_HINGE;
+
     this.nor=new OIMO.Vec3();
     this.tan=new OIMO.Vec3();
     this.bin=new OIMO.Vec3();
+    // The rotational limit and motor information of the joint.
     this.limitMotor=new OIMO.LimitMotor(this.nor,false);
     this.limitMotor.lowerLimit=lowerAngleLimit;
     this.limitMotor.upperLimit=upperAngleLimit;
+
     this.lc=new OIMO.LinearConstraint(this);
     this.r3=new OIMO.Rotational3Constraint(this,this.limitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
 }
@@ -1992,7 +2254,9 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var tmp1X;
     var tmp1Y;
     var tmp1Z;
+
     this.updateAnchorPoints();
+
     tmpM=this.body1.rotation.elements;
     var axis1X=this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
     var axis1Y=this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
@@ -2007,7 +2271,6 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var angAxis2X=this.localAngAxis2X*tmpM[0]+this.localAngAxis2Y*tmpM[1]+this.localAngAxis2Z*tmpM[2];
     var angAxis2Y=this.localAngAxis2X*tmpM[3]+this.localAngAxis2Y*tmpM[4]+this.localAngAxis2Z*tmpM[5];
     var angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
-   
     var nx=axis1X*this.body2.inverseMass+axis2X*this.body1.inverseMass;
     var ny=axis1Y*this.body2.inverseMass+axis2Y*this.body1.inverseMass;
     var nz=axis1Z*this.body2.inverseMass+axis2Z*this.body1.inverseMass;
@@ -2026,23 +2289,33 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var bx=ny*tz-nz*ty;
     var by=nz*tx-nx*tz;
     var bz=nx*ty-ny*tx;
+
     this.nor.init(nx,ny,nz);
     this.tan.init(tx,ty,tz);
     this.bin.init(bx,by,bz);
+
+    // ----------------------------------------------
+    //            calculate hinge angle
+    // ----------------------------------------------
+            
     if(
-    nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
-    ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
-    nz*(angAxis1X*angAxis2Y-angAxis1Y*angAxis2X)<0
+        nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
+        ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
+        nz*(angAxis1X*angAxis2Y-angAxis1Y*angAxis2X)<0
     ){
-    this.limitMotor.angle=-this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        this.limitMotor.angle=-this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
     }else{
-    this.limitMotor.angle=this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        this.limitMotor.angle=this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
     }
+
+    // angular error
     tmp1X=axis1Y*axis2Z-axis1Z*axis2Y;
     tmp1Y=axis1Z*axis2X-axis1X*axis2Z;
     tmp1Z=axis1X*axis2Y-axis1Y*axis2X;
+
     this.r3.limitMotor2.angle=tx*tmp1X+ty*tmp1Y+tz*tmp1Z;
     this.r3.limitMotor3.angle=bx*tmp1X+by*tmp1Y+bz*tmp1Z;
+    
     this.r3.preSolve(timeStep,invTimeStep);
     this.lc.preSolve(timeStep,invTimeStep);
 }
@@ -2057,10 +2330,17 @@ OIMO.HingeJoint.prototype.acosClamp = function(cos){
     else if(cos<-1)return Math.PI;
     else return Math.acos(cos);
 }
+/**
+* A prismatic joint allows only for relative translation of rigid bodies along the axis.
+* @author saharan
+*/
 OIMO.PrismaticJoint = function(config,lowerTranslation,upperTranslation){
     OIMO.Joint.call( this, config);
+    this.type=this.JOINT_PRISMATIC;
 
+    // The axis in the first body's coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    // The axis in the second body's coordinate system.
     this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
     this.localAxis1X=this.localAxis1.x;
     this.localAxis1Y=this.localAxis1.y;
@@ -2068,11 +2348,12 @@ OIMO.PrismaticJoint = function(config,lowerTranslation,upperTranslation){
     this.localAxis2X=this.localAxis2.x;
     this.localAxis2Y=this.localAxis2.y;
     this.localAxis2Z=this.localAxis2.z;
-    this.type=this.JOINT_PRISMATIC;
+    
     this.nor=new OIMO.Vec3();
     this.tan=new OIMO.Vec3();
     this.bin=new OIMO.Vec3();
     this.ac=new OIMO.AngularConstraint(this,new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+    // The translational limit and motor information of the joint.
     this.limitMotor=new OIMO.LimitMotor(this.nor,true);
     this.limitMotor.lowerLimit=lowerTranslation;
     this.limitMotor.upperLimit=upperTranslation;
@@ -2113,9 +2394,11 @@ OIMO.PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var bx=ny*tz-nz*ty;
     var by=nz*tx-nx*tz;
     var bz=nx*ty-ny*tx;
+
     this.nor.init(nx,ny,nz);
     this.tan.init(tx,ty,tz);
     this.bin.init(bx,by,bz);
+    
     this.ac.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
 }
@@ -2125,36 +2408,51 @@ OIMO.PrismaticJoint.prototype.solve = function () {
 }
 OIMO.PrismaticJoint.prototype.postSolve = function () {
 }
+/**
+* A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+* @author saharan
+*/
 OIMO.SliderJoint = function(config,lowerTranslation,upperTranslation){
     OIMO.Joint.call( this, config);
+    this.type=this.joint.Joint.JOINT_SLIDER;
 
+    // The first axis in local coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    // The second axis in local coordinate system.
     this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+
     var len;
     this.localAxis1X=this.localAxis1.x;
     this.localAxis1Y=this.localAxis1.y;
     this.localAxis1Z=this.localAxis1.z;
+
     this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
     this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
     this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+
     len=1/Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
     this.localAngAxis1X*=len;
     this.localAngAxis1Y*=len;
     this.localAngAxis1Z*=len;
+
     this.localAxis2X=this.localAxis2.x;
     this.localAxis2Y=this.localAxis2.y;
     this.localAxis2Z=this.localAxis2.z;
+
+    // make angle axis 2
     var arc=new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
     var tarc = arc.elements;
     this.localAngAxis2X=this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
     this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
     this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
-    this.type=this.joint.Joint.JOINT_SLIDER;
+    
     this.nor=new OIMO.Vec3();
     this.tan=new OIMO.Vec3();
     this.bin=new OIMO.Vec3();
+    // The limit and motor for the rotation
     this.rotationalLimitMotor=new OIMO.LimitMotor(this.nor,false);
     this.r3=new OIMO.Rotational3Constraint(this,this.rotationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
+    // The limit and motor for the translation.
     this.translationalLimitMotor=new OIMO.LimitMotor(this.nor,true);
     this.translationalLimitMotor.lowerLimit=lowerTranslation;
     this.translationalLimitMotor.upperLimit=upperTranslation;
@@ -2204,20 +2502,30 @@ OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     this.nor.init(nx,ny,nz);
     this.tan.init(tx,ty,tz);
     this.bin.init(bx,by,bz);
+
+    // ----------------------------------------------
+    //            calculate hinge angle
+    // ----------------------------------------------
+
+            
     if(
-    nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
-    ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
-    nz*(angAxis1X*angAxis2Y-angAxis1Y*angAxis2X)<0
-    ){
-    this.rotationalLimitMotor.angle=-this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
+        ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
+        nz*(angAxis1X*angAxis2Y-angAxis1Y*angAxis2X)<0
+        ){
+        this.rotationalLimitMotor.angle=-this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
     }else{
-    this.rotationalLimitMotor.angle=this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        this.rotationalLimitMotor.angle=this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
     }
+
+    // angular error
     tmp1X=axis1Y*axis2Z-axis1Z*axis2Y;
     tmp1Y=axis1Z*axis2X-axis1X*axis2Z;
     tmp1Z=axis1X*axis2Y-axis1Y*axis2X;
+
     this.r3.limitMotor2.angle=tx*tmp1X+ty*tmp1Y+tz*tmp1Z;
     this.r3.limitMotor3.angle=bx*tmp1X+by*tmp1Y+bz*tmp1Z;
+    
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
 }
@@ -2232,11 +2540,19 @@ OIMO.SliderJoint.prototype.acosClamp = function(cos){
     else if(cos<-1)return Math.PI;
     else return Math.acos(cos);
 }
+/**
+* A wheel joint allows for relative rotation between two rigid bodies along two axes.
+* The wheel joint also allows for relative translation for the suspension.
+*/
 OIMO.WheelJoint = function(config){
     OIMO.Joint.call( this, config);
+    this.type=this.JOINT_WHEEL;
 
+    // The first axis in local coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    // The second axis in local coordinate system.
     this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+
     var len;
     this.localAxis1X=this.localAxis1.x;
     this.localAxis1Y=this.localAxis1.y;
@@ -2274,15 +2590,20 @@ OIMO.WheelJoint = function(config){
         this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
         this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
     }
-    this.type=this.JOINT_WHEEL;
+
     this.nor=new OIMO.Vec3();
     this.tan=new OIMO.Vec3();
     this.bin=new OIMO.Vec3();
+
+    // The translational limit and motor information of the joint.
     this.translationalLimitMotor=new OIMO.LimitMotor(this.tan,true);
     this.translationalLimitMotor.frequency=8;
     this.translationalLimitMotor.dampingRatio=1;
+    // The first rotational limit and motor information of the joint.
     this.rotationalLimitMotor1=new OIMO.LimitMotor(this.tan,false);
+    // The second rotational limit and motor information of the joint.
     this.rotationalLimitMotor2=new OIMO.LimitMotor(this.bin,false);
+
     this.t3=new OIMO.Translational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.translationalLimitMotor,new OIMO.LimitMotor(this.bin,true));
     this.t3.weight=1;
     this.r3=new OIMO.Rotational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
@@ -2310,51 +2631,51 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
     
     this.r3.limitMotor1.angle=x1*x2+y1*y2+z1*z2;
-    if(
-    x1*(angAxis1Y*z2-angAxis1Z*y2)+
-    y1*(angAxis1Z*x2-angAxis1X*z2)+
-    z1*(angAxis1X*y2-angAxis1Y*x2)<0
-    ){
-    this.rotationalLimitMotor1.angle=-this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
+    if( x1*(angAxis1Y*z2-angAxis1Z*y2)+ y1*(angAxis1Z*x2-angAxis1X*z2)+ z1*(angAxis1X*y2-angAxis1Y*x2)<0 ){
+        this.rotationalLimitMotor1.angle=-this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
     }else{
-    this.rotationalLimitMotor1.angle=this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
+        this.rotationalLimitMotor1.angle=this.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
     }
-    if(
-    x2*(angAxis2Y*z1-angAxis2Z*y1)+
-    y2*(angAxis2Z*x1-angAxis2X*z1)+
-    z2*(angAxis2X*y1-angAxis2Y*x1)<0
-    ){
-    this.rotationalLimitMotor2.angle=this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
+    if( x2*(angAxis2Y*z1-angAxis2Z*y1)+ y2*(angAxis2Z*x1-angAxis2X*z1)+ z2*(angAxis2X*y1-angAxis2Y*x1)<0 ){
+        this.rotationalLimitMotor2.angle=this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
     }else{
-    this.rotationalLimitMotor2.angle=-this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
+        this.rotationalLimitMotor2.angle=-this.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
     }
+
     var nx=y2*z1-z2*y1;
     var ny=z2*x1-x2*z1;
     var nz=x2*y1-y2*x1;
+
     tmp1X=Math.sqrt(nx*nx+ny*ny+nz*nz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     nx*=tmp1X;
     ny*=tmp1X;
     nz*=tmp1X;
+
     var tx=ny*z2-nz*y2;
     var ty=nz*x2-nx*z2;
     var tz=nx*y2-ny*x2;
+
     tmp1X=Math.sqrt(tx*tx+ty*ty+tz*tz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     tx*=tmp1X;
     ty*=tmp1X;
     tz*=tmp1X;
+
     var bx=y1*nz-z1*ny;
     var by=z1*nx-x1*nz;
     var bz=x1*ny-y1*nx;
+
     tmp1X=Math.sqrt(bx*bx+by*by+bz*bz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     bx*=tmp1X;
     by*=tmp1X;
     bz*=tmp1X;
+
     this.nor.init(nx,ny,nz);
     this.tan.init(tx,ty,tz);
     this.bin.init(bx,by,bz);
+    
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
 }
@@ -2369,6 +2690,10 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
     else if(cos<-1)return Math.PI;
     else return Math.acos(cos);
 }
+/**
+* An angular constraint for all axes for various joints.
+* @author saharan
+*/
 OIMO.AngularConstraint = function(joint,targetOrientation){
     this.i1e00=NaN;
     this.i1e01=NaN;
@@ -2466,7 +2791,8 @@ OIMO.AngularConstraint.prototype = {
         this.d20=(v10*v21-v11*v20)*inv;
         this.d21=(v01*v20-v00*v21)*inv;
         this.d22=(v00*v11-v01*v10)*inv;
-        this.relativeOrientation.invert(this.b1.orientation);
+        
+        this.relativeOrientation.invert(this.b1.orientation);// error = b2 - b1 - target
         this.relativeOrientation.mul(this.targetOrientation,this.relativeOrientation);
         this.relativeOrientation.mul(this.b2.orientation,this.relativeOrientation);
         inv=this.relativeOrientation.s*2;
@@ -2475,14 +2801,14 @@ OIMO.AngularConstraint.prototype = {
         this.velz=this.relativeOrientation.z*inv;
         var len=Math.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
         if(len>0.02){
-        len=(0.02-len)/len*invTimeStep*0.05;
-        this.velx*=len;
-        this.vely*=len;
-        this.velz*=len;
+            len=(0.02-len)/len*invTimeStep*0.05;
+            this.velx*=len;
+            this.vely*=len;
+            this.velz*=len;
         }else{
-        this.velx=0;
-        this.vely=0;
-        this.velz=0;
+            this.velx=0;
+            this.vely=0;
+            this.velz=0;
         }
         this.a1.x+=this.impx*this.i1e00+this.impy*this.i1e01+this.impz*this.i1e02;
         this.a1.y+=this.impx*this.i1e10+this.impy*this.i1e11+this.impz*this.i1e12;
@@ -2509,6 +2835,10 @@ OIMO.AngularConstraint.prototype = {
         this.a2.z-=nimpx*this.i2e20+nimpy*this.i2e21+nimpz*this.i2e22;
     }
 }
+/**
+* A linear constraint for all axes for various joints.
+* @author saharan
+*/
 OIMO.LinearConstraint = function(joint){
     this.m1=NaN;
     this.m2=NaN;
@@ -2640,6 +2970,24 @@ OIMO.LinearConstraint.prototype = {
         this.az2x=this.r2y*this.i2e00+-this.r2x*this.i2e01;
         this.az2y=this.r2y*this.i2e10+-this.r2x*this.i2e11;
         this.az2z=this.r2y*this.i2e20+-this.r2x*this.i2e21;
+
+        // calculate point-to-point mass matrix
+        // from impulse equation
+        // 
+        // M = ([/m] - [r^][/I][r^]) ^ -1
+        // 
+        // where
+        // 
+        // [/m] = |1/m, 0, 0|
+        //        |0, 1/m, 0|
+        //        |0, 0, 1/m|
+        // 
+        // [r^] = |0, -rz, ry|
+        //        |rz, 0, -rx|
+        //        |-ry, rx, 0|
+        // 
+        // [/I] = Inverted moment inertia
+
         var k00=this.m1+this.m2;
         var k01=0;
         var k02=0;
@@ -2649,6 +2997,7 @@ OIMO.LinearConstraint.prototype = {
         var k20=0;
         var k21=0;
         var k22=k00;
+
         k00+=this.i1e11*this.r1z*this.r1z-(this.i1e21+this.i1e12)*this.r1y*this.r1z+this.i1e22*this.r1y*this.r1y;
         k01+=(this.i1e20*this.r1y+this.i1e12*this.r1x)*this.r1z-this.i1e10*this.r1z*this.r1z-this.i1e22*this.r1x*this.r1y;
         k02+=(this.i1e10*this.r1y-this.i1e11*this.r1x)*this.r1z-this.i1e20*this.r1y*this.r1y+this.i1e21*this.r1x*this.r1y;
@@ -2658,6 +3007,7 @@ OIMO.LinearConstraint.prototype = {
         k20+=(this.i1e01*this.r1y-this.i1e11*this.r1x)*this.r1z-this.i1e02*this.r1y*this.r1y+this.i1e12*this.r1x*this.r1y;
         k21+=(this.i1e10*this.r1x-this.i1e00*this.r1y)*this.r1z-this.i1e12*this.r1x*this.r1x+this.i1e02*this.r1x*this.r1y;
         k22+=this.i1e00*this.r1y*this.r1y-(this.i1e10+this.i1e01)*this.r1x*this.r1y+this.i1e11*this.r1x*this.r1x;
+
         k00+=this.i2e11*this.r2z*this.r2z-(this.i2e21+this.i2e12)*this.r2y*this.r2z+this.i2e22*this.r2y*this.r2y;
         k01+=(this.i2e20*this.r2y+this.i2e12*this.r2x)*this.r2z-this.i2e10*this.r2z*this.r2z-this.i2e22*this.r2x*this.r2y;
         k02+=(this.i2e10*this.r2y-this.i2e11*this.r2x)*this.r2z-this.i2e20*this.r2y*this.r2y+this.i2e21*this.r2x*this.r2y;
@@ -2667,6 +3017,7 @@ OIMO.LinearConstraint.prototype = {
         k20+=(this.i2e01*this.r2y-this.i2e11*this.r2x)*this.r2z-this.i2e02*this.r2y*this.r2y+this.i2e12*this.r2x*this.r2y;
         k21+=(this.i2e10*this.r2x-this.i2e00*this.r2y)*this.r2z-this.i2e12*this.r2x*this.r2x+this.i2e02*this.r2x*this.r2y;
         k22+=this.i2e00*this.r2y*this.r2y-(this.i2e10+this.i2e01)*this.r2x*this.r2y+this.i2e11*this.r2x*this.r2x;
+
         var inv=1/(
         k00*(k11*k22-k21*k12)+
         k10*(k21*k02-k01*k22)+
@@ -2681,23 +3032,26 @@ OIMO.LinearConstraint.prototype = {
         this.d20=(k10*k21-k11*k20)*inv;
         this.d21=(k01*k20-k00*k21)*inv;
         this.d22=(k00*k11-k01*k10)*inv;
+
         this.velx=this.p2.x-this.p1.x;
         this.vely=this.p2.y-this.p1.y;
         this.velz=this.p2.z-this.p1.z;
         var len=Math.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
         if(len>0.005){
-        len=(0.005-len)/len*invTimeStep*0.05;
-        this.velx*=len;
-        this.vely*=len;
-        this.velz*=len;
+            len=(0.005-len)/len*invTimeStep*0.05;
+            this.velx*=len;
+            this.vely*=len;
+            this.velz*=len;
         }else{
-        this.velx=0;
-        this.vely=0;
-        this.velz=0;
+            this.velx=0;
+            this.vely=0;
+            this.velz=0;
         }
+
         this.impx*=0.95;
         this.impy*=0.95;
         this.impz*=0.95;
+        
         this.l1.x+=this.impx*this.m1;
         this.l1.y+=this.impy*this.m1;
         this.l1.z+=this.impz*this.m1;
@@ -2735,6 +3089,10 @@ OIMO.LinearConstraint.prototype = {
         this.a2.z-=nimpx*this.ax2z+nimpy*this.ay2z+nimpz*this.az2z;
     }
 }
+/**
+* A three-axis rotational constraint for various joints.
+* @author saharan
+*/
 OIMO.Rotational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3){
     this.cfm1=NaN;
     this.cfm2=NaN;
@@ -2766,7 +3124,8 @@ OIMO.Rotational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3)
     this.ax3=NaN;
     this.ay3=NaN;
     this.az3=NaN;
-    this.a1x1=NaN;
+
+    this.a1x1=NaN; // jacoians
     this.a1y1=NaN;
     this.a1z1=NaN;
     this.a2x1=NaN;
@@ -2784,10 +3143,11 @@ OIMO.Rotational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3)
     this.a2x3=NaN;
     this.a2y3=NaN;
     this.a2z3=NaN;
+
     this.lowerLimit1=NaN;
     this.upperLimit1=NaN;
     this.limitVelocity1=NaN;
-    this.limitState1=0;
+    this.limitState1=0; // -1: at lower, 0: locked, 1: at upper, 2: free
     this.enableMotor1=false;
     this.motorSpeed1=NaN;
     this.maxMotorForce1=NaN;
@@ -2795,7 +3155,7 @@ OIMO.Rotational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3)
     this.lowerLimit2=NaN;
     this.upperLimit2=NaN;
     this.limitVelocity2=NaN;
-    this.limitState2=0;
+    this.limitState2=0; // -1: at lower, 0: locked, 1: at upper, 2: free
     this.enableMotor2=false;
     this.motorSpeed2=NaN;
     this.maxMotorForce2=NaN;
@@ -2803,12 +3163,13 @@ OIMO.Rotational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3)
     this.lowerLimit3=NaN;
     this.upperLimit3=NaN;
     this.limitVelocity3=NaN;
-    this.limitState3=0;
+    this.limitState3=0; // -1: at lower, 0: locked, 1: at upper, 2: free
     this.enableMotor3=false;
     this.motorSpeed3=NaN;
     this.maxMotorForce3=NaN;
     this.maxMotorImpulse3=NaN;
-    this.k00=NaN;
+
+    this.k00=NaN; // K = J*M*JT
     this.k01=NaN;
     this.k02=NaN;
     this.k10=NaN;
@@ -2817,13 +3178,16 @@ OIMO.Rotational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3)
     this.k20=NaN;
     this.k21=NaN;
     this.k22=NaN;
-    this.kv00=NaN;
+
+    this.kv00=NaN; // diagonals without CFMs
     this.kv11=NaN;
     this.kv22=NaN;
-    this.dv00=NaN;
+
+    this.dv00=NaN; // ...inverted
     this.dv11=NaN;
     this.dv22=NaN;
-    this.d00=NaN;
+
+    this.d00=NaN;  // K^-1
     this.d01=NaN;
     this.d02=NaN;
     this.d10=NaN;
@@ -2911,142 +3275,151 @@ OIMO.Rotational3Constraint.prototype = {
         var enableLimit3=this.lowerLimit3<=this.upperLimit3;
         var angle1=this.limitMotor1.angle;
         if(enableLimit1){
-        if(this.lowerLimit1==this.upperLimit1){
-        if(this.limitState1!=0){
-        this.limitState1=0;
-        this.limitImpulse1=0;
-        }
-        this.limitVelocity1=this.lowerLimit1-angle1;
-        }else if(angle1<this.lowerLimit1){
-        if(this.limitState1!=-1){
-        this.limitState1=-1;
-        this.limitImpulse1=0;
-        }
-        this.limitVelocity1=this.lowerLimit1-angle1;
-        }else if(angle1>this.upperLimit1){
-        if(this.limitState1!=1){
-        this.limitState1=1;
-        this.limitImpulse1=0;
-        }
-        this.limitVelocity1=this.upperLimit1-angle1;
+            if(this.lowerLimit1==this.upperLimit1){
+                if(this.limitState1!=0){
+                    this.limitState1=0;
+                    this.limitImpulse1=0;
+                }
+                this.limitVelocity1=this.lowerLimit1-angle1;
+            }else if(angle1<this.lowerLimit1){
+                if(this.limitState1!=-1){
+                    this.limitState1=-1;
+                    this.limitImpulse1=0;
+                }
+                this.limitVelocity1=this.lowerLimit1-angle1;
+            }else if(angle1>this.upperLimit1){
+                if(this.limitState1!=1){
+                    this.limitState1=1;
+                    this.limitImpulse1=0;
+                }
+                this.limitVelocity1=this.upperLimit1-angle1;
+            }else{
+                this.limitState1=2;
+                this.limitImpulse1=0;
+                this.limitVelocity1=0;
+            }
+            if(!enableSpring1){
+                if(this.limitVelocity1>0.02)this.limitVelocity1-=0.02;
+                else if(this.limitVelocity1<-0.02)this.limitVelocity1+=0.02;
+                else this.limitVelocity1=0;
+            }
         }else{
-        this.limitState1=2;
-        this.limitImpulse1=0;
-        this.limitVelocity1=0;
+            this.limitState1=2;
+            this.limitImpulse1=0;
         }
-        if(!enableSpring1){
-        if(this.limitVelocity1>0.02)this.limitVelocity1-=0.02;
-        else if(this.limitVelocity1<-0.02)this.limitVelocity1+=0.02;
-        else this.limitVelocity1=0;
-        }
-        }else{
-        this.limitState1=2;
-        this.limitImpulse1=0;
-        }
+
         var angle2=this.limitMotor2.angle;
         if(enableLimit2){
-        if(this.lowerLimit2==this.upperLimit2){
-        if(this.limitState2!=0){
-        this.limitState2=0;
-        this.limitImpulse2=0;
-        }
-        this.limitVelocity2=this.lowerLimit2-angle2;
-        }else if(angle2<this.lowerLimit2){
-        if(this.limitState2!=-1){
-        this.limitState2=-1;
-        this.limitImpulse2=0;
-        }
-        this.limitVelocity2=this.lowerLimit2-angle2;
-        }else if(angle2>this.upperLimit2){
-        if(this.limitState2!=1){
-        this.limitState2=1;
-        this.limitImpulse2=0;
-        }
-        this.limitVelocity2=this.upperLimit2-angle2;
+            if(this.lowerLimit2==this.upperLimit2){
+                if(this.limitState2!=0){
+                    this.limitState2=0;
+                    this.limitImpulse2=0;
+                }
+                this.limitVelocity2=this.lowerLimit2-angle2;
+            }else if(angle2<this.lowerLimit2){
+                if(this.limitState2!=-1){
+                    this.limitState2=-1;
+                    this.limitImpulse2=0;
+                }
+                this.limitVelocity2=this.lowerLimit2-angle2;
+            }else if(angle2>this.upperLimit2){
+                if(this.limitState2!=1){
+                    this.limitState2=1;
+                    this.limitImpulse2=0;
+                }
+                this.limitVelocity2=this.upperLimit2-angle2;
+            }else{
+                this.limitState2=2;
+                this.limitImpulse2=0;
+                this.limitVelocity2=0;
+            }
+            if(!enableSpring2){
+                if(this.limitVelocity2>0.02)this.limitVelocity2-=0.02;
+                else if(this.limitVelocity2<-0.02)this.limitVelocity2+=0.02;
+                else this.limitVelocity2=0;
+            }
         }else{
-        this.limitState2=2;
-        this.limitImpulse2=0;
-        this.limitVelocity2=0;
+            this.limitState2=2;
+            this.limitImpulse2=0;
         }
-        if(!enableSpring2){
-        if(this.limitVelocity2>0.02)this.limitVelocity2-=0.02;
-        else if(this.limitVelocity2<-0.02)this.limitVelocity2+=0.02;
-        else this.limitVelocity2=0;
-        }
-        }else{
-        this.limitState2=2;
-        this.limitImpulse2=0;
-        }
+
         var angle3=this.limitMotor3.angle;
         if(enableLimit3){
-        if(this.lowerLimit3==this.upperLimit3){
-        if(this.limitState3!=0){
-        this.limitState3=0;
-        this.limitImpulse3=0;
-        }
-        this.limitVelocity3=this.lowerLimit3-angle3;
-        }else if(angle3<this.lowerLimit3){
-        if(this.limitState3!=-1){
-        this.limitState3=-1;
-        this.limitImpulse3=0;
-        }
-        this.limitVelocity3=this.lowerLimit3-angle3;
-        }else if(angle3>this.upperLimit3){
-        if(this.limitState3!=1){
-        this.limitState3=1;
-        this.limitImpulse3=0;
-        }
-        this.limitVelocity3=this.upperLimit3-angle3;
+            if(this.lowerLimit3==this.upperLimit3){
+                if(this.limitState3!=0){
+                    this.limitState3=0;
+                    this.limitImpulse3=0;
+                }
+                this.limitVelocity3=this.lowerLimit3-angle3;
+            }else if(angle3<this.lowerLimit3){
+                if(this.limitState3!=-1){
+                    this.limitState3=-1;
+                    this.limitImpulse3=0;
+                }
+                this.limitVelocity3=this.lowerLimit3-angle3;
+            }else if(angle3>this.upperLimit3){
+                if(this.limitState3!=1){
+                    this.limitState3=1;
+                    this.limitImpulse3=0;
+                }
+                this.limitVelocity3=this.upperLimit3-angle3;
+            }else{
+                this.limitState3=2;
+                this.limitImpulse3=0;
+                this.limitVelocity3=0;
+                }
+            if(!enableSpring3){
+                if(this.limitVelocity3>0.02)this.limitVelocity3-=0.02;
+                else if(this.limitVelocity3<-0.02)this.limitVelocity3+=0.02;
+                else this.limitVelocity3=0;
+            }
         }else{
-        this.limitState3=2;
-        this.limitImpulse3=0;
-        this.limitVelocity3=0;
+            this.limitState3=2;
+            this.limitImpulse3=0;
         }
-        if(!enableSpring3){
-        if(this.limitVelocity3>0.02)this.limitVelocity3-=0.02;
-        else if(this.limitVelocity3<-0.02)this.limitVelocity3+=0.02;
-        else this.limitVelocity3=0;
-        }
-        }else{
-        this.limitState3=2;
-        this.limitImpulse3=0;
-        }
+
         if(this.enableMotor1&&(this.limitState1!=0||enableSpring1)){
-        this.maxMotorImpulse1=this.maxMotorForce1*timeStep;
+            this.maxMotorImpulse1=this.maxMotorForce1*timeStep;
         }else{
-        this.motorImpulse1=0;
-        this.maxMotorImpulse1=0;
+            this.motorImpulse1=0;
+            this.maxMotorImpulse1=0;
         }
         if(this.enableMotor2&&(this.limitState2!=0||enableSpring2)){
-        this.maxMotorImpulse2=this.maxMotorForce2*timeStep;
+            this.maxMotorImpulse2=this.maxMotorForce2*timeStep;
         }else{
-        this.motorImpulse2=0;
-        this.maxMotorImpulse2=0;
+            this.motorImpulse2=0;
+            this.maxMotorImpulse2=0;
         }
         if(this.enableMotor3&&(this.limitState3!=0||enableSpring3)){
-        this.maxMotorImpulse3=this.maxMotorForce3*timeStep;
+            this.maxMotorImpulse3=this.maxMotorForce3*timeStep;
         }else{
-        this.motorImpulse3=0;
-        this.maxMotorImpulse3=0;
+            this.motorImpulse3=0;
+            this.maxMotorImpulse3=0;
         }
+
+        // build jacobians
         this.a1x1=this.ax1*this.i1e00+this.ay1*this.i1e01+this.az1*this.i1e02;
         this.a1y1=this.ax1*this.i1e10+this.ay1*this.i1e11+this.az1*this.i1e12;
         this.a1z1=this.ax1*this.i1e20+this.ay1*this.i1e21+this.az1*this.i1e22;
         this.a2x1=this.ax1*this.i2e00+this.ay1*this.i2e01+this.az1*this.i2e02;
         this.a2y1=this.ax1*this.i2e10+this.ay1*this.i2e11+this.az1*this.i2e12;
         this.a2z1=this.ax1*this.i2e20+this.ay1*this.i2e21+this.az1*this.i2e22;
+
         this.a1x2=this.ax2*this.i1e00+this.ay2*this.i1e01+this.az2*this.i1e02;
         this.a1y2=this.ax2*this.i1e10+this.ay2*this.i1e11+this.az2*this.i1e12;
         this.a1z2=this.ax2*this.i1e20+this.ay2*this.i1e21+this.az2*this.i1e22;
         this.a2x2=this.ax2*this.i2e00+this.ay2*this.i2e01+this.az2*this.i2e02;
         this.a2y2=this.ax2*this.i2e10+this.ay2*this.i2e11+this.az2*this.i2e12;
         this.a2z2=this.ax2*this.i2e20+this.ay2*this.i2e21+this.az2*this.i2e22;
+
         this.a1x3=this.ax3*this.i1e00+this.ay3*this.i1e01+this.az3*this.i1e02;
         this.a1y3=this.ax3*this.i1e10+this.ay3*this.i1e11+this.az3*this.i1e12;
         this.a1z3=this.ax3*this.i1e20+this.ay3*this.i1e21+this.az3*this.i1e22;
         this.a2x3=this.ax3*this.i2e00+this.ay3*this.i2e01+this.az3*this.i2e02;
         this.a2y3=this.ax3*this.i2e10+this.ay3*this.i2e11+this.az3*this.i2e12;
         this.a2z3=this.ax3*this.i2e20+this.ay3*this.i2e21+this.az3*this.i2e22;
+
+        // build an impulse matrix
         this.k00=this.ax1*(this.a1x1+this.a2x1)+this.ay1*(this.a1y1+this.a2y1)+this.az1*(this.a1z1+this.a2z1);
         this.k01=this.ax1*(this.a1x2+this.a2x2)+this.ay1*(this.a1y2+this.a2y2)+this.az1*(this.a1z2+this.a2z2);
         this.k02=this.ax1*(this.a1x3+this.a2x3)+this.ay1*(this.a1y3+this.a2y3)+this.az1*(this.a1z3+this.a2z3);
@@ -3056,45 +3429,51 @@ OIMO.Rotational3Constraint.prototype = {
         this.k20=this.ax3*(this.a1x1+this.a2x1)+this.ay3*(this.a1y1+this.a2y1)+this.az3*(this.a1z1+this.a2z1);
         this.k21=this.ax3*(this.a1x2+this.a2x2)+this.ay3*(this.a1y2+this.a2y2)+this.az3*(this.a1z2+this.a2z2);
         this.k22=this.ax3*(this.a1x3+this.a2x3)+this.ay3*(this.a1y3+this.a2y3)+this.az3*(this.a1z3+this.a2z3);
+
         this.kv00=this.k00;
         this.kv11=this.k11;
         this.kv22=this.k22;
         this.dv00=1/this.kv00;
         this.dv11=1/this.kv11;
         this.dv22=1/this.kv22;
+
         if(enableSpring1&&this.limitState1!=2){
-        var omega=6.2831853*frequency1;
-        var k=omega*omega*timeStep;
-        var dmp=invTimeStep/(k+2*this.limitMotor1.dampingRatio*omega);
-        this.cfm1=this.kv00*dmp;
-        this.limitVelocity1*=k*dmp;
+            var omega=6.2831853*frequency1;
+            var k=omega*omega*timeStep;
+            var dmp=invTimeStep/(k+2*this.limitMotor1.dampingRatio*omega);
+            this.cfm1=this.kv00*dmp;
+            this.limitVelocity1*=k*dmp;
         }else{
-        this.cfm1=0;
-        this.limitVelocity1*=invTimeStep*0.05;
+            this.cfm1=0;
+            this.limitVelocity1*=invTimeStep*0.05;
         }
+
         if(enableSpring2&&this.limitState2!=2){
-        omega=6.2831853*frequency2;
-        k=omega*omega*timeStep;
-        dmp=invTimeStep/(k+2*this.limitMotor2.dampingRatio*omega);
-        this.cfm2=this.kv11*dmp;
-        this.limitVelocity2*=k*dmp;
+            omega=6.2831853*frequency2;
+            k=omega*omega*timeStep;
+            dmp=invTimeStep/(k+2*this.limitMotor2.dampingRatio*omega);
+            this.cfm2=this.kv11*dmp;
+            this.limitVelocity2*=k*dmp;
         }else{
-        this.cfm2=0;
-        this.limitVelocity2*=invTimeStep*0.05;
+            this.cfm2=0;
+            this.limitVelocity2*=invTimeStep*0.05;
         }
+
         if(enableSpring3&&this.limitState3!=2){
-        omega=6.2831853*frequency3;
-        k=omega*omega*timeStep;
-        dmp=invTimeStep/(k+2*this.limitMotor3.dampingRatio*omega);
-        this.cfm3=this.kv22*dmp;
-        this.limitVelocity3*=k*dmp;
+            omega=6.2831853*frequency3;
+            k=omega*omega*timeStep;
+            dmp=invTimeStep/(k+2*this.limitMotor3.dampingRatio*omega);
+            this.cfm3=this.kv22*dmp;
+            this.limitVelocity3*=k*dmp;
         }else{
-        this.cfm3=0;
-        this.limitVelocity3*=invTimeStep*0.05;
+            this.cfm3=0;
+            this.limitVelocity3*=invTimeStep*0.05;
         }
+
         this.k00+=this.cfm1;
         this.k11+=this.cfm2;
         this.k22+=this.cfm3;
+
         var inv=1/(
         this.k00*(this.k11*this.k22-this.k21*this.k12)+
         this.k10*(this.k21*this.k02-this.k01*this.k22)+
@@ -3109,6 +3488,7 @@ OIMO.Rotational3Constraint.prototype = {
         this.d20=(this.k10*this.k21-this.k11*this.k20)*inv;
         this.d21=(this.k01*this.k20-this.k00*this.k21)*inv;
         this.d22=(this.k00*this.k11-this.k01*this.k10)*inv;
+        
         this.limitImpulse1*=0.95;
         this.motorImpulse1*=0.95;
         this.limitImpulse2*=0.95;
@@ -3129,16 +3509,20 @@ OIMO.Rotational3Constraint.prototype = {
         var rvx=this.a2.x-this.a1.x;
         var rvy=this.a2.y-this.a1.y;
         var rvz=this.a2.z-this.a1.z;
+
         this.limitVelocity3=30;
         var rvn1=rvx*this.ax1+rvy*this.ay1+rvz*this.az1-this.limitVelocity1;
         var rvn2=rvx*this.ax2+rvy*this.ay2+rvz*this.az2-this.limitVelocity2;
         var rvn3=rvx*this.ax3+rvy*this.ay3+rvz*this.az3-this.limitVelocity3;
+
         var dLimitImpulse1=rvn1*this.d00+rvn2*this.d01+rvn3*this.d02;
         var dLimitImpulse2=rvn1*this.d10+rvn2*this.d11+rvn3*this.d12;
         var dLimitImpulse3=rvn1*this.d20+rvn2*this.d21+rvn3*this.d22;
+
         this.limitImpulse1+=dLimitImpulse1;
         this.limitImpulse2+=dLimitImpulse2;
         this.limitImpulse3+=dLimitImpulse3;
+
         this.a1.x+=dLimitImpulse1*this.a1x1+dLimitImpulse2*this.a1x2+dLimitImpulse3*this.a1x3;
         this.a1.y+=dLimitImpulse1*this.a1y1+dLimitImpulse2*this.a1y2+dLimitImpulse3*this.a1y3;
         this.a1.z+=dLimitImpulse1*this.a1z1+dLimitImpulse2*this.a1z2+dLimitImpulse3*this.a1z3;
@@ -3150,112 +3534,132 @@ OIMO.Rotational3Constraint.prototype = {
         var rvx=this.a2.x-this.a1.x;
         var rvy=this.a2.y-this.a1.y;
         var rvz=this.a2.z-this.a1.z;
+
         var rvn1=rvx*this.ax1+rvy*this.ay1+rvz*this.az1;
         var rvn2=rvx*this.ax2+rvy*this.ay2+rvz*this.az2;
         var rvn3=rvx*this.ax3+rvy*this.ay3+rvz*this.az3;
+
         var oldMotorImpulse1=this.motorImpulse1;
         var oldMotorImpulse2=this.motorImpulse2;
         var oldMotorImpulse3=this.motorImpulse3;
+
         var dMotorImpulse1=0;
         var dMotorImpulse2=0;
         var dMotorImpulse3=0;
+
         if(this.enableMotor1){
-        dMotorImpulse1=(rvn1-this.motorSpeed1)*this.dv00;
-        this.motorImpulse1+=dMotorImpulse1;
-        if(this.motorImpulse1>this.maxMotorImpulse1){
-        this.motorImpulse1=this.maxMotorImpulse1;
-        }else if(this.motorImpulse1<-this.maxMotorImpulse1){
-        this.motorImpulse1=-this.maxMotorImpulse1;
-        }
-        dMotorImpulse1=this.motorImpulse1-oldMotorImpulse1;
+            dMotorImpulse1=(rvn1-this.motorSpeed1)*this.dv00;
+            this.motorImpulse1+=dMotorImpulse1;
+            if(this.motorImpulse1>this.maxMotorImpulse1){ // clamp motor impulse
+            this.motorImpulse1=this.maxMotorImpulse1;
+            }else if(this.motorImpulse1<-this.maxMotorImpulse1){
+            this.motorImpulse1=-this.maxMotorImpulse1;
+            }
+            dMotorImpulse1=this.motorImpulse1-oldMotorImpulse1;
         }
         if(this.enableMotor2){
-        dMotorImpulse2=(rvn2-this.motorSpeed2)*this.dv11;
-        this.motorImpulse2+=dMotorImpulse2;
-        if(this.motorImpulse2>this.maxMotorImpulse2){
-        this.motorImpulse2=this.maxMotorImpulse2;
-        }else if(this.motorImpulse2<-this.maxMotorImpulse2){
-        this.motorImpulse2=-this.maxMotorImpulse2;
-        }
-        dMotorImpulse2=this.motorImpulse2-oldMotorImpulse2;
+            dMotorImpulse2=(rvn2-this.motorSpeed2)*this.dv11;
+            this.motorImpulse2+=dMotorImpulse2;
+            if(this.motorImpulse2>this.maxMotorImpulse2){ // clamp motor impulse
+                this.motorImpulse2=this.maxMotorImpulse2;
+            }else if(this.motorImpulse2<-this.maxMotorImpulse2){
+                this.motorImpulse2=-this.maxMotorImpulse2;
+            }
+            dMotorImpulse2=this.motorImpulse2-oldMotorImpulse2;
         }
         if(this.enableMotor3){
-        dMotorImpulse3=(rvn3-this.motorSpeed3)*this.dv22;
-        this.motorImpulse3+=dMotorImpulse3;
-        if(this.motorImpulse3>this.maxMotorImpulse3){
-        this.motorImpulse3=this.maxMotorImpulse3;
-        }else if(this.motorImpulse3<-this.maxMotorImpulse3){
-        this.motorImpulse3=-this.maxMotorImpulse3;
+            dMotorImpulse3=(rvn3-this.motorSpeed3)*this.dv22;
+            this.motorImpulse3+=dMotorImpulse3;
+            if(this.motorImpulse3>this.maxMotorImpulse3){ // clamp motor impulse
+                this.motorImpulse3=this.maxMotorImpulse3;
+            }else if(this.motorImpulse3<-this.maxMotorImpulse3){
+                this.motorImpulse3=-this.maxMotorImpulse3;
+            }
+            dMotorImpulse3=this.motorImpulse3-oldMotorImpulse3;
         }
-        dMotorImpulse3=this.motorImpulse3-oldMotorImpulse3;
-        }
+
+        // apply motor impulse to relative velocity
         rvn1+=dMotorImpulse1*this.kv00+dMotorImpulse2*this.k01+dMotorImpulse3*this.k02;
         rvn2+=dMotorImpulse1*this.k10+dMotorImpulse2*this.kv11+dMotorImpulse3*this.k12;
         rvn3+=dMotorImpulse1*this.k20+dMotorImpulse2*this.k21+dMotorImpulse3*this.kv22;
+
+        // subtract target velocity and applied impulse
         rvn1-=this.limitVelocity1+this.limitImpulse1*this.cfm1;
         rvn2-=this.limitVelocity2+this.limitImpulse2*this.cfm2;
         rvn3-=this.limitVelocity3+this.limitImpulse3*this.cfm3;
+
         var oldLimitImpulse1=this.limitImpulse1;
         var oldLimitImpulse2=this.limitImpulse2;
         var oldLimitImpulse3=this.limitImpulse3;
+
         var dLimitImpulse1=rvn1*this.d00+rvn2*this.d01+rvn3*this.d02;
         var dLimitImpulse2=rvn1*this.d10+rvn2*this.d11+rvn3*this.d12;
         var dLimitImpulse3=rvn1*this.d20+rvn2*this.d21+rvn3*this.d22;
+
         this.limitImpulse1+=dLimitImpulse1;
         this.limitImpulse2+=dLimitImpulse2;
         this.limitImpulse3+=dLimitImpulse3;
+
+        // clamp
         var clampState=0;
         if(this.limitState1==2||this.limitImpulse1*this.limitState1<0){
-        dLimitImpulse1=-oldLimitImpulse1;
-        rvn2+=dLimitImpulse1*this.k10;
-        rvn3+=dLimitImpulse1*this.k20;
-        clampState|=1;
+            dLimitImpulse1=-oldLimitImpulse1;
+            rvn2+=dLimitImpulse1*this.k10;
+            rvn3+=dLimitImpulse1*this.k20;
+            clampState|=1;
         }
         if(this.limitState2==2||this.limitImpulse2*this.limitState2<0){
-        dLimitImpulse2=-oldLimitImpulse2;
-        rvn1+=dLimitImpulse2*this.k01;
-        rvn3+=dLimitImpulse2*this.k21;
-        clampState|=2;
+            dLimitImpulse2=-oldLimitImpulse2;
+            rvn1+=dLimitImpulse2*this.k01;
+            rvn3+=dLimitImpulse2*this.k21;
+            clampState|=2;
         }
         if(this.limitState3==2||this.limitImpulse3*this.limitState3<0){
-        dLimitImpulse3=-oldLimitImpulse3;
-        rvn1+=dLimitImpulse3*this.k02;
-        rvn2+=dLimitImpulse3*this.k12;
-        clampState|=4;
+            dLimitImpulse3=-oldLimitImpulse3;
+            rvn1+=dLimitImpulse3*this.k02;
+            rvn2+=dLimitImpulse3*this.k12;
+            clampState|=4;
         }
+
+        // update un-clamped impulse
+        // TODO: isolate division
         var det;
         switch(clampState){
-        case 1:
-        det=1/(this.k11*this.k22-this.k12*this.k21);
-        dLimitImpulse2=(this.k22*rvn2+-this.k12*rvn3)*det;
-        dLimitImpulse3=(-this.k21*rvn2+this.k11*rvn3)*det;
-        break;
-        case 2:
-        det=1/(this.k00*this.k22-this.k02*this.k20);
-        dLimitImpulse1=(this.k22*rvn1+-this.k02*rvn3)*det;
-        dLimitImpulse3=(-this.k20*rvn1+this.k00*rvn3)*det;
-        break;
-        case 3:
-        dLimitImpulse3=rvn3/this.k22;
-        break;
-        case 4:
-        det=1/(this.k00*this.k11-this.k01*this.k10);
-        dLimitImpulse1=(this.k11*rvn1+-this.k01*rvn2)*det;
-        dLimitImpulse2=(-this.k10*rvn1+this.k00*rvn2)*det;
-        break;
-        case 5:
-        dLimitImpulse2=rvn2/this.k11;
-        break;
-        case 6:
-        dLimitImpulse1=rvn1/this.k00;
-        break;
+            case 1: // update 2 3
+            det=1/(this.k11*this.k22-this.k12*this.k21);
+            dLimitImpulse2=(this.k22*rvn2+-this.k12*rvn3)*det;
+            dLimitImpulse3=(-this.k21*rvn2+this.k11*rvn3)*det;
+            break;
+            case 2: // update 1 3
+            det=1/(this.k00*this.k22-this.k02*this.k20);
+            dLimitImpulse1=(this.k22*rvn1+-this.k02*rvn3)*det;
+            dLimitImpulse3=(-this.k20*rvn1+this.k00*rvn3)*det;
+            break;
+            case 3: // update 3
+            dLimitImpulse3=rvn3/this.k22;
+            break;
+            case 4: // update 1 2
+            det=1/(this.k00*this.k11-this.k01*this.k10);
+            dLimitImpulse1=(this.k11*rvn1+-this.k01*rvn2)*det;
+            dLimitImpulse2=(-this.k10*rvn1+this.k00*rvn2)*det;
+            break;
+            case 5: // update 2
+            dLimitImpulse2=rvn2/this.k11;
+            break;
+            case 6: // update 1
+            dLimitImpulse1=rvn1/this.k00;
+            break;
         }
+
         this.limitImpulse1=dLimitImpulse1+oldLimitImpulse1;
         this.limitImpulse2=dLimitImpulse2+oldLimitImpulse2;
         this.limitImpulse3=dLimitImpulse3+oldLimitImpulse3;
+
         var dImpulse1=dMotorImpulse1+dLimitImpulse1;
         var dImpulse2=dMotorImpulse2+dLimitImpulse2;
         var dImpulse3=dMotorImpulse3+dLimitImpulse3;
+
+        // apply impulse
         this.a1.x+=dImpulse1*this.a1x1+dImpulse2*this.a1x2+dImpulse3*this.a1x3;
         this.a1.y+=dImpulse1*this.a1y1+dImpulse2*this.a1y2+dImpulse3*this.a1y3;
         this.a1.z+=dImpulse1*this.a1z1+dImpulse2*this.a1z2+dImpulse3*this.a1z3;
@@ -3265,9 +3669,14 @@ OIMO.Rotational3Constraint.prototype = {
         rvx=this.a2.x-this.a1.x;
         rvy=this.a2.y-this.a1.y;
         rvz=this.a2.z-this.a1.z;
+
         rvn2=rvx*this.ax2+rvy*this.ay2+rvz*this.az2;
     }
 }
+/**
+* A rotational constraint for various joints.
+* @author saharan
+*/
 OIMO.RotationalConstraint = function(joint,limitMotor){
     this.cfm=NaN;
     this.i1e00=NaN;
@@ -3304,7 +3713,7 @@ OIMO.RotationalConstraint = function(joint,limitMotor){
     this.lowerLimit=NaN;
     this.upperLimit=NaN;
     this.limitVelocity=NaN;
-    this.limitState=0;
+    this.limitState=0; // -1: at lower, 0: locked, 1: at upper, 2: free
     this.enableMotor=false;
     this.motorSpeed=NaN;
     this.maxMotorForce=NaN;
@@ -3360,44 +3769,45 @@ OIMO.RotationalConstraint.prototype = {
         var enableLimit=this.lowerLimit<=this.upperLimit;
         var angle=this.limitMotor.angle;
         if(enableLimit){
-        if(this.lowerLimit==this.upperLimit){
-        if(this.limitState!=0){
-        this.limitState=0;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.lowerLimit-angle;
-        }else if(angle<this.lowerLimit){
-        if(this.limitState!=-1){
-        this.limitState=-1;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.lowerLimit-angle;
-        }else if(angle>this.upperLimit){
-        if(this.limitState!=1){
-        this.limitState=1;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.upperLimit-angle;
+            if(this.lowerLimit==this.upperLimit){
+                if(this.limitState!=0){
+                    this.limitState=0;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.lowerLimit-angle;
+            }else if(angle<this.lowerLimit){
+                if(this.limitState!=-1){
+                    this.limitState=-1;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.lowerLimit-angle;
+            }else if(angle>this.upperLimit){
+                if(this.limitState!=1){
+                    this.limitState=1;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.upperLimit-angle;
+            }else{
+                this.limitState=2;
+                this.limitImpulse=0;
+                this.limitVelocity=0;
+            }
+            if(!enableSpring){
+                if(this.limitVelocity>0.02)this.limitVelocity-=0.02;
+                else if(this.limitVelocity<-0.02)this.limitVelocity+=0.02;
+                else this.limitVelocity=0;
+            }
         }else{
-        this.limitState=2;
-        this.limitImpulse=0;
-        this.limitVelocity=0;
-        }
-        if(!enableSpring){
-        if(this.limitVelocity>0.02)this.limitVelocity-=0.02;
-        else if(this.limitVelocity<-0.02)this.limitVelocity+=0.02;
-        else this.limitVelocity=0;
-        }
-        }else{
-        this.limitState=2;
-        this.limitImpulse=0;
+            this.limitState=2;
+            this.limitImpulse=0;
         }
         if(this.enableMotor&&(this.limitState!=0||enableSpring)){
-        this.maxMotorImpulse=this.maxMotorForce*timeStep;
+            this.maxMotorImpulse=this.maxMotorForce*timeStep;
         }else{
-        this.motorImpulse=0;
-        this.maxMotorImpulse=0;
+            this.motorImpulse=0;
+            this.maxMotorImpulse=0;
         }
+
         this.a1x=this.ax*this.i1e00+this.ay*this.i1e01+this.az*this.i1e02;
         this.a1y=this.ax*this.i1e10+this.ay*this.i1e11+this.az*this.i1e12;
         this.a1z=this.ax*this.i1e20+this.ay*this.i1e21+this.az*this.i1e22;
@@ -3406,17 +3816,20 @@ OIMO.RotationalConstraint.prototype = {
         this.a2z=this.ax*this.i2e20+this.ay*this.i2e21+this.az*this.i2e22;
         this.motorDenom=this.ax*(this.a1x+this.a2x)+this.ay*(this.a1y+this.a2y)+this.az*(this.a1z+this.a2z);
         this.invMotorDenom=1/this.motorDenom;
+
         if(enableSpring&&this.limitState!=2){
-        var omega=6.2831853*frequency;
-        var k=omega*omega*timeStep;
-        var dmp=invTimeStep/(k+2*this.limitMotor.dampingRatio*omega);
-        this.cfm=this.motorDenom*dmp;
-        this.limitVelocity*=k*dmp;
+            var omega=6.2831853*frequency;
+            var k=omega*omega*timeStep;
+            var dmp=invTimeStep/(k+2*this.limitMotor.dampingRatio*omega);
+            this.cfm=this.motorDenom*dmp;
+            this.limitVelocity*=k*dmp;
         }else{
-        this.cfm=0;
-        this.limitVelocity*=invTimeStep*0.05;
+            this.cfm=0;
+            this.limitVelocity*=invTimeStep*0.05;
         }
+
         this.invDenom=1/(this.motorDenom+this.cfm);
+        
         this.limitImpulse*=0.95;
         this.motorImpulse*=0.95;
         var totalImpulse=this.limitImpulse+this.motorImpulse;
@@ -3429,24 +3842,29 @@ OIMO.RotationalConstraint.prototype = {
     },
     solve:function(){
         var rvn=this.ax*(this.a2.x-this.a1.x)+this.ay*(this.a2.y-this.a1.y)+this.az*(this.a2.z-this.a1.z);
+
+        // motor part
         var newMotorImpulse;
         if(this.enableMotor){
-        newMotorImpulse=(rvn-this.motorSpeed)*this.invMotorDenom;
-        var oldMotorImpulse=this.motorImpulse;
-        this.motorImpulse+=newMotorImpulse;
-        if(this.motorImpulse>this.maxMotorImpulse)this.motorImpulse=this.maxMotorImpulse;
-        else if(this.motorImpulse<-this.maxMotorImpulse)this.motorImpulse=-this.maxMotorImpulse;
-        newMotorImpulse=this.motorImpulse-oldMotorImpulse;
-        rvn-=newMotorImpulse*this.motorDenom;
+            newMotorImpulse=(rvn-this.motorSpeed)*this.invMotorDenom;
+            var oldMotorImpulse=this.motorImpulse;
+            this.motorImpulse+=newMotorImpulse;
+            if(this.motorImpulse>this.maxMotorImpulse)this.motorImpulse=this.maxMotorImpulse;
+            else if(this.motorImpulse<-this.maxMotorImpulse)this.motorImpulse=-this.maxMotorImpulse;
+            newMotorImpulse=this.motorImpulse-oldMotorImpulse;
+            rvn-=newMotorImpulse*this.motorDenom;
         }else newMotorImpulse=0;
+
+        // limit part
         var newLimitImpulse;
         if(this.limitState!=2){
-        newLimitImpulse=(rvn-this.limitVelocity-this.limitImpulse*this.cfm)*this.invDenom;
-        var oldLimitImpulse=this.limitImpulse;
-        this.limitImpulse+=newLimitImpulse;
-        if(this.limitImpulse*this.limitState<0)this.limitImpulse=0;
-        newLimitImpulse=this.limitImpulse-oldLimitImpulse;
+            newLimitImpulse=(rvn-this.limitVelocity-this.limitImpulse*this.cfm)*this.invDenom;
+            var oldLimitImpulse=this.limitImpulse;
+            this.limitImpulse+=newLimitImpulse;
+            if(this.limitImpulse*this.limitState<0)this.limitImpulse=0;
+            newLimitImpulse=this.limitImpulse-oldLimitImpulse;
         }else newLimitImpulse=0;
+
         var totalImpulse=newLimitImpulse+newMotorImpulse;
         this.a1.x+=totalImpulse*this.a1x;
         this.a1.y+=totalImpulse*this.a1y;
@@ -3456,6 +3874,10 @@ OIMO.RotationalConstraint.prototype = {
         this.a2.z-=totalImpulse*this.a2z;
     }
 }
+/**
+* A three-axis translational constraint for various joints.
+* @author saharan
+*/
 OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMotor3){
     this.m1=NaN;
     this.m2=NaN;
@@ -3492,7 +3914,7 @@ OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMoto
     this.r2x=NaN;
     this.r2y=NaN;
     this.r2z=NaN;
-    this.t1x1=NaN;
+    this.t1x1=NaN;// jacobians
     this.t1y1=NaN;
     this.t1z1=NaN;
     this.t2x1=NaN;
@@ -3549,7 +3971,7 @@ OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMoto
     this.lowerLimit1=NaN;
     this.upperLimit1=NaN;
     this.limitVelocity1=NaN;
-    this.limitState1=0;
+    this.limitState1=0; // -1: at lower, 0: locked, 1: at upper, 2: unlimited
     this.enableMotor1=false;
     this.motorSpeed1=NaN;
     this.maxMotorForce1=NaN;
@@ -3557,7 +3979,7 @@ OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMoto
     this.lowerLimit2=NaN;
     this.upperLimit2=NaN;
     this.limitVelocity2=NaN;
-    this.limitState2=0;
+    this.limitState2=0; // -1: at lower, 0: locked, 1: at upper, 2: unlimited
     this.enableMotor2=false;
     this.motorSpeed2=NaN;
     this.maxMotorForce2=NaN;
@@ -3565,12 +3987,12 @@ OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMoto
     this.lowerLimit3=NaN;
     this.upperLimit3=NaN;
     this.limitVelocity3=NaN;
-    this.limitState3=0;
+    this.limitState3=0; // -1: at lower, 0: locked, 1: at upper, 2: unlimited
     this.enableMotor3=false;
     this.motorSpeed3=NaN;
     this.maxMotorForce3=NaN;
     this.maxMotorImpulse3=NaN;
-    this.k00=NaN;
+    this.k00=NaN; // K = J*M*JT
     this.k01=NaN;
     this.k02=NaN;
     this.k10=NaN;
@@ -3579,13 +4001,13 @@ OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMoto
     this.k20=NaN;
     this.k21=NaN;
     this.k22=NaN;
-    this.kv00=NaN;
+    this.kv00=NaN; // diagonals without CFMs
     this.kv11=NaN;
     this.kv22=NaN;
-    this.dv00=NaN;
+    this.dv00=NaN; // ...inverted
     this.dv11=NaN;
     this.dv22=NaN;
-    this.d00=NaN;
+    this.d00=NaN; // K^-1
     this.d01=NaN;
     this.d02=NaN;
     this.d10=NaN;
@@ -3616,7 +4038,7 @@ OIMO.Translational3Constraint = function(joint,limitMotor1,limitMotor2,limitMoto
     this.motorImpulse2=0;
     this.limitImpulse3=0;
     this.motorImpulse3=0;
-    this.cfm1=0;
+    this.cfm1=0;// Constraint Force Mixing
     this.cfm2=0;
     this.cfm3=0;
     this.weight=-1;
@@ -3689,146 +4111,155 @@ OIMO.Translational3Constraint.prototype = {
         var enableLimit1=this.lowerLimit1<=this.upperLimit1;
         var enableLimit2=this.lowerLimit2<=this.upperLimit2;
         var enableLimit3=this.lowerLimit3<=this.upperLimit3;
+
+        // for stability
         if(enableSpring1&&d1>20||d1<-20){
-        enableSpring1=false;
+            enableSpring1=false;
         }
         if(enableSpring2&&d2>20||d2<-20){
-        enableSpring2=false;
+            enableSpring2=false;
         }
         if(enableSpring3&&d3>20||d3<-20){
-        enableSpring3=false;
+            enableSpring3=false;
         }
+
         if(enableLimit1){
-        if(this.lowerLimit1==this.upperLimit1){
-        if(this.limitState1!=0){
-        this.limitState1=0;
-        this.limitImpulse1=0;
-        }
-        this.limitVelocity1=this.lowerLimit1-d1;
-        if(!enableSpring1)d1=this.lowerLimit1;
-        }else if(d1<this.lowerLimit1){
-        if(this.limitState1!=-1){
-        this.limitState1=-1;
-        this.limitImpulse1=0;
-        }
-        this.limitVelocity1=this.lowerLimit1-d1;
-        if(!enableSpring1)d1=this.lowerLimit1;
-        }else if(d1>this.upperLimit1){
-        if(this.limitState1!=1){
-        this.limitState1=1;
-        this.limitImpulse1=0;
-        }
-        this.limitVelocity1=this.upperLimit1-d1;
-        if(!enableSpring1)d1=this.upperLimit1;
+            if(this.lowerLimit1==this.upperLimit1){
+                if(this.limitState1!=0){
+                    this.limitState1=0;
+                    this.limitImpulse1=0;
+                }
+                this.limitVelocity1=this.lowerLimit1-d1;
+                if(!enableSpring1)d1=this.lowerLimit1;
+            }else if(d1<this.lowerLimit1){
+                if(this.limitState1!=-1){
+                    this.limitState1=-1;
+                    this.limitImpulse1=0;
+                }
+                this.limitVelocity1=this.lowerLimit1-d1;
+                if(!enableSpring1)d1=this.lowerLimit1;
+            }else if(d1>this.upperLimit1){
+                if(this.limitState1!=1){
+                    this.limitState1=1;
+                    this.limitImpulse1=0;
+                }
+                this.limitVelocity1=this.upperLimit1-d1;
+                if(!enableSpring1)d1=this.upperLimit1;
+            }else{
+                this.limitState1=2;
+                this.limitImpulse1=0;
+                this.limitVelocity1=0;
+            }
+            if(!enableSpring1){
+                if(this.limitVelocity1>0.005)this.limitVelocity1-=0.005;
+                else if(this.limitVelocity1<-0.005)this.limitVelocity1+=0.005;
+                else this.limitVelocity1=0;
+            }
         }else{
-        this.limitState1=2;
-        this.limitImpulse1=0;
-        this.limitVelocity1=0;
+            this.limitState1=2;
+            this.limitImpulse1=0;
         }
-        if(!enableSpring1){
-        if(this.limitVelocity1>0.005)this.limitVelocity1-=0.005;
-        else if(this.limitVelocity1<-0.005)this.limitVelocity1+=0.005;
-        else this.limitVelocity1=0;
-        }
-        }else{
-        this.limitState1=2;
-        this.limitImpulse1=0;
-        }
+
         if(enableLimit2){
-        if(this.lowerLimit2==this.upperLimit2){
-        if(this.limitState2!=0){
-        this.limitState2=0;
-        this.limitImpulse2=0;
-        }
-        this.limitVelocity2=this.lowerLimit2-d2;
-        if(!enableSpring2)d2=this.lowerLimit2;
-        }else if(d2<this.lowerLimit2){
-        if(this.limitState2!=-1){
-        this.limitState2=-1;
-        this.limitImpulse2=0;
-        }
-        this.limitVelocity2=this.lowerLimit2-d2;
-        if(!enableSpring2)d2=this.lowerLimit2;
-        }else if(d2>this.upperLimit2){
-        if(this.limitState2!=1){
-        this.limitState2=1;
-        this.limitImpulse2=0;
-        }
-        this.limitVelocity2=this.upperLimit2-d2;
-        if(!enableSpring2)d2=this.upperLimit2;
+            if(this.lowerLimit2==this.upperLimit2){
+                if(this.limitState2!=0){
+                    this.limitState2=0;
+                    this.limitImpulse2=0;
+                }
+                this.limitVelocity2=this.lowerLimit2-d2;
+                if(!enableSpring2)d2=this.lowerLimit2;
+            }else if(d2<this.lowerLimit2){
+                if(this.limitState2!=-1){
+                    this.limitState2=-1;
+                    this.limitImpulse2=0;
+                }
+                this.limitVelocity2=this.lowerLimit2-d2;
+                if(!enableSpring2)d2=this.lowerLimit2;
+            }else if(d2>this.upperLimit2){
+                if(this.limitState2!=1){
+                    this.limitState2=1;
+                    this.limitImpulse2=0;
+                }
+                this.limitVelocity2=this.upperLimit2-d2;
+                if(!enableSpring2)d2=this.upperLimit2;
+            }else{
+                this.limitState2=2;
+                this.limitImpulse2=0;
+                this.limitVelocity2=0;
+            }
+            if(!enableSpring2){
+                if(this.limitVelocity2>0.005)this.limitVelocity2-=0.005;
+                else if(this.limitVelocity2<-0.005)this.limitVelocity2+=0.005;
+                else this.limitVelocity2=0;
+            }
         }else{
-        this.limitState2=2;
-        this.limitImpulse2=0;
-        this.limitVelocity2=0;
+            this.limitState2=2;
+            this.limitImpulse2=0;
         }
-        if(!enableSpring2){
-        if(this.limitVelocity2>0.005)this.limitVelocity2-=0.005;
-        else if(this.limitVelocity2<-0.005)this.limitVelocity2+=0.005;
-        else this.limitVelocity2=0;
-        }
-        }else{
-        this.limitState2=2;
-        this.limitImpulse2=0;
-        }
+
         if(enableLimit3){
-        if(this.lowerLimit3==this.upperLimit3){
-        if(this.limitState3!=0){
-        this.limitState3=0;
-        this.limitImpulse3=0;
-        }
-        this.limitVelocity3=this.lowerLimit3-d3;
-        if(!enableSpring3)d3=this.lowerLimit3;
-        }else if(d3<this.lowerLimit3){
-        if(this.limitState3!=-1){
-        this.limitState3=-1;
-        this.limitImpulse3=0;
-        }
-        this.limitVelocity3=this.lowerLimit3-d3;
-        if(!enableSpring3)d3=this.lowerLimit3;
-        }else if(d3>this.upperLimit3){
-        if(this.limitState3!=1){
-        this.limitState3=1;
-        this.limitImpulse3=0;
-        }
-        this.limitVelocity3=this.upperLimit3-d3;
-        if(!enableSpring3)d3=this.upperLimit3;
+            if(this.lowerLimit3==this.upperLimit3){
+                if(this.limitState3!=0){
+                    this.limitState3=0;
+                    this.limitImpulse3=0;
+                }
+                this.limitVelocity3=this.lowerLimit3-d3;
+                if(!enableSpring3)d3=this.lowerLimit3;
+                }else if(d3<this.lowerLimit3){
+                if(this.limitState3!=-1){
+                    this.limitState3=-1;
+                    this.limitImpulse3=0;
+                }
+                this.limitVelocity3=this.lowerLimit3-d3;
+                if(!enableSpring3)d3=this.lowerLimit3;
+            }else if(d3>this.upperLimit3){
+                if(this.limitState3!=1){
+                    this.limitState3=1;
+                    this.limitImpulse3=0;
+                }
+                this.limitVelocity3=this.upperLimit3-d3;
+                if(!enableSpring3)d3=this.upperLimit3;
+            }else{
+                this.limitState3=2;
+                this.limitImpulse3=0;
+                this.limitVelocity3=0;
+            }
+            if(!enableSpring3){
+                if(this.limitVelocity3>0.005)this.limitVelocity3-=0.005;
+                else if(this.limitVelocity3<-0.005)this.limitVelocity3+=0.005;
+                else this.limitVelocity3=0;
+            }
         }else{
-        this.limitState3=2;
-        this.limitImpulse3=0;
-        this.limitVelocity3=0;
+            this.limitState3=2;
+            this.limitImpulse3=0;
         }
-        if(!enableSpring3){
-        if(this.limitVelocity3>0.005)this.limitVelocity3-=0.005;
-        else if(this.limitVelocity3<-0.005)this.limitVelocity3+=0.005;
-        else this.limitVelocity3=0;
-        }
-        }else{
-        this.limitState3=2;
-        this.limitImpulse3=0;
-        }
+
         if(this.enableMotor1&&(this.limitState1!=0||enableSpring1)){
-        this.maxMotorImpulse1=this.maxMotorForce1*timeStep;
+            this.maxMotorImpulse1=this.maxMotorForce1*timeStep;
         }else{
-        this.motorImpulse1=0;
-        this.maxMotorImpulse1=0;
+            this.motorImpulse1=0;
+            this.maxMotorImpulse1=0;
         }
+
         if(this.enableMotor2&&(this.limitState2!=0||enableSpring2)){
-        this.maxMotorImpulse2=this.maxMotorForce2*timeStep;
+            this.maxMotorImpulse2=this.maxMotorForce2*timeStep;
         }else{
-        this.motorImpulse2=0;
-        this.maxMotorImpulse2=0;
+            this.motorImpulse2=0;
+            this.maxMotorImpulse2=0;
         }
+
         if(this.enableMotor3&&(this.limitState3!=0||enableSpring3)){
-        this.maxMotorImpulse3=this.maxMotorForce3*timeStep;
+            this.maxMotorImpulse3=this.maxMotorForce3*timeStep;
         }else{
-        this.motorImpulse3=0;
-        this.maxMotorImpulse3=0;
+            this.motorImpulse3=0;
+            this.maxMotorImpulse3=0;
         }
+        
         var rdx=d1*this.ax1+d2*this.ax2+d3*this.ax2;
         var rdy=d1*this.ay1+d2*this.ay2+d3*this.ay2;
         var rdz=d1*this.az1+d2*this.az2+d3*this.az2;
         var w1=this.m2/(this.m1+this.m2);
-        if(this.weight>=0)w1=this.weight;
+        if(this.weight>=0)w1=this.weight; // use given weight
         var w2=1-w1;
         this.r1x=this.r1.x+rdx*w1;
         this.r1y=this.r1.y+rdy*w1;
@@ -3836,6 +4267,8 @@ OIMO.Translational3Constraint.prototype = {
         this.r2x=this.r2.x-rdx*w2;
         this.r2y=this.r2.y-rdy*w2;
         this.r2z=this.r2.z-rdz*w2;
+
+        // build jacobians
         this.t1x1=this.r1y*this.az1-this.r1z*this.ay1;
         this.t1y1=this.r1z*this.ax1-this.r1x*this.az1;
         this.t1z1=this.r1x*this.ay1-this.r1y*this.ax1;
@@ -3854,6 +4287,7 @@ OIMO.Translational3Constraint.prototype = {
         this.a2x1=this.t2x1*this.i2e00+this.t2y1*this.i2e01+this.t2z1*this.i2e02;
         this.a2y1=this.t2x1*this.i2e10+this.t2y1*this.i2e11+this.t2z1*this.i2e12;
         this.a2z1=this.t2x1*this.i2e20+this.t2y1*this.i2e21+this.t2z1*this.i2e22;
+
         this.t1x2=this.r1y*this.az2-this.r1z*this.ay2;
         this.t1y2=this.r1z*this.ax2-this.r1x*this.az2;
         this.t1z2=this.r1x*this.ay2-this.r1y*this.ax2;
@@ -3872,6 +4306,7 @@ OIMO.Translational3Constraint.prototype = {
         this.a2x2=this.t2x2*this.i2e00+this.t2y2*this.i2e01+this.t2z2*this.i2e02;
         this.a2y2=this.t2x2*this.i2e10+this.t2y2*this.i2e11+this.t2z2*this.i2e12;
         this.a2z2=this.t2x2*this.i2e20+this.t2y2*this.i2e21+this.t2z2*this.i2e22;
+
         this.t1x3=this.r1y*this.az3-this.r1z*this.ay3;
         this.t1y3=this.r1z*this.ax3-this.r1x*this.az3;
         this.t1z3=this.r1x*this.ay3-this.r1y*this.ax3;
@@ -3890,6 +4325,8 @@ OIMO.Translational3Constraint.prototype = {
         this.a2x3=this.t2x3*this.i2e00+this.t2y3*this.i2e01+this.t2z3*this.i2e02;
         this.a2y3=this.t2x3*this.i2e10+this.t2y3*this.i2e11+this.t2z3*this.i2e12;
         this.a2z3=this.t2x3*this.i2e20+this.t2y3*this.i2e21+this.t2z3*this.i2e22;
+
+        // build an impulse matrix
         var m12=this.m1+this.m2;
         this.k00=(this.ax1*this.ax1+this.ay1*this.ay1+this.az1*this.az1)*m12;
         this.k01=(this.ax1*this.ax2+this.ay1*this.ay2+this.az1*this.az2)*m12;
@@ -3900,6 +4337,7 @@ OIMO.Translational3Constraint.prototype = {
         this.k20=(this.ax3*this.ax1+this.ay3*this.ay1+this.az3*this.az1)*m12;
         this.k21=(this.ax3*this.ax2+this.ay3*this.ay2+this.az3*this.az2)*m12;
         this.k22=(this.ax3*this.ax3+this.ay3*this.ay3+this.az3*this.az3)*m12;
+
         this.k00+=this.t1x1*this.a1x1+this.t1y1*this.a1y1+this.t1z1*this.a1z1;
         this.k01+=this.t1x1*this.a1x2+this.t1y1*this.a1y2+this.t1z1*this.a1z2;
         this.k02+=this.t1x1*this.a1x3+this.t1y1*this.a1y3+this.t1z1*this.a1z3;
@@ -3909,6 +4347,7 @@ OIMO.Translational3Constraint.prototype = {
         this.k20+=this.t1x3*this.a1x1+this.t1y3*this.a1y1+this.t1z3*this.a1z1;
         this.k21+=this.t1x3*this.a1x2+this.t1y3*this.a1y2+this.t1z3*this.a1z2;
         this.k22+=this.t1x3*this.a1x3+this.t1y3*this.a1y3+this.t1z3*this.a1z3;
+
         this.k00+=this.t2x1*this.a2x1+this.t2y1*this.a2y1+this.t2z1*this.a2z1;
         this.k01+=this.t2x1*this.a2x2+this.t2y1*this.a2y2+this.t2z1*this.a2z2;
         this.k02+=this.t2x1*this.a2x3+this.t2y1*this.a2y3+this.t2z1*this.a2z3;
@@ -3918,45 +4357,49 @@ OIMO.Translational3Constraint.prototype = {
         this.k20+=this.t2x3*this.a2x1+this.t2y3*this.a2y1+this.t2z3*this.a2z1;
         this.k21+=this.t2x3*this.a2x2+this.t2y3*this.a2y2+this.t2z3*this.a2z2;
         this.k22+=this.t2x3*this.a2x3+this.t2y3*this.a2y3+this.t2z3*this.a2z3;
+
         this.kv00=this.k00;
         this.kv11=this.k11;
         this.kv22=this.k22;
+
         this.dv00=1/this.kv00;
         this.dv11=1/this.kv11;
         this.dv22=1/this.kv22;
+
         if(enableSpring1&&this.limitState1!=2){
-        var omega=6.2831853*frequency1;
-        var k=omega*omega*timeStep;
-        var dmp=invTimeStep/(k+2*this.limitMotor1.dampingRatio*omega);
-        this.cfm1=this.kv00*dmp;
-        this.limitVelocity1*=k*dmp;
+            var omega=6.2831853*frequency1;
+            var k=omega*omega*timeStep;
+            var dmp=invTimeStep/(k+2*this.limitMotor1.dampingRatio*omega);
+            this.cfm1=this.kv00*dmp;
+            this.limitVelocity1*=k*dmp;
         }else{
-        this.cfm1=0;
-        this.limitVelocity1*=invTimeStep*0.05;
+            this.cfm1=0;
+            this.limitVelocity1*=invTimeStep*0.05;
         }
         if(enableSpring2&&this.limitState2!=2){
-        omega=6.2831853*frequency2;
-        k=omega*omega*timeStep;
-        dmp=invTimeStep/(k+2*this.limitMotor2.dampingRatio*omega);
-        this.cfm2=this.kv11*dmp;
-        this.limitVelocity2*=k*dmp;
+            omega=6.2831853*frequency2;
+            k=omega*omega*timeStep;
+            dmp=invTimeStep/(k+2*this.limitMotor2.dampingRatio*omega);
+            this.cfm2=this.kv11*dmp;
+            this.limitVelocity2*=k*dmp;
         }else{
-        this.cfm2=0;
-        this.limitVelocity2*=invTimeStep*0.05;
+            this.cfm2=0;
+            this.limitVelocity2*=invTimeStep*0.05;
         }
         if(enableSpring3&&this.limitState3!=2){
-        omega=6.2831853*frequency3;
-        k=omega*omega*timeStep;
-        dmp=invTimeStep/(k+2*this.limitMotor3.dampingRatio*omega);
-        this.cfm3=this.kv22*dmp;
-        this.limitVelocity3*=k*dmp;
+            omega=6.2831853*frequency3;
+            k=omega*omega*timeStep;
+            dmp=invTimeStep/(k+2*this.limitMotor3.dampingRatio*omega);
+            this.cfm3=this.kv22*dmp;
+            this.limitVelocity3*=k*dmp;
         }else{
-        this.cfm3=0;
-        this.limitVelocity3*=invTimeStep*0.05;
+            this.cfm3=0;
+            this.limitVelocity3*=invTimeStep*0.05;
         }
         this.k00+=this.cfm1;
         this.k11+=this.cfm2;
         this.k22+=this.cfm3;
+
         var inv=1/(
         this.k00*(this.k11*this.k22-this.k21*this.k12)+
         this.k10*(this.k21*this.k02-this.k01*this.k22)+
@@ -3971,6 +4414,8 @@ OIMO.Translational3Constraint.prototype = {
         this.d20=(this.k10*this.k21-this.k11*this.k20)*inv;
         this.d21=(this.k01*this.k20-this.k00*this.k21)*inv;
         this.d22=(this.k00*this.k11-this.k01*this.k10)*inv;
+
+        // warm starting
         var totalImpulse1=this.limitImpulse1+this.motorImpulse1;
         var totalImpulse2=this.limitImpulse2+this.motorImpulse2;
         var totalImpulse3=this.limitImpulse3+this.motorImpulse3;
@@ -3986,7 +4431,8 @@ OIMO.Translational3Constraint.prototype = {
         this.a2.x-=totalImpulse1*this.a2x1+totalImpulse2*this.a2x2+totalImpulse3*this.a2x3;
         this.a2.y-=totalImpulse1*this.a2y1+totalImpulse2*this.a2y2+totalImpulse3*this.a2y3;
         this.a2.z-=totalImpulse1*this.a2z1+totalImpulse2*this.a2z2+totalImpulse3*this.a2z3;
-        },
+    },
+
     solve:function(){
         var rvx=this.l2.x-this.l1.x+this.a2.y*this.r2z-this.a2.z*this.r2y-this.a1.y*this.r1z+this.a1.z*this.r1y;
         var rvy=this.l2.y-this.l1.y+this.a2.z*this.r2x-this.a2.x*this.r2z-this.a1.z*this.r1x+this.a1.x*this.r1z;
@@ -4001,102 +4447,118 @@ OIMO.Translational3Constraint.prototype = {
         var dMotorImpulse2=0;
         var dMotorImpulse3=0;
         if(this.enableMotor1){
-        dMotorImpulse1=(rvn1-this.motorSpeed1)*this.dv00;
-        this.motorImpulse1+=dMotorImpulse1;
-        if(this.motorImpulse1>this.maxMotorImpulse1){
-        this.motorImpulse1=this.maxMotorImpulse1;
-        }else if(this.motorImpulse1<-this.maxMotorImpulse1){
-        this.motorImpulse1=-this.maxMotorImpulse1;
-        }
-        dMotorImpulse1=this.motorImpulse1-oldMotorImpulse1;
+            dMotorImpulse1=(rvn1-this.motorSpeed1)*this.dv00;
+            this.motorImpulse1+=dMotorImpulse1;
+            if(this.motorImpulse1>this.maxMotorImpulse1){ // clamp motor impulse
+                this.motorImpulse1=this.maxMotorImpulse1;
+            }else if(this.motorImpulse1<-this.maxMotorImpulse1){
+                this.motorImpulse1=-this.maxMotorImpulse1;
+            }
+            dMotorImpulse1=this.motorImpulse1-oldMotorImpulse1;
         }
         if(this.enableMotor2){
-        dMotorImpulse2=(rvn2-this.motorSpeed2)*this.dv11;
-        this.motorImpulse2+=dMotorImpulse2;
-        if(this.motorImpulse2>this.maxMotorImpulse2){
-        this.motorImpulse2=this.maxMotorImpulse2;
-        }else if(this.motorImpulse2<-this.maxMotorImpulse2){
-        this.motorImpulse2=-this.maxMotorImpulse2;
-        }
-        dMotorImpulse2=this.motorImpulse2-oldMotorImpulse2;
+            dMotorImpulse2=(rvn2-this.motorSpeed2)*this.dv11;
+            this.motorImpulse2+=dMotorImpulse2;
+            if(this.motorImpulse2>this.maxMotorImpulse2){ // clamp motor impulse
+                this.motorImpulse2=this.maxMotorImpulse2;
+            }else if(this.motorImpulse2<-this.maxMotorImpulse2){
+                this.motorImpulse2=-this.maxMotorImpulse2;
+            }
+            dMotorImpulse2=this.motorImpulse2-oldMotorImpulse2;
         }
         if(this.enableMotor3){
-        dMotorImpulse3=(rvn3-this.motorSpeed3)*this.dv22;
-        this.motorImpulse3+=dMotorImpulse3;
-        if(this.motorImpulse3>this.maxMotorImpulse3){
-        this.motorImpulse3=this.maxMotorImpulse3;
-        }else if(this.motorImpulse3<-this.maxMotorImpulse3){
-        this.motorImpulse3=-this.maxMotorImpulse3;
+            dMotorImpulse3=(rvn3-this.motorSpeed3)*this.dv22;
+            this.motorImpulse3+=dMotorImpulse3;
+            if(this.motorImpulse3>this.maxMotorImpulse3){ // clamp motor impulse
+                this.motorImpulse3=this.maxMotorImpulse3;
+            }else if(this.motorImpulse3<-this.maxMotorImpulse3){
+                this.motorImpulse3=-this.maxMotorImpulse3;
+            }
+            dMotorImpulse3=this.motorImpulse3-oldMotorImpulse3;
         }
-        dMotorImpulse3=this.motorImpulse3-oldMotorImpulse3;
-        }
+
+        // apply motor impulse to relative velocity
         rvn1+=dMotorImpulse1*this.kv00+dMotorImpulse2*this.k01+dMotorImpulse3*this.k02;
         rvn2+=dMotorImpulse1*this.k10+dMotorImpulse2*this.kv11+dMotorImpulse3*this.k12;
         rvn3+=dMotorImpulse1*this.k20+dMotorImpulse2*this.k21+dMotorImpulse3*this.kv22;
+
+        // subtract target velocity and applied impulse
         rvn1-=this.limitVelocity1+this.limitImpulse1*this.cfm1;
         rvn2-=this.limitVelocity2+this.limitImpulse2*this.cfm2;
         rvn3-=this.limitVelocity3+this.limitImpulse3*this.cfm3;
+
         var oldLimitImpulse1=this.limitImpulse1;
         var oldLimitImpulse2=this.limitImpulse2;
         var oldLimitImpulse3=this.limitImpulse3;
+
         var dLimitImpulse1=rvn1*this.d00+rvn2*this.d01+rvn3*this.d02;
         var dLimitImpulse2=rvn1*this.d10+rvn2*this.d11+rvn3*this.d12;
         var dLimitImpulse3=rvn1*this.d20+rvn2*this.d21+rvn3*this.d22;
+
         this.limitImpulse1+=dLimitImpulse1;
         this.limitImpulse2+=dLimitImpulse2;
         this.limitImpulse3+=dLimitImpulse3;
+
+        // clamp
         var clampState=0;
         if(this.limitState1==2||this.limitImpulse1*this.limitState1<0){
-        dLimitImpulse1=-oldLimitImpulse1;
-        rvn2+=dLimitImpulse1*this.k10;
-        rvn3+=dLimitImpulse1*this.k20;
-        clampState|=1;
+            dLimitImpulse1=-oldLimitImpulse1;
+            rvn2+=dLimitImpulse1*this.k10;
+            rvn3+=dLimitImpulse1*this.k20;
+            clampState|=1;
         }
         if(this.limitState2==2||this.limitImpulse2*this.limitState2<0){
-        dLimitImpulse2=-oldLimitImpulse2;
-        rvn1+=dLimitImpulse2*this.k01;
-        rvn3+=dLimitImpulse2*this.k21;
-        clampState|=2;
+            dLimitImpulse2=-oldLimitImpulse2;
+            rvn1+=dLimitImpulse2*this.k01;
+            rvn3+=dLimitImpulse2*this.k21;
+            clampState|=2;
         }
         if(this.limitState3==2||this.limitImpulse3*this.limitState3<0){
-        dLimitImpulse3=-oldLimitImpulse3;
-        rvn1+=dLimitImpulse3*this.k02;
-        rvn2+=dLimitImpulse3*this.k12;
-        clampState|=4;
+            dLimitImpulse3=-oldLimitImpulse3;
+            rvn1+=dLimitImpulse3*this.k02;
+            rvn2+=dLimitImpulse3*this.k12;
+            clampState|=4;
         }
+
+        // update un-clamped impulse
+        // TODO: isolate division
         var det;
         switch(clampState){
-        case 1:
-        det=1/(this.k11*this.k22-this.k12*this.k21);
-        dLimitImpulse2=(this.k22*rvn2+-this.k12*rvn3)*det;
-        dLimitImpulse3=(-this.k21*rvn2+this.k11*rvn3)*det;
-        break;
-        case 2:
-        det=1/(this.k00*this.k22-this.k02*this.k20);
-        dLimitImpulse1=(this.k22*rvn1+-this.k02*rvn3)*det;
-        dLimitImpulse3=(-this.k20*rvn1+this.k00*rvn3)*det;
-        break;
-        case 3:
-        dLimitImpulse3=rvn3/this.k22;
-        break;
-        case 4:
-        det=1/(this.k00*this.k11-this.k01*this.k10);
-        dLimitImpulse1=(this.k11*rvn1+-this.k01*rvn2)*det;
-        dLimitImpulse2=(-this.k10*rvn1+this.k00*rvn2)*det;
-        break;
-        case 5:
-        dLimitImpulse2=rvn2/this.k11;
-        break;
-        case 6:
-        dLimitImpulse1=rvn1/this.k00;
-        break;
+            case 1:// update 2 3
+            det=1/(this.k11*this.k22-this.k12*this.k21);
+            dLimitImpulse2=(this.k22*rvn2+-this.k12*rvn3)*det;
+            dLimitImpulse3=(-this.k21*rvn2+this.k11*rvn3)*det;
+            break;
+            case 2:// update 1 3
+            det=1/(this.k00*this.k22-this.k02*this.k20);
+            dLimitImpulse1=(this.k22*rvn1+-this.k02*rvn3)*det;
+            dLimitImpulse3=(-this.k20*rvn1+this.k00*rvn3)*det;
+            break;
+            case 3:// update 3
+            dLimitImpulse3=rvn3/this.k22;
+            break;
+            case 4:// update 1 2
+            det=1/(this.k00*this.k11-this.k01*this.k10);
+            dLimitImpulse1=(this.k11*rvn1+-this.k01*rvn2)*det;
+            dLimitImpulse2=(-this.k10*rvn1+this.k00*rvn2)*det;
+            break;
+            case 5:// update 2
+            dLimitImpulse2=rvn2/this.k11;
+            break;
+            case 6:// update 1
+            dLimitImpulse1=rvn1/this.k00;
+            break;
         }
+
         this.limitImpulse1=oldLimitImpulse1+dLimitImpulse1;
         this.limitImpulse2=oldLimitImpulse2+dLimitImpulse2;
         this.limitImpulse3=oldLimitImpulse3+dLimitImpulse3;
+
         var dImpulse1=dMotorImpulse1+dLimitImpulse1;
         var dImpulse2=dMotorImpulse2+dLimitImpulse2;
         var dImpulse3=dMotorImpulse3+dLimitImpulse3;
+
+        // apply impulse
         this.l1.x+=dImpulse1*this.l1x1+dImpulse2*this.l1x2+dImpulse3*this.l1x3;
         this.l1.y+=dImpulse1*this.l1y1+dImpulse2*this.l1y2+dImpulse3*this.l1y3;
         this.l1.z+=dImpulse1*this.l1z1+dImpulse2*this.l1z2+dImpulse3*this.l1z3;
@@ -4111,6 +4573,10 @@ OIMO.Translational3Constraint.prototype = {
         this.a2.z-=dImpulse1*this.a2z1+dImpulse2*this.a2z2+dImpulse3*this.a2z3;
     }
 }
+/**
+* A translational constraint for various joints.
+* @author saharan
+*/
 OIMO.TranslationalConstraint = function(joint,limitMotor){
     this.cfm=NaN;
     this.m1=NaN;
@@ -4166,7 +4632,7 @@ OIMO.TranslationalConstraint = function(joint,limitMotor){
     this.lowerLimit=NaN;
     this.upperLimit=NaN;
     this.limitVelocity=NaN;
-    this.limitState=0;
+    this.limitState=0; // -1: at lower, 0: locked, 1: at upper, 2: free
     this.enableMotor=false;
     this.motorSpeed=NaN;
     this.maxMotorForce=NaN;
@@ -4233,50 +4699,53 @@ OIMO.TranslationalConstraint.prototype = {
         var enableSpring=frequency>0;
         var enableLimit=this.lowerLimit<=this.upperLimit;
         if(enableSpring&&d>20||d<-20){
-        enableSpring=false;
+            enableSpring=false;
         }
+
         if(enableLimit){
-        if(this.lowerLimit==this.upperLimit){
-        if(this.limitState!=0){
-        this.limitState=0;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.lowerLimit-d;
-        if(!enableSpring)d=this.lowerLimit;
-        }else if(d<this.lowerLimit){
-        if(this.limitState!=-1){
-        this.limitState=-1;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.lowerLimit-d;
-        if(!enableSpring)d=this.lowerLimit;
-        }else if(d>this.upperLimit){
-        if(this.limitState!=1){
-        this.limitState=1;
-        this.limitImpulse=0;
-        }
-        this.limitVelocity=this.upperLimit-d;
-        if(!enableSpring)d=this.upperLimit;
+            if(this.lowerLimit==this.upperLimit){
+                if(this.limitState!=0){
+                    this.limitState=0;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.lowerLimit-d;
+                if(!enableSpring)d=this.lowerLimit;
+            }else if(d<this.lowerLimit){
+                if(this.limitState!=-1){
+                    this.limitState=-1;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.lowerLimit-d;
+                if(!enableSpring)d=this.lowerLimit;
+            }else if(d>this.upperLimit){
+                if(this.limitState!=1){
+                    this.limitState=1;
+                    this.limitImpulse=0;
+                }
+                this.limitVelocity=this.upperLimit-d;
+                if(!enableSpring)d=this.upperLimit;
+            }else{
+                this.limitState=2;
+                this.limitImpulse=0;
+                this.limitVelocity=0;
+            }
+            if(!enableSpring){
+                if(this.limitVelocity>0.005)this.limitVelocity-=0.005;
+                else if(this.limitVelocity<-0.005)this.limitVelocity+=0.005;
+                else this.limitVelocity=0;
+            }
         }else{
-        this.limitState=2;
-        this.limitImpulse=0;
-        this.limitVelocity=0;
+            this.limitState=2;
+            this.limitImpulse=0;
         }
-        if(!enableSpring){
-        if(this.limitVelocity>0.005)this.limitVelocity-=0.005;
-        else if(this.limitVelocity<-0.005)this.limitVelocity+=0.005;
-        else this.limitVelocity=0;
-        }
-        }else{
-        this.limitState=2;
-        this.limitImpulse=0;
-        }
+
         if(this.enableMotor&&(this.limitState!=0||enableSpring)){
-        this.maxMotorImpulse=this.maxMotorForce*timeStep;
+            this.maxMotorImpulse=this.maxMotorForce*timeStep;
         }else{
-        this.motorImpulse=0;
-        this.maxMotorImpulse=0;
+            this.motorImpulse=0;
+            this.maxMotorImpulse=0;
         }
+
         var rdx=d*this.ax;
         var rdy=d*this.ay;
         var rdz=d*this.az;
@@ -4288,6 +4757,7 @@ OIMO.TranslationalConstraint.prototype = {
         this.r2x=this.r2.x-rdx*w2;
         this.r2y=this.r2.y-rdy*w2;
         this.r2z=this.r2.z-rdz*w2;
+
         this.t1x=this.r1y*this.az-this.r1z*this.ay;
         this.t1y=this.r1z*this.ax-this.r1x*this.az;
         this.t1z=this.r1x*this.ay-this.r1y*this.ax;
@@ -4308,22 +4778,25 @@ OIMO.TranslationalConstraint.prototype = {
         this.a2z=this.t2x*this.i2e20+this.t2y*this.i2e21+this.t2z*this.i2e22;
         this.motorDenom=
         this.m1+this.m2+
-        this.ax*(this.a1y*this.r1z-this.a1z*this.r1y+this.a2y*this.r2z-this.a2z*this.r2y)+
-        this.ay*(this.a1z*this.r1x-this.a1x*this.r1z+this.a2z*this.r2x-this.a2x*this.r2z)+
-        this.az*(this.a1x*this.r1y-this.a1y*this.r1x+this.a2x*this.r2y-this.a2y*this.r2x)
-        ;
+            this.ax*(this.a1y*this.r1z-this.a1z*this.r1y+this.a2y*this.r2z-this.a2z*this.r2y)+
+            this.ay*(this.a1z*this.r1x-this.a1x*this.r1z+this.a2z*this.r2x-this.a2x*this.r2z)+
+            this.az*(this.a1x*this.r1y-this.a1y*this.r1x+this.a2x*this.r2y-this.a2y*this.r2x);
+
         this.invMotorDenom=1/this.motorDenom;
+
         if(enableSpring&&this.limitState!=2){
-        var omega=6.2831853*frequency;
-        var k=omega*omega*timeStep;
-        var dmp=invTimeStep/(k+2*this.limitMotor.dampingRatio*omega);
-        this.cfm=this.motorDenom*dmp;
-        this.limitVelocity*=k*dmp;
+            var omega=6.2831853*frequency;
+            var k=omega*omega*timeStep;
+            var dmp=invTimeStep/(k+2*this.limitMotor.dampingRatio*omega);
+            this.cfm=this.motorDenom*dmp;
+            this.limitVelocity*=k*dmp;
         }else{
-        this.cfm=0;
-        this.limitVelocity*=invTimeStep*0.05;
+            this.cfm=0;
+            this.limitVelocity*=invTimeStep*0.05;
         }
+
         this.invDenom=1/(this.motorDenom+this.cfm);
+
         var totalImpulse=this.limitImpulse+this.motorImpulse;
         this.l1.x+=totalImpulse*this.l1x;
         this.l1.y+=totalImpulse*this.l1y;
@@ -4337,30 +4810,34 @@ OIMO.TranslationalConstraint.prototype = {
         this.a2.x-=totalImpulse*this.a2x;
         this.a2.y-=totalImpulse*this.a2y;
         this.a2.z-=totalImpulse*this.a2z;
-        },
+    },
     solve:function(){
         var rvn=
-        this.ax*(this.l2.x-this.l1.x)+this.ay*(this.l2.y-this.l1.y)+this.az*(this.l2.z-this.l1.z)+
-        this.t2x*this.a2.x-this.t1x*this.a1.x+this.t2y*this.a2.y-this.t1y*this.a1.y+this.t2z*this.a2.z-this.t1z*this.a1.z
-        ;
+            this.ax*(this.l2.x-this.l1.x)+this.ay*(this.l2.y-this.l1.y)+this.az*(this.l2.z-this.l1.z)+
+            this.t2x*this.a2.x-this.t1x*this.a1.x+this.t2y*this.a2.y-this.t1y*this.a1.y+this.t2z*this.a2.z-this.t1z*this.a1.z;
+
+        // motor part
         var newMotorImpulse;
         if(this.enableMotor){
-        newMotorImpulse=(rvn-this.motorSpeed)*this.invMotorDenom;
-        var oldMotorImpulse=this.motorImpulse;
-        this.motorImpulse+=newMotorImpulse;
-        if(this.motorImpulse>this.maxMotorImpulse)this.motorImpulse=this.maxMotorImpulse;
-        else if(this.motorImpulse<-this.maxMotorImpulse)this.motorImpulse=-this.maxMotorImpulse;
-        newMotorImpulse=this.motorImpulse-oldMotorImpulse;
-        rvn-=newMotorImpulse*this.motorDenom;
+            newMotorImpulse=(rvn-this.motorSpeed)*this.invMotorDenom;
+            var oldMotorImpulse=this.motorImpulse;
+            this.motorImpulse+=newMotorImpulse;
+            if(this.motorImpulse>this.maxMotorImpulse)this.motorImpulse=this.maxMotorImpulse;
+            else if(this.motorImpulse<-this.maxMotorImpulse)this.motorImpulse=-this.maxMotorImpulse;
+            newMotorImpulse=this.motorImpulse-oldMotorImpulse;
+            rvn-=newMotorImpulse*this.motorDenom;
         }else newMotorImpulse=0;
+
+        // limit part
         var newLimitImpulse;
         if(this.limitState!=2){
-        newLimitImpulse=(rvn-this.limitVelocity-this.limitImpulse*this.cfm)*this.invDenom;
-        var oldLimitImpulse=this.limitImpulse;
-        this.limitImpulse+=newLimitImpulse;
-        if(this.limitImpulse*this.limitState<0)this.limitImpulse=0;
-        newLimitImpulse=this.limitImpulse-oldLimitImpulse;
+            newLimitImpulse=(rvn-this.limitVelocity-this.limitImpulse*this.cfm)*this.invDenom;
+            var oldLimitImpulse=this.limitImpulse;
+            this.limitImpulse+=newLimitImpulse;
+            if(this.limitImpulse*this.limitState<0)this.limitImpulse=0;
+            newLimitImpulse=this.limitImpulse-oldLimitImpulse;
         }else newLimitImpulse=0;
+        
         var totalImpulse=newLimitImpulse+newMotorImpulse;
         this.l1.x+=totalImpulse*this.l1x;
         this.l1.y+=totalImpulse*this.l1y;
@@ -4376,23 +4853,39 @@ OIMO.TranslationalConstraint.prototype = {
         this.a2.z-=totalImpulse*this.a2z;
     }
 }
+/**
+* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
+* @author saharan
+*/
 OIMO.Contact = function(){
+    // The first shape.
     this.shape1=null;
+    // The second shape.
     this.shape2=null;
+    // The first rigid body.
     this.body1=null;
+    // The second rigid body.
     this.body2=null;
+    // The previous contact in the world.
     this.prev=null;
+    // The next contact in the world.
     this.next=null;
+    // Internal
     this.persisting=false;
+    // Whether both the rigid bodies are sleeping or not.
     this.sleeping=false;
+    // The collision detector between two shapes.
     this.detector=null;
+    // The contact constraint of the contact.
     this.constraint=null;
+    // Whether the shapes are touching or not.
     this.touching=false;
 
     this.b1Link=new OIMO.ContactLink(this);
     this.b2Link=new OIMO.ContactLink(this);
     this.s1Link=new OIMO.ContactLink(this);
     this.s2Link=new OIMO.ContactLink(this);
+    // The contact manifold of the contact.
     this.manifold=new OIMO.ContactManifold();
     this.buffer=[];// vector 4
     this.buffer.length = 4;
@@ -4412,11 +4905,16 @@ OIMO.Contact.prototype = {
     mixFriction:function(friction1,friction2){
         return Math.sqrt(friction1*friction2);
     },
+    /**
+    * Update the contact manifold.
+    */
     updateManifold:function(){
         this.constraint.restitution=this.mixRestitution(this.shape1.restitution,this.shape2.restitution);
         this.constraint.friction=this.mixFriction(this.shape1.friction,this.shape2.friction);
         var numBuffers=this.manifold.numPoints;
-        for(var i=0;i<numBuffers;i++){
+        var i = numBuffers;
+        while(i--){
+        //for(var i=0;i<numBuffers;i++){
             var b=this.buffer[i];
             var p=this.points[i];
             b.lp1X=p.localPoint1.x;
@@ -4435,7 +4933,9 @@ OIMO.Contact.prototype = {
             return;
         }
         this.touching=true;
-        for(i=0; i<num; i++){
+        i = num;
+        while(i--){
+        //for(i=0; i<num; i++){
             p=this.points[i];
             var lp1x=p.localPoint1.x;
             var lp1y=p.localPoint1.y;
@@ -4445,7 +4945,9 @@ OIMO.Contact.prototype = {
             var lp2z=p.localPoint2.z;
             var index=-1;
             var minDistance=0.0004;
-            for(var j=0;j<numBuffers;j++){
+            var j = numBuffers;
+            while(j--){
+            //for(var j=0;j<numBuffers;j++){
                 b=this.buffer[j];
                 var dx=b.lp1X-lp1x;
                 var dy=b.lp1Y-lp1y;
@@ -4457,13 +4959,13 @@ OIMO.Contact.prototype = {
                 var distance2=dx*dx+dy*dy+dz*dz;
                 if(distance1<distance2){
                     if(distance1<minDistance){
-                    minDistance=distance1;
-                    index=j;
+                        minDistance=distance1;
+                        index=j;
                     }
                 }else{
                     if(distance2<minDistance){
-                    minDistance=distance2;
-                    index=j;
+                        minDistance=distance2;
+                        index=j;
                     }
                 }
             }
@@ -4479,102 +4981,131 @@ OIMO.Contact.prototype = {
             }
         }
     },
+    /**
+    * Attach the contact to the shapes.
+    * @param   shape1
+    * @param   shape2
+    */
     attach:function(shape1,shape2){
         this.shape1=shape1;
         this.shape2=shape2;
         this.body1=shape1.parent;
         this.body2=shape2.parent;
+
         this.manifold.body1=this.body1;
         this.manifold.body2=this.body2;
         this.constraint.body1=this.body1;
         this.constraint.body2=this.body2;
         this.constraint.attach();
+
         this.s1Link.shape=shape2;
         this.s1Link.body=this.body2;
         this.s2Link.shape=shape1;
         this.s2Link.body=this.body1;
+
         if(shape1.contactLink!=null)(this.s1Link.next=shape1.contactLink).prev=this.s1Link;
         else this.s1Link.next=null;
         shape1.contactLink=this.s1Link;
         shape1.numContacts++;
+
         if(shape2.contactLink!=null)(this.s2Link.next=shape2.contactLink).prev=this.s2Link;
         else this.s2Link.next=null;
         shape2.contactLink=this.s2Link;
         shape2.numContacts++;
+
         this.b1Link.shape=shape2;
         this.b1Link.body=this.body2;
         this.b2Link.shape=shape1;
         this.b2Link.body=this.body1;
+
         if(this.body1.contactLink!=null)(this.b1Link.next=this.body1.contactLink).prev=this.b1Link;
         else this.b1Link.next=null;
         this.body1.contactLink=this.b1Link;
         this.body1.numContacts++;
+
         if(this.body2.contactLink!=null)(this.b2Link.next=this.body2.contactLink).prev=this.b2Link;
         else this.b2Link.next=null;
         this.body2.contactLink=this.b2Link;
         this.body2.numContacts++;
+
         this.prev=null;
         this.next=null;
+
         this.persisting=true;
         this.sleeping=this.body1.sleeping&&this.body2.sleeping;
         this.manifold.numPoints=0;
     },
+    /**
+    * Detach the contact from the shapes.
+    */
     detach:function(){
         var prev=this.s1Link.prev;
         var next=this.s1Link.next;
-        if(prev!=null)prev.next=next;
-        if(next!=null)next.prev=prev;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
         if(this.shape1.contactLink==this.s1Link)this.shape1.contactLink=next;
         this.s1Link.prev=null;
         this.s1Link.next=null;
         this.s1Link.shape=null;
         this.s1Link.body=null;
         this.shape1.numContacts--;
+
         prev=this.s2Link.prev;
         next=this.s2Link.next;
-        if(prev!=null)prev.next=next;
-        if(next!=null)next.prev=prev;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
         if(this.shape2.contactLink==this.s2Link)this.shape2.contactLink=next;
         this.s2Link.prev=null;
         this.s2Link.next=null;
         this.s2Link.shape=null;
         this.s2Link.body=null;
         this.shape2.numContacts--;
+
         prev=this.b1Link.prev;
         next=this.b1Link.next;
-        if(prev!=null)prev.next=next;
-        if(next!=null)next.prev=prev;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
         if(this.body1.contactLink==this.b1Link)this.body1.contactLink=next;
         this.b1Link.prev=null;
         this.b1Link.next=null;
         this.b1Link.shape=null;
         this.b1Link.body=null;
         this.body1.numContacts--;
+
         prev=this.b2Link.prev;
         next=this.b2Link.next;
-        if(prev!=null)prev.next=next;
-        if(next!=null)next.prev=prev;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
         if(this.body2.contactLink==this.b2Link)this.body2.contactLink=next;
         this.b2Link.prev=null;
         this.b2Link.next=null;
         this.b2Link.shape=null;
         this.b2Link.body=null;
         this.body2.numContacts--;
+
         this.manifold.body1=null;
         this.manifold.body2=null;
         this.constraint.body1=null;
         this.constraint.body2=null;
         this.constraint.detach();
+
         this.shape1=null;
         this.shape2=null;
         this.body1=null;
         this.body2=null;
     }
 }
+/**
+* ...
+* @author saharan
+*/
 OIMO.ContactConstraint = function(manifold){
     OIMO.Constraint.call( this);
-
+    // The contact manifold of the constraint.
+    this.manifold=manifold;
+    // The coefficient of restitution of the constraint.
     this.restitution=NaN;
+    // The coefficient of friction of the constraint.
     this.friction=NaN;
     this.p1=null;
     this.p2=null;
@@ -4605,8 +5136,7 @@ OIMO.ContactConstraint = function(manifold){
     this.m1=NaN;
     this.m2=NaN;
     this.num=0;
-
-    this.manifold=manifold;
+    
     this.ps=manifold.points;
     this.cs=new OIMO.ContactPointDataBuffer();
     this.cs.next=new OIMO.ContactPointDataBuffer();
@@ -4614,6 +5144,9 @@ OIMO.ContactConstraint = function(manifold){
     this.cs.next.next.next=new OIMO.ContactPointDataBuffer();
 }
 OIMO.ContactConstraint.prototype = Object.create( OIMO.Constraint.prototype );
+/**
+* Attach the constraint to the bodies.
+*/
 OIMO.ContactConstraint.prototype.attach = function(){
     this.p1=this.body1.position;
     this.p2=this.body2.position;
@@ -4624,6 +5157,9 @@ OIMO.ContactConstraint.prototype.attach = function(){
     this.i1=this.body1.inverseInertia;
     this.i2=this.body2.inverseInertia;
 }
+/**
+* Detach the constraint from the bodies.
+*/
 OIMO.ContactConstraint.prototype.detach = function(){
     this.p1=null;
     this.p2=null;
@@ -4878,17 +5414,17 @@ OIMO.ContactConstraint.prototype.preSolve = function(timeStep,invTimeStep){
     c.norImp=norImp;
     c.tanImp=0;
     c.binImp=0;
-    rvn=0;
+    rvn=0; // disable bouncing
     }else{
     c.norImp=0;
     c.tanImp=0;
     c.binImp=0;
     }
     if(rvn>-1){
-    rvn=0;
+    rvn=0; // disable bouncing
     }
     var norTar=this.restitution*-rvn;
-    var sepV=-(p.penetration+0.005)*invTimeStep*0.05;
+    var sepV=-(p.penetration+0.005)*invTimeStep*0.05; // allow 0.5cm error
     if(norTar<sepV)norTar=sepV;
     c.norTar=norTar;
     c.last=i==this.num-1;
@@ -4910,81 +5446,88 @@ OIMO.ContactConstraint.prototype.solve = function(){
     var av2z=this.av2.z;
     var c=this.cs;
     while(true){
-    var oldImp1;
-    var newImp1;
-    var oldImp2;
-    var newImp2;
-    var rvn;
-    var norImp=c.norImp;
-    var tanImp=c.tanImp;
-    var binImp=c.binImp;
-    var max=-norImp*this.friction;
-    var rvX=lv2x-lv1x;
-    var rvY=lv2y-lv1y;
-    var rvZ=lv2z-lv1z;
-    rvn=
-    rvX*c.tanX+rvY*c.tanY+rvZ*c.tanZ+
-    av2x*c.tanT2X+av2y*c.tanT2Y+av2z*c.tanT2Z-
-    av1x*c.tanT1X-av1y*c.tanT1Y-av1z*c.tanT1Z
-    ;
-    oldImp1=tanImp;
-    newImp1=rvn*c.tanDen;
-    tanImp+=newImp1;
-    rvn=
-    rvX*c.binX+rvY*c.binY+rvZ*c.binZ+
-    av2x*c.binT2X+av2y*c.binT2Y+av2z*c.binT2Z-
-    av1x*c.binT1X-av1y*c.binT1Y-av1z*c.binT1Z
-    ;
-    oldImp2=binImp;
-    newImp2=rvn*c.binDen;
-    binImp+=newImp2;
-    var len=tanImp*tanImp+binImp*binImp;
-    if(len>max*max){
-    len=max/Math.sqrt(len);
-    tanImp*=len;
-    binImp*=len;
-    }
-    newImp1=tanImp-oldImp1;
-    newImp2=binImp-oldImp2;
-    lv1x+=c.tanU1X*newImp1+c.binU1X*newImp2;
-    lv1y+=c.tanU1Y*newImp1+c.binU1Y*newImp2;
-    lv1z+=c.tanU1Z*newImp1+c.binU1Z*newImp2;
-    av1x+=c.tanTU1X*newImp1+c.binTU1X*newImp2;
-    av1y+=c.tanTU1Y*newImp1+c.binTU1Y*newImp2;
-    av1z+=c.tanTU1Z*newImp1+c.binTU1Z*newImp2;
-    lv2x-=c.tanU2X*newImp1+c.binU2X*newImp2;
-    lv2y-=c.tanU2Y*newImp1+c.binU2Y*newImp2;
-    lv2z-=c.tanU2Z*newImp1+c.binU2Z*newImp2;
-    av2x-=c.tanTU2X*newImp1+c.binTU2X*newImp2;
-    av2y-=c.tanTU2Y*newImp1+c.binTU2Y*newImp2;
-    av2z-=c.tanTU2Z*newImp1+c.binTU2Z*newImp2;
-    rvn=
-    (lv2x-lv1x)*c.norX+(lv2y-lv1y)*c.norY+(lv2z-lv1z)*c.norZ+
-    av2x*c.norT2X+av2y*c.norT2Y+av2z*c.norT2Z-
-    av1x*c.norT1X-av1y*c.norT1Y-av1z*c.norT1Z
-    ;
-    oldImp1=norImp;
-    newImp1=(rvn-c.norTar)*c.norDen;
-    norImp+=newImp1;
-    if(norImp>0)norImp=0;
-    newImp1=norImp-oldImp1;
-    lv1x+=c.norU1X*newImp1;
-    lv1y+=c.norU1Y*newImp1;
-    lv1z+=c.norU1Z*newImp1;
-    av1x+=c.norTU1X*newImp1;
-    av1y+=c.norTU1Y*newImp1;
-    av1z+=c.norTU1Z*newImp1;
-    lv2x-=c.norU2X*newImp1;
-    lv2y-=c.norU2Y*newImp1;
-    lv2z-=c.norU2Z*newImp1;
-    av2x-=c.norTU2X*newImp1;
-    av2y-=c.norTU2Y*newImp1;
-    av2z-=c.norTU2Z*newImp1;
-    c.norImp=norImp;
-    c.tanImp=tanImp;
-    c.binImp=binImp;
-    if(c.last)break;
-    c=c.next;
+        var oldImp1;
+        var newImp1;
+        var oldImp2;
+        var newImp2;
+        var rvn;
+        var norImp=c.norImp;
+        var tanImp=c.tanImp;
+        var binImp=c.binImp;
+        var max=-norImp*this.friction;
+        var rvX=lv2x-lv1x;
+        var rvY=lv2y-lv1y;
+        var rvZ=lv2z-lv1z;
+        rvn=
+        rvX*c.tanX+rvY*c.tanY+rvZ*c.tanZ+
+        av2x*c.tanT2X+av2y*c.tanT2Y+av2z*c.tanT2Z-
+        av1x*c.tanT1X-av1y*c.tanT1Y-av1z*c.tanT1Z
+        ;
+        oldImp1=tanImp;
+        newImp1=rvn*c.tanDen;
+        tanImp+=newImp1;
+        rvn=
+        rvX*c.binX+rvY*c.binY+rvZ*c.binZ+
+        av2x*c.binT2X+av2y*c.binT2Y+av2z*c.binT2Z-
+        av1x*c.binT1X-av1y*c.binT1Y-av1z*c.binT1Z
+        ;
+        oldImp2=binImp;
+        newImp2=rvn*c.binDen;
+        binImp+=newImp2;
+
+        // cone friction clamp
+        var len=tanImp*tanImp+binImp*binImp;
+        if(len>max*max){
+            len=max/Math.sqrt(len);
+            tanImp*=len;
+            binImp*=len;
+        }
+        newImp1=tanImp-oldImp1;
+        newImp2=binImp-oldImp2;
+
+        lv1x+=c.tanU1X*newImp1+c.binU1X*newImp2;
+        lv1y+=c.tanU1Y*newImp1+c.binU1Y*newImp2;
+        lv1z+=c.tanU1Z*newImp1+c.binU1Z*newImp2;
+        av1x+=c.tanTU1X*newImp1+c.binTU1X*newImp2;
+        av1y+=c.tanTU1Y*newImp1+c.binTU1Y*newImp2;
+        av1z+=c.tanTU1Z*newImp1+c.binTU1Z*newImp2;
+        lv2x-=c.tanU2X*newImp1+c.binU2X*newImp2;
+        lv2y-=c.tanU2Y*newImp1+c.binU2Y*newImp2;
+        lv2z-=c.tanU2Z*newImp1+c.binU2Z*newImp2;
+        av2x-=c.tanTU2X*newImp1+c.binTU2X*newImp2;
+        av2y-=c.tanTU2Y*newImp1+c.binTU2Y*newImp2;
+        av2z-=c.tanTU2Z*newImp1+c.binTU2Z*newImp2;
+
+        // restitution part
+        rvn=
+        (lv2x-lv1x)*c.norX+(lv2y-lv1y)*c.norY+(lv2z-lv1z)*c.norZ+
+        av2x*c.norT2X+av2y*c.norT2Y+av2z*c.norT2Z-
+        av1x*c.norT1X-av1y*c.norT1Y-av1z*c.norT1Z;
+
+        oldImp1=norImp;
+        newImp1=(rvn-c.norTar)*c.norDen;
+        norImp+=newImp1;
+        if(norImp>0)norImp=0;
+        newImp1=norImp-oldImp1;
+        lv1x+=c.norU1X*newImp1;
+        lv1y+=c.norU1Y*newImp1;
+        lv1z+=c.norU1Z*newImp1;
+        av1x+=c.norTU1X*newImp1;
+        av1y+=c.norTU1Y*newImp1;
+        av1z+=c.norTU1Z*newImp1;
+        lv2x-=c.norU2X*newImp1;
+        lv2y-=c.norU2Y*newImp1;
+        lv2z-=c.norU2Z*newImp1;
+        av2x-=c.norTU2X*newImp1;
+        av2y-=c.norTU2Y*newImp1;
+        av2z-=c.norTU2Z*newImp1;
+
+        c.norImp=norImp;
+        c.tanImp=tanImp;
+        c.binImp=binImp;
+
+        if(c.last)break;
+        c=c.next;
     }
     this.lv1.x=lv1x;
     this.lv1.y=lv1y;
@@ -5001,7 +5544,9 @@ OIMO.ContactConstraint.prototype.solve = function(){
 }
 OIMO.ContactConstraint.prototype.postSolve = function(){
     var c=this.cs;
-    for(var i=0;i<this.num;i++){
+    var i = this.num;
+    while(i--){
+    //for(var i=0;i<this.num;i++){
         var p=this.ps[i];
         p.normal.x=c.norX;
         p.normal.y=c.norY;
@@ -5021,18 +5566,35 @@ OIMO.ContactConstraint.prototype.postSolve = function(){
         c=c.next;
     }
 }
+/**
+* A link list of contacts.
+* @author saharan
+*/
 OIMO.ContactLink = function(contact){
+	// The previous contact link.
     this.prev=null;
+    // The next contact link.
     this.next=null;
+    // The shape of the contact.
     this.shape=null;
+    // The other rigid body.
     this.body=null;
+    // The contact of the link.
     this.contact = contact;
 }
+/**
+* A contact manifold between two shapes.
+* @author saharan
+*/
 OIMO.ContactManifold = function(){
+    // The first rigid body.
     this.body1 = null;
+    // The second rigid body.
     this.body2 = null;
+    // The number of manifold points.
     this.numPoints = 0;
-    this.points = [];// vector 4
+    // The manifold points.
+    this.points = [];
     this.points.length = 4;
     this.points[0] = new OIMO.ManifoldPoint();
     this.points[1] = new OIMO.ManifoldPoint();
@@ -5041,12 +5603,27 @@ OIMO.ContactManifold = function(){
 }
 OIMO.ContactManifold.prototype = {
     constructor: OIMO.ContactManifold,
-
+    /**
+    * Reset the manifold.
+    * @param   shape1
+    * @param   shape2
+    */
     reset:function(shape1,shape2){
         this.body1=shape1.parent;
         this.body2=shape2.parent;
         this.numPoints=0;
     },
+    /**
+    * Add a point into this manifold.
+    * @param   x
+    * @param   y
+    * @param   z
+    * @param   normalX
+    * @param   normalY
+    * @param   normalZ
+    * @param   penetration
+    * @param   flip
+    */
     addPoint:function(x,y,z,normalX,normalY,normalZ,penetration,flip){
         var p=this.points[this.numPoints++];
         p.position.x=x;
@@ -5177,80 +5754,163 @@ OIMO.ImpulseDataBuffer = function(){
     this.lp2Z=NaN;
     this.impulse=NaN;
 }
+/**
+* The class holds details of the contact point.
+* @author saharan
+*/
 OIMO.ManifoldPoint = function(){
+    // Whether this manifold point is persisting or not.
     this.warmStarted=false;
+    //  The position of this manifold point.
     this.position=new OIMO.Vec3();
+    // The position in the first shape's coordinate.
     this.localPoint1=new OIMO.Vec3();
+    //  The position in the second shape's coordinate.
     this.localPoint2=new OIMO.Vec3();
+    // The normal vector of this manifold point.
     this.normal=new OIMO.Vec3();
+    // The tangent vector of this manifold point.
     this.tangent=new OIMO.Vec3();
+    // The binormal vector of this manifold point.
     this.binormal=new OIMO.Vec3();
+    // The impulse in normal direction.
     this.normalImpulse=0;
+    // The impulse in tangent direction.
     this.tangentImpulse=0;
+    // The impulse in binormal direction.
     this.binormalImpulse=0;
+    // The denominator in normal direction.
     this.normalDenominator=0;
+    // The denominator in tangent direction.
     this.tangentDenominator=0;
+    // The denominator in binormal direction.
     this.binormalDenominator=0;
+    // The depth of penetration.
     this.penetration=0;
 }
+/**
+* This class holds mass information of a shape.
+* @author saharan
+*/
 OIMO.MassInfo = function(){
-    this.mass=0;
-    this.inertia=new OIMO.Mat33();
+	// Mass of the shape.
+    this.mass = 0;
+    // The moment inertia of the shape.
+    this.inertia = new OIMO.Mat33();
 }
+/**
+ * A shape is used to detect collisions of rigid bodies.
+ * @author saharan
+ */
 OIMO.Shape = function(config){
-    this.prev=null;
-    this.next=null;
-    this.type=0;
-    this.proxy=null;
-    this.parent=null;
-    this.contactLink=null;
+    // The global identification of the shape.
+    // This value should be unique to the shape.
+    this.id = OIMO.nextID++;
+    // The previous shape in parent rigid body.
+    this.prev = null;
+    // The next shape in parent rigid body.
+    this.next = null;
+    // The type of the shape.
+    this.type = 0;
+
+    // The proxy of the shape.
+    // This is used for broad-phase collision detection.
+    this.proxy = null;
+    // The parent rigid body of the shape.
+    this.parent = null;
+    // The linked list of the contacts with the shape.
+    this.contactLink = null;
+    // The number of the contacts with the shape.
     this.numContacts=0;
 
-    this.id=OIMO.nextID++;
-    this.position=new OIMO.Vec3();
-    this.relativePosition=new OIMO.Vec3().copy(config.relativePosition);
-    this.rotation=new OIMO.Mat33();
-    this.relativeRotation=new OIMO.Mat33().copy(config.relativeRotation);
-    this.aabb=new OIMO.AABB();
-    this.density=config.density;
-    this.friction=config.friction;
-    this.restitution=config.restitution;
-    this.belongsTo=config.belongsTo;
-    this.collidesWith=config.collidesWith;
+    // The center of gravity of the shape in world coordinate system.
+    this.position = new OIMO.Vec3();
+    // The rotation matrix of the shape in world coordinate system
+    this.rotation = new OIMO.Mat33();
+
+    // The position of the shape in parent's coordinate system.
+    this.relativePosition = new OIMO.Vec3().copy(config.relativePosition);
+    // The rotation matrix of the shape in parent's coordinate system.
+    this.relativeRotation = new OIMO.Mat33().copy(config.relativeRotation);
+
+    // The axis-aligned bounding box of the shape.
+    this.aabb = new OIMO.AABB();
+
+    // The density of the shape.
+    this.density = config.density;
+    // The coefficient of friction of the shape.
+    this.friction = config.friction;
+    // The coefficient of restitution of the shape.
+    this.restitution = config.restitution;
+    // The bits of the collision groups to which the shape belongs.
+    this.belongsTo = config.belongsTo;
+    // The bits of the collision groups with which the shape collides.
+    this.collidesWith = config.collidesWith;
 }
 
 OIMO.Shape.prototype = {
     constructor: OIMO.Shape,
 
+    /**
+    * Calculate the mass information of the shape.
+    * @param   out
+    */
     calculateMassInfo:function(out){
         throw new Error("Inheritance error.");
     },
-     updateProxy:function(){
+
+    /**
+    * Update the proxy of the shape.
+    */
+    updateProxy:function(){
         throw new Error("Inheritance error.");
     }
 }
+/**
+ * A shape configuration holds common configuration data for constructing a shape.
+ * Shape configurations can be reused safely.
+ * @author saharan
+ */
+
 OIMO.ShapeConfig = function(){
-    this.relativePosition=new OIMO.Vec3();
-    this.relativeRotation=new OIMO.Mat33();
-    this.friction=0.4;
-    this.restitution=0.2;
-    this.density=1;
-    this.belongsTo=1;
-    this.collidesWith=0xffffffff;
+	// The position of the shape in parent's coordinate system.
+    this.relativePosition = new OIMO.Vec3();
+    // The rotation matrix of the shape in parent's coordinate system.
+    this.relativeRotation = new OIMO.Mat33();
+    // The coefficient of friction of the shape.
+    this.friction = 0.4;
+    // The coefficient of restitution of the shape.
+    this.restitution = 0.2;
+    // The density of the shape.
+    this.density = 1;
+    // The bits of the collision groups to which the shape belongs.
+    this.belongsTo = 1;
+    // The bits of the collision groups with which the shape collides.
+    this.collidesWith = 0xffffffff;
 }
+/**
+* A box shape.
+* @author saharan
+* @author loth
+*/
 OIMO.BoxShape = function(config,Width,Height,Depth){
-    OIMO.Shape.call( this, config);
-  
-    this.width=Width;
-    this.height=Height;
-    this.depth=Depth;
-    this.halfWidth=Width*0.5;
-    this.halfHeight=Height*0.5;
-    this.halfDepth=Depth*0.5;
+    OIMO.Shape.call( this, config );
+    // The width of the box.
+    this.width = Width;
+    // The height of the box.
+    this.height = Height;
+    // The depth of the box.
+    this.depth = Depth;
+    // The half-width of the box.
+    this.halfWidth = Width*0.5;
+    // The half-height of the box.
+    this.halfHeight = Height*0.5;
+    // The half-depth of the box.
+    this.halfDepth = Depth*0.5;
 
     this.dimentions = new OIMO_ARRAY_TYPE(18);
     this.elements = new OIMO_ARRAY_TYPE(24);
-    this.type=OIMO.SHAPE_BOX;
+    this.type = OIMO.SHAPE_BOX;
 }
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.BoxShape.prototype.calculateMassInfo = function(out){
@@ -5264,8 +5924,7 @@ OIMO.BoxShape.prototype.calculateMassInfo = function(out){
 }
 OIMO.BoxShape.prototype.updateProxy = function(){
     var te = this.rotation.elements;
-
-    var di=this.dimentions;
+    var di = this.dimentions;
     // Width
     di[0]=te[0];
     di[1]=te[3];
@@ -5360,17 +6019,22 @@ OIMO.BoxShape.prototype.updateProxy = function(){
         this.proxy.update();
     }
 }
+/**
+ * A sphere shape.
+ * @author saharan
+ */
 OIMO.SphereShape = function(config,radius){
     OIMO.Shape.call( this, config);
-    this.radius=radius;
-    this.type=OIMO.SHAPE_SPHERE;
+    // The radius of the shape.
+    this.radius = radius;
+    this.type = OIMO.SHAPE_SPHERE;
 }
 OIMO.SphereShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.SphereShape.prototype.calculateMassInfo = function(out){
-    var mass=4/3*Math.PI*this.radius*this.radius*this.radius*this.density;
-    out.mass=mass;
-    var inertia=mass*this.radius*this.radius*2/5;
-    out.inertia.init( inertia,0,0, 0,inertia,0, 0,0,inertia );
+    var mass = 4/3*Math.PI*this.radius*this.radius*this.radius*this.density;
+    out.mass = mass;
+    var inertia = mass*this.radius*this.radius*2/5;
+    out.inertia.init( inertia,0,0,0,inertia,0,0,0,inertia );
 }
 OIMO.SphereShape.prototype.updateProxy = function(){
     this.aabb.init(
@@ -5391,9 +6055,13 @@ OIMO.CollisionDetector.prototype = {
         throw new Error("Inheritance error.");
     }
 }
+/**
+ * A collision detector which detects collisions between two boxes.
+ * @author saharan
+ */
 OIMO.BoxBoxCollisionDetector = function(){
     OIMO.CollisionDetector.call( this );
-    this.clipVertices1=new OIMO_ARRAY_TYPE(24);
+    this.clipVertices1=new OIMO_ARRAY_TYPE(24); // 8 vertices x,y,z
     this.clipVertices2=new OIMO_ARRAY_TYPE(24);
     this.used=new OIMO_ARRAY_TYPE(8);
     
@@ -5401,6 +6069,33 @@ OIMO.BoxBoxCollisionDetector = function(){
 }
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
 OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+    // What you are doing 
+    // · I to prepare a separate axis of the fifteen 
+    //-Six in each of three normal vectors of the xyz direction of the box both 
+    // · Remaining nine 3x3 a vector perpendicular to the side of the box 2 and the side of the box 1 
+    // · Calculate the depth to the separation axis 
+
+    // Calculates the distance using the inner product and put the amount of embedment 
+    // · However a vertical separation axis and side to weight a little to avoid vibration 
+    // And end when there is a separate axis that is remote even one 
+    // · I look for separation axis with little to dent most 
+    // Men and if separation axis of the first six - end collision 
+    // Heng If it separate axis of nine other - side collision 
+    // Heng - case of a side collision 
+    // · Find points of two sides on which you made ​​the separation axis 
+
+    // Calculates the point of closest approach of a straight line consisting of separate axis points obtained, and the collision point 
+    //-Surface - the case of the plane crash 
+    //-Box A, box B and the other a box of better made ​​a separate axis 
+    // • The surface A and the plane that made the separation axis of the box A, and B to the surface the face of the box B close in the opposite direction to the most isolated axis 
+
+    // When viewed from the front surface A, and the cut part exceeding the area of the surface A is a surface B 
+    //-Plane B becomes the 3-8 triangle, I a candidate for the collision point the vertex of surface B 
+    // • If more than one candidate 5 exists, scraping up to four 
+
+    // For potential collision points of all, to examine the distance between the surface A 
+    // • If you were on the inside surface of A, and the collision point
+
     var b1;
     var b2;
     if(shape1.id<shape2.id){
@@ -5424,16 +6119,26 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var p2x=p2.x;
     var p2y=p2.y;
     var p2z=p2.z;
+    // diff
     var dx=p2x-p1x;
     var dy=p2y-p1y;
     var dz=p2z-p1z;
+    // distance
     var w1=b1.halfWidth;
     var h1=b1.halfHeight;
     var d1=b1.halfDepth;
     var w2=b2.halfWidth;
     var h2=b2.halfHeight;
     var d2=b2.halfDepth;
+    // direction
 
+    // ----------------------------
+    // 15 separating axes
+    // 1~6: face
+    // 7~f: edge
+    // http://marupeke296.com/COL_3D_No13_OBBvsOBB.html
+    // ----------------------------
+    
     var a1x=D1[0];
     var a1y=D1[1];
     var a1z=D1[2];
@@ -5499,6 +6204,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var afx=a3y*a6z-a3z*a6y;
     var afy=a3z*a6x-a3x*a6z;
     var afz=a3x*a6y-a3y*a6x;
+    // right or left flags
     var right1;
     var right2;
     var right3;
@@ -5514,6 +6220,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var rightd;
     var righte;
     var rightf;
+    // overlapping distances
     var overlap1;
     var overlap2;
     var overlap3;
@@ -5529,6 +6236,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var overlapd;
     var overlape;
     var overlapf;
+    // invalid flags
     var invalid7=false;
     var invalid8=false;
     var invalid9=false;
@@ -5538,12 +6246,14 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var invalidd=false;
     var invalide=false;
     var invalidf=false;
+    // temporary variables
     var len;
     var len1;
     var len2;
     var dot1;
     var dot2;
     var dot3;
+    // try axis 1
     len=a1x*dx+a1y*dy+a1z*dz;
     right1=len>0;
     if(!right1)len=-len;
@@ -5557,6 +6267,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     len2=dot1*w2+dot2*h2+dot3*d2;
     overlap1=len-len1-len2;
     if(overlap1>0)return;
+    // try axis 2
     len=a2x*dx+a2y*dy+a2z*dz;
     right2=len>0;
     if(!right2)len=-len;
@@ -5570,6 +6281,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     len2=dot1*w2+dot2*h2+dot3*d2;
     overlap2=len-len1-len2;
     if(overlap2>0)return;
+    // try axis 3
     len=a3x*dx+a3y*dy+a3z*dz;
     right3=len>0;
     if(!right3)len=-len;
@@ -5583,6 +6295,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     len2=dot1*w2+dot2*h2+dot3*d2;
     overlap3=len-len1-len2;
     if(overlap3>0)return;
+    // try axis 4
     len=a4x*dx+a4y*dy+a4z*dz;
     right4=len>0;
     if(!right4)len=-len;
@@ -5596,6 +6309,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     len2=w2;
     overlap4=(len-len1-len2)*1.0;
     if(overlap4>0)return;
+    // try axis 5
     len=a5x*dx+a5y*dy+a5z*dz;
     right5=len>0;
     if(!right5)len=-len;
@@ -5609,6 +6323,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     len2=h2;
     overlap5=(len-len1-len2)*1.0;
     if(overlap5>0)return;
+    // try axis 6
     len=a6x*dx+a6y*dy+a6z*dz;
     right6=len>0;
     if(!right6)len=-len;
@@ -5622,814 +6337,621 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     len2=d2;
     overlap6=(len-len1-len2)*1.0;
     if(overlap6>0)return;
+    // try axis 7
     len=a7x*a7x+a7y*a7y+a7z*a7z;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    a7x*=len;
-    a7y*=len;
-    a7z*=len;
-    len=a7x*dx+a7y*dy+a7z*dz;
-    right7=len>0;
-    if(!right7)len=-len;
-    dot1=a7x*a2x+a7y*a2y+a7z*a2z;
-    dot2=a7x*a3x+a7y*a3y+a7z*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*h1+dot2*d1;
-    dot1=a7x*a5x+a7y*a5y+a7z*a5z;
-    dot2=a7x*a6x+a7y*a6y+a7z*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*h2+dot2*d2;
-    overlap7=len-len1-len2;
-    if(overlap7>0)return;
+        len=1/Math.sqrt(len);
+        a7x*=len;
+        a7y*=len;
+        a7z*=len;
+        len=a7x*dx+a7y*dy+a7z*dz;
+        right7=len>0;
+        if(!right7)len=-len;
+        dot1=a7x*a2x+a7y*a2y+a7z*a2z;
+        dot2=a7x*a3x+a7y*a3y+a7z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*h1+dot2*d1;
+        dot1=a7x*a5x+a7y*a5y+a7z*a5z;
+        dot2=a7x*a6x+a7y*a6y+a7z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*h2+dot2*d2;
+        overlap7=len-len1-len2;
+        if(overlap7>0)return;
     }else{
-    right7=false;
-    overlap7=0;
-    invalid7=true;
+        right7=false;
+        overlap7=0;
+        invalid7=true;
     }
+    // try axis 8
     len=a8x*a8x+a8y*a8y+a8z*a8z;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    a8x*=len;
-    a8y*=len;
-    a8z*=len;
-    len=a8x*dx+a8y*dy+a8z*dz;
-    right8=len>0;
-    if(!right8)len=-len;
-    dot1=a8x*a2x+a8y*a2y+a8z*a2z;
-    dot2=a8x*a3x+a8y*a3y+a8z*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*h1+dot2*d1;
-    dot1=a8x*a4x+a8y*a4y+a8z*a4z;
-    dot2=a8x*a6x+a8y*a6y+a8z*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*w2+dot2*d2;
-    overlap8=len-len1-len2;
-    if(overlap8>0)return;
+        len=1/Math.sqrt(len);
+        a8x*=len;
+        a8y*=len;
+        a8z*=len;
+        len=a8x*dx+a8y*dy+a8z*dz;
+        right8=len>0;
+        if(!right8)len=-len;
+        dot1=a8x*a2x+a8y*a2y+a8z*a2z;
+        dot2=a8x*a3x+a8y*a3y+a8z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*h1+dot2*d1;
+        dot1=a8x*a4x+a8y*a4y+a8z*a4z;
+        dot2=a8x*a6x+a8y*a6y+a8z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*w2+dot2*d2;
+        overlap8=len-len1-len2;
+        if(overlap8>0)return;
     }else{
-    right8=false;
-    overlap8=0;
-    invalid8=true;
+        right8=false;
+        overlap8=0;
+        invalid8=true;
     }
+    // try axis 9
     len=a9x*a9x+a9y*a9y+a9z*a9z;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    a9x*=len;
-    a9y*=len;
-    a9z*=len;
-    len=a9x*dx+a9y*dy+a9z*dz;
-    right9=len>0;
-    if(!right9)len=-len;
-    dot1=a9x*a2x+a9y*a2y+a9z*a2z;
-    dot2=a9x*a3x+a9y*a3y+a9z*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*h1+dot2*d1;
-    dot1=a9x*a4x+a9y*a4y+a9z*a4z;
-    dot2=a9x*a5x+a9y*a5y+a9z*a5z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*w2+dot2*h2;
-    overlap9=len-len1-len2;
-    if(overlap9>0)return;
+        len=1/Math.sqrt(len);
+        a9x*=len;
+        a9y*=len;
+        a9z*=len;
+        len=a9x*dx+a9y*dy+a9z*dz;
+        right9=len>0;
+        if(!right9)len=-len;
+        dot1=a9x*a2x+a9y*a2y+a9z*a2z;
+        dot2=a9x*a3x+a9y*a3y+a9z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*h1+dot2*d1;
+        dot1=a9x*a4x+a9y*a4y+a9z*a4z;
+        dot2=a9x*a5x+a9y*a5y+a9z*a5z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*w2+dot2*h2;
+        overlap9=len-len1-len2;
+        if(overlap9>0)return;
     }else{
-    right9=false;
-    overlap9=0;
-    invalid9=true;
+        right9=false;
+        overlap9=0;
+        invalid9=true;
     }
+    // try axis 10
     len=aax*aax+aay*aay+aaz*aaz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    aax*=len;
-    aay*=len;
-    aaz*=len;
-    len=aax*dx+aay*dy+aaz*dz;
-    righta=len>0;
-    if(!righta)len=-len;
-    dot1=aax*a1x+aay*a1y+aaz*a1z;
-    dot2=aax*a3x+aay*a3y+aaz*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*w1+dot2*d1;
-    dot1=aax*a5x+aay*a5y+aaz*a5z;
-    dot2=aax*a6x+aay*a6y+aaz*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*h2+dot2*d2;
-    overlapa=len-len1-len2;
-    if(overlapa>0)return;
+        len=1/Math.sqrt(len);
+        aax*=len;
+        aay*=len;
+        aaz*=len;
+        len=aax*dx+aay*dy+aaz*dz;
+        righta=len>0;
+        if(!righta)len=-len;
+        dot1=aax*a1x+aay*a1y+aaz*a1z;
+        dot2=aax*a3x+aay*a3y+aaz*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*w1+dot2*d1;
+        dot1=aax*a5x+aay*a5y+aaz*a5z;
+        dot2=aax*a6x+aay*a6y+aaz*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*h2+dot2*d2;
+        overlapa=len-len1-len2;
+        if(overlapa>0)return;
     }else{
-    righta=false;
-    overlapa=0;
-    invalida=true;
+        righta=false;
+        overlapa=0;
+        invalida=true;
     }
+    // try axis 11
     len=abx*abx+aby*aby+abz*abz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    abx*=len;
-    aby*=len;
-    abz*=len;
-    len=abx*dx+aby*dy+abz*dz;
-    rightb=len>0;
-    if(!rightb)len=-len;
-    dot1=abx*a1x+aby*a1y+abz*a1z;
-    dot2=abx*a3x+aby*a3y+abz*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*w1+dot2*d1;
-    dot1=abx*a4x+aby*a4y+abz*a4z;
-    dot2=abx*a6x+aby*a6y+abz*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*w2+dot2*d2;
-    overlapb=len-len1-len2;
-    if(overlapb>0)return;
+        len=1/Math.sqrt(len);
+        abx*=len;
+        aby*=len;
+        abz*=len;
+        len=abx*dx+aby*dy+abz*dz;
+        rightb=len>0;
+        if(!rightb)len=-len;
+        dot1=abx*a1x+aby*a1y+abz*a1z;
+        dot2=abx*a3x+aby*a3y+abz*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*w1+dot2*d1;
+        dot1=abx*a4x+aby*a4y+abz*a4z;
+        dot2=abx*a6x+aby*a6y+abz*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*w2+dot2*d2;
+        overlapb=len-len1-len2;
+        if(overlapb>0)return;
     }else{
-    rightb=false;
-    overlapb=0;
-    invalidb=true;
+        rightb=false;
+        overlapb=0;
+        invalidb=true;
     }
+    // try axis 12
     len=acx*acx+acy*acy+acz*acz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    acx*=len;
-    acy*=len;
-    acz*=len;
-    len=acx*dx+acy*dy+acz*dz;
-    rightc=len>0;
-    if(!rightc)len=-len;
-    dot1=acx*a1x+acy*a1y+acz*a1z;
-    dot2=acx*a3x+acy*a3y+acz*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*w1+dot2*d1;
-    dot1=acx*a4x+acy*a4y+acz*a4z;
-    dot2=acx*a5x+acy*a5y+acz*a5z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*w2+dot2*h2;
-    overlapc=len-len1-len2;
-    if(overlapc>0)return;
+        len=1/Math.sqrt(len);
+        acx*=len;
+        acy*=len;
+        acz*=len;
+        len=acx*dx+acy*dy+acz*dz;
+        rightc=len>0;
+        if(!rightc)len=-len;
+        dot1=acx*a1x+acy*a1y+acz*a1z;
+        dot2=acx*a3x+acy*a3y+acz*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*w1+dot2*d1;
+        dot1=acx*a4x+acy*a4y+acz*a4z;
+        dot2=acx*a5x+acy*a5y+acz*a5z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*w2+dot2*h2;
+        overlapc=len-len1-len2;
+        if(overlapc>0)return;
     }else{
-    rightc=false;
-    overlapc=0;
-    invalidc=true;
+        rightc=false;
+        overlapc=0;
+        invalidc=true;
     }
+    // try axis 13
     len=adx*adx+ady*ady+adz*adz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    adx*=len;
-    ady*=len;
-    adz*=len;
-    len=adx*dx+ady*dy+adz*dz;
-    rightd=len>0;
-    if(!rightd)len=-len;
-    dot1=adx*a1x+ady*a1y+adz*a1z;
-    dot2=adx*a2x+ady*a2y+adz*a2z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*w1+dot2*h1;
-    dot1=adx*a5x+ady*a5y+adz*a5z;
-    dot2=adx*a6x+ady*a6y+adz*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*h2+dot2*d2;
-    overlapd=len-len1-len2;
-    if(overlapd>0)return;
+        len=1/Math.sqrt(len);
+        adx*=len;
+        ady*=len;
+        adz*=len;
+        len=adx*dx+ady*dy+adz*dz;
+        rightd=len>0;
+        if(!rightd)len=-len;
+        dot1=adx*a1x+ady*a1y+adz*a1z;
+        dot2=adx*a2x+ady*a2y+adz*a2z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*w1+dot2*h1;
+        dot1=adx*a5x+ady*a5y+adz*a5z;
+        dot2=adx*a6x+ady*a6y+adz*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*h2+dot2*d2;
+        overlapd=len-len1-len2;
+        if(overlapd>0)return;
     }else{
-    rightd=false;
-    overlapd=0;
-    invalidd=true;
+        rightd=false;
+        overlapd=0;
+        invalidd=true;
     }
+    // try axis 14
     len=aex*aex+aey*aey+aez*aez;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    aex*=len;
-    aey*=len;
-    aez*=len;
-    len=aex*dx+aey*dy+aez*dz;
-    righte=len>0;
-    if(!righte)len=-len;
-    dot1=aex*a1x+aey*a1y+aez*a1z;
-    dot2=aex*a2x+aey*a2y+aez*a2z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*w1+dot2*h1;
-    dot1=aex*a4x+aey*a4y+aez*a4z;
-    dot2=aex*a6x+aey*a6y+aez*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*w2+dot2*d2;
-    overlape=len-len1-len2;
-    if(overlape>0)return;
+        len=1/Math.sqrt(len);
+        aex*=len;
+        aey*=len;
+        aez*=len;
+        len=aex*dx+aey*dy+aez*dz;
+        righte=len>0;
+        if(!righte)len=-len;
+        dot1=aex*a1x+aey*a1y+aez*a1z;
+        dot2=aex*a2x+aey*a2y+aez*a2z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*w1+dot2*h1;
+        dot1=aex*a4x+aey*a4y+aez*a4z;
+        dot2=aex*a6x+aey*a6y+aez*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*w2+dot2*d2;
+        overlape=len-len1-len2;
+        if(overlape>0)return;
     }else{
-    righte=false;
-    overlape=0;
-    invalide=true;
+        righte=false;
+        overlape=0;
+        invalide=true;
     }
+    // try axis 15
     len=afx*afx+afy*afy+afz*afz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
-    afx*=len;
-    afy*=len;
-    afz*=len;
-    len=afx*dx+afy*dy+afz*dz;
-    rightf=len>0;
-    if(!rightf)len=-len;
-    dot1=afx*a1x+afy*a1y+afz*a1z;
-    dot2=afx*a2x+afy*a2y+afz*a2z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len1=dot1*w1+dot2*h1;
-    dot1=afx*a4x+afy*a4y+afz*a4z;
-    dot2=afx*a5x+afy*a5y+afz*a5z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    len2=dot1*w2+dot2*h2;
-    overlapf=len-len1-len2;
-    if(overlapf>0)return;
+        len=1/Math.sqrt(len);
+        afx*=len;
+        afy*=len;
+        afz*=len;
+        len=afx*dx+afy*dy+afz*dz;
+        rightf=len>0;
+        if(!rightf)len=-len;
+        dot1=afx*a1x+afy*a1y+afz*a1z;
+        dot2=afx*a2x+afy*a2y+afz*a2z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len1=dot1*w1+dot2*h1;
+        dot1=afx*a4x+afy*a4y+afz*a4z;
+        dot2=afx*a5x+afy*a5y+afz*a5z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        len2=dot1*w2+dot2*h2;
+        overlapf=len-len1-len2;
+        if(overlapf>0)return;
     }else{
-    rightf=false;
-    overlapf=0;
-    invalidf=true;
+        rightf=false;
+        overlapf=0;
+        invalidf=true;
     }
+    // boxes are overlapping
     var depth=overlap1;
     var depth2=overlap1;
     var minIndex=0;
     var right=right1;
     if(overlap2>depth2){
-    depth=overlap2;
-    depth2=overlap2;
-    minIndex=1;
-    right=right2;
+        depth=overlap2;
+        depth2=overlap2;
+        minIndex=1;
+        right=right2;
     }
     if(overlap3>depth2){
-    depth=overlap3;
-    depth2=overlap3;
-    minIndex=2;
-    right=right3;
+        depth=overlap3;
+        depth2=overlap3;
+        minIndex=2;
+        right=right3;
     }
     if(overlap4>depth2){
-    depth=overlap4;
-    depth2=overlap4;
-    minIndex=3;
-    right=right4;
+        depth=overlap4;
+        depth2=overlap4;
+        minIndex=3;
+        right=right4;
     }
     if(overlap5>depth2){
-    depth=overlap5;
-    depth2=overlap5;
-    minIndex=4;
-    right=right5;
+        depth=overlap5;
+        depth2=overlap5;
+        minIndex=4;
+        right=right5;
     }
     if(overlap6>depth2){
-    depth=overlap6;
-    depth2=overlap6;
-    minIndex=5;
-    right=right6;
+        depth=overlap6;
+        depth2=overlap6;
+        minIndex=5;
+        right=right6;
     }
     if(overlap7-0.01>depth2&&!invalid7){
-    depth=overlap7;
-    depth2=overlap7-0.01;
-    minIndex=6;
-    right=right7;
+        depth=overlap7;
+        depth2=overlap7-0.01;
+        minIndex=6;
+        right=right7;
     }
     if(overlap8-0.01>depth2&&!invalid8){
-    depth=overlap8;
-    depth2=overlap8-0.01;
-    minIndex=7;
-    right=right8;
+        depth=overlap8;
+        depth2=overlap8-0.01;
+        minIndex=7;
+        right=right8;
     }
     if(overlap9-0.01>depth2&&!invalid9){
-    depth=overlap9;
-    depth2=overlap9-0.01;
-    minIndex=8;
-    right=right9;
+        depth=overlap9;
+        depth2=overlap9-0.01;
+        minIndex=8;
+        right=right9;
     }
     if(overlapa-0.01>depth2&&!invalida){
-    depth=overlapa;
-    depth2=overlapa-0.01;
-    minIndex=9;
-    right=righta;
+        depth=overlapa;
+        depth2=overlapa-0.01;
+        minIndex=9;
+        right=righta;
     }
     if(overlapb-0.01>depth2&&!invalidb){
-    depth=overlapb;
-    depth2=overlapb-0.01;
-    minIndex=10;
-    right=rightb;
+        depth=overlapb;
+        depth2=overlapb-0.01;
+        minIndex=10;
+        right=rightb;
     }
     if(overlapc-0.01>depth2&&!invalidc){
-    depth=overlapc;
-    depth2=overlapc-0.01;
-    minIndex=11;
-    right=rightc;
+        depth=overlapc;
+        depth2=overlapc-0.01;
+        minIndex=11;
+        right=rightc;
     }
     if(overlapd-0.01>depth2&&!invalidd){
-    depth=overlapd;
-    depth2=overlapd-0.01;
-    minIndex=12;
-    right=rightd;
+        depth=overlapd;
+        depth2=overlapd-0.01;
+        minIndex=12;
+        right=rightd;
     }
     if(overlape-0.01>depth2&&!invalide){
-    depth=overlape;
-    depth2=overlape-0.01;
-    minIndex=13;
-    right=righte;
+        depth=overlape;
+        depth2=overlape-0.01;
+        minIndex=13;
+        right=righte;
     }
     if(overlapf-0.01>depth2&&!invalidf){
-    depth=overlapf;
-    minIndex=14;
-    right=rightf;
+        depth=overlapf;
+        minIndex=14;
+        right=rightf;
     }
+    // normal
     var nx=0;
     var ny=0;
     var nz=0;
+    // edge line or face side normal
     var n1x=0;
     var n1y=0;
     var n1z=0;
     var n2x=0;
     var n2y=0;
     var n2z=0;
+    // center of current face
     var cx=0;
     var cy=0;
     var cz=0;
+    // face side
     var s1x=0;
     var s1y=0;
     var s1z=0;
     var s2x=0;
     var s2y=0;
     var s2z=0;
+    // swap b1 b2
     var swap=false;
-    switch(minIndex){
-    case 0:
-    if(right){
-    cx=p1x+d1x;
-    cy=p1y+d1y;
-    cz=p1z+d1z;
-    nx=a1x;
-    ny=a1y;
-    nz=a1z;
-    }else{
-    cx=p1x-d1x;
-    cy=p1y-d1y;
-    cz=p1z-d1z;
-    nx=-a1x;
-    ny=-a1y;
-    nz=-a1z;
+
+    //_______________________________________
+
+    if(minIndex==0){// b1.x * b2
+        if(right){
+            cx=p1x+d1x; cy=p1y+d1y;  cz=p1z+d1z;
+            nx=a1x; ny=a1y; nz=a1z;
+        }else{
+            cx=p1x-d1x; cy=p1y-d1y; cz=p1z-d1z;
+            nx=-a1x; ny=-a1y; nz=-a1z;
+        }
+        s1x=d2x; s1y=d2y; s1z=d2z;
+        n1x=-a2x; n1y=-a2y; n1z=-a2z;
+        s2x=d3x; s2y=d3y; s2z=d3z;
+        n2x=-a3x; n2y=-a3y; n2z=-a3z;
     }
-    s1x=d2x;
-    s1y=d2y;
-    s1z=d2z;
-    n1x=-a2x;
-    n1y=-a2y;
-    n1z=-a2z;
-    s2x=d3x;
-    s2y=d3y;
-    s2z=d3z;
-    n2x=-a3x;
-    n2y=-a3y;
-    n2z=-a3z;
-    break;
-    case 1:
-    if(right){
-    cx=p1x+d2x;
-    cy=p1y+d2y;
-    cz=p1z+d2z;
-    nx=a2x;
-    ny=a2y;
-    nz=a2z;
-    }else{
-    cx=p1x-d2x;
-    cy=p1y-d2y;
-    cz=p1z-d2z;
-    nx=-a2x;
-    ny=-a2y;
-    nz=-a2z;
+    else if(minIndex==1){// b1.y * b2
+        if(right){
+            cx=p1x+d2x; cy=p1y+d2y; cz=p1z+d2z;
+            nx=a2x; ny=a2y; nz=a2z;
+        }else{
+            cx=p1x-d2x; cy=p1y-d2y; cz=p1z-d2z;
+            nx=-a2x; ny=-a2y; nz=-a2z;
+        }
+        s1x=d1x; s1y=d1y; s1z=d1z;
+        n1x=-a1x; n1y=-a1y; n1z=-a1z;
+        s2x=d3x; s2y=d3y; s2z=d3z;
+        n2x=-a3x; n2y=-a3y; n2z=-a3z;
     }
-    s1x=d1x;
-    s1y=d1y;
-    s1z=d1z;
-    n1x=-a1x;
-    n1y=-a1y;
-    n1z=-a1z;
-    s2x=d3x;
-    s2y=d3y;
-    s2z=d3z;
-    n2x=-a3x;
-    n2y=-a3y;
-    n2z=-a3z;
-    break;
-    case 2:
-    if(right){
-    cx=p1x+d3x;
-    cy=p1y+d3y;
-    cz=p1z+d3z;
-    nx=a3x;
-    ny=a3y;
-    nz=a3z;
-    }else{
-    cx=p1x-d3x;
-    cy=p1y-d3y;
-    cz=p1z-d3z;
-    nx=-a3x;
-    ny=-a3y;
-    nz=-a3z;
+    else if(minIndex==2){// b1.z * b2
+        if(right){
+            cx=p1x+d3x; cy=p1y+d3y; cz=p1z+d3z;
+            nx=a3x; ny=a3y; nz=a3z;
+        }else{
+            cx=p1x-d3x; cy=p1y-d3y; cz=p1z-d3z;
+            nx=-a3x; ny=-a3y; nz=-a3z;
+        }
+        s1x=d1x; s1y=d1y; s1z=d1z;
+        n1x=-a1x; n1y=-a1y; n1z=-a1z;
+        s2x=d2x; s2y=d2y; s2z=d2z;
+        n2x=-a2x; n2y=-a2y; n2z=-a2z;
     }
-    s1x=d1x;
-    s1y=d1y;
-    s1z=d1z;
-    n1x=-a1x;
-    n1y=-a1y;
-    n1z=-a1z;
-    s2x=d2x;
-    s2y=d2y;
-    s2z=d2z;
-    n2x=-a2x;
-    n2y=-a2y;
-    n2z=-a2z;
-    break;
-    case 3:
-    swap=true;
-    if(!right){
-    cx=p2x+d4x;
-    cy=p2y+d4y;
-    cz=p2z+d4z;
-    nx=a4x;
-    ny=a4y;
-    nz=a4z;
-    }else{
-    cx=p2x-d4x;
-    cy=p2y-d4y;
-    cz=p2z-d4z;
-    nx=-a4x;
-    ny=-a4y;
-    nz=-a4z;
+    else if(minIndex==3){// b2.x * b1
+        swap=true;
+        if(!right){
+            cx=p2x+d4x; cy=p2y+d4y; cz=p2z+d4z;
+            nx=a4x; ny=a4y; nz=a4z;
+        }else{
+            cx=p2x-d4x; cy=p2y-d4y; cz=p2z-d4z;
+            nx=-a4x; ny=-a4y; nz=-a4z;
+        }
+        s1x=d5x; s1y=d5y; s1z=d5z;
+        n1x=-a5x; n1y=-a5y; n1z=-a5z;
+        s2x=d6x; s2y=d6y; s2z=d6z;
+        n2x=-a6x; n2y=-a6y; n2z=-a6z;
     }
-    s1x=d5x;
-    s1y=d5y;
-    s1z=d5z;
-    n1x=-a5x;
-    n1y=-a5y;
-    n1z=-a5z;
-    s2x=d6x;
-    s2y=d6y;
-    s2z=d6z;
-    n2x=-a6x;
-    n2y=-a6y;
-    n2z=-a6z;
-    break;
-    case 4:
-    swap=true;
-    if(!right){
-    cx=p2x+d5x;
-    cy=p2y+d5y;
-    cz=p2z+d5z;
-    nx=a5x;
-    ny=a5y;
-    nz=a5z;
-    }else{
-    cx=p2x-d5x;
-    cy=p2y-d5y;
-    cz=p2z-d5z;
-    nx=-a5x;
-    ny=-a5y;
-    nz=-a5z;
+    else if(minIndex==4){// b2.y * b1
+        swap=true;
+        if(!right){
+            cx=p2x+d5x; cy=p2y+d5y; cz=p2z+d5z;
+            nx=a5x; ny=a5y; nz=a5z;
+        }else{
+            cx=p2x-d5x; cy=p2y-d5y; cz=p2z-d5z;
+            nx=-a5x; ny=-a5y; nz=-a5z;
+        }
+        s1x=d4x; s1y=d4y; s1z=d4z;
+        n1x=-a4x; n1y=-a4y; n1z=-a4z;
+        s2x=d6x; s2y=d6y; s2z=d6z;
+        n2x=-a6x; n2y=-a6y; n2z=-a6z;
     }
-    s1x=d4x;
-    s1y=d4y;
-    s1z=d4z;
-    n1x=-a4x;
-    n1y=-a4y;
-    n1z=-a4z;
-    s2x=d6x;
-    s2y=d6y;
-    s2z=d6z;
-    n2x=-a6x;
-    n2y=-a6y;
-    n2z=-a6z;
-    break;
-    case 5:
-    swap=true;
-    if(!right){
-    cx=p2x+d6x;
-    cy=p2y+d6y;
-    cz=p2z+d6z;
-    nx=a6x;
-    ny=a6y;
-    nz=a6z;
-    }else{
-    cx=p2x-d6x;
-    cy=p2y-d6y;
-    cz=p2z-d6z;
-    nx=-a6x;
-    ny=-a6y;
-    nz=-a6z;
+    else if(minIndex==5){// b2.z * b1
+        swap=true;
+        if(!right){
+            cx=p2x+d6x; cy=p2y+d6y; cz=p2z+d6z;
+            nx=a6x; ny=a6y; nz=a6z;
+        }else{
+            cx=p2x-d6x; cy=p2y-d6y; cz=p2z-d6z;
+            nx=-a6x; ny=-a6y; nz=-a6z;
+        }
+        s1x=d4x; s1y=d4y; s1z=d4z;
+        n1x=-a4x; n1y=-a4y; n1z=-a4z;
+        s2x=d5x; s2y=d5y; s2z=d5z;
+        n2x=-a5x; n2y=-a5y; n2z=-a5z;
     }
-    s1x=d4x;
-    s1y=d4y;
-    s1z=d4z;
-    n1x=-a4x;
-    n1y=-a4y;
-    n1z=-a4z;
-    s2x=d5x;
-    s2y=d5y;
-    s2z=d5z;
-    n2x=-a5x;
-    n2y=-a5y;
-    n2z=-a5z;
-    break;
-    case 6:
-    nx=a7x;
-    ny=a7y;
-    nz=a7z;
-    n1x=a1x;
-    n1y=a1y;
-    n1z=a1z;
-    n2x=a4x;
-    n2y=a4y;
-    n2z=a4z;
-    break;
-    case 7:
-    nx=a8x;
-    ny=a8y;
-    nz=a8z;
-    n1x=a1x;
-    n1y=a1y;
-    n1z=a1z;
-    n2x=a5x;
-    n2y=a5y;
-    n2z=a5z;
-    break;
-    case 8:
-    nx=a9x;
-    ny=a9y;
-    nz=a9z;
-    n1x=a1x;
-    n1y=a1y;
-    n1z=a1z;
-    n2x=a6x;
-    n2y=a6y;
-    n2z=a6z;
-    break;
-    case 9:
-    nx=aax;
-    ny=aay;
-    nz=aaz;
-    n1x=a2x;
-    n1y=a2y;
-    n1z=a2z;
-    n2x=a4x;
-    n2y=a4y;
-    n2z=a4z;
-    break;
-    case 10:
-    nx=abx;
-    ny=aby;
-    nz=abz;
-    n1x=a2x;
-    n1y=a2y;
-    n1z=a2z;
-    n2x=a5x;
-    n2y=a5y;
-    n2z=a5z;
-    break;
-    case 11:
-    nx=acx;
-    ny=acy;
-    nz=acz;
-    n1x=a2x;
-    n1y=a2y;
-    n1z=a2z;
-    n2x=a6x;
-    n2y=a6y;
-    n2z=a6z;
-    break;
-    case 12:
-    nx=adx;
-    ny=ady;
-    nz=adz;
-    n1x=a3x;
-    n1y=a3y;
-    n1z=a3z;
-    n2x=a4x;
-    n2y=a4y;
-    n2z=a4z;
-    break;
-    case 13:
-    nx=aex;
-    ny=aey;
-    nz=aez;
-    n1x=a3x;
-    n1y=a3y;
-    n1z=a3z;
-    n2x=a5x;
-    n2y=a5y;
-    n2z=a5z;
-    break;
-    case 14:
-    nx=afx;
-    ny=afy;
-    nz=afz;
-    n1x=a3x;
-    n1y=a3y;
-    n1z=a3z;
-    n2x=a6x;
-    n2y=a6y;
-    n2z=a6z;
-    break;
+    else if(minIndex==6){// b1.x * b2.x
+        nx=a7x; ny=a7y; nz=a7z;
+        n1x=a1x; n1y=a1y; n1z=a1z;
+        n2x=a4x; n2y=a4y; n2z=a4z;
     }
+    else if(minIndex==7){// b1.x * b2.y
+        nx=a8x; ny=a8y; nz=a8z;
+        n1x=a1x; n1y=a1y; n1z=a1z;
+        n2x=a5x; n2y=a5y; n2z=a5z;
+    }
+    else if(minIndex==8){// b1.x * b2.z
+        nx=a9x; ny=a9y; nz=a9z;
+        n1x=a1x; n1y=a1y; n1z=a1z;
+        n2x=a6x; n2y=a6y; n2z=a6z;
+    }
+    else if(minIndex==9){// b1.y * b2.x
+        nx=aax; ny=aay; nz=aaz;
+        n1x=a2x; n1y=a2y; n1z=a2z;
+        n2x=a4x; n2y=a4y; n2z=a4z
+    }
+    else if(minIndex==10){// b1.y * b2.y
+        nx=abx; ny=aby; nz=abz;
+        n1x=a2x; n1y=a2y; n1z=a2z;
+        n2x=a5x; n2y=a5y; n2z=a5z;
+    }
+    else if(minIndex==11){// b1.y * b2.z
+        nx=acx; ny=acy; nz=acz;
+        n1x=a2x; n1y=a2y; n1z=a2z;
+        n2x=a6x; n2y=a6y; n2z=a6z;
+    }
+    else if(minIndex==12){// b1.z * b2.x
+        nx=adx;  ny=ady; nz=adz;
+        n1x=a3x; n1y=a3y; n1z=a3z;
+        n2x=a4x; n2y=a4y; n2z=a4z;
+    }
+    else if(minIndex==13){// b1.z * b2.y
+        nx=aex; ny=aey; nz=aez;
+        n1x=a3x; n1y=a3y; n1z=a3z;
+        n2x=a5x; n2y=a5y; n2z=a5z;
+    }
+    else if(minIndex==14){// b1.z * b2.z
+        nx=afx; ny=afy; nz=afz;
+        n1x=a3x; n1y=a3y; n1z=a3z;
+        n2x=a6x; n2y=a6y; n2z=a6z;
+    }
+
+    //__________________________________________
+
     var v;
     if(minIndex>5){
-    if(!right){
-    nx=-nx;
-    ny=-ny;
-    nz=-nz;
+        if(!right){
+            nx=-nx; ny=-ny; nz=-nz;
+        }
+        var distance;
+        var maxDistance;
+        var vx;
+        var vy;
+        var vz;
+        var v1x;
+        var v1y;
+        var v1z;
+        var v2x;
+        var v2y;
+        var v2z;
+        //vertex1;
+        v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
+        maxDistance=nx*v1x+ny*v1y+nz*v1z;
+        //vertex2;
+        vx=V1[3]; vy=V1[4]; vz=V1[5];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex3;
+        vx=V1[6]; vy=V1[7]; vz=V1[8];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex4;
+        vx=V1[9]; vy=V1[10]; vz=V1[11];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex5;
+        vx=V1[12]; vy=V1[13]; vz=V1[14];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex6;
+        vx=V1[15]; vy=V1[16]; vz=V1[17];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex7;
+        vx=V1[18]; vy=V1[19]; vz=V1[20];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex8;
+        vx=V1[21]; vy=V1[22]; vz=V1[23];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance>maxDistance){
+            maxDistance=distance;
+            v1x=vx; v1y=vy; v1z=vz;
+        }
+        //vertex1;
+        v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
+        maxDistance=nx*v2x+ny*v2y+nz*v2z;
+        //vertex2;
+        vx=V2[3]; vy=V2[4]; vz=V2[5];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        //vertex3;
+        vx=V2[6]; vy=V2[7]; vz=V2[8];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        //vertex4;
+        vx=V2[9]; vy=V2[10]; vz=V2[11];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        //vertex5;
+        vx=V2[12]; vy=V2[13]; vz=V2[14];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        //vertex6;
+        vx=V2[15]; vy=V2[16]; vz=V2[17];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        //vertex7;
+        vx=V2[18]; vy=V2[19]; vz=V2[20];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        //vertex8;
+        vx=V2[21]; vy=V2[22]; vz=V2[23];
+        distance=nx*vx+ny*vy+nz*vz;
+        if(distance<maxDistance){
+            maxDistance=distance;
+            v2x=vx; v2y=vy; v2z=vz;
+        }
+        vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
+        dot1=n1x*n2x+n1y*n2y+n1z*n2z;
+        var t=(vx*(n1x-n2x*dot1)+vy*(n1y-n2y*dot1)+vz*(n1z-n2z*dot1))/(1-dot1*dot1);
+        manifold.addPoint(v1x+n1x*t+nx*depth*0.5,v1y+n1y*t+ny*depth*0.5,v1z+n1z*t+nz*depth*0.5,nx,ny,nz,depth,false);
+        return;
     }
-    var distance;
-    var maxDistance;
-    var vx;
-    var vy;
-    var vz;
-    var v1x;
-    var v1y;
-    var v1z;
-    var v2x;
-    var v2y;
-    var v2z;
-    //vertex1;
-    v1x=V1[0];
-    v1y=V1[1];
-    v1z=V1[2];
-    maxDistance=nx*v1x+ny*v1y+nz*v1z;
-    //vertex2;
-    vx=V1[3];
-    vy=V1[4];
-    vz=V1[5];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex3;
-    vx=V1[6];
-    vy=V1[7];
-    vz=V1[8];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex4;
-    vx=V1[9];
-    vy=V1[10];
-    vz=V1[11];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex5;
-    vx=V1[12];
-    vy=V1[13];
-    vz=V1[14];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex6;
-    vx=V1[15];
-    vy=V1[16];
-    vz=V1[17];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex7;
-    vx=V1[18];
-    vy=V1[19];
-    vz=V1[20];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex8;
-    vx=V1[21];
-    vy=V1[22];
-    vz=V1[23];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance>maxDistance){
-    maxDistance=distance;
-    v1x=vx;
-    v1y=vy;
-    v1z=vz;
-    }
-    //vertex1;
-    v2x=V2[0];
-    v2y=V2[1];
-    v2z=V2[2];
-    maxDistance=nx*v2x+ny*v2y+nz*v2z;
-    //vertex2;
-    vx=V2[3];
-    vy=V2[4];
-    vz=V2[5];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    //vertex3;
-    vx=V2[6];
-    vy=V2[7];
-    vz=V2[8];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    //vertex4;
-    vx=V2[9];
-    vy=V2[10];
-    vz=V2[11];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    //vertex5;
-    vx=V2[12];
-    vy=V2[13];
-    vz=V2[14];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    //vertex6;
-    vx=V2[15];
-    vy=V2[16];
-    vz=V2[17];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    //vertex7;
-    vx=V2[18];
-    vy=V2[19];
-    vz=V2[20];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    //vertex8;
-    vx=V2[21];
-    vy=V2[22];
-    vz=V2[23];
-    distance=nx*vx+ny*vy+nz*vz;
-    if(distance<maxDistance){
-    maxDistance=distance;
-    v2x=vx;
-    v2y=vy;
-    v2z=vz;
-    }
-    vx=v2x-v1x;
-    vy=v2y-v1y;
-    vz=v2z-v1z;
-    dot1=n1x*n2x+n1y*n2y+n1z*n2z;
-    var t=(vx*(n1x-n2x*dot1)+vy*(n1y-n2y*dot1)+vz*(n1z-n2z*dot1))/(1-dot1*dot1);
-    manifold.addPoint(v1x+n1x*t+nx*depth*0.5,v1y+n1y*t+ny*depth*0.5,v1z+n1z*t+nz*depth*0.5,nx,ny,nz,depth,false);
-    return;
-    }
+    // now detect face-face collision...
+    // target quad
     var q1x;
     var q1y;
     var q1z;
@@ -6442,286 +6964,146 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     var q4x;
     var q4y;
     var q4z;
+    // search support face and vertex
     var minDot=1;
     var dot=0;
     var minDotIndex=0;
     if(swap){
-    dot=a1x*nx+a1y*ny+a1z*nz;
-    if(dot<minDot){
-    minDot=dot;
-    minDotIndex=0;
-    }
-    if(-dot<minDot){
-    minDot=-dot;
-    minDotIndex=1;
-    }
-    dot=a2x*nx+a2y*ny+a2z*nz;
-    if(dot<minDot){
-    minDot=dot;
-    minDotIndex=2;
-    }
-    if(-dot<minDot){
-    minDot=-dot;
-    minDotIndex=3;
-    }
-    dot=a3x*nx+a3y*ny+a3z*nz;
-    if(dot<minDot){
-    minDot=dot;
-    minDotIndex=4;
-    }
-    if(-dot<minDot){
-    minDot=-dot;
-    minDotIndex=5;
-    }
-    switch(minDotIndex){
-    case 0:
-    //vertex1;
-    q1x=V1[0];
-    q1y=V1[1];
-    q1z=V1[2];
-    //vertex3;
-    q2x=V1[6];
-    q2y=V1[7];
-    q2z=V1[8];
-    //vertex4;
-    q3x=V1[9];
-    q3y=V1[10];
-    q3z=V1[11];
-    //vertex2;
-    q4x=V1[3];
-    q4y=V1[4];
-    q4z=V1[5];
-    break;
-    case 1:
-    //vertex6;
-    q1x=V1[15];
-    q1y=V1[16];
-    q1z=V1[17];
-    //vertex8;
-    q2x=V1[21];
-    q2y=V1[22];
-    q2z=V1[23];
-    //vertex7;
-    q3x=V1[18];
-    q3y=V1[19];
-    q3z=V1[20];
-    //vertex5;
-    q4x=V1[12];
-    q4y=V1[13];
-    q4z=V1[14];
-    break;
-    case 2:
-    //vertex5;
-    q1x=V1[12];
-    q1y=V1[13];
-    q1z=V1[14];
-    //vertex1;
-    q2x=V1[0];
-    q2y=V1[1];
-    q2z=V1[2];
-    //vertex2;
-    q3x=V1[3];
-    q3y=V1[4];
-    q3z=V1[5];
-    //vertex6;
-    q4x=V1[15];
-    q4y=V1[16];
-    q4z=V1[17];
-    break;
-    case 3:
-    //vertex8;
-    q1x=V1[21];
-    q1y=V1[22];
-    q1z=V1[23];
-    //vertex4;
-    q2x=V1[9];
-    q2y=V1[10];
-    q2z=V1[11];
-    //vertex3;
-    q3x=V1[6];
-    q3y=V1[7];
-    q3z=V1[8];
-    //vertex7;
-    q4x=V1[18];
-    q4y=V1[19];
-    q4z=V1[20];
-    break;
-    case 4:
-    //vertex5;
-    q1x=V1[12];
-    q1y=V1[13];
-    q1z=V1[14];
-    //vertex7;
-    q2x=V1[18];
-    q2y=V1[19];
-    q2z=V1[20];
-    //vertex3;
-    q3x=V1[6];
-    q3y=V1[7];
-    q3z=V1[8];
-    //vertex1;
-    q4x=V1[0];
-    q4y=V1[1];
-    q4z=V1[2];
-    break;
-    case 5:
-    //vertex2;
-    q1x=V1[3];
-    q1y=V1[4];
-    q1z=V1[5];
-    //vertex4;
-    q2x=V1[6];
-    q2y=V1[7];
-    q2z=V1[8];
-    //vertex8;
-    q3x=V1[21];
-    q3y=V1[22];
-    q3z=V1[23];
-    //vertex6;
-    q4x=V1[15];
-    q4y=V1[16];
-    q4z=V1[17];
-    break;
-    }
+        dot=a1x*nx+a1y*ny+a1z*nz;
+        if(dot<minDot){
+            minDot=dot;
+            minDotIndex=0;
+        }
+        if(-dot<minDot){
+            minDot=-dot;
+            minDotIndex=1;
+        }
+        dot=a2x*nx+a2y*ny+a2z*nz;
+        if(dot<minDot){
+            minDot=dot;
+            minDotIndex=2;
+        }
+        if(-dot<minDot){
+            minDot=-dot;
+            minDotIndex=3;
+        }
+        dot=a3x*nx+a3y*ny+a3z*nz;
+        if(dot<minDot){
+            minDot=dot;
+            minDotIndex=4;
+        }
+        if(-dot<minDot){
+            minDot=-dot;
+            minDotIndex=5;
+        }
+
+        if(minDotIndex==0){// x+ face
+            q1x=V1[0]; q1y=V1[1]; q1z=V1[2];//vertex1
+            q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex3
+            q3x=V1[9]; q3y=V1[10]; q3z=V1[11];//vertex4
+            q4x=V1[3]; q4y=V1[4]; q4z=V1[5];//vertex2
+        }
+        else if(minDotIndex==1){// x- face
+            q1x=V1[15]; q1y=V1[16]; q1z=V1[17];//vertex6
+            q2x=V1[21]; q2y=V1[22]; q2z=V1[23];//vertex8
+            q3x=V1[18]; q3y=V1[19]; q3z=V1[20];//vertex7
+            q4x=V1[12]; q4y=V1[13]; q4z=V1[14];//vertex5
+        }
+        else if(minDotIndex==2){// y+ face
+            q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
+            q2x=V1[0]; q2y=V1[1]; q2z=V1[2];//vertex1
+            q3x=V1[3]; q3y=V1[4]; q3z=V1[5];//vertex2
+            q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
+        }
+        else if(minDotIndex==3){// y- face
+            q1x=V1[21]; q1y=V1[22]; q1z=V1[23];//vertex8
+            q2x=V1[9]; q2y=V1[10]; q2z=V1[11];//vertex4
+            q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
+            q4x=V1[18]; q4y=V1[19]; q4z=V1[20];//vertex7
+        }
+        else if(minDotIndex==4){// z+ face
+            q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
+            q2x=V1[18]; q2y=V1[19]; q2z=V1[20];//vertex7
+            q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
+            q4x=V1[0]; q4y=V1[1]; q4z=V1[2];//vertex1
+        }
+        else if(minDotIndex==5){// z- face
+            q1x=V1[3]; q1y=V1[4]; q1z=V1[5];//vertex2
+            q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4
+            q3x=V1[21]; q3y=V1[22]; q3z=V1[23];//vertex8
+            q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
+        }
+
     }else{
-    dot=a4x*nx+a4y*ny+a4z*nz;
-    if(dot<minDot){
-    minDot=dot;
-    minDotIndex=0;
+        dot=a4x*nx+a4y*ny+a4z*nz;
+        if(dot<minDot){
+            minDot=dot;
+            minDotIndex=0;
+        }
+        if(-dot<minDot){
+            minDot=-dot;
+            minDotIndex=1;
+        }
+        dot=a5x*nx+a5y*ny+a5z*nz;
+        if(dot<minDot){
+            minDot=dot;
+            minDotIndex=2;
+        }
+        if(-dot<minDot){
+            minDot=-dot;
+            minDotIndex=3;
+        }
+        dot=a6x*nx+a6y*ny+a6z*nz;
+        if(dot<minDot){
+            minDot=dot;
+            minDotIndex=4;
+        }
+        if(-dot<minDot){
+            minDot=-dot;
+            minDotIndex=5;
+        }
+
+        //______________________________________________________
+
+        if(minDotIndex==0){// x+ face
+            q1x=V2[0]; q1y=V2[1]; q1z=V2[2];//vertex1
+            q2x=V2[6]; q2y=V2[7]; q2z=V2[8];//vertex3
+            q3x=V2[9]; q3y=V2[10]; q3z=V2[11];//vertex4
+            q4x=V2[3]; q4y=V2[4]; q4z=V2[5];//vertex2
+        }
+        else if(minDotIndex==1){// x- face
+            q1x=V2[15]; q1y=V2[16]; q1z=V2[17];//vertex6
+            q2x=V2[21]; q2y=V2[22]; q2z=V2[23]; //vertex8
+            q3x=V2[18]; q3y=V2[19]; q3z=V2[20];//vertex7
+            q4x=V2[12]; q4y=V2[13]; q4z=V2[14];//vertex5
+        }
+        else if(minDotIndex==2){// y+ face
+            q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
+            q2x=V2[0]; q2y=V2[1]; q2z=V2[2];//vertex1
+            q3x=V2[3]; q3y=V2[4]; q3z=V2[5];//vertex2
+            q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
+        }
+        else if(minDotIndex==3){// y- face
+            q1x=V2[21]; q1y=V2[22]; q1z=V2[23];//vertex8
+            q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+            q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
+            q4x=V2[18]; q4y=V2[19]; q4z=V2[20];//vertex7
+        }
+        else if(minDotIndex==4){// z+ face
+            q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
+            q2x=V2[18]; q2y=V2[19]; q2z=V2[20];//vertex7
+            q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
+            q4x=V2[0]; q4y=V2[1]; q4z=V2[2];//vertex1
+        }
+        else if(minDotIndex==5){// z- face
+            q1x=V2[3]; q1y=V2[4]; q1z=V2[5];//vertex2
+            q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+            q3x=V2[21]; q3y=V2[22]; q3z=V2[23];//vertex8
+            q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
+        }
+  
     }
-    if(-dot<minDot){
-    minDot=-dot;
-    minDotIndex=1;
-    }
-    dot=a5x*nx+a5y*ny+a5z*nz;
-    if(dot<minDot){
-    minDot=dot;
-    minDotIndex=2;
-    }
-    if(-dot<minDot){
-    minDot=-dot;
-    minDotIndex=3;
-    }
-    dot=a6x*nx+a6y*ny+a6z*nz;
-    if(dot<minDot){
-    minDot=dot;
-    minDotIndex=4;
-    }
-    if(-dot<minDot){
-    minDot=-dot;
-    minDotIndex=5;
-    }
-    switch(minDotIndex){
-    case 0:
-    //vertex1;
-    q1x=V2[0];
-    q1y=V2[1];
-    q1z=V2[2];
-    //vertex3;
-    q2x=V2[6];
-    q2y=V2[7];
-    q2z=V2[8];
-    //vertex4;
-    q3x=V2[9];
-    q3y=V2[10];
-    q3z=V2[11];
-    //vertex2;
-    q4x=V2[3];
-    q4y=V2[4];
-    q4z=V2[5];
-    break;
-    case 1:
-    //vertex6;
-    q1x=V2[15];
-    q1y=V2[16];
-    q1z=V2[17];
-    //vertex8;
-    q2x=V2[21];
-    q2y=V2[22];
-    q2z=V2[23];
-    //vertex7;
-    q3x=V2[18];
-    q3y=V2[19];
-    q3z=V2[20];
-    //vertex5;
-    q4x=V2[12];
-    q4y=V2[13];
-    q4z=V2[14];
-    break;
-    case 2:
-    //vertex5;
-    q1x=V2[12];
-    q1y=V2[13];
-    q1z=V2[14];
-    //vertex1;
-    q2x=V2[0];
-    q2y=V2[1];
-    q2z=V2[2];
-    //vertex2;
-    q3x=V2[3];
-    q3y=V2[4];
-    q3z=V2[5];
-    //vertex6;
-    q4x=V2[15];
-    q4y=V2[16];
-    q4z=V2[17];
-    break;
-    case 3:
-    //vertex8;
-    q1x=V2[21];
-    q1y=V2[22];
-    q1z=V2[23];
-    //vertex4;
-    q2x=V2[9];
-    q2y=V2[10];
-    q2z=V2[11];
-    //vertex3;
-    q3x=V2[6];
-    q3y=V2[7];
-    q3z=V2[8];
-    //vertex7;
-    q4x=V2[18];
-    q4y=V2[19];
-    q4z=V2[20];
-    break;
-    case 4:
-    //ertex5;
-    q1x=V2[12];
-    q1y=V2[13];
-    q1z=V2[14];
-    //vertex7;
-    q2x=V2[18];
-    q2y=V2[19];
-    q2z=V2[20];
-    //vertex3;
-    q3x=V2[6];
-    q3y=V2[7];
-    q3z=V2[8];
-    //vertex1;
-    q4x=V2[0];
-    q4y=V2[1];
-    q4z=V2[2];
-    break;
-    case 5:
-    //vertex2;
-    q1x=V2[3];
-    q1y=V2[4];
-    q1z=V2[5];
-    //vertex4;
-    q2x=V2[9];
-    q2y=V2[10];
-    q2z=V2[11];
-    //vertex8;
-    q3x=V2[21];
-    q3y=V2[22];
-    q3z=V2[23];
-    //vertex6;
-    q4x=V2[15];
-    q4y=V2[16];
-    q4z=V2[17];
-    break;
-    }
-    }
+    // clip vertices
     var numClipVertices;
     var numAddedClipVertices;
     var index;
@@ -6748,47 +7130,51 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     y1=this.clipVertices1[10];
     z1=this.clipVertices1[11];
     dot1=(x1-cx-s1x)*n1x+(y1-cy-s1y)*n1y+(z1-cz-s1z)*n1z;
+
+    //var i = 4;
+    //while(i--){
     for(var i=0;i<4;i++){
-    index=i*3;
-    x2=this.clipVertices1[index];
-    y2=this.clipVertices1[index+1];
-    z2=this.clipVertices1[index+2];
-    dot2=(x2-cx-s1x)*n1x+(y2-cy-s1y)*n1y+(z2-cz-s1z)*n1z;
-    if(dot1>0){
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices2[index]=x2;
-    this.clipVertices2[index+1]=y2;
-    this.clipVertices2[index+2]=z2;
-    }else{
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices2[index]=x1+(x2-x1)*t;
-    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+        index=i*3;
+        x2=this.clipVertices1[index];
+        y2=this.clipVertices1[index+1];
+        z2=this.clipVertices1[index+2];
+        dot2=(x2-cx-s1x)*n1x+(y2-cy-s1y)*n1y+(z2-cz-s1z)*n1z;
+        if(dot1>0){
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices2[index]=x2;
+                this.clipVertices2[index+1]=y2;
+                this.clipVertices2[index+2]=z2;
+            }else{
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices2[index]=x1+(x2-x1)*t;
+                this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                this.clipVertices2[index+2]=z1+(z2-z1)*t;
+            }
+        }else{
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices2[index]=x1+(x2-x1)*t;
+                this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices2[index]=x2;
+                this.clipVertices2[index+1]=y2;
+                this.clipVertices2[index+2]=z2;
+            }
+        }
+        x1=x2;
+        y1=y2;
+        z1=z2;
+        dot1=dot2;
     }
-    }else{
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices2[index]=x1+(x2-x1)*t;
-    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-    this.clipVertices2[index+2]=z1+(z2-z1)*t;
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices2[index]=x2;
-    this.clipVertices2[index+1]=y2;
-    this.clipVertices2[index+2]=z2;
-    }
-    }
-    x1=x2;
-    y1=y2;
-    z1=z2;
-    dot1=dot2;
-    }
+
     numClipVertices=numAddedClipVertices;
     if(numClipVertices==0)return;
     numAddedClipVertices=0;
@@ -6797,47 +7183,51 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     y1=this.clipVertices2[index+1];
     z1=this.clipVertices2[index+2];
     dot1=(x1-cx-s2x)*n2x+(y1-cy-s2y)*n2y+(z1-cz-s2z)*n2z;
+
+    //i = numClipVertices;
+    //while(i--){
     for(i=0;i<numClipVertices;i++){
-    index=i*3;
-    x2=this.clipVertices2[index];
-    y2=this.clipVertices2[index+1];
-    z2=this.clipVertices2[index+2];
-    dot2=(x2-cx-s2x)*n2x+(y2-cy-s2y)*n2y+(z2-cz-s2z)*n2z;
-    if(dot1>0){
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices1[index]=x2;
-    this.clipVertices1[index+1]=y2;
-    this.clipVertices1[index+2]=z2;
-    }else{
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices1[index]=x1+(x2-x1)*t;
-    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+        index=i*3;
+        x2=this.clipVertices2[index];
+        y2=this.clipVertices2[index+1];
+        z2=this.clipVertices2[index+2];
+        dot2=(x2-cx-s2x)*n2x+(y2-cy-s2y)*n2y+(z2-cz-s2z)*n2z;
+        if(dot1>0){
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices1[index]=x2;
+                this.clipVertices1[index+1]=y2;
+                this.clipVertices1[index+2]=z2;
+            }else{
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices1[index]=x1+(x2-x1)*t;
+                this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                this.clipVertices1[index+2]=z1+(z2-z1)*t;
+            }
+        }else{
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices1[index]=x1+(x2-x1)*t;
+                this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices1[index]=x2;
+                this.clipVertices1[index+1]=y2;
+                this.clipVertices1[index+2]=z2;
+            }
+        }
+        x1=x2;
+        y1=y2;
+        z1=z2;
+        dot1=dot2;
     }
-    }else{
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices1[index]=x1+(x2-x1)*t;
-    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-    this.clipVertices1[index+2]=z1+(z2-z1)*t;
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices1[index]=x2;
-    this.clipVertices1[index+1]=y2;
-    this.clipVertices1[index+2]=z2;
-    }
-    }
-    x1=x2;
-    y1=y2;
-    z1=z2;
-    dot1=dot2;
-    }
+
     numClipVertices=numAddedClipVertices;
     if(numClipVertices==0)return;
     numAddedClipVertices=0;
@@ -6846,47 +7236,51 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     y1=this.clipVertices1[index+1];
     z1=this.clipVertices1[index+2];
     dot1=(x1-cx+s1x)*-n1x+(y1-cy+s1y)*-n1y+(z1-cz+s1z)*-n1z;
+
+    //i = numClipVertices;
+    //while(i--){
     for(i=0;i<numClipVertices;i++){
-    index=i*3;
-    x2=this.clipVertices1[index];
-    y2=this.clipVertices1[index+1];
-    z2=this.clipVertices1[index+2];
-    dot2=(x2-cx+s1x)*-n1x+(y2-cy+s1y)*-n1y+(z2-cz+s1z)*-n1z;
-    if(dot1>0){
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices2[index]=x2;
-    this.clipVertices2[index+1]=y2;
-    this.clipVertices2[index+2]=z2;
-    }else{
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices2[index]=x1+(x2-x1)*t;
-    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+        index=i*3;
+        x2=this.clipVertices1[index];
+        y2=this.clipVertices1[index+1];
+        z2=this.clipVertices1[index+2];
+        dot2=(x2-cx+s1x)*-n1x+(y2-cy+s1y)*-n1y+(z2-cz+s1z)*-n1z;
+        if(dot1>0){
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices2[index]=x2;
+                this.clipVertices2[index+1]=y2;
+                this.clipVertices2[index+2]=z2;
+            }else{
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices2[index]=x1+(x2-x1)*t;
+                this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                this.clipVertices2[index+2]=z1+(z2-z1)*t;
+            }
+        }else{
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices2[index]=x1+(x2-x1)*t;
+                this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices2[index]=x2;
+                this.clipVertices2[index+1]=y2;
+                this.clipVertices2[index+2]=z2;
+            }
+        }
+        x1=x2;
+        y1=y2;
+        z1=z2;
+        dot1=dot2;
     }
-    }else{
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices2[index]=x1+(x2-x1)*t;
-    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-    this.clipVertices2[index+2]=z1+(z2-z1)*t;
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices2[index]=x2;
-    this.clipVertices2[index+1]=y2;
-    this.clipVertices2[index+2]=z2;
-    }
-    }
-    x1=x2;
-    y1=y2;
-    z1=z2;
-    dot1=dot2;
-    }
+
     numClipVertices=numAddedClipVertices;
     if(numClipVertices==0)return;
     numAddedClipVertices=0;
@@ -6895,153 +7289,165 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     y1=this.clipVertices2[index+1];
     z1=this.clipVertices2[index+2];
     dot1=(x1-cx+s2x)*-n2x+(y1-cy+s2y)*-n2y+(z1-cz+s2z)*-n2z;
+
+    //i = numClipVertices;
+    //while(i--){
     for(i=0;i<numClipVertices;i++){
-    index=i*3;
-    x2=this.clipVertices2[index];
-    y2=this.clipVertices2[index+1];
-    z2=this.clipVertices2[index+2];
-    dot2=(x2-cx+s2x)*-n2x+(y2-cy+s2y)*-n2y+(z2-cz+s2z)*-n2z;
-    if(dot1>0){
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices1[index]=x2;
-    this.clipVertices1[index+1]=y2;
-    this.clipVertices1[index+2]=z2;
-    }else{
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices1[index]=x1+(x2-x1)*t;
-    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+        index=i*3;
+        x2=this.clipVertices2[index];
+        y2=this.clipVertices2[index+1];
+        z2=this.clipVertices2[index+2];
+        dot2=(x2-cx+s2x)*-n2x+(y2-cy+s2y)*-n2y+(z2-cz+s2z)*-n2z;
+        if(dot1>0){
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices1[index]=x2;
+                this.clipVertices1[index+1]=y2;
+                this.clipVertices1[index+2]=z2;
+            }else{
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices1[index]=x1+(x2-x1)*t;
+                this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                this.clipVertices1[index+2]=z1+(z2-z1)*t;
+            }
+        }else{
+            if(dot2>0){
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                t=dot1/(dot1-dot2);
+                this.clipVertices1[index]=x1+(x2-x1)*t;
+                this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                index=numAddedClipVertices*3;
+                numAddedClipVertices++;
+                this.clipVertices1[index]=x2;
+                this.clipVertices1[index+1]=y2;
+                this.clipVertices1[index+2]=z2;
+            }
+        }
+        x1=x2;
+        y1=y2;
+        z1=z2;
+        dot1=dot2;
     }
-    }else{
-    if(dot2>0){
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    t=dot1/(dot1-dot2);
-    this.clipVertices1[index]=x1+(x2-x1)*t;
-    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-    this.clipVertices1[index+2]=z1+(z2-z1)*t;
-    index=numAddedClipVertices*3;
-    numAddedClipVertices++;
-    this.clipVertices1[index]=x2;
-    this.clipVertices1[index+1]=y2;
-    this.clipVertices1[index+2]=z2;
-    }
-    }
-    x1=x2;
-    y1=y2;
-    z1=z2;
-    dot1=dot2;
-    }
+
     numClipVertices=numAddedClipVertices;
     if(swap){
-    var tb=b1;
-    b1=b2;
-    b2=tb;
+        var tb=b1;
+        b1=b2;
+        b2=tb;
     }
     if(numClipVertices==0)return;
     var flipped=b1!=shape1;
     if(numClipVertices>4){
-    x1=(q1x+q2x+q3x+q4x)*0.25;
-    y1=(q1y+q2y+q3y+q4y)*0.25;
-    z1=(q1z+q2z+q3z+q4z)*0.25;
-    n1x=q1x-x1;
-    n1y=q1y-y1;
-    n1z=q1z-z1;
-    n2x=q2x-x1;
-    n2y=q2y-y1;
-    n2z=q2z-z1;
-    var index1=0;
-    var index2=0;
-    var index3=0;
-    var index4=0;
-    var maxDot=-this.INF;
-    minDot=this.INF;
-    for(i=0;i<numClipVertices;i++){
-    this.used[i]=false;
-    index=i*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=x1*n1x+y1*n1y+z1*n1z;
-    if(dot<minDot){
-    minDot=dot;
-    index1=i;
-    }
-    if(dot>maxDot){
-    maxDot=dot;
-    index3=i;
-    }
-    }
-    this.used[index1]=true;
-    this.used[index3]=true;
-    maxDot=-this.INF;
-    minDot=this.INF;
-    for(i=0;i<numClipVertices;i++){
-    if(this.used[i])continue;
-    index=i*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=x1*n2x+y1*n2y+z1*n2z;
-    if(dot<minDot){
-    minDot=dot;
-    index2=i;
-    }
-    if(dot>maxDot){
-    maxDot=dot;
-    index4=i;
-    }
-    }
-    index=index1*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-    if(dot<0){
-    manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-    }
-    index=index2*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-    if(dot<0){
-    manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-    }
-    index=index3*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-    if(dot<0){
-    manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-    }
-    index=index4*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-    if(dot<0){
-    manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-    }
+        x1=(q1x+q2x+q3x+q4x)*0.25;
+        y1=(q1y+q2y+q3y+q4y)*0.25;
+        z1=(q1z+q2z+q3z+q4z)*0.25;
+        n1x=q1x-x1;
+        n1y=q1y-y1;
+        n1z=q1z-z1;
+        n2x=q2x-x1;
+        n2y=q2y-y1;
+        n2z=q2z-z1;
+        var index1=0;
+        var index2=0;
+        var index3=0;
+        var index4=0;
+        var maxDot=-this.INF;
+        minDot=this.INF;
+
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            this.used[i]=false;
+            index=i*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=x1*n1x+y1*n1y+z1*n1z;
+            if(dot<minDot){
+                minDot=dot;
+                index1=i;
+            }
+            if(dot>maxDot){
+                maxDot=dot;
+                index3=i;
+            }
+        }
+
+        this.used[index1]=true;
+        this.used[index3]=true;
+        maxDot=-this.INF;
+        minDot=this.INF;
+
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            if(this.used[i])continue;
+            index=i*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=x1*n2x+y1*n2y+z1*n2z;
+            if(dot<minDot){
+                minDot=dot;
+                index2=i;
+            }
+            if(dot>maxDot){
+                maxDot=dot;
+                index4=i;
+            }
+        }
+
+        index=index1*3;
+        x1=this.clipVertices1[index];
+        y1=this.clipVertices1[index+1];
+        z1=this.clipVertices1[index+2];
+        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+        
+        index=index2*3;
+        x1=this.clipVertices1[index];
+        y1=this.clipVertices1[index+1];
+        z1=this.clipVertices1[index+2];
+        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+        
+        index=index3*3;
+        x1=this.clipVertices1[index];
+        y1=this.clipVertices1[index+1];
+        z1=this.clipVertices1[index+2];
+        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+        
+        index=index4*3;
+        x1=this.clipVertices1[index];
+        y1=this.clipVertices1[index+1];
+        z1=this.clipVertices1[index+2];
+        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+        
     }else{
-    for(i=0;i<numClipVertices;i++){
-    index=i*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-    if(dot<0){
-    manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-    }
-    }
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            index=i*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0)manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+        }
     }
 
 }
+/**
+ * A collision detector which detects collisions between sphere and box.
+ * @author saharan
+ */
 OIMO.SphereBoxCollisionDetector = function(flip){
     OIMO.CollisionDetector.call( this );
     this.flip=flip;
@@ -7108,6 +7514,7 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         overlap|=4;
     }
     if(overlap==7){
+        // center of sphere is in the box
         if(sx<0){
             dx=hw+sx;
         }else{
@@ -7203,6 +7610,10 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
     }
 
 }
+/**
+ * A collision detector which detects collisions between two spheres.
+ * @author saharan
+ */
 OIMO.SphereSphereCollisionDetector = function(){
     OIMO.CollisionDetector.call( this );
 }
@@ -7228,6 +7639,10 @@ OIMO.SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,s
         manifold.addPoint(p1.x+dx*r1,p1.y+dy*r1,p1.z+dz*r1,dx,dy,dz,len-rad,false);
     }
 }
+/**
+* An axis-aligned bounding box.
+* @author saharan
+*/
 OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
     this.minX=minX || 0;
     this.maxX=maxX || 0;
@@ -7249,6 +7664,11 @@ OIMO.AABB.prototype = {
         this.minZ=minZ;
         this.maxZ=maxZ;
     },
+    /**
+    * Set this AABB to the combined AABB of aabb1 and aabb2.
+    * @param   aabb1
+    * @param   aabb2
+    */
     combine:function(aabb1,aabb2){
         this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
         this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
@@ -7256,37 +7676,61 @@ OIMO.AABB.prototype = {
         this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
         this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
         this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
-
-        /*var margin=0;
+        /*
+        var margin=0;
         this.minX-=margin;
         this.minY-=margin;
         this.minZ-=margin;
         this.maxX+=margin;
         this.maxY+=margin;
-        this.maxZ+=margin;*/
+        this.maxZ+=margin;
+        */
     },
+    /**
+    * Get the surface area.
+    * @return
+    */
     surfaceArea:function(){
         var h=this.maxY-this.minY;
         var d=this.maxZ-this.minZ;
         return 2*((this.maxX-this.minX)*(h+d)+h*d);
     },
+    /**
+    * Get whether the AABB intersects with the point or not.
+    * @param   x
+    * @param   y
+    * @param   z
+    * @return
+    */
     intersectsWithPoint:function(x,y,z){
         return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
     }
 }
+/**
+* A proxy is used for broad-phase collecting pairs that can be colliding.
+*/
 OIMO.Proxy = function(shape){
+	// The parent shape.
     this.shape=shape;
+    // The axis-aligned bounding box.
     this.aabb=shape.aabb;
 };
 
 OIMO.Proxy.prototype = {
 
     constructor: OIMO.Proxy,
-
+    
+    /**
+	* Update the proxy.
+	*/
     update:function(){
         throw new Error("Inheritance error.");
     }
 }
+/**
+* A basic implementation of proxies.
+* @author saharan
+*/
 OIMO.BasicProxy = function(shape){
     OIMO.Proxy.call( this, shape );
 }
@@ -7323,27 +7767,14 @@ OIMO.BroadPhase.prototype = {
     isAvailablePair:function(s1,s2){
         var b1=s1.parent;
         var b2=s2.parent;
-        if(
-        b1==b2||
-        (!b1.isDynamic&&!b2.isDynamic)||
-        (s1.belongsTo&s2.collidesWith)==0||
-        (s2.belongsTo&s1.collidesWith)==0
-        ){
-        return false;
-        }
+        if( b1==b2 || (!b1.isDynamic&&!b2.isDynamic)|| (s1.belongsTo&s2.collidesWith)==0|| (s2.belongsTo&s1.collidesWith)==0 ){ return false; }
         var js;
         if(b1.numJoints<b2.numJoints)js=b1.jointLink;
         else js=b2.jointLink;
         while(js!=null){
-        var joint=js.joint;
-        if(
-        !joint.allowCollision&&
-        (joint.body1==b1&&joint.body2==b2||
-        joint.body1==b2&&joint.body2==b1)
-        ){
-        return false;
-        }
-        js=js.next;
+           var joint=js.joint;
+           if( !joint.allowCollision && (joint.body1==b1&&joint.body2==b2|| joint.body1==b2&&joint.body2==b1) ){ return false; }
+           js=js.next;
         }
         return true;
     },
@@ -7383,6 +7814,10 @@ OIMO.BroadPhase.prototype = {
         pair.shape2=s2;
     }
 }
+/**
+* A broad-phase algorithm with brute-force search.
+* This always checks for all possible pairs.
+*/
 OIMO.BruteForceBroadPhase = function(){
     OIMO.BroadPhase.call( this);
     this.types = 0x1;
@@ -7402,6 +7837,7 @@ OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
         //this.maxProxies<<=1;
         this.maxProxies*=2;
         var newProxies=[];
+        newProxies.length = this.maxProxies;
         var i = this.numProxies;
         while(i--){
         //for(var i=0, l=this.numProxies;i<l;i++){
@@ -7412,7 +7848,9 @@ OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
     this.proxies[this.numProxies++]=proxy;
 }
 OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
-    for(var i=0, l=this.numProxies;i<l;i++){
+    var i = this.numProxies;
+    while(i--){
+    //for(var i=0, l=this.numProxies;i<l;i++){
         if(this.proxies[i]==proxy){
             this.proxies[i]=this.proxies[--this.numProxies];
             this.proxies[this.numProxies]=null;
@@ -7430,7 +7868,7 @@ OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
             var b1=p1.aabb;
             var s1=p1.shape;
             var j = this.numProxies;
-            while(j--){ if(j!==0){
+            while(j--){ if(j!==i){
             //for(var j=i+1, m=this.numProxies;j<m;j++){
                 var p2=this.proxies[j];
                 var b2=p2.aabb;
@@ -7442,18 +7880,26 @@ OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
                 }}
         }
 }
+/**
+* A pair of shapes that may collide.
+* @author saharan
+*/
 OIMO.Pair = function(){
+	// The first shape.
     this.shape1=null;
+    // The second shape.
     this.shape2=null;
 };
+/**
+* A projection axis for sweep and prune broad-phase.
+* @author saharan
+*/
 OIMO.SAPAxis = function(){
     this.numElements=0;
-    this.stack=[];// vector !
-    this.stack.length = 64;
     this.bufferSize=256;
-    this.elements=[];// vector !
+    this.elements=[];
     this.elements.length = this.bufferSize;
-
+    this.stack=new OIMO_ARRAY_TYPE(64);
 };
 
 OIMO.SAPAxis.prototype = {
@@ -7465,7 +7911,9 @@ OIMO.SAPAxis.prototype = {
             //this.bufferSize<<=1;
             this.bufferSize*=2;
             var newElements=[];
-            for(var i=0, l=this.numElements; i<l; i++){
+            var i = this.numElements;
+            while(i--){
+            //for(var i=0, l=this.numElements; i<l; i++){
                 newElements[i]=this.elements[i];
             }
         }
@@ -7492,6 +7940,7 @@ OIMO.SAPAxis.prototype = {
         for(i=maxIndex+1, l=this.numElements; i<l; i++){
             this.elements[i-2]=this.elements[i];
         }
+
         this.elements[--this.numElements]=null;
         this.elements[--this.numElements]=null;
     },
@@ -7503,21 +7952,21 @@ OIMO.SAPAxis.prototype = {
         count=0;
         var giveup=false;
         var elements=this.elements;
-        for(var i=1, l=this.numElements; i<l; i++){
+        for(var i=1, l=this.numElements; i<l; i++){ // try insertion sort
             var tmp=elements[i];
             var pivot=tmp.value;
             var tmp2=elements[i-1];
             if(tmp2.value>pivot){
                 var j=i;
                 do{
-                elements[j]=tmp2;
-                if(--j==0)break;
-                tmp2=elements[j-1];
+                    elements[j]=tmp2;
+                    if(--j==0)break;
+                    tmp2=elements[j-1];
                 }while(tmp2.value>pivot);
                 elements[j]=tmp;
                 count+=i-j;
                 if(count>threshold){
-                    giveup=true;
+                    giveup=true; // stop and use quick sort
                     break;
                 }
             }
@@ -7530,56 +7979,53 @@ OIMO.SAPAxis.prototype = {
             var right=stack[--count];
             var left=stack[--count];
             var diff=right-left;
-            if(diff>16){
-            var mid=left+(diff>>1);
-            //var mid=left+(diff*0.5);
-            tmp=elements[mid];
-            elements[mid]=elements[right];
-            elements[right]=tmp;
-            pivot=tmp.value;
-            i=left-1;
-            j=right;
-            while(true){
-                var ei;
-                var ej;
-                do{
-                ei=elements[++i];
-                }while(ei.value<pivot);
-                do{
-                ej=elements[--j];
-                }while(pivot<ej.value&&j!=left);
-                if(i>=j)break;
-                elements[i]=ej;
-                elements[j]=ei;
-            }
-            elements[right]=elements[i];
-            elements[i]=tmp;
-            if(i-left>right-i){
-                stack[count++]=left;
-                stack[count++]=i-1;
-                stack[count++]=i+1;
-                stack[count++]=right;
+            if(diff>16){  // quick sort
+                //var mid=left+(diff>>1);
+                var mid=left+(Math.floor(diff*0.5));
+                tmp=elements[mid];
+                elements[mid]=elements[right];
+                elements[right]=tmp;
+                pivot=tmp.value;
+                i=left-1;
+                j=right;
+                while(true){
+                    var ei;
+                    var ej;
+                    do{ ei=elements[++i]; }while(ei.value<pivot);
+                    do{ ej=elements[--j]; }while(pivot<ej.value&&j!=left);
+                    if(i>=j)break;
+                    elements[i]=ej;
+                    elements[j]=ei;
+                }
+
+                elements[right]=elements[i];
+                elements[i]=tmp;
+                if(i-left>right-i){
+                    stack[count++]=left;
+                    stack[count++]=i-1;
+                    stack[count++]=i+1;
+                    stack[count++]=right;
+                }else{
+                    stack[count++]=i+1;
+                    stack[count++]=right;
+                    stack[count++]=left;
+                    stack[count++]=i-1;
+                }
             }else{
-                stack[count++]=i+1;
-                stack[count++]=right;
-                stack[count++]=left;
-                stack[count++]=i-1;
-            }
-            }else{
-            for(i=left+1;i<=right;i++){
-            tmp=elements[i];
-            pivot=tmp.value;
-            tmp2=elements[i-1];
-            if(tmp2.value>pivot){
-            j=i;
-            do{
-            elements[j]=tmp2;
-            if(--j==0)break;
-            tmp2=elements[j-1];
-            }while(tmp2.value>pivot);
-            elements[j]=tmp;
-            }
-            }
+                for(i=left+1;i<=right;i++){
+                    tmp=elements[i];
+                    pivot=tmp.value;
+                    tmp2=elements[i-1];
+                    if(tmp2.value>pivot){
+                        j=i;
+                        do{
+                            elements[j]=tmp2;
+                            if(--j==0)break;
+                            tmp2=elements[j-1];
+                        }while(tmp2.value>pivot);
+                        elements[j]=tmp;
+                    }
+                }
             }
         }
     },
@@ -7597,14 +8043,19 @@ OIMO.SAPAxis.prototype = {
         return sum;
     }
 }
+/**
+* A broad-phase collision detection algorithm using sweep and prune.
+* @author saharan
+*/
 OIMO.SAPBroadPhase = function(){
     OIMO.BroadPhase.call( this);
     this.types = 0x2;
 
     this.numElementsD = 0;
     this.numElementsS = 0;
-
+    // dynamic proxies
     this.axesD = [];// vector !
+    // static or sleeping proxies
     this.axesS = [];// vector !
     this.axesD.length = 3;
     this.axesS.length = 3;
@@ -7624,6 +8075,7 @@ OIMO.SAPBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
 OIMO.SAPBroadPhase.prototype.createProxy = function (shape) {
     return new OIMO.SAPProxy(this,shape);
 }
+
 OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
     var p=(proxy);
     if(p.isDynamic()){
@@ -7640,6 +8092,7 @@ OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
         this.numElementsS+=2;
     }
 }
+
 OIMO.SAPBroadPhase.prototype.removeProxy = function (proxy) {
     var p=(proxy);
     if(p.belongsTo==0)return;
@@ -7659,6 +8112,7 @@ OIMO.SAPBroadPhase.prototype.removeProxy = function (proxy) {
     }
     p.belongsTo=0;
 }
+
 OIMO.SAPBroadPhase.prototype.collectPairs = function () {
     if(this.numElementsD==0)return;
     var axis1=this.axesD[this.index1];
@@ -7669,7 +8123,7 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
     var count2=axis2.calculateTestCount();
     var elementsD;
     var elementsS;
-    if(count1<=count2){
+    if(count1<=count2){// select the best axis
         axis2=this.axesS[this.index1];
         axis2.sort();
         elementsD=axis1.elements;
@@ -7691,99 +8145,105 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
         var e1;
         var dyn;
         if(q==this.numElementsS){
-        e1=elementsD[p];
-        dyn=true;
-        p++;
-    }else{
-        var d=elementsD[p];
-        var s=elementsS[q];
-        if(d.value<s.value){
-        e1=d;
-        dyn=true;
-        p++;
+            e1=elementsD[p];
+            dyn=true;
+            p++;
         }else{
-        e1=s;
-        dyn=false;
-        q++;
+            var d=elementsD[p];
+            var s=elementsS[q];
+            if(d.value<s.value){
+                e1=d;
+                dyn=true;
+                p++;
+            }else{
+                e1=s;
+                dyn=false;
+                q++;
+            }
+        }
+        if(!e1.max){
+            var s1=e1.proxy.shape;var min1=e1.min1.value;var max1=e1.max1.value;var min2=e1.min2.value;var max2=e1.max2.value;
+            for(var e2=activeD;e2!=null;e2=e2.pair){// test for dynamic
+                var s2=e2.proxy.shape;
+                this.numPairChecks++;
+                if( min1>e2.max1.value||max1<e2.min1.value|| min2>e2.max2.value||max2<e2.min2.value|| !this.isAvailablePair(s1,s2) ){ continue; }
+                this.addPair(s1,s2);
+            }
+            if(dyn){
+                for(e2=activeS;e2!=null;e2=e2.pair){// test for static
+                    s2=e2.proxy.shape;
+                    this.numPairChecks++;
+                    if( min1>e2.max1.value||max1<e2.min1.value|| min2>e2.max2.value||max2<e2.min2.value|| !this.isAvailablePair(s1,s2) ){ continue; }
+                    this.addPair(s1,s2);
+                }
+                e1.pair=activeD;
+                activeD=e1;
+            }else{
+                e1.pair=activeS;
+                activeS=e1;
+            }
+        }else{
+            var min=e1.pair;
+            if(dyn){
+                if(min==activeD){
+                    activeD=activeD.pair;
+                    continue;
+                }else{
+                    e1=activeD;
+                }
+            }else{
+                if(min==activeS){
+                    activeS=activeS.pair;
+                    continue;
+                }else{
+                    e1=activeS;
+                }
+            }
+            do{
+                e2=e1.pair;
+                if(e2==min){
+                    e1.pair=e2.pair;
+                    break;
+                }
+                e1=e2;
+            }while(e1!=null);
         }
     }
-    if(!e1.max){
-        var s1=e1.proxy.shape;var min1=e1.min1.value;var max1=e1.max1.value;var min2=e1.min2.value;var max2=e1.max2.value;
-        for(var e2=activeD;e2!=null;e2=e2.pair){
-        var s2=e2.proxy.shape;
-        this.numPairChecks++;
-        if(
-        min1>e2.max1.value||max1<e2.min1.value||
-        min2>e2.max2.value||max2<e2.min2.value||
-        !this.isAvailablePair(s1,s2)
-        ){
-        continue;
-        }
-        this.addPair(s1,s2);
-        }
-        if(dyn){
-        for(e2=activeS;e2!=null;e2=e2.pair){
-        s2=e2.proxy.shape;
-        this.numPairChecks++;
-        if(
-        min1>e2.max1.value||max1<e2.min1.value||
-        min2>e2.max2.value||max2<e2.min2.value||
-        !this.isAvailablePair(s1,s2)
-        ){
-        continue;
-        }
-        this.addPair(s1,s2);
-        }
-        e1.pair=activeD;
-        activeD=e1;
-        }else{
-        e1.pair=activeS;
-        activeS=e1;
-        }
-        }else{
-        var min=e1.pair;
-        if(dyn){
-        if(min==activeD){
-        activeD=activeD.pair;
-        continue;
-        }else{
-        e1=activeD;
-        }
-        }else{
-        if(min==activeS){
-        activeS=activeS.pair;
-        continue;
-        }else{
-        e1=activeS;
-        }
-        }
-        do{
-        e2=e1.pair;
-        if(e2==min){
-        e1.pair=e2.pair;
-        break;
-        }
-        e1=e2;
-        }while(e1!=null);
-        }
-        }
     this.index2=(this.index1|this.index2)^3;
 }
+/**
+* An element of proxies.
+* @author saharan
+*/
 OIMO.SAPElement = function(proxy,max){
-    this.pair = null;
-    this.min1 = null;
-    this.max1 = null;
-    this.min2 = null;
-    this.max2 = null;
+    // The parent proxy
     this.proxy=proxy;
-    this.max=max;
-    this.value=0;
+	// The pair element.
+    this.pair = null;
+    // The minimum element on other axis.
+    this.min1 = null;
+    // The maximum element on other axis.
+    this.max1 = null;
+    // The minimum element on other axis.
+    this.min2 = null;
+    // The maximum element on other axis.
+    this.max2 = null;
+    // Whether the element has maximum value or not.
+    this.max = max;
+    // The value of the element.
+    this.value = 0;
 };
+/**
+* A proxy for sweep and prune broad-phase.
+* @author saharan
+*/
 OIMO.SAPProxy = function(sap,shape){
     OIMO.Proxy.call( this, shape);
-
+    // Type of the axis to which the proxy belongs to. [0:none, 1:dynamic, 2:static]
     this.belongsTo = 0;
+    // The maximum elements on each axis.
     this.max = [];
+    // The minimum elements on each axis.
     this.min = [];
     
     this.sap=sap;
@@ -7810,6 +8270,10 @@ OIMO.SAPProxy = function(sap,shape){
     this.min[2].max2=this.max[1];
 };
 OIMO.SAPProxy.prototype = Object.create( OIMO.Proxy.prototype );
+/**
+* Returns whether the proxy is dynamic or not.
+* @return
+*/
 OIMO.SAPProxy.prototype.isDynamic = function () {
     var body=this.shape.parent;
     return body.isDynamic&&!body.sleeping;
@@ -7826,7 +8290,12 @@ OIMO.SAPProxy.prototype.update = function () {
         this.sap.addProxy(this);
     }
 }
+/**
+* A dynamic bounding volume tree for the broad-phase algorithm.
+* @author saharan
+*/
 OIMO.DBVT = function(){
+    // The root of the tree.
     this.root=null;
     this.freeNodes=[];// vector
     this.freeNodes.length = 16384;
@@ -7836,11 +8305,18 @@ OIMO.DBVT = function(){
 
 OIMO.DBVT.prototype = {
     constructor: OIMO.DBVT,
-
+    /**
+    * Move a leaf.
+    * @param   leaf
+    */
     moveLeaf:function(leaf){
         this.deleteLeaf(leaf);
         this.insertLeaf(leaf);
     },
+    /**
+    * Insert a leaf to the tree.
+    * @param   node
+    */
     insertLeaf:function(leaf){
         if(this.root==null){
             this.root=leaf;
@@ -7850,7 +8326,7 @@ OIMO.DBVT.prototype = {
         var sibling=this.root;
         var oldArea;
         var newArea;
-        while(sibling.proxy==null){
+        while(sibling.proxy==null){ // descend the node to search the best pair
             var c1=sibling.child1;
             var c2=sibling.child2;
             var b=sibling.aabb;
@@ -7860,32 +8336,36 @@ OIMO.DBVT.prototype = {
             this.aabb.combine(lb,b);
             newArea=this.aabb.surfaceArea();
             var creatingCost=newArea*2;
-            var incrementalCost=(newArea-oldArea)*2;
+            var incrementalCost=(newArea-oldArea)*2; // cost of creating a new pair with the node
             var discendingCost1=incrementalCost;
             this.aabb.combine(lb,c1b);
             if(c1.proxy!=null){
+                // leaf cost = area(combined aabb)
                 discendingCost1+=this.aabb.surfaceArea();
             }else{
+                // node cost = area(combined aabb) - area(old aabb)
                 discendingCost1+=this.aabb.surfaceArea()-c1b.surfaceArea();
             }
             var discendingCost2=incrementalCost;
             this.aabb.combine(lb,c2b);
             if(c2.proxy!=null){
+                // leaf cost = area(combined aabb)
                 discendingCost2+=this.aabb.surfaceArea();
             }else{
+                // node cost = area(combined aabb) - area(old aabb)
                 discendingCost2+=this.aabb.surfaceArea()-c2b.surfaceArea();
             }
             if(discendingCost1<discendingCost2){
                 if(creatingCost<discendingCost1){
-                    break;
+                    break;// stop descending
                 }else{
-                    sibling=c1;
+                    sibling=c1;// descend into first child
                 }
             }else{
                 if(creatingCost<discendingCost2){
-                    break;
+                    break;// stop descending
                 }else{
-                    sibling=c2;
+                    sibling=c2;// descend into second child
                 }
             }
         }
@@ -7935,6 +8415,10 @@ OIMO.DBVT.prototype = {
         if(hasChild)text=this.print(node.child2,indent+1,text);
         return text;
     },
+    /**
+    * Delete a leaf from the tree.
+    * @param   node
+    */
     deleteLeaf:function(leaf){
         if(leaf==this.root){
             this.root=null;
@@ -7996,6 +8480,7 @@ OIMO.DBVT.prototype = {
 
             // Is L-L higher than L-R?
             if(llh>lrh){
+                // set N to L-R
                 l.child2=node;
                 node.parent=l;
 
@@ -8155,6 +8640,10 @@ OIMO.DBVT.prototype = {
         }
     }
 }
+/**
+* A broad-phase algorithm using dynamic bounding volume tree.
+* @author saharan
+*/
 OIMO.DBVTBroadPhase = function(){
     OIMO.BroadPhase.call( this);
     this.types = 0x3;
@@ -8210,7 +8699,7 @@ OIMO.DBVTBroadPhase.prototype.collectPairs = function () {
     trueB.minX<leafB.minX||trueB.maxX>leafB.maxX||
     trueB.minY<leafB.minY||trueB.maxY>leafB.maxY||
     trueB.minZ<leafB.minZ||trueB.maxZ>leafB.maxZ
-    ){
+    ){// the leaf needs correcting
     var margin=0.1;
     this.tree.deleteLeaf(leaf);
     leafB.minX=trueB.minX-margin;
@@ -8259,7 +8748,7 @@ OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
     ){
     continue;
     }
-    if(stackCount+4>=this.maxStack){
+    if(stackCount+4>=this.maxStack){// expand the stack
     //this.maxStack<<=1;
     this.maxStack*=2;
     var newStack=[];// vector
@@ -8283,20 +8772,33 @@ OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
     }
     }
 }
+/**
+* A node of the dynamic bounding volume tree.
+* @author saharan
+*/
 OIMO.DBVTNode = function(){
+	// The first child node of this node.
     this.child1=null;
+    // The second child node of this node.
     this.child2=null;
+    //  The parent node of this tree.
     this.parent=null;
+    // The proxy of this node. This has no value if this node is not leaf.
     this.proxy=null;
+    // The maximum distance from leaf nodes.
     this.height=0;
+    // The AABB of this node.
     this.aabb=new OIMO.AABB();
 }
+/**
+* A proxy for dynamic bounding volume tree broad-phase.
+* @author saharan
+*/
 OIMO.DBVTProxy = function(shape){
     OIMO.Proxy.call( this, shape);
-
-    this.leaf=new OIMO.DBVTNode();
-    this.leaf.proxy=this;
-
+    // The leaf of the proxy.
+    this.leaf = new OIMO.DBVTNode();
+    this.leaf.proxy = this;
 }
 OIMO.DBVTProxy.prototype = Object.create( OIMO.Proxy.prototype );
 OIMO.DBVTProxy.prototype.update = function () {

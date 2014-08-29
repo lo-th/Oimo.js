@@ -43,3 +43,8 @@ Ball.prototype.update = function (up, down, left, right) {
 		this.body.linearVelocity.scaleEqual(0.3);
 	}
 }
+
+//In droid demo, you may set actual velocity(note that the unit for velocity is [m/s] 
+//	so you should devide movement amount by movement duration) to droid's rigid body 
+//for avoiding penetration, because OimoPhysics uses velocities for "primary" constraint impulses,
+// and penetration depths for "secondary" constraint impulses that are used just for correcting errors occured in solving primary constraints

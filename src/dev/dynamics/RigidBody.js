@@ -1,3 +1,9 @@
+/**
+* The class of rigid body. 
+* Rigid body has the shape of a single or multiple collision processing, 
+* I can set the parameters individually.
+* @author saharan
+*/
 OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var rad = Rad || 0;
     var ax = Ax || 0;
@@ -8,28 +14,25 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var z = Z || 0;
     
     this.name = "";
+    // It is a kind of rigid body that represents the dynamic rigid body.
     this.BODY_DYNAMIC=0x1;
+    // It is a kind of rigid body that represents the static rigid body.
     this.BODY_STATIC=0x2;
+    // The maximum number of shapes that can be added to a one rigid.
     this.MAX_SHAPES=64;
+
     this.prev=null;
     this.next=null;
+
+    // I represent the kind of rigid body.
+    // Please do not change from the outside this variable. 
+    // If you want to change the type of rigid body, always 
+    // Please specify the type you want to set the arguments of setupMass method.
     this.type=0;
-    this.isDynamic=false;
-    this.isStatic=false;
-    this.position=null;
-    this.mass=NaN;
-    this.inverseMass=NaN;
-    this.shapes=null;
-    this.numShapes=0;
-    this.parent=null;
-    this.contactLink=null;
-    this.numContacts=0;
-    this.jointLink=null;
-    this.numJoints=0;
-    this.addedToIsland=false;
-    this.sleeping=false;
+
     this.massInfo= new OIMO.MassInfo();
 
+    // It is the world coordinate of the center of gravity.
     this.position=new OIMO.Vec3(x,y,z); 
 
     var len=ax*ax+ay*ay+az*az; 
@@ -41,27 +44,80 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     }
     var sin=Math.sin(rad*0.5);
     var cos=Math.cos(rad*0.5);
+    // It is a quaternion that represents the attitude.
     this.orientation=new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+    // Is the translational velocity.
     this.linearVelocity=new OIMO.Vec3();
+    // Is the angular velocity.
     this.angularVelocity=new OIMO.Vec3();
-    this.sleepPosition=new OIMO.Vec3();
-    this.sleepOrientation=new OIMO.Quat();
 
-    this.rotation=new OIMO.Mat33();
-    this.inverseInertia=new OIMO.Mat33();
-    this.localInertia=new OIMO.Mat33();
-    this.inverseLocalInertia=new OIMO.Mat33();
-
+    // return matrix for three.js
     this.matrix = new OIMO.Mat44();
 
+    //--------------------------------------------
+    //  Please do not change from the outside this variables.
+    //--------------------------------------------
+
+    // It is a world that rigid body has been added.
+    this.parent=null;
+    this.contactLink=null;
+    this.numContacts=0;
+
+    // An array of shapes that are included in the rigid body.
+    this.shapes=null;
+    // The number of shapes that are included in the rigid body.
+    this.numShapes=0;
+
+    // It is the link array of joint that is connected to the rigid body.
+    this.jointLink=null;
+    // The number of joints that are connected to the rigid body.
+    this.numJoints=0;
+
+    // It is the world coordinate of the center of gravity in the sleep just before.
+    this.sleepPosition=new OIMO.Vec3();
+    // It is a quaternion that represents the attitude of sleep just before.
+    this.sleepOrientation=new OIMO.Quat();
+    // I will show this rigid body to determine whether it is a rigid body static.
+    this.isStatic=false;
+    // I indicates that this rigid body to determine whether it is a rigid body dynamic. 
+    this.isDynamic=false;
+    // It is a rotation matrix representing the orientation.
+    this.rotation=new OIMO.Mat33();
+
+    //--------------------------------------------
+    // It will be recalculated automatically from the shape, which is included.
+    //--------------------------------------------
+    
+    // This is the weight. 
+    this.mass=NaN;
+    // It is the reciprocal of the mass.
+    this.inverseMass=NaN;
+    // It is the inverse of the inertia tensor in the world system.
+    this.inverseInertia=new OIMO.Mat33();
+    // It is the inertia tensor in the initial state.
+    this.localInertia=new OIMO.Mat33();
+    // It is the inverse of the inertia tensor in the initial state.
+    this.inverseLocalInertia=new OIMO.Mat33();
+
+
+    // I indicates rigid body whether it has been added to the simulation Island.
+    this.addedToIsland=false;
+    // It shows how to sleep rigid body.
     this.allowSleep=true;
+    // This is the time from when the rigid body at rest.
     this.sleepTime=0;
+    // I shows rigid body to determine whether it is a sleep state.
+    this.sleeping=false;
 }
 
 OIMO.RigidBody.prototype = {
 
     constructor: OIMO.RigidBody,
-
+    /**
+    * I'll add a shape to rigid body.  
+    * If you add a shape, please call the setupMass method to step up to the start of the next.
+    * @param   shape shape to Add 
+    */
     addShape:function(shape){
         if(shape.parent){
             throw new Error("It is not possible that you add to the multi-rigid body the shape of one");
@@ -72,6 +128,11 @@ OIMO.RigidBody.prototype = {
         if(this.parent)this.parent.addShape(shape);
         this.numShapes++;
     },
+    /**
+    * I will delete the shape from the rigid body. 
+    * If you delete a shape, please call the setupMass method to step up to the start of the next. 
+    * @param   shape shape to Delete 
+    */
     removeShape:function(shape){
         var remove=shape;
         if(remove.parent!=this)return;
@@ -86,6 +147,14 @@ OIMO.RigidBody.prototype = {
         if(this.parent)this.parent.removeShape(remove);
         this.numShapes--;
     },
+    /**
+    * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
+    * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
+    * If the parameter adjustPosition is set to true, the shapes' relative positions and
+    * the rigid body's position will be adjusted to the center of gravity.
+    * @param   type
+    * @param   adjustPosition
+    */
     setupMass:function(Type,AdjustPosition){
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
         var type = Type || this.BODY_DYNAMIC;
@@ -112,7 +181,8 @@ OIMO.RigidBody.prototype = {
             this.mass+=shapeMass;
             this.rotateInertia(shape.relativeRotation,this.massInfo.inertia,tmpM);
             this.localInertia.addEqual(tmpM);
-            
+
+            // add offset inertia
             te[0]+=shapeMass*(relY*relY+relZ*relZ);
             te[4]+=shapeMass*(relX*relX+relZ*relZ);
             te[8]+=shapeMass*(relX*relX+relY*relY);
@@ -133,6 +203,7 @@ OIMO.RigidBody.prototype = {
             for(shape=this.shapes;shape!=null;shape=shape.next){
                 shape.relativePosition.subEqual(tmpV);
             }
+            // subtract offset inertia
             relX=tmpV.x;
             relY=tmpV.y;
             relZ=tmpV.z;
@@ -158,10 +229,14 @@ OIMO.RigidBody.prototype = {
         this.syncShapes();
         this.awake();
     },
+    /**
+    * Awake the rigid body.
+    */
     awake:function(){
         if(!this.allowSleep||!this.sleeping)return;
         this.sleeping=false;
         this.sleepTime=0;
+        // awake connected constraints
         var cs=this.contactLink;
         while(cs!=null){
             cs.body.sleepTime=0;
@@ -178,6 +253,9 @@ OIMO.RigidBody.prototype = {
             shape.updateProxy();
         }
     },
+    /**
+    * Sleep the rigid body.
+    */
     sleep:function(){
         if(!this.allowSleep||this.sleeping)return;
         this.linearVelocity.init();
@@ -204,9 +282,20 @@ OIMO.RigidBody.prototype = {
             shape.updateProxy();
         }
     },
+    /**
+    * Get whether the rigid body has not any connection with others.
+    * @return
+    */
     isLonely:function(){
         return this.numJoints==0&&this.numContacts==0;
     },
+
+    /** 
+    * The time integration of the motion of a rigid body, you can update the information such as the shape. 
+    * This method is invoked automatically when calling the step of the World, 
+    * There is no need to call from outside usually. 
+    * @param  timeStep time 
+    */
     updatePosition:function(timeStep){
         switch(this.type){
             case this.BODY_STATIC:

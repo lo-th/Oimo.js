@@ -58,7 +58,7 @@
             if(b.type === 0x1){
                 m = b.getMatrix();
                 j = 16;
-                while(j--) matrixs[(16*i) + j] = m[j];
+                while(j--) matrixs[(16*i) + j] =m[j];//*1000;//.toFixed(2);
                 i++;
             }
             b=b.next;
@@ -81,7 +81,8 @@
 
 <script>
     // Parameters
-    var dt = 1/60, N=500;
+    var dt = 1/60;
+    var N= 2000;
     var ToRad = Math.PI / 180;
     var info = document.getElementById("info");
 
@@ -93,6 +94,8 @@
 
     // Data arrays. Contains all our kinematic data we need for rendering.
     var matrixs = new Float32Array(N*16);
+    //var matrixs = new Int32Array(N*16);
+    //var matrixs = new Int16Array(N*16);
     var oimoInfo = 0;
 
     // Create a blob for the inline worker code
@@ -111,12 +114,13 @@
         matrixs = e.data.matrixs;
 
         // Update rendering meshes
+        var mtx = new THREE.Matrix4();
         i = meshes.length;
         while(i--){
             var m = [];
-            var mtx = new THREE.Matrix4();
+            //var mtx = new THREE.Matrix4();
             j = 16;
-            while(j--) m[j] = matrixs[16*i + j];
+            while(j--) m[j] = matrixs[16*i + j];///1000;
             mtx.fromArray( m );
             meshes[i].position.setFromMatrixPosition( mtx )
             meshes[i].rotation.setFromRotationMatrix( mtx );

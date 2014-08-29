@@ -1,7 +1,11 @@
+/**
+* A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+* @author saharan
+*/
 OIMO.BallAndSocketJoint = function(config){
     OIMO.Joint.call( this, config);
-
     this.type=this.JOINT_BALL_AND_SOCKET;
+    
     this.lc=new OIMO.LinearConstraint(this);
 }
 OIMO.BallAndSocketJoint.prototype = Object.create( OIMO.Joint.prototype );
