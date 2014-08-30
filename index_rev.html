@@ -37,6 +37,8 @@
 <script src="js/postprocessing/MaskPass.js"></script>
 <script src="js/postprocessing/BokehPass.js"></script>
 
+<script src="js/MarchingCubes.js"></script>
+
 </head>
 
 <body>
@@ -70,7 +72,10 @@
     	document.body.appendChild( Editor.domElement );
     	document.body.appendChild( Interface.domElement );
 		Interface.menu.appendChild( Ambience.domElement );
+
 		demoName = Interface.demoName;
+        ADD = TE.ADD;
+        CAM = TE.CAM;
 
 		TE.init();
     }
@@ -112,6 +117,9 @@
 
 	    	// Update rendering meshes
 	    	var m = e.data.matrix;
+
+            if(Interface.getdemoName() == "Blobs") TE.updateBlob(m);
+
     		var i = m.length;
 	    	while (i--) {
 	    		if( TE.content.children[i] ){
@@ -156,6 +164,7 @@
             //skin update
             if(demo === 3) TE.updateSnake();
             if(demo === 6) TE.updateSila();
+            
 
 			displayInfo(e.data.infos);
         }
@@ -192,9 +201,9 @@
     var basicOption = null;
     var SET = null;
 
-    var CAM = function(h, v, d){ TE.changeView(h, v, d); }
+    var CAM;// = function(h, v, d){ TE.changeView(h, v, d); }
 
-    var ADD = function(obj){ TE.ADD(obj); }
+    var ADD;// = function(obj){ TE.ADD(obj); }
     var GET = function(names){ OimoWorker.postMessage({tell:"GET", names:names}); }
 
     var CLEAR = function(obj){

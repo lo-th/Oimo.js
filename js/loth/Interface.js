@@ -11,6 +11,7 @@ var Interface = function (name) {
 	var effect = '';//border:3px solid rgba(255,255,255,0.3);
 	var buttonStyle = effect+'width:30px; height:28px; position:relative; -webkit-border-radius: 20px; border-radius:20px; background-color: rgba(1,1,1,0.0); display:inline-block; text-align:center; cursor:pointer; pointer-events:auto; font-size:18px; ';
 	var bbStyle = 'width:130px; height:28px; position:relative; display:inline-block; text-decoration:none; font-size:14px; ';
+	var currentDemo = "";
 
 	//-----------------------------------------------------
     //  ICON
@@ -218,7 +219,12 @@ var Interface = function (name) {
 	bcenter.textContent = "Basic shape";
 
 	var demoName =  function (name) {
+		currentDemo = name;
 		bcenter.textContent = name;
+	}
+
+	var getdemoName =  function () {
+		return currentDemo;
 	}
 
 	aMenu.appendChild( bprev );
@@ -455,7 +461,8 @@ var Interface = function (name) {
 		domElement: container,
 		menu:menu,
 		setCurrentGravity:setCurrentGravity,
-		demoName:demoName
+		demoName:demoName,
+		getdemoName:getdemoName
 	}
 
 

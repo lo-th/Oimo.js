@@ -68,6 +68,7 @@ var ThreeEngine = function () {
 	var followObject = null;
 	var followSpecial = null;
 	var player = null;
+	var blobs = null;
 
 	//var isBuffered = true;
 	var isDebug = true;
@@ -170,7 +171,7 @@ var ThreeEngine = function () {
 
 		moveCamera();
 		
-	    changeView(45,60,1000);
+	    CAM(45,60,1000);
 
 
 		if(postprocessing.enabled)initPostprocessing();
@@ -575,24 +576,27 @@ var ThreeEngine = function () {
 
 		if( typeof obj.type === 'array' || obj.type instanceof Array ){//___ Compound object
 			if(move) addObjects( obj );
-
 		} else {
 		
 			if(obj.type.substring(0,5) === 'joint'){//_____________ Joint
 				if(obj.type === "jointDistance" || obj.show ) addJoint();
 			}else{
-				if(move){//________________________________________ Dynamic
-					//addObjects( obj.type, obj.size );
-					addObjects( obj );
-				}else{//___________________________________________ Static
-					var mesh = addStaticObjects( obj.type, obj.size );
-					mesh.position.set( obj.pos[0], obj.pos[1], obj.pos[2] );
-					if(obj.rot) mesh.rotation.set( obj.rot[0]*ToRad, obj.rot[1]*ToRad, obj.rot[2]*ToRad );
+				if(obj.type == 'blob'){
+					addBlob( obj );
+				} else {
+					if(move){//________________________________________ Dynamic
+						//addObjects( obj.type, obj.size );
+						if(!obj.hide) addObjects( obj );
+					}else{//___________________________________________ Static
+						var mesh = addStaticObjects( obj.type, obj.size );
+						mesh.position.set( obj.pos[0], obj.pos[1], obj.pos[2] );
+						if(obj.rot) mesh.rotation.set( obj.rot[0]*ToRad, obj.rot[1]*ToRad, obj.rot[2]*ToRad );
+					}
 				}
 			}
 	    }
 		// now create in oimo physic
-		OimoWorker.postMessage({ tell:"ADD", obj:obj });
+		if(obj.type !== 'blob')OimoWorker.postMessage({ tell:"ADD", obj:obj });
 	}
 
 	//-----------------------------------------------------
@@ -934,6 +938,12 @@ var ThreeEngine = function () {
 			contentSpecial.remove(contentSpecial.children[ i ]);
 		}
 
+		if(blobs!==null){
+			blobs.reset();
+			contentSpecial.remove(blobs);
+			blobs = null;
+		}
+
 		/*var obj, i;
 	    for ( i = content.children.length - 1; i >= 0 ; i -- ) {
 				obj = content.children[ i ];
@@ -944,6 +954,74 @@ var ThreeEngine = function () {
 		planeBG.position.set(0, 0.01, 0);
 		maxms = 0;
 	}
+
+	//-----------------------------------
+	// BLOB
+	//-----------------------------------
+	var blobSetting = { strength:2, subtract:12 };
+
+	var addBlob = function(o){
+		blobs = new THREE.MarchingCubes( o.resolution || 24, getMaterial('mat01'), true, true );
+	    blobs.position.set( o.pos[0] || 0, o.pos[1] || 0, o.pos[2] || 0 );
+	    blobs.scale.set( o.size[0] || 100, o.size[1] || 100, o.size[2] || 100 );
+
+	    blobSetting.strength = o.strength || 2;
+	    blobSetting.subtract = o.subtract || 12;
+	    blobSetting.size = o.size;
+	    
+
+	    //blobs.reset();
+	    //blobs.addPlaneY( 2, 12 );
+
+	    contentSpecial.add(blobs);
+	}
+
+	var updateBlob = function( m ) {
+		var o = blobSetting;
+
+		blobs.reset();
+
+		//var mtx = new THREE.Matrix4();
+		var i = m.length;
+		var subtract = o.subtract;//12;
+		var strength = o.strength;// / ( ( Math.sqrt( i ) - 1 ) / 4 + 1 );
+		var x = (o.size[0]);
+		var y = (o.size[1]);
+		var z = (o.size[2]);
+		var sx = (o.size[0]*2);
+		var sy = (o.size[1]*2);
+		var sz = (o.size[2]*2);
+
+    	while (i--) {
+    		//mtx.fromArray( m[i] );
+    		blobs.addBall(((m[i][12]+x)/sx), ((m[i][13]+y)/sy), ((m[i][14]+z)/sz), strength, subtract);
+    	}
+    	blobs.addPlaneY( o.strength, o.subtract );
+
+		// fill the field with some metaballs
+
+		/*var i, ballx, bally, ballz, subtract, strength;
+		subtract = 12;
+		strength = 1.2 / ( ( Math.sqrt( numblobs ) - 1 ) / 4 + 1 );
+
+		for ( i = 0; i < numblobs; i ++ ) {
+
+			ballx = Math.sin( i + 1.26 * time * ( 1.03 + 0.5 * Math.cos( 0.21 * i ) ) ) * 0.27 + 0.5;
+			bally = Math.abs( Math.cos( i + 1.12 * time * Math.cos( 1.22 + 0.1424 * i ) ) ) * 0.77; // dip into the floor
+			ballz = Math.cos( i + 1.32 * time * 0.1 * Math.sin( ( 0.92 + 0.53 * i ) ) ) * 0.27 + 0.5;
+
+			blobs.addBall(ballx, bally, ballz, strength, subtract);
+
+		}
+
+		if ( floor ) blobs.addPlaneY( 2, 12 );
+		if ( wallz ) blobs.addPlaneZ( 2, 12 );
+		if ( wallx ) blobs.addPlaneX( 2, 12 );*/
+	}
+
+	//-----------------------------------
+	// SNAKE
+	//-----------------------------------
 
 	var addSnake = function (s) {
 		if(s==null) s = [10,10,10];
@@ -975,6 +1053,10 @@ var ThreeEngine = function () {
 			mesh.skeleton.bones[i].matrixWorldNeedsUpdate = true;
 		}
 	}
+
+	//-----------------------------------
+	// SILA
+	//-----------------------------------
 
 	// for ragdoll test
 	var addSila = function (s) {
@@ -1721,7 +1803,7 @@ var ThreeEngine = function () {
 		camPos.automove = false;
 	}
 
-	var changeView = function (h, v, d) {
+	var CAM = function (h, v, d) {
 		TweenLite.to(camPos, 3, {horizontal: h, vertical: v, distance: d, onUpdate: moveCamera, onComplete: endMove });
 		camPos.automove = true;
 	}
@@ -1735,7 +1817,7 @@ var ThreeEngine = function () {
 
 	var switchView = function () {
 		var n = currentView;
-		changeView(vSet[n].h, vSet[n].v, vSet[n].d);
+		CAM(vSet[n].h, vSet[n].v, vSet[n].d);
 		currentView++;
 		if(currentView === vSet.length) currentView = 0;
 	}
@@ -1846,13 +1928,15 @@ var ThreeEngine = function () {
 		removeObject:removeObject,
 
 		viewDivid:viewDivid,
-		changeView:changeView,
+		CAM:CAM,
 
 		//options
 		reflection:reflection,
 		debug:debug,
 		shadow:shadow,
 		changeMaterialType:changeMaterialType,
+
+		updateBlob:updateBlob,
 
 		getViewMode: function () {
 			return vmid.mode;
