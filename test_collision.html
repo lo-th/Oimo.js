@@ -27,8 +27,6 @@
 <div id='container'></div>
 <div id='interface'>
     <input type="button" value="demo" onClick=populate(1)>
-    <!--<input type="button" value="boxe" onClick=populate(2)>
-    <input type="button" value="mix" onClick=populate(3)>-->
     <input type="number" name="quantity" min="10" max="2000" value="40"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
@@ -42,6 +40,7 @@
 </div>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
 <script>
+
     // three var
     var camera, scene, light, renderer, container, center;
     var meshs = [];
@@ -55,11 +54,10 @@
     var ToRad = Math.PI / 180;
 
     //oimo var
-    var world;
-    var bodys = [];
+    var world = null;
+    var bodys = null;
 
     var fps=0, time, time_prev=0, fpsint = 0;
-
     var type=1;
 
     init();
@@ -84,7 +82,6 @@
         light.shadowCameraFov = 70;
         light.shadowBias = 0.0001;
         light.shadowDarkness = 0.7;
-        //light.shadowCameraVisible = true;
         light.shadowMapWidth = light.shadowMapHeight = 1024;
         scene.add( light );
 
@@ -107,7 +104,6 @@
         renderer.autoClear = false;
         renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFShadowMap;
-        //renderer.shadowMapCullFace = THREE.CullFaceBack;
         renderer.gammaInput = true;
         renderer.gammaOutput = true;
 
@@ -122,7 +118,7 @@
         requestAnimationFrame( loop );
         renderer.clear();
         renderer.render( scene, camera );
-        displayInfo();
+        //displayInfo();
     }
 
     function addStaticBox(size, position, rotation, spec) {
@@ -138,11 +134,18 @@
         mesh.receiveShadow = true;
     }
 
+    function clearMesh(){
+        var i=meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        grounds = [];
+        meshs = [];
+    }
+
     //----------------------------------
     //  OIMO PHYSICS
     //----------------------------------
-
-    
 
     function initOimoPhysics(){
 
@@ -162,15 +165,14 @@
 
         var max = document.getElementById("MaxNumber").value;
 
-        //if(n===1) type = 1
-        //else if(n===2) type = 2;
-        //else if(n===3) t
         type = 3;
 
         // reset old
         clearMesh();
         world.clear();
+        bodys = [];
 
+        // Is all the physics setting for rigidbody
         var config = [
             1, // The density of the shape.
             0.4, // The coefficient of friction of the shape.
@@ -191,14 +193,14 @@
         var ground3 = new OIMO.Body({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
         addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);
 
-        //add object
+        // now add object
         var x, y, z, w, h, d;
         var i = max;
 
         while (i--){
             if(type===3) t = Math.floor(Math.random()*2)+1;
             else t = type;
-            x = 150//-100 + Math.random()*200;
+            x = 150;
             z = -100 + Math.random()*200;
             y = 100 + Math.random()*1000;
             w = 10 + Math.random()*10;
@@ -226,16 +228,7 @@
         }
     }
 
-    function clearMesh(){
-        var i=meshs.length;
-        while (i--)scene.remove(meshs[ i ]);
-        i = grounds.length;
-        while (i--){  scene.remove(grounds[ i ]); }
-
-        grounds = [];
-        meshs = [];
-        bodys=[];
-    }
+    
 
     function updateOimoPhysics() {
         world.step();
@@ -260,7 +253,7 @@
 
                 // reset position
                 if(mesh.position.y<-100){
-                    x = 150;//-100 + Math.random()*200;
+                    x = 150;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
                     body.setPosition(x,y,z);
@@ -270,6 +263,8 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
+
+        displayInfo();
     }
 
     function gravity(g){
@@ -286,7 +281,7 @@
         if (time - 1000 > time_prev) {
             time_prev = time; fpsint = fps; fps = 0;
         } fps++;
-
+        var w = world.performance;
         var info =[
             "Oimo.js DEV.1.1.0a<br><br>",
             "FPS: " + fpsint +" fps<br><br>",
@@ -294,12 +289,12 @@
             "Contact: "+world.numContacts+"<br>",
             "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
             "Contact Point: "+world.numContactPoints+"<br>",
-            "Island: " + world.numIslands +"<br><br>",
-            "Broad-Phase Time: " + world.performance.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: " + world.performance.narrowPhaseTime + " ms<br>",
-            "Solving Time: " + world.performance.solvingTime + " ms<br>",
-            "Updating Time: " + world.performance.updatingTime + " ms<br>",
-            "Total Time: " + world.performance.totalTime + " ms "
+            "Island: "+world.numIslands +"<br><br>",
+            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
+            "Solving Time: "+w.solvingTime + " ms<br>",
+            "Updating Time: "+w.updatingTime + " ms<br>",
+            "Total Time: "+w.totalTime + " ms "
         ].join("\n");
         document.getElementById("info").innerHTML = info;
     }

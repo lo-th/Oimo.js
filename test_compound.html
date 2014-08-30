@@ -57,12 +57,11 @@
     var ToRad = Math.PI / 180;
 
     //oimo var
-    var world;
-    var bodys = [];
+    var world = null;
+    var bodys = null;
 
     var fps=0, time, time_prev=0, fpsint = 0;
     var ToRad = Math.PI / 180;
-
     var type=1;
 
     init();
@@ -127,7 +126,7 @@
         requestAnimationFrame( loop );
         renderer.clear();
         renderer.render( scene, camera );
-        displayInfo();
+        //displayInfo();
     }
 
     function addStaticBox(size, position, rotation) {
@@ -160,6 +159,15 @@
         chairGeometry.fromGeometry( g );
     }
 
+    function clearMesh(){
+        var i=meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        grounds = [];
+        meshs = [];
+    }
+
     //----------------------------------
     //  OIMO PHYSICS
     //----------------------------------
@@ -182,6 +190,7 @@
         // reset old
         clearMesh();
         world.clear();
+        bodys=[];
 
         var b;
 
@@ -247,7 +256,7 @@
                     move:true, 
                     world:world, 
                     name:'box'+i, 
-                    config:[0.2, 0.4,0.1]
+                    config:[0.2,0.4,0.1]
                 });
 
                 bodys[i] = b.body;
@@ -273,17 +282,6 @@
             meshs[max].receiveShadow = true;
 
         } 
-    }
-
-    function clearMesh(){
-        var i = meshs.length;
-        while (i--){ scene.remove(meshs[ i ]); }
-        i = grounds.length;
-        while (i--){  scene.remove(grounds[ i ]); }
-
-        grounds = [];
-        meshs = [];
-        bodys=[];
     }
 
     function updateOimoPhysics() {
@@ -319,6 +317,9 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
+
+        displayInfo();
+        
     }
 
     function gravity(g){
@@ -335,7 +336,7 @@
         if (time - 1000 > time_prev) {
             time_prev = time; fpsint = fps; fps = 0;
         } fps++;
-
+        var w = world.performance;
         var info =[
             "Oimo.js DEV.1.1.0a<br><br>",
             "FPS: " + fpsint +" fps<br><br>",
@@ -343,12 +344,12 @@
             "Contact: "+world.numContacts+"<br>",
             "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
             "Contact Point: "+world.numContactPoints+"<br>",
-            "Island: " + world.numIslands +"<br><br>",
-            "Broad-Phase Time: " + world.performance.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: " + world.performance.narrowPhaseTime + " ms<br>",
-            "Solving Time: " + world.performance.solvingTime + " ms<br>",
-            "Updating Time: " + world.performance.updatingTime + " ms<br>",
-            "Total Time: " + world.performance.totalTime + " ms "
+            "Island: "+world.numIslands +"<br><br>",
+            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
+            "Solving Time: "+w.solvingTime + " ms<br>",
+            "Updating Time: "+w.updatingTime + " ms<br>",
+            "Total Time: "+w.totalTime + " ms "
         ].join("\n");
         document.getElementById("info").innerHTML = info;
     }
@@ -379,12 +380,6 @@
             colors[0] = "#383838";
             colors[1] = "#AA8038";
         }
-        /*ctx.fillStyle = colors[0];
-        ctx.fillRect(0, 0, 64, 64);
-        ctx.fillStyle = colors[1];
-        ctx.fillRect(0, 0, 32, 32);
-        ctx.fillRect(32, 32, 32, 32);*/
-
         grd=ctx.createLinearGradient(0,0,0,64);
         grd.addColorStop(0,colors[1]);
         grd.addColorStop(1,colors[0]);

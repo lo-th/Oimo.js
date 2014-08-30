@@ -43,6 +43,7 @@
 </div>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>
 <script>
+
     // three var
     var camera, scene, light, renderer, container, center;
     var meshs = [];
@@ -56,9 +57,9 @@
     var ToRad = Math.PI / 180;
 
     //oimo var
-    var world;
-    var bodys = [];
-    var joints = [];
+    var world = null;
+    var bodys = null;
+    var joints = null;
 
     var fps=0, time, time_prev=0, fpsint = 0;
     var ToRad = Math.PI / 180;
@@ -135,7 +136,7 @@
         requestAnimationFrame( loop );
         renderer.clear();
         renderer.render( scene, camera );
-        displayInfo();
+        //displayInfo();
     }
 
     function addStaticBox(size, position, rotation) {
@@ -170,6 +171,15 @@
         return mesh;
     }
 
+    function clearMesh(){
+        var i=meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        grounds = [];
+        meshs = [];
+    }
+
     //----------------------------------
     //  OIMO PHYSICS
     //----------------------------------
@@ -195,6 +205,8 @@
         // reset old
         clearMesh();
         world.clear();
+        bodys = [];
+        joints = [];
 
         var ground;
         
@@ -291,17 +303,6 @@
         }
     }
 
-    function clearMesh(){
-        var i = meshs.length;
-        while (i--){ scene.remove(meshs[ i ]);}
-        i = grounds.length;
-        while (i--){ scene.remove(grounds[ i ]);}
-        grounds = [];
-        meshs = [];
-        bodys=[];
-        joints=[];
-    }
-
     function updateOimoPhysics() {
         world.step();
 
@@ -318,7 +319,7 @@
                 m = bodys[i].body.getMatrix();
                 mtx.fromArray(m);
                 mesh.position.setFromMatrixPosition( mtx );
-                mesh.rotation.setFromRotationMatrix( mtx );
+                mesh.quaternion.setFromRotationMatrix( mtx );
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = matBox;
@@ -364,6 +365,9 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
+
+        displayInfo();
+        
     }
 
     function gravity(g){
@@ -382,19 +386,20 @@
         if (time - 1000 > time_prev) {
             time_prev = time; fpsint = fps; fps = 0;
         } fps++;
-
+        var w = world.performance;
         var info =[
             "Oimo.js DEV.1.1.0a<br><br>",
-            "FPS: "+world.performance.fpsint+"<br><br>",
+            "FPS: " + fpsint +" fps<br><br>",
             "Rigidbody: "+world.numRigidBodies+"<br>",
             "Contact: "+world.numContacts+"<br>",
             "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
             "Contact Point: "+world.numContactPoints+"<br>",
-            "Island: " + world.numIslands +"<br><br>",
-            "Broad-Phase Time: " + world.performance.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: " + world.performance.narrowPhaseTime + " ms<br>",
-            "Solving Time: " + world.performance.solvingTime + " ms<br>",
-            "Updating Time: " + world.performance.updatingTime + " ms"
+            "Island: "+world.numIslands +"<br><br>",
+            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
+            "Solving Time: "+w.solvingTime + " ms<br>",
+            "Updating Time: "+w.updatingTime + " ms<br>",
+            "Total Time: "+w.totalTime + " ms "
         ].join("\n");
         document.getElementById("info").innerHTML = info;
     }

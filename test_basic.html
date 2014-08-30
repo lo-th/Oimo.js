@@ -42,6 +42,7 @@
 </div>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
 <script>
+
     // three var
     var camera, scene, light, renderer, container, center;
     var meshs = [];
@@ -121,7 +122,7 @@
         requestAnimationFrame( loop );
         renderer.clear();
         renderer.render( scene, camera );
-        displayInfo();
+        //displayInfo();
     }
 
     function addStaticBox(size, position, rotation) {
@@ -135,13 +136,28 @@
         mesh.receiveShadow = true;
     }
 
+    function clearMesh(){
+        var i=meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        grounds = [];
+        meshs = [];
+    }
+
     //----------------------------------
     //  OIMO PHYSICS
     //----------------------------------
 
     function initOimoPhysics(){
 
-        world = new OIMO.World(1/60, 2);
+        // world setting:( TimeStep, BroadPhaseType, Iterations )
+        // BroadPhaseType can be 
+        // 1 : BruteForce
+        // 2 : Sweep and prune , the default 
+        // 3 : dynamic bounding volume tree
+
+        world = new OIMO.World(1/60, 2, 8);
         populate(1);
         setInterval(updateOimoPhysics, 1000/60);
 
@@ -158,6 +174,7 @@
         // reset old
         clearMesh();
         world.clear();
+        bodys=[];
 
         //add ground
         var ground = new OIMO.Body({size:[100, 40, 400], pos:[0,-20,0], world:world});
@@ -197,17 +214,6 @@
         }
     }
 
-    function clearMesh(){
-        var i=meshs.length;
-        while (i--)scene.remove(meshs[ i ]);
-        i = grounds.length;
-        while (i--){  scene.remove(grounds[ i ]); }
-
-        grounds = [];
-        meshs = [];
-        bodys=[];
-    }
-
     function updateOimoPhysics() {
         world.step();
 
@@ -241,6 +247,8 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
+
+        displayInfo();
     }
 
     function gravity(g){
@@ -257,7 +265,7 @@
         if (time - 1000 > time_prev) {
             time_prev = time; fpsint = fps; fps = 0;
         } fps++;
-
+        var w = world.performance;
         var info =[
             "Oimo.js DEV.1.1.0a<br><br>",
             "FPS: " + fpsint +" fps<br><br>",
@@ -265,12 +273,12 @@
             "Contact: "+world.numContacts+"<br>",
             "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
             "Contact Point: "+world.numContactPoints+"<br>",
-            "Island: " + world.numIslands +"<br><br>",
-            "Broad-Phase Time: " + world.performance.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: " + world.performance.narrowPhaseTime + " ms<br>",
-            "Solving Time: " + world.performance.solvingTime + " ms<br>",
-            "Updating Time: " + world.performance.updatingTime + " ms<br>",
-            "Total Time: " + world.performance.totalTime + " ms "
+            "Island: "+world.numIslands +"<br><br>",
+            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
+            "Solving Time: "+w.solvingTime + " ms<br>",
+            "Updating Time: "+w.updatingTime + " ms<br>",
+            "Total Time: "+w.totalTime + " ms "
         ].join("\n");
         document.getElementById("info").innerHTML = info;
     }
