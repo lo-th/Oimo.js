@@ -20,6 +20,8 @@ Basic demo no worker
 
 [ragdoll test](http://lo-th.github.io/Oimo.js/test_ragdoll.html)
 
+[collision test](http://lo-th.github.io/Oimo.js/test_collision.html)
+
 Basic demo worker transferrable
 
 [worker test](http://lo-th.github.io/Oimo.js/test_worker.html)

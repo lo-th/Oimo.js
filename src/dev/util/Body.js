@@ -26,10 +26,15 @@ OIMO.Body = function(Obj){
     // physics setting
     var sc = obj.sc || new OIMO.ShapeConfig();
     if(obj.config){
+        // The density of the shape.
         sc.density = obj.config[0] || 1;
+        // The coefficient of friction of the shape.
         sc.friction = obj.config[1] || 0.4;
+        // The coefficient of restitution of the shape.
         sc.restitution = obj.config[2] || 0.2;
+        // The bits of the collision groups to which the shape belongs.
         sc.belongsTo = obj.config[3] || 1;
+        // The bits of the collision groups with which the shape collides.
         sc.collidesWith = obj.config[4] || 0xffffffff;
     }
 
