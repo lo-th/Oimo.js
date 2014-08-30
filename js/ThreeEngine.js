@@ -940,6 +940,7 @@ var ThreeEngine = function () {
 
 		if(blobs!==null){
 			blobs.reset();
+			//blobs.geometry.dispose();
 			contentSpecial.remove(blobs);
 			blobs = null;
 		}
