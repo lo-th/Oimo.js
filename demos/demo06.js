@@ -3,6 +3,9 @@ CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 function initDemo()
 {
     demoName("Jenga tower");
+
+    CAM(45,60,2000);
+
     // ground
     ADD({type:"ground", size:[2000,400,2000], pos:[0,-200,0]});
 

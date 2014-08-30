@@ -7,6 +7,9 @@ CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 function initDemo()
 {
     demoName("Basic shape");
+
+    CAM(45,60,2000);
+    
     // ground
     ADD({type:"ground", size:[2000,300,2000], pos:[0,-150,0]});
 

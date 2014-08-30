@@ -3,6 +3,9 @@ CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 function initDemo()
 {
     demoName("Car rush hour");
+
+    CAM(90,85,6000);
+
     // ground
     ADD({type:"ground", size:[10000,500,10000], pos:[0,-250,0]});
 

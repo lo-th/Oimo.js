@@ -3,6 +3,9 @@ CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 function initDemo()
 {
     demoName("Compound object");
+
+    CAM(70,70,600);
+
     // ground
     ADD({type:"ground", size:[10000,500,10000], pos:[0,-250,0]});
 

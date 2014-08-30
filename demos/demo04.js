@@ -3,6 +3,9 @@ CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 function initDemo()
 {
     demoName("The bridge");
+
+    CAM(45,60,3000);
+
     // ground
     ADD({ type:"ground", size:[2000,1000,2000], pos:[0,-500,0] });
 

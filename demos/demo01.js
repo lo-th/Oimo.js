@@ -3,6 +3,9 @@ CLEAR({timer:false, timestep:1/60, iteration:8, broadphase:2, G:-10});
 function initDemo()
 {
     demoName("In the box");
+
+    CAM(45,60,2000);
+    
     // ground
     ADD({type:"ground", size:[550,300,550], pos:[0,-150,0]});
     // wall

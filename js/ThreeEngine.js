@@ -1804,7 +1804,7 @@ var ThreeEngine = function () {
 	}
 
 	var CAM = function (h, v, d) {
-		TweenLite.to(camPos, 3, {horizontal: h, vertical: v, distance: d, onUpdate: moveCamera, onComplete: endMove });
+		TweenLite.to(camPos, 1, {horizontal: h, vertical: v, distance: d, onUpdate: moveCamera, onComplete: endMove });
 		camPos.automove = true;
 	}
 

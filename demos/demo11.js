@@ -4,6 +4,8 @@ function initDemo()
 {
     demoName("Blobs");
 
+    CAM(90,80,4000);
+
     ADD({type:"blob", resolution:25, subtract:12, strength:0.8, size:[1000,1000,1000], pos:[0,0,0]});
     // ground
     ADD({ type:"ground", size:[2000,200,2000], pos:[0,-1000,0] });
