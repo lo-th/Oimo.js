@@ -8,6 +8,7 @@
 'use strict';
 
 var ThreeEngine = function () {
+	var doc = document;
 	
 	// containe background object
 	var back = new THREE.Object3D();
@@ -30,7 +31,7 @@ var ThreeEngine = function () {
 	var vsize = { x:0, y:0, z:0};
 	var vmid = { x:1, y:1, mode:'no' };
 	var camPos = { horizontal: 40, vertical: 60, distance: 2000, automove: false, phi:0, theta:0 };
-	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, press:false, moving:true };
+	var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, press:false, moving:true, button:0 };
 	var center = new THREE.Vector3(0,150,0);
 
 	var delta, clock = new THREE.Clock();
@@ -58,7 +59,7 @@ var ThreeEngine = function () {
 
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;';
 
-	var container = document.createElement( 'div' );
+	var container = doc.createElement( 'div' );
 	container.id = 'container';
 	container.style.cssText = unselect + 'padding:0; position:absolute; left:0; top:0; bottom:0; overflow:hidden;';
 
@@ -76,6 +77,7 @@ var ThreeEngine = function () {
 	var materialType=0;
 	var isShadow = false;
 	var isReflect = true;
+	var isDiffBackgroud = false;
 	
 
 	var planeBG = null;
@@ -116,9 +118,7 @@ var ThreeEngine = function () {
 		camera = new THREE.PerspectiveCamera( 60, 1, 1, 20000 );
 		//scene.add(camera);
 
-		sceneSky = new THREE.Scene();
-		cameraSky = new THREE.PerspectiveCamera( 60, 1, 1, 999999 );
-		sceneSky.add(cameraSky);
+		
 
 		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , depthWrite: false} );// side:THREE.BackSide,
 		var skyGeo = new THREE.BufferGeometry();
@@ -126,9 +126,18 @@ var ThreeEngine = function () {
 		sky = new THREE.Mesh(skyGeo, materialSky);
 		sky.rotation.y = 180*ToRad;
 		sky.scale.set(1,1,-1);
+
+		if(isDiffBackgroud){
+			sceneSky = new THREE.Scene();
+			cameraSky = new THREE.PerspectiveCamera( 60, 1, 1, 999999 );
+			sceneSky.add(cameraSky);
+			sceneSky.add(sky);
+		} else {
+			scene.add(sky);
+		}
 		
-		//sceneSky.add(sky);
-		scene.add(sky);
+		//
+		
 		
         scene.add(back);
 		scene.add(content);
@@ -287,8 +296,8 @@ var ThreeEngine = function () {
 		container.addEventListener( 'mouseout', onMouseUp, false );
 		container.addEventListener( 'mouseup', onMouseUp, false );
 
-		container.addEventListener( 'touchmove', onTouchMove, false );
-		container.addEventListener( 'touchstart', onTouchStart, false);
+		container.addEventListener( 'touchmove', onMouseMove, false );
+		container.addEventListener( 'touchstart', onMouseDown, false);
 		container.addEventListener( 'touchcancel', onMouseUp, false);
 		container.addEventListener( 'touchend', onMouseUp, false);
 
@@ -303,7 +312,7 @@ var ThreeEngine = function () {
 	}
 
 	var basicSky = function (n){
-        var canvas = document.createElement( 'canvas' );
+        var canvas = doc.createElement( 'canvas' );
         canvas.width = canvas.height = 128;
         var ctx = canvas.getContext( '2d' );
         var colors = [];
@@ -475,6 +484,7 @@ var ThreeEngine = function () {
 			}
 
 			//if(!isOptimized)renderer.shadowMapEnabled = false;
+			//renderer.clear();
 			ballCamera.updateCubeMap( renderer, ballScene );
 			//if(!isOptimized)renderer.shadowMapEnabled = true;
 		}
@@ -1340,7 +1350,9 @@ var ThreeEngine = function () {
 		//SeaLoader.parser = THREE.SEA3D.DEFAULT;
 		SeaLoader.load( PATH+'models/'+name+'.sea' );
 		//loadInfo.innerHTML = "Loading sea3d model : "+ name;
-		document.getElementById("output").innerHTML = "Loading sea3d model : "+ name;
+		//doc.getElementById("output").innerHTML
+		//output = "Loading sea3d model : "+ name;
+		Interface.log("Loading sea3d model : "+ name)
 	}
 
 	var getGeometry = function (name, scale, axe, child, deep){
@@ -1466,7 +1478,7 @@ var ThreeEngine = function () {
 		} else {
 
 			//renderer.clear();
-			//renderer.render( sceneSky, cameraSky );
+			if(isDiffBackgroud) renderer.render( sceneSky, cameraSky );
 			renderer.render( scene, camera );
 
 		}
@@ -1744,34 +1756,53 @@ var ThreeEngine = function () {
 
 	var onMouseDown = function (e) {
 		e.preventDefault();
-		mouse.ox = e.clientX;
-		mouse.oy = e.clientY;
+		var px, py;
+	    if(e.touches){
+	        px = e.clientX || e.touches[ 0 ].pageX;
+	        py = e.clientY || e.touches[ 0 ].pageY;
+	    } else {
+	        px = e.clientX;
+	        py = e.clientY;
+	        // 0: default  1: left  2: middle  3: right
+	        mouse.button = e.which;
+	    }
+		mouse.ox = px;
+		mouse.oy = py;
 		mouse.h = camPos.horizontal;
 		mouse.v = camPos.vertical;
-		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
-		mouse.my = - ( e.clientY / vsize.y ) * 2 + 1;
+		mouse.mx = ( px / vsize.x ) * 2 - 1;
+		mouse.my = - ( py / vsize.y ) * 2 + 1;
 		mouse.down = true;
 		if(mouseMode[mMode]==='shoot')mouse.press = true;
-		rayTest();
 		if(followSpecial === 'droid')setPlayerDestination();
+		rayTest();
 	}
 
 	var onMouseUp = function (e) {
 		mouse.down = false;
-		document.body.style.cursor = 'auto';
+		doc.body.style.cursor = 'auto';
 	}
 
 	var onMouseMove = function (e) {
 		e.preventDefault();
-		mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
-		mouse.my = -( e.clientY / vsize.y ) * 2 + 1;
+		var px, py;
+	    if(e.touches){
+	        px = e.clientX || e.touches[ 0 ].pageX;
+	        py = e.clientY || e.touches[ 0 ].pageY;
+	    } else {
+	        px = e.clientX;
+	        py = e.clientY;
+	    }
+		
+		mouse.mx = ( px / vsize.x ) * 2 - 1;
+		mouse.my = -( py / vsize.y ) * 2 + 1;
 		rayTest();
 
 		if (mouse.down && !camPos.automove ) {
 			if (mouse.moving) {
-				document.body.style.cursor = 'move';
-				camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
-				camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
+				doc.body.style.cursor = 'move';
+				camPos.horizontal = ((px - mouse.ox) * 0.3) + mouse.h;
+				camPos.vertical = (-(py - mouse.oy) * 0.3) + mouse.v;
 				moveCamera();
 			}/* else {
 				mouse.mx = ( e.clientX / vsize.x ) * 2 - 1;
@@ -1791,42 +1822,6 @@ var ThreeEngine = function () {
 	}
 
 	//-----------------------------------------------------
-	//  TOUCH MOBIL
-	//-----------------------------------------------------
-
-	var onTouchStart = function (e) { 
-		e.preventDefault();
-		var t=event.touches[0];
-		mouse.ox = t.clientX;
-		mouse.oy = t.clientY;
-		mouse.h = camPos.horizontal;
-		mouse.v = camPos.vertical;
-		mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
-		mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
-		mouse.down = true;
-		rayTest();
-	}
-
-	var onTouchMove = function (e) { 
-		e.preventDefault();
-		var t=event.touches[0];
-		mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
-		mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
-		rayTest();
-	    if (mouse.down && !camPos.automove ) {
-		    if (mouse.moving) {
-				document.body.style.cursor = 'move';
-				camPos.horizontal = ((t.clientX - mouse.ox) * 0.3) + mouse.h;
-				camPos.vertical = (-(t.clientY - mouse.oy) * 0.3) + mouse.v;
-				moveCamera();
-			}/* else {
-				mouse.mx = ( t.clientX / vsize.x ) * 2 - 1;
-		    	mouse.my = -( t.clientY / vsize.y ) * 2 + 1;
-			}*/
-	    }
-	}
-
-	//-----------------------------------------------------
 	//  CAMERA
 	//-----------------------------------------------------
 
@@ -1837,8 +1832,10 @@ var ThreeEngine = function () {
 		camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance, true));
 		camera.lookAt(center);
 
-		cameraSky.position.copy(camera.position);
-		cameraSky.lookAt(center);
+		if(isDiffBackgroud){
+			cameraSky.position.copy(camera.position);
+	     	cameraSky.lookAt(center);
+	    }
 	}
 
 	var endMove = function () {
@@ -1846,9 +1843,15 @@ var ThreeEngine = function () {
 	}
 
 	var CAM = function (h, v, d) {
+		//unwarpCam();
 		TweenLite.to(camPos, 1, {horizontal: h, vertical: v, distance: d, onUpdate: moveCamera, onComplete: endMove });
 		camPos.automove = true;
 	}
+
+	/*var unwarpCam= function (){
+		camPos.horizontal = unwrapDegrees(camPos.horizontal);
+		camPos.vertical = unwrapDegrees(camPos.vertical);
+	}*/
 
 	var cameraFollow = function (vec) {
 		center.copy(vec);
@@ -1873,8 +1876,10 @@ var ThreeEngine = function () {
 		vsize.z = vsize.x/vsize.y;
 		camera.aspect = vsize.z;
 		camera.updateProjectionMatrix();
-		cameraSky.aspect = vsize.z;
-		cameraSky.updateProjectionMatrix();
+		if(isDiffBackgroud){
+			cameraSky.aspect = vsize.z;
+		    cameraSky.updateProjectionMatrix();
+		}
 		renderer.setSize( vsize.x, vsize.y );
 		if ( postprocessing.enabled ) resizePostprocess();
 	}
@@ -1906,8 +1911,16 @@ var ThreeEngine = function () {
 	var Orbit = function (origine, horizontal, vertical, distance, MainCamera) {
 		var mainCamera = MainCamera || false;
 		var p = new THREE.Vector3();
-		var phi = unwrapDegrees(vertical)*ToRad;
-		var theta = unwrapDegrees(horizontal)*ToRad;
+		var phi, theta;
+		if(mainCamera){
+			camPos.horizontal = unwrapDegrees(camPos.horizontal);
+			camPos.vertical = unwrapDegrees(camPos.vertical);
+			phi = camPos.vertical*ToRad;
+		    theta = camPos.horizontal*ToRad;
+		} else{
+			phi = vertical*ToRad;
+		    theta = horizontal*ToRad;
+		}
 		if(mainCamera){
 			camPos.phi = phi; camPos.theta = theta;
 			sendCameraOrientation(phi, theta);

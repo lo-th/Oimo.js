@@ -3,7 +3,8 @@
  */
 
 var Interface = function (name) {
-	var container = document.createElement( 'div' );
+	var doc = document;
+	var container = doc.createElement( 'div' );
 	container.id = 'interface';
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; user-select: none;'
 	//container.style.cssText = unselect+ 'position:absolute; color:#CCCCCC; font-size:10px; font-family:"Trebuchet MS", Helvetica, sans-serif; width:100%; height:100%; pointer-events:none;';
@@ -152,15 +153,15 @@ var Interface = function (name) {
     //  TITLE
     //-----------------------------------------------------
 
-    var titleLogo = document.createElement( 'svg' );
+    var titleLogo = doc.createElement( 'svg' );
 	titleLogo.style.cssText = 'position:absolute; top:8px; left:8px; width:60x; height:120px;';
     titleLogo.innerHTML = icon_logos;//+//new_logo;//icon_logos;
 
-	var title = document.createElement( 'div' );
+	var title = doc.createElement( 'div' );
 	title.style.cssText = 'position:absolute; color:#FFFFFF; top:9px; left:19px; text-align:left; font-weight:900; font-size:23px; pointer-events:none;';
 	title.innerHTML = txt_logo;//"Oimo.js";
 
-	var titleLink = document.createElement( 'div' );
+	var titleLink = doc.createElement( 'div' );
 	titleLink.style.cssText = 'position:absolute; color:#FFFFFF; top:23px; left:124px; text-align:left; pointer-events:auto; font-size:14px;';// font-weight:600
 
 	var linkStyle = "color:#7fdbff; cursor:pointer;";
@@ -183,16 +184,20 @@ var Interface = function (name) {
     //  OUTPUT
     //-----------------------------------------------------
 
-	var output = document.createElement( 'div' );
+	var output = doc.createElement( 'div' );
 	output.id = "output";
 	output.style.cssText = 'line-height:12px; letter-spacing:0px; position:absolute; color:#DEDEDE; top:115px; width:200px; height:200px; left:60px; text-align:left; pointer-events:none; font-size:11px; ';
 	container.appendChild( output );
+
+	var log = function(s){
+		output.innerHTML = s;
+	}
 
 	//-----------------------------------------------------
     //  COPY
     //-----------------------------------------------------
 
-	var copy = document.createElement( 'div' );
+	var copy = doc.createElement( 'div' );
 	copy.style.cssText = 'position:absolute; bottom:0px; width:350px; right:0px; text-align:right; pointer-events:auto; color:#777777; margin-right:10px; margin-bottom:5px;';
 	copy.innerHTML = "<a href='http://3dflashlo.wordpress.com/' target='_blank' style='color:#909090'>LOTH 2014</a> |  <a href='https://github.com/saharan/OimoPhysics' target='_blank' style='color:#888888'>OIMO.PHYSICS</a> | <a href='http://threejs.org' target='_blank' style='color:#888888'>THREE.JS</a> | <a href='https://code.google.com/p/sea3d/' target='_blank' style='color:#888888'>SEA3D</a>";
 	container.appendChild( copy );
@@ -201,19 +206,19 @@ var Interface = function (name) {
     //  MENU DEMO
     //-----------------------------------------------------
 
-    var aMenu = document.createElement( 'div' );
+    var aMenu = doc.createElement( 'div' );
 	aMenu.style.cssText = 'left:calc(50% - 100px); width:200px; top:20px; position:absolute; display:block; text-align:center; ';
 	container.appendChild( aMenu );
 
-	var bnext = document.createElement( 'div' );
+	var bnext = doc.createElement( 'div' );
 	bnext.style.cssText = buttonStyle;
 	bnext.innerHTML = "&raquo;";
 
-	var bprev = document.createElement( 'div' );
+	var bprev = doc.createElement( 'div' );
 	bprev.style.cssText = buttonStyle;
 	bprev.innerHTML = "&laquo;";
 
-	var bcenter = document.createElement( 'div' );
+	var bcenter = doc.createElement( 'div' );
 	bcenter.id = "demoName";
 	bcenter.style.cssText = bbStyle;
 	bcenter.textContent = "Basic shape";
@@ -243,7 +248,7 @@ var Interface = function (name) {
     //  MENU DEMO
     //-----------------------------------------------------
 
-    var bMenu = document.createElement( 'div' );
+    var bMenu = doc.createElement( 'div' );
 	bMenu.style.cssText = 'right:0px; top:12px; position:absolute; width:'+(iconSize+12)+'px; display:block; text-align:center;  margin-right:5px;';
 	container.appendChild( bMenu );
 
@@ -255,11 +260,11 @@ var Interface = function (name) {
 
 	for(var i=0;i!==6;i++){
 
-		bbMenu[i] = document.createElement( 'div' );
+		bbMenu[i] = doc.createElement( 'div' );
 		bbMenu[i].name = i;
 		bbMenu[i].style.cssText = "margin-left:6px; width:"+iconSize+"px; height:"+iconSize+"px; margin-bottom:0px; pointer-events:auto;  ";
 
-		bbMenu2[i] = document.createElement( 'div' );
+		bbMenu2[i] = doc.createElement( 'div' );
 		bbMenu2[i].name = i;
 		if(i===0)bbMenu2[i].style.cssText = "width:"+(iconSize+12)+"px; height:20px; margin-bottom:30px; color:#7fdbff;";
 		else bbMenu2[i].style.cssText = "width:"+(iconSize+12)+"px; height:20px; margin-bottom:0px; color:#7fdbff;";
@@ -283,21 +288,21 @@ var Interface = function (name) {
 
 	//bbMenu[0].style.color = "#ffffff";
 	/*var overColor = function (n) {
-		if(document.getElementById(bbMenuIcons[n]))document.getElementById(bbMenuIcons[n]).setAttribute('fill','#0074d9');
+		if(doc.getElementById(bbMenuIcons[n]))doc.getElementById(bbMenuIcons[n]).setAttribute('fill','#0074d9');
 		bbMenu2[n].style.visibility = "visible";
 	}*/
 
 	var overColor = function (n) {
-		if(document.getElementById(bbMenuIcons[n]))document.getElementById(bbMenuIcons[n]).setAttribute('fill','#7fdbff');
+		if(doc.getElementById(bbMenuIcons[n]))doc.getElementById(bbMenuIcons[n]).setAttribute('fill','#7fdbff');
 		bbMenu2[n].style.visibility = "visible";
 		bbMenu2[n].style.color = "#7fdbff";
 	}
 	var outColor = function (n) {
-		if(document.getElementById(bbMenuIcons[n]))document.getElementById(bbMenuIcons[n]).setAttribute('fill','#ffffff');
+		if(doc.getElementById(bbMenuIcons[n]))doc.getElementById(bbMenuIcons[n]).setAttribute('fill','#ffffff');
 		bbMenu2[n].style.visibility = "hidden";
 	}
 	var clickColor = function (n) {
-		if(document.getElementById(bbMenuIcons[n]))document.getElementById(bbMenuIcons[n]).setAttribute('fill','#ff851b');
+		if(doc.getElementById(bbMenuIcons[n]))doc.getElementById(bbMenuIcons[n]).setAttribute('fill','#ff851b');
 		bbMenu2[n].style.color = "#ff851b";
 	}
 	//bbMenu[4].innerHTML = "E";
@@ -357,28 +362,28 @@ var Interface = function (name) {
 	var drag;
 	//var finalFunction;
 
-	var loDiv = document.createElement( 'div' );
+	var loDiv = doc.createElement( 'div' );
 	loDiv.style.cssText = effect+ 'position:absolute; left:10px; top:110px; width:30px; height:200px; padding:0 0 0 0; display:block; background:rgba(1,1,1,0.1); -webkit-border-radius:20px; border-radius:20px; cursor:ns-resize;text-align:center; pointer-events:auto;';
 	container.appendChild( loDiv );
 
-	var loDiv2 = document.createElement( 'div' );
+	var loDiv2 = doc.createElement( 'div' );
 	loDiv2.style.cssText = 'position:absolute; left:5px; bottom:0px; width:20px; height:200px; display:block; background:rgba(255,255,0,0.05);-webkit-border-radius:10px; border-radius:10px; pointer-events:none;';
 	loDiv.appendChild( loDiv2 );
 	
 
-	var center = document.createElement( 'div' );
+	var center = doc.createElement( 'div' );
 	center.style.cssText = 'position:absolute;width:30px;left:0px;height:1px;padding:0 0 0 0; background:rgba(255,255,255,0.2); top:100px; pointer-events:none;';
 	loDiv.appendChild( center );
 
-	var select = document.createElement( 'div' );
+	var select = doc.createElement( 'div' );
 	select.style.cssText = 'position:absolute;width:30px;left:0px;height:1px;padding:0 0 0 0; background:rgba(255,255,1,0.8); top:100px; pointer-events:none;';
 	loDiv.appendChild( select );
 
-	var txt = document.createElement( 'div' );
+	var txt = doc.createElement( 'div' );
 	txt.style.cssText = 'position:absolute;width:30px;height:30px; padding:0 0 0 0; top:105px; pointer-events:none; font-size:10px;';
 	loDiv.appendChild( txt );
 
-	var txt2 = document.createElement( 'div' );
+	var txt2 = doc.createElement( 'div' );
 	txt2.style.cssText = 'position:absolute;width:30px;height:30px; padding:0 0 0 0; top:85px; pointer-events:none; font-size:10px;';
 	loDiv.appendChild( txt2 );
 	txt2.textContent ="G";
@@ -435,7 +440,7 @@ var Interface = function (name) {
     //  MENU OPTIONS BOTTOM
     //-----------------------------------------------------
 
-	var menu = document.createElement( 'div' );
+	var menu = doc.createElement( 'div' );
 	menu.style.cssText ='position:absolute; height:600px; width:100%; overflow:hidden; bottom:0px; left:0px; pointer-events:none;';
 	container.appendChild( menu );
 
@@ -443,7 +448,7 @@ var Interface = function (name) {
     //  RIBBON
     //-----------------------------------------------------
 
-	/*var ribbon = document.createElement( 'div' );
+	/*var ribbon = doc.createElement( 'div' );
 	ribbon.style.cssText ='position: absolute; top: 0; right: 0; border: 0;  pointer-events:auto;';
 	ribbon.innerHTML ="<a href='https://github.com/lo-th/Oimo.js'  target='_blank' ><img  src='images/ribbon0.png' alt='Fork me on GitHub' /></a>";
 	container.appendChild( ribbon );*/
@@ -452,13 +457,14 @@ var Interface = function (name) {
     //  BADGE
     //-----------------------------------------------------
 
-    /*var badge = document.createElement( 'div' );
+    /*var badge = doc.createElement( 'div' );
     badge.style.cssText ='position: absolute; bottom: 20px; right: 10px; border: 0;  pointer-events:auto;';
 	badge.innerHTML ="<a href='http://www.chromeexperiments.com/detail/YOUR-PROJECT-NAME/'><img src='images/badge.png' alt='See my Experiment on ChromeExperiments.com' /></a>"
 	container.appendChild( badge );*/
 
     return {
 		domElement: container,
+		log:log,
 		menu:menu,
 		setCurrentGravity:setCurrentGravity,
 		demoName:demoName,

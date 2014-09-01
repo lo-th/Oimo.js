@@ -3,6 +3,7 @@
  */
 'use strict';
 var Ambience = function (Pos) {
+	var doc = document;
 	var left = Pos || 140//140;
 	var render3d, scene3d = null;
 	var unselect = '-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none;'
@@ -12,7 +13,7 @@ var Ambience = function (Pos) {
 	var open = false;
 	var startHeight = 416;
 
-    var container = document.createElement( 'div' );
+    var container = doc.createElement( 'div' );
 	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:SourceCode; text-align:center; pointer-events:none;';
 	container.id = 'Ambience';
 
@@ -20,7 +21,7 @@ var Ambience = function (Pos) {
 	var borderR = '-webkit-border-top-right-radius:20px; border-top-right-radius:20px;';
     var effect = 'border:1px solid rgba(255,255,255,0.3);';
 
-	var deco = document.createElement( 'div' );
+	var deco = doc.createElement( 'div' );
 	deco.style.cssText = borderL+borderR+effect+'width:140px; margin-left:-70px; height:'+startHeight+'px; position:relative; display:block; overflow:hidden;';
 	deco.style.transform='translateY('+(startHeight-30)+'px)';
 	deco.style.webkitTransform='translateY('+(startHeight-30)+'px)';
@@ -29,7 +30,7 @@ var Ambience = function (Pos) {
 	//----------------------------------------------
 
 
-	/*var aMini = document.createElement( 'div' );
+	/*var aMini = doc.createElement( 'div' );
 	aMini.style.cssText = 'padding:0px 1px; position:relative; display:block;-webkit-border-top-left-radius:20px; border-top-left-radius: 20px;-webkit-border-top-right-radius: 20px; border-top-right-radius: 20px; ';//' background-color:#ff55ff';
 	//container.appendChild( aMini );
 
@@ -39,15 +40,15 @@ var Ambience = function (Pos) {
 	var bstyle = 'font-size:14px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.1); height:19px; padding:5px 0px;';
 	var buttonActif = 'position:relative; display:inline-block; cursor:pointer; pointer-events:auto;';
 
-	var bnext = document.createElement( 'div' );
+	var bnext = doc.createElement( 'div' );
 	bnext.style.cssText =bstyle + borderR+buttonActif+'width:30px;';
 	bnext.textContent = ">";
 
-	var bprev = document.createElement( 'div' );
+	var bprev = doc.createElement( 'div' );
 	bprev.style.cssText =bstyle+ borderL+buttonActif+'width:30px;';
 	bprev.textContent = "<";
 
-	var bcenter = document.createElement( 'div' );
+	var bcenter = doc.createElement( 'div' );
 	bcenter.style.cssText =bstyle+buttonActif+'width:80px;';
 	bcenter.textContent = "AMBIENT";
 
@@ -95,16 +96,16 @@ var Ambience = function (Pos) {
 
 	// type select
 
-	var bType = document.createElement( 'div' );
+	var bType = doc.createElement( 'div' );
 	bType.style.cssText = bstyle+buttonActif+'width:128px';
 	bType.textContent = "Colors";
 
-	var bType2 = document.createElement( 'div' );
+	var bType2 = doc.createElement( 'div' );
 	bType2.style.cssText = bstyle+buttonActif+'width:127px; border-left:1px solid rgba(1,1,1,0.3);';
 	bType2.textContent = "Real";
 	bType.style.color = "#FFFF00";
 
-	var typeSelect = document.createElement( 'div' );
+	var typeSelect = doc.createElement( 'div' );
 	typeSelect.style.cssText = ' width:256px; position:relative; display:none;';
 	deco.appendChild( typeSelect );
 
@@ -124,15 +125,15 @@ var Ambience = function (Pos) {
 	//-------------------------------------------------
 
 	
-	var bigMap = document.createElement( 'div' );
+	var bigMap = doc.createElement( 'div' );
 	bigMap.style.cssText = ' width:256px;height:256px; position:relative; display:none; ';
 	deco.appendChild( bigMap );
 
-	var bigGradian = document.createElement( 'div' );
+	var bigGradian = doc.createElement( 'div' );
 	bigGradian.style.cssText = ' width:256px; height:60px; position:relative; display:none; ';
 	deco.appendChild( bigGradian );
 
-	var bigColor = document.createElement( 'div' );
+	var bigColor = doc.createElement( 'div' );
 	bigColor.style.cssText = ' width:256px; height:40px; position:relative; display:none; ';
 	deco.appendChild( bigColor );
 
@@ -140,22 +141,22 @@ var Ambience = function (Pos) {
 
 	
 
-	var bigMapGoogle = document.createElement( 'div' );
+	var bigMapGoogle = doc.createElement( 'div' );
 	bigMapGoogle.style.cssText = ' width:256px; height:256px; position:relative; display:block; visibility:hidden; pointer-events:auto;';
 	deco.appendChild( bigMapGoogle );
-	var bigMapInterface = document.createElement( 'div' );
+	var bigMapInterface = doc.createElement( 'div' );
 	bigMapInterface.style.cssText = ' width:256px; height:102px; position:relative; display:none; ';
 	deco.appendChild( bigMapInterface );
 
 	//-----------------------------------------------
 
 	var isShowfinalPreset = false;
-	var finalPresetButton = document.createElement( 'div' );
+	var finalPresetButton = doc.createElement( 'div' );
 	finalPresetButton.style.cssText = 'font-size:9px; bottom:2px; right:2px; position:absolute; padding:-2px -2px; width:13px; height:13px; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.6); background-color: rgba(1,1,1,0.5);cursor:pointer; pointer-events:auto;';
 	finalPresetButton.textContent = "+";
 	
 
-	var finalPreset = document.createElement( 'div' );
+	var finalPreset = doc.createElement( 'div' );
 	finalPreset.style.cssText =  textselect + 'font-size:9px; position:absolute; padding:10px 10px; width:230px; height:300px; bottom:40px; left:138px; border-radius: 10px; border:1px solid #010101; background-color: #111; text-align:left; display:none; pointer-events:auto;';
 
 	container.appendChild( finalPreset );
@@ -273,10 +274,10 @@ var Ambience = function (Pos) {
 	//--------------------------------------
 
 	var loadGoogleMapsAPI = function () {
-	    var script = document.createElement("script");
+	    var script = doc.createElement("script");
 	    script.type = "text/javascript";
 	    script.src = "http://maps.google.com/maps/api/js?sensor=false&callback=initializeGoogleMapsAPI";
-	    document.body.appendChild(script);
+	    doc.body.appendChild(script);
 	}
 
 	var locations = [
@@ -328,11 +329,11 @@ var Ambience = function (Pos) {
 	}
 
 	// search 
-	var search = document.createElement( 'div' );
+	var search = doc.createElement( 'div' );
 	search.style.cssText = 'position:absolute;width:192px; height:19px; padding:5px 0px; border-bottom:1px solid rgba(1,1,1,0.3); background:rgba(1,1,1,0.2);';
 	bigMapInterface.appendChild( search );
 
-	var searchTxt = document.createElement( 'input' );
+	var searchTxt = doc.createElement( 'input' );
 	searchTxt.type = 'text';
 	//searchTxt.style.cssText = 'color:#EEEEEE; left:2px; width:180px; padding:4px 2px;margin:2px 2px; height:14px;position:absolute; -webkit-border-radius: 20px; border-radius:20px; border:1px solid rgba(1,1,1,0.5); background-color: rgba(1,1,1,0.2);font-size:12px;font-family:Monospace;text-align:center;';
 	searchTxt.style.cssText ='width:184px; position:relative; color:#CCCCCC; background:none; text-shadow: 1px 1px 3px #000;  font-size:14px; height:19px; padding:5px 4px; display:inline-block; pointer-events:auto; border:none; ';
@@ -341,7 +342,7 @@ var Ambience = function (Pos) {
 	searchTxt.addEventListener( 'keydown', function ( e ) { if (e.keyCode == 13)findAddress(); }, false );
 
 
-	var searchButton = document.createElement( 'div' );
+	var searchButton = doc.createElement( 'div' );
 	searchButton.style.cssText = bstyle+buttonActif+'width:63px; border-left:1px solid rgba(1,1,1,0.3);';//buttonStyle+'width:50px; right:2px;position:absolute;';
 	searchButton.textContent = "Search";
 	bigMapInterface.appendChild( searchButton );
@@ -354,7 +355,7 @@ var Ambience = function (Pos) {
 	var scales = [];
 	var scalesName = ['low', 'medium', 'high', 'max'];
 	for(var i=0; i!==4; i++){
-		scales[i] = document.createElement( 'div' );
+		scales[i] = doc.createElement( 'div' );
 		if(i===0)scales[i].style.cssText = bstyle+buttonActif+'width:64px;';
 		else scales[i].style.cssText = bstyle+buttonActif+'width:63px; border-left:1px solid rgba(1,1,1,0.3);';//buttonStyle+'width:50px';
 		scales[i].textContent = scalesName[i];
@@ -367,16 +368,16 @@ var Ambience = function (Pos) {
 
 
 	// loading bar
-	var preloader = document.createElement( 'div' );
+	var preloader = doc.createElement( 'div' );
 	preloader.style.cssText = 'display:block; top:0px; width:256px; height:6px; position:relative; -webkit-border-radius: 20px; border-radius:5px; border-bottom:1px solid rgba(1,1,1,0.3); background-color: rgba(1,1,1,0.1); pointer-events: none;';
 	bigMapInterface.appendChild( preloader );
 
-	var bar = document.createElement( 'div' );
+	var bar = doc.createElement( 'div' );
 	bar.style.cssText = ' width:256px;height:5px; position:absolute; background-color: rgba(55,123,167,1); pointer-events: none;';
 	preloader.appendChild( bar );
 
 	// message
-	var messageDiv = document.createElement( 'div' );
+	var messageDiv = doc.createElement( 'div' );
 	messageDiv.style.cssText = 'display:block;top:5px;  width:256px; height:30px; position:relative; margin:2px 2px; pointer-events: none;font-size:9px;font-family:Monospace;text-align:center;';
 	bigMapInterface.appendChild( messageDiv );
 
@@ -432,7 +433,7 @@ var newCanvas;
 			bcenter.textContent = pos.name;
 
 			if(locations[ currentPosition ].name.slice(0,3) === 'sea'){
-				newCanvas = document.createElement('canvas');
+				newCanvas = doc.createElement('canvas');
 				var w = Math.round(this.canvas.width*0.7127);
 				var decal = this.canvas.width-w
 
@@ -444,7 +445,7 @@ var newCanvas;
 
 				mapCanvas = newCanvas;
 
-				//document.body.appendChild( this.canvas );
+				//doc.body.appendChild( this.canvas );
 
 			}
 
@@ -663,10 +664,10 @@ var newCanvas;
 	}};*/
 
 	var initInterface = function (){
-		mh[0]= document.createElement( 'div' );//document.getElementById('mh0');
-		mh[1]= document.createElement( 'div' );//document.getElementById('mh1');
-		mh[2]= document.createElement( 'div' );//document.getElementById('mh2');
-		mh[3]= document.createElement( 'div' );//document.getElementById('mh3');
+		mh[0]= doc.createElement( 'div' );//doc.getElementById('mh0');
+		mh[1]= doc.createElement( 'div' );//doc.getElementById('mh1');
+		mh[2]= doc.createElement( 'div' );//doc.getElementById('mh2');
+		mh[3]= doc.createElement( 'div' );//doc.getElementById('mh3');
 
 		mh[0].style.cssText = mh[1].style.cssText ='pointer-events:none; position:absolute; margin-left:-64px; margin-top:-64px;';
 		mh[2].style.cssText = mh[3].style.cssText ='position:absolute; margin-left:-10px; margin-top:-10px; cursor:move; pointer-events:auto;';
@@ -707,9 +708,9 @@ var newCanvas;
 			}
 		} , false );
 
-		grd[0]=document.createElement( 'div' );
-		grd[1]=document.createElement( 'div' );
-		grd[2]=document.createElement( 'div' );
+		grd[0]=doc.createElement( 'div' );
+		grd[1]=doc.createElement( 'div' );
+		grd[2]=doc.createElement( 'div' );
 		grd[0].style.cssText = grd[1].style.cssText = grd[2].style.cssText ='position:relative; display:block; height:20px;';
 
 		bigMap.appendChild(canvasSphere[0]);
@@ -731,13 +732,13 @@ var newCanvas;
 		//_____ color helper
 		for(var i=0; i!==12; i++){
 			dragcc[i] = false;
-			cac[i]= document.createElement( 'div' ); //document.getElementById('cc'+i);
+			cac[i]= doc.createElement( 'div' ); //doc.getElementById('cc'+i);
 			cac[i].style.cssText = 'width:20px; height:18px; position:absolute; margin-top:-33px; margin-left:-10px; cursor:w-resize; background-color: rgba(1,1,1,0); pointer-events:auto;';
 
-			ccIn= document.createElement( 'div' ); //document.getElementById('cc'+i);
+			ccIn= doc.createElement( 'div' ); //doc.getElementById('cc'+i);
 			ccIn.style.cssText = 'width:2px; height:18px; position:absolute; margin-left:9px; background-color: rgba(255,255,0,1);pointer-events:none;';
 			
-			ccIn2= document.createElement( 'div' ); //document.getElementById('cc'+i);
+			ccIn2= doc.createElement( 'div' ); //doc.getElementById('cc'+i);
 			ccIn2.style.cssText = 'width:4px; height:18px; position:absolute; margin-left:8px; background-color: rgba(0,0,0,0.3);pointer-events:none;';
 			cac[i].appendChild(ccIn2);
 			cac[i].appendChild(ccIn);
@@ -850,10 +851,10 @@ var newCanvas;
 	}
 
 	var initSphereGradian = function (){
-		canvasHelper[0] = document.createElement("canvas");
-		canvasHelper[1] = document.createElement("canvas");
-		canvasHelper[2] = document.createElement("canvas");
-		canvasHelper[3] = document.createElement("canvas");
+		canvasHelper[0] = doc.createElement("canvas");
+		canvasHelper[1] = doc.createElement("canvas");
+		canvasHelper[2] = doc.createElement("canvas");
+		canvasHelper[3] = doc.createElement("canvas");
 
 		canvasHelper[0].width = canvasHelper[0].height = 128;
 		canvasHelper[1].width = canvasHelper[1].height = 128;
@@ -867,9 +868,9 @@ var newCanvas;
 
 		drawHelper();
 
-		canvasSphere[0] = document.createElement("canvas");
-		canvasSphere[1] = document.createElement("canvas");
-		canvasSphere[2] = document.createElement("canvas"); 
+		canvasSphere[0] = doc.createElement("canvas");
+		canvasSphere[1] = doc.createElement("canvas");
+		canvasSphere[2] = doc.createElement("canvas"); 
 		canvasSphere[0].width = canvasSphere[0].height = 256;
 		canvasSphere[1].width = canvasSphere[1].height = 256;
 		canvasSphere[2].width = canvasSphere[2].height = 256;
@@ -878,9 +879,9 @@ var newCanvas;
 		ctxs[2] = canvasSphere[2].getContext("2d");
 		ctxs[2].scale(0.5, 0.5);
 		//__________linear degrad
-		canvasSphere[3] = document.createElement("canvas"); 
-		canvasSphere[4] = document.createElement("canvas");
-		canvasSphere[5] = document.createElement("canvas");
+		canvasSphere[3] = doc.createElement("canvas"); 
+		canvasSphere[4] = doc.createElement("canvas");
+		canvasSphere[5] = doc.createElement("canvas");
 
 		canvasSphere[3].width = canvasSphere[4].width = canvasSphere[5].width =256;
 		canvasSphere[3].height = canvasSphere[4].height = canvasSphere[5].height =30;
@@ -1050,7 +1051,7 @@ var newCanvas;
 		var ctx;
 		var grd;
 
-		ddOutColor =  document.createElement( 'div' );//document.getElementById('finalColor');
+		ddOutColor =  doc.createElement( 'div' );//doc.getElementById('finalColor');
 		ddOutColor.style.cssText ='position:absolute; margin:0; padding:0; top:0px; right:0; pointer-events:none; width:'+ccw+'px; height:'+ccw+'px;';
 		ddOutColor.style.background = 'rgba(0,0,0,0)';
 
@@ -1058,8 +1059,8 @@ var newCanvas;
 		bigColor.appendChild( finalPresetButton );
 		
 		for(var i=0;i!==4; i++){
-			ddDiv[i] = document.createElement( 'div' );
-			ddSel[i] = document.createElement( 'div' );
+			ddDiv[i] = doc.createElement( 'div' );
+			ddSel[i] = doc.createElement( 'div' );
 			ddDiv[i].style.cssText ='position:absolute; margin-top:-2px; padding:0; cursor:w-resize; pointer-events:auto;  height:'+cch+'px;';
 			ddSel[i].style.cssText ='position:absolute; pointer-events:none; margin-left:0.5px; width:1px; height:'+cch+'px; background-color:#FFFF00';
 			bigColor.appendChild( ddDiv[i] );
@@ -1067,7 +1068,7 @@ var newCanvas;
 			ddDiv[i].style.top = i*cch+'px';
 			ddSel[i].style.top = i*cch+'px';
 
-			ddcolors[i] = document.createElement("canvas");
+			ddcolors[i] = doc.createElement("canvas");
 			ddcolors[i].width = cclong;
 			ddcolors[i].height = cch;
 			ctx = ddcolors[i].getContext("2d");
@@ -1177,7 +1178,7 @@ var newCanvas;
 }
 
 var GSVPANO=GSVPANO||{};
-GSVPANO.PanoLoader=function(g){var g=g||{},d,k,m=new google.maps.StreetViewService,f=0,h=0,a=document.createElement("canvas"),i=a.getContext("2d");this.setProgress=function(b){if(this.onProgress)this.onProgress(b)};this.throwError=function(b){if(this.onError)this.onError(b);else console.error(b)};this.adaptTextureToZoom=function(){var b=416*Math.pow(2,d),c=416*Math.pow(2,d-1);a.width=b;a.height=c;i.translate(a.width,0);i.scale(-1,1)};this.composeFromTile=function(b,c,j){i.drawImage(j,512*b,512*c);
+GSVPANO.PanoLoader=function(g){var g=g||{},doc=document,d,k,m=new google.maps.StreetViewService,f=0,h=0,a=doc.createElement("canvas"),i=a.getContext("2d");this.setProgress=function(b){if(this.onProgress)this.onProgress(b)};this.throwError=function(b){if(this.onError)this.onError(b);else console.error(b)};this.adaptTextureToZoom=function(){var b=416*Math.pow(2,d),c=416*Math.pow(2,d-1);a.width=b;a.height=c;i.translate(a.width,0);i.scale(-1,1)};this.composeFromTile=function(b,c,j){i.drawImage(j,512*b,512*c);
 f++;this.setProgress(Math.round(100*f/h));if(f===h&&(this.canvas=a,this.onPanoramaLoad))this.onPanoramaLoad()};this.composePanorama=function(){this.setProgress(0);console.log("Loading panorama for zoom "+d+"...");var b=Math.pow(2,d),c=Math.pow(2,d-1),j=this,l,a,e;f=0;h=b*c;for(e=0;e<c;e++)for(a=0;a<b;a++)l="http://maps.google.com/cbk?output=tile&panoid="+k+"&zoom="+d+"&x="+a+"&y="+e+"&"+Date.now(),function(b,c){var a=new Image;a.addEventListener("load",function(){j.composeFromTile(b,c,this)});a.crossOrigin=
 "";a.src=l}(a,e)};this.load=function(b){console.log("Load for",b);var c=this;m.getPanoramaByLocation(b,50,function(a,d){if(d===google.maps.StreetViewStatus.OK){if(c.onPanoramaData)c.onPanoramaData(a);google.maps.geometry.spherical.computeHeading(b,a.location.latLng);c.copyright=a.copyright;k=a.location.pano;c.location=b;c.composePanorama()}else{if(c.onNoPanoramaData)c.onNoPanoramaData(d);c.throwError("Could not retrieve panorama for the following reason: "+d)}})};this.setZoom=function(a){d=a;this.adaptTextureToZoom()};
 this.setZoom(g.zoom||1)};

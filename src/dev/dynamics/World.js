@@ -248,6 +248,7 @@ OIMO.World.prototype = {
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
         var i = numPairs;
+        //do{
         while(i--){
         //for(var i=0, l=numPairs; i<l; i++){
             var pair=pairs[i];
@@ -279,7 +280,7 @@ OIMO.World.prototype = {
             if(!exists){
                 this.addContact(s1,s2);
             }
-        }
+        }// while(i-- >0);
         time2=Date.now();
         this.performance.broadPhaseTime=time2-time1;
 

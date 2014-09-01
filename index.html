@@ -51,10 +51,12 @@
        "Joint test", "Supermarket", "Car simulator", 
        "Ragdoll", "Van", "Bridge", "Droid Road"
     ];
+    var doc = document;
 	var TE;
 	var Ambience;
 	var Interface;
 	var Editor;
+    
 	var demoName, demo;
 	
     var OimoWorker = new Worker('js/oimo/worker_oimo_dev.js');
@@ -69,11 +71,13 @@
     	Interface = new Interface('dev');
     	Ambience = new Ambience();
     	Editor = new Editor();
+        
 
-    	document.body.appendChild( TE.domElement );
-    	document.body.appendChild( Editor.domElement );
-    	document.body.appendChild( Interface.domElement );
+    	doc.body.appendChild( TE.domElement );
+    	doc.body.appendChild( Editor.domElement );
+    	doc.body.appendChild( Interface.domElement );
 		Interface.menu.appendChild( Ambience.domElement );
+
 
 		demoName = Interface.demoName;
         ADD = TE.ADD;
@@ -122,8 +126,9 @@
 
             if(Interface.getdemoName() == "Blobs") TE.updateBlob(m);
 
-    		var i = m.length;
-	    	while (i--) {
+    		var i = m.length;//-1;
+	    	//do {
+            while (i--) {
 	    		if( TE.content.children[i] ){
     	    		mesh = TE.content.children[i];
     	    		if( m[i][15] === 0 ){// not sleep
@@ -149,19 +154,20 @@
 				    	}
 			    	}
 		        } 
-            }
+            }// while(i--);
 
             // Update rendering joints
             m = e.data.matrixJoint;
             i = m.length;
             while (i--) {
+            //do {
             	if( TE.contentJoint.children[i] ){
             		mesh = TE.contentJoint.children[i];
             		mesh.geometry.vertices[0].set( m[i][0], m[i][1], m[i][2] );
             		mesh.geometry.vertices[1].set( m[i][4], m[i][5], m[i][6] );
             		mesh.geometry.verticesNeedUpdate = true;
             	}
-            }
+            } //while(i--);
 
             //skin update
             if(demo === 3) TE.updateSnake();
@@ -232,7 +238,7 @@
     	    "Render: " + TE.getFps()+"<br><br>",
     	    "Selected: "+ TE.getSelected()
 	    ].join("\n");
-    	document.getElementById("output").innerHTML = info;
+    	Interface.log(info);
     }
 
 </script>

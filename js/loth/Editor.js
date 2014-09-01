@@ -3,6 +3,7 @@
  */
  'use strict';
 var Editor = function (Pos) {
+	var doc = document;
 	
 	var left = Pos || 310;//590;
 	var render3d, scene3d = null;
@@ -12,7 +13,7 @@ var Editor = function (Pos) {
 	var type = "color";
 	var open = false;
 
-    var container = document.createElement( 'div' );
+    var container = doc.createElement( 'div' );
 	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode; pointer-events:none; display:none; background: linear-gradient(45deg, #1d1f20, #2f3031);';
 	container.id = 'Editor';
 
@@ -63,30 +64,30 @@ var Editor = function (Pos) {
 	var currentDemo;
 
 
-	var decoFrame = document.createElement( 'div' );
+	var decoFrame = doc.createElement( 'div' );
 	decoFrame.id = 'decoFrame';
 	decoFrame.style.cssText =unselect+'top:10px; left:130px; position:absolute; display:block; width:calc(100% - 120px); height:60px; overflow:hidden; padding:0;';
 	container.appendChild( decoFrame );
 
     // RUN BUTTON
-    var bRun = document.createElement( 'div' );
+    var bRun = doc.createElement( 'div' );
 	bRun.id = 'Editor-Run';
 	bRun.style.cssText = bstyle + buttonActif + 'top:10px; left:20px; position:absolute; width:46px; height:46px;';
 	var rvalue = 0;
 	var updateTimer;
 	var outColor = 'ffffff';
 	var selColor = '1a94ff';
-	var icColor = document.createElement( 'div' );
+	var icColor = doc.createElement( 'div' );
 	icColor.style.cssText = "-webkit-border-radius:60px; border-radius:60px; position:absolute; width:46px; height:46px; pointer-events:none; background-color: rgba(0,0,0,0); pointer-events:none;";
-	var icRun = document.createElement( 'div' );
+	var icRun = doc.createElement( 'div' );
 	icRun.style.cssText = "position:absolute; width:46px; height:46px; pointer-events:none;";
 	icRun.innerHTML = icon_update; 
 	container.appendChild( bRun );
 	bRun.appendChild(icColor);
 	bRun.appendChild(icRun);
 	bRun.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); update(); icColor.style.backgroundColor = 'rgba(0,116,217,0.7)'; }, false );
-	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  icColor.style.backgroundColor = 'rgba(0,116,217,0.1)'; updateTimer = setInterval(rotateUpdate, 10, icRun); document.getElementById("icon_update").setAttribute('fill','#'+selColor);}, false );
-    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); icColor.style.backgroundColor = 'rgba(0,0,0,0)'; clearInterval(updateTimer); document.getElementById("icon_update").setAttribute('fill','#'+outColor);}, false );
+	bRun.addEventListener( 'mouseover', function ( event ) { event.preventDefault();  icColor.style.backgroundColor = 'rgba(0,116,217,0.1)'; updateTimer = setInterval(rotateUpdate, 10, icRun); doc.getElementById("icon_update").setAttribute('fill','#'+selColor);}, false );
+    bRun.addEventListener( 'mouseout', function ( event ) { event.preventDefault(); icColor.style.backgroundColor = 'rgba(0,0,0,0)'; clearInterval(updateTimer); doc.getElementById("icon_update").setAttribute('fill','#'+outColor);}, false );
 
     var rotateUpdate = function (dom) {
     	rvalue -= 5;
@@ -94,7 +95,7 @@ var Editor = function (Pos) {
 		dom.style.oTransform = 'rotate('+rvalue+'deg)';
 		dom.style.transform = 'rotate('+rvalue+'deg)';
 	}
-	/*var bRun = document.createElement( 'div' );
+	/*var bRun = doc.createElement( 'div' );
 	bRun.id = 'Editor-Run';
 	bRun.style.cssText =bstyle+buttonActif+'top:10px; left:10px; position:absolute; width:100px; height:30px; padding-top:12px;';
 	bRun.textContent = "RUN SCRIPT";
@@ -105,7 +106,7 @@ var Editor = function (Pos) {
 
     // MENU DEMO
 	for(var i=0;i!==maxDemo;i++){
-		bbMenu[i] = document.createElement( 'div' );
+		bbMenu[i] = doc.createElement( 'div' );
 		bbMenu[i].style.cssText = bstyle + buttonActif + "width:20px; margin-right=2px;";
 		if(i<10){
 			bbMenu[i].textContent = '0'+i;
@@ -123,7 +124,7 @@ var Editor = function (Pos) {
 
 
 	// MAIN EDITOR
-	var MainEditor = document.createElement( 'iframe' );
+	var MainEditor = doc.createElement( 'iframe' );
 	MainEditor.id = 'mEditor';
 	MainEditor.name = 'MainEditor';
 	MainEditor.src = "demos/mainEditor.html";
@@ -147,8 +148,8 @@ var Editor = function (Pos) {
 	}
 
 	var update = function (){
-		var head = document.getElementsByTagName('head')[0];
-		nscript = document.createElement("script");
+		var head = doc.getElementsByTagName('head')[0];
+		nscript = doc.createElement("script");
 		nscript.type = "text/javascript";
 		nscript.name = "topScript";
 		nscript.id = "topScript";

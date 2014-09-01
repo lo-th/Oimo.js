@@ -4,9 +4,11 @@ var cc0 = ['#00a78d', '#35c9dc','#aa5edf','#df5ebb','#dc5135','#eda124','#f0d927
 var cc1 = ['#00937c', '#2fb4c9','#9653cc','#cc53a6','#c9472f','#de8e20','#e3c522', '#171717'];
 var cc2 = ['#007461', '#2492a6','#7640aa','#aa4084','#a63824','#c07019','#c5a21a', '#121212'];
 var cc3 = ['#007461', '#208499','#6a389d','#9d3877','#993020','#b46316','#ba9518', '#101010'];
+
+var doc = document;
     
 function basicTexture(n){
-    var canvas = document.createElement( 'canvas' );
+    var canvas = doc.createElement( 'canvas' );
     canvas.width = canvas.height = 64;
     var ctx = canvas.getContext( '2d' );
    
@@ -56,7 +58,7 @@ function basicTexture(n){
 }
 
 function nullTexture(){
-    var canvas = document.createElement( 'canvas' );
+    var canvas = doc.createElement( 'canvas' );
     canvas.width = canvas.height = 64;
     var ctx = canvas.getContext( '2d' );
     ctx.fillStyle = '#1a1a1a';
@@ -71,7 +73,7 @@ function nullTexture(){
 //-----------------------------------------------------
 
 function createDiceTexture(n) {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
 	if(n===0){
@@ -104,7 +106,7 @@ function createDiceTexture(n) {
 //-----------------------------------------------------
 
 function createGyroTexture() {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = canvas.height = 512;
 	var ctx = canvas.getContext("2d");
 	
@@ -129,7 +131,7 @@ function createGyroTexture() {
 //-----------------------------------------------------
 
 function createWheelTexture(n) {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
 	
@@ -164,7 +166,7 @@ function createWheelTexture(n) {
 //-----------------------------------------------------
 
 function createSnakeTexture() {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = canvas.height = 256;
 	var ctx = canvas.getContext("2d");
 	var grd=ctx.createLinearGradient(0,0,0,256);
@@ -207,7 +209,7 @@ function createSnakeTexture() {
 //-----------------------------------------------------
 
 function bonesFlag(text) {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = 64; canvas.height = 64;
 	var ctx = canvas.getContext("2d");
 
@@ -228,7 +230,7 @@ function bonesFlag(text) {
 //-----------------------------------------------------
 
 function eightBall(n) {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = 256; canvas.height = 128;
 	var ctx = canvas.getContext("2d");
 
@@ -274,7 +276,7 @@ function eightBall(n) {
 //-----------------------------------------------------
 
 function createDroidTexture() {
-	var canvas = document.createElement("canvas");
+	var canvas = doc.createElement("canvas");
 	canvas.width = 512; canvas.height = 512;
 	var ctx = canvas.getContext("2d");
 	ctx.fillStyle = "#a2c239";

@@ -49,6 +49,7 @@
         "Joint test", "Supermarket", "Greek temple", 
         "Ragdoll", "Droid Road"
     ];
+    var doc = document;
     var TE;
 	var Ambience;
 	var Interface;
@@ -68,9 +69,9 @@
     	Ambience = new Ambience();
     	Editor = new Editor();
 
-    	document.body.appendChild( TE.domElement );
-    	document.body.appendChild( Editor.domElement );
-    	document.body.appendChild( Interface.domElement );
+    	doc.body.appendChild( TE.domElement );
+    	doc.body.appendChild( Editor.domElement );
+    	doc.body.appendChild( Interface.domElement );
 		Interface.menu.appendChild( Ambience.domElement );
 
 		demoName = Interface.demoName;
@@ -232,7 +233,7 @@
     	    "Render: " + TE.getFps()+"<br><br>",
     	    "Selected: "+ TE.getSelected()
 	    ].join("\n");
-    	document.getElementById("output").innerHTML = info;
+    	Interface.log(info);
     }
 
 </script>
