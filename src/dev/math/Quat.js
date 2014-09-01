@@ -46,7 +46,7 @@ OIMO.Quat.prototype = {
         this.x=q1.x-q2.x;
         this.y=q1.y-q2.y;
         this.z=q1.z-q2.z;
-          return this;
+        return this;
     },
     scale: function(q,s){
         this.s=q.s*s;
@@ -56,14 +56,12 @@ OIMO.Quat.prototype = {
         return this;
     },
     mul: function(q1,q2){
-        var s=q1.s*q2.s-q1.x*q2.x-q1.y*q2.y-q1.z*q2.z;
-        var x=q1.s*q2.x+q1.x*q2.s+q1.y*q2.z-q1.z*q2.y;
-        var y=q1.s*q2.y-q1.x*q2.z+q1.y*q2.s+q1.z*q2.x;
-        var z=q1.s*q2.z+q1.x*q2.y-q1.y*q2.x+q1.z*q2.s;
-        this.s=s;
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        var ax = q1.x, ay = q1.y, az = q1.z, as = q1.s,
+        bx = q2.x, by = q2.y, bz = q2.z, bs = q2.s;
+        this.x = ax * bs + as * bx + ay * bz - az * by;
+        this.y = ay * bs + as * by + az * bx - ax * bz;
+        this.z = az * bs + as * bz + ax * by - ay * bx;
+        this.s = as * bs - ax * bx - ay * by - az * bz;
         return this;
     },
     arc: function(v1,v2){

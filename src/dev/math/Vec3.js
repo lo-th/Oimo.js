@@ -72,12 +72,11 @@ OIMO.Vec3.prototype = {
         return this.x*v.x+this.y*v.y+this.z*v.z;
     },
     cross: function(v1,v2){
-        var x=v1.y*v2.z-v1.z*v2.y;
-        var y=v1.z*v2.x-v1.x*v2.z;
-        var z=v1.x*v2.y-v1.y*v2.x;
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        var ax = v1.x, ay = v1.y, az = v1.z, 
+        bx = v2.x, by = v2.y, bz = v2.z;
+        this.x = ay * bz - az * by;
+        this.y = az * bx - ax * bz;
+        this.z = ax * by - ay * bx;
         return this;
     },
     mul: function(o, v, m){
@@ -98,11 +97,14 @@ OIMO.Vec3.prototype = {
         return this;
     },
     normalize: function(v){
-        var length=Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
-        if(length>0)length=1/length;
-        this.x=v.x*length;
-        this.y=v.y*length;
-        this.z=v.z*length;
+        var x = v.x, y = v.y, z = v.z;
+        var l = x*x + y*y + z*z;
+        if (l > 0) {
+            l = 1 / Math.sqrt(l);
+            this.x = x*l;
+            this.y = y*l;
+            this.z = z*l;
+        }
         return this;
     },
     invert: function(v){
@@ -112,10 +114,12 @@ OIMO.Vec3.prototype = {
         return this;
     },
     length: function(){
-        return Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z);
+        var x = this.x, y = this.y, z = this.z;
+        return Math.sqrt(x*x + y*y + z*z);
     },
     len: function(){
-        return (this.x*this.x+this.y*this.y+this.z*this.z);
+        var x = this.x, y = this.y, z = this.z;
+        return x*x + y*y + z*z;
     },
     copy: function(v){
         this.x=v.x;

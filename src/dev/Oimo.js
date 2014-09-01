@@ -21,4 +21,4 @@ OIMO.TO_RAD = Math.PI / 180;
 OIMO.nextID = 0;
 
 var OIMO_ARRAY_TYPE;
-if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = (typeof Float32Array !== 'undefined') ? Float32Array : Array; }
+if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }

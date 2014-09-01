@@ -103,9 +103,9 @@ var ThreeEngine = function () {
 		// for my local test on windows explorer
 		if(browserName==="Firefox" || browserName==="Chrome") PATH = '';
 
-		renderer = new THREE.WebGLRenderer({precision: "lowp", antialias:false });
-		renderer.autoClearColor = false;
-		renderer.autoClear = false;
+		renderer = new THREE.WebGLRenderer({precision: "lowp", antialias:false, devicePixelRatio:1 });
+		//renderer.autoClearColor = false;
+		//renderer.autoClear = false;
 		//renderer.gammaInput = true;
         //renderer.gammaOutput = true;
 		
@@ -122,12 +122,13 @@ var ThreeEngine = function () {
 
 		materialSky = new THREE.MeshBasicMaterial( { map:basicSky() , depthWrite: false} );// side:THREE.BackSide,
 		var skyGeo = new THREE.BufferGeometry();
-        skyGeo.fromGeometry( new THREE.SphereGeometry(20000, 20, 12) );
+        skyGeo.fromGeometry( new THREE.SphereGeometry(10000, 20, 12) );
 		sky = new THREE.Mesh(skyGeo, materialSky);
 		sky.rotation.y = 180*ToRad;
 		sky.scale.set(1,1,-1);
 		
-		sceneSky.add(sky);
+		//sceneSky.add(sky);
+		scene.add(sky);
 		
         scene.add(back);
 		scene.add(content);
@@ -139,8 +140,10 @@ var ThreeEngine = function () {
 		//addControl();
 
 		// marker for mouse position
+		var markerGeo = new THREE.BufferGeometry();
+		markerGeo.fromGeometry( new THREE.SphereGeometry(6,6,4) );
 		markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
-		marker = new THREE.Mesh(new THREE.SphereGeometry(6), markerMaterial);
+		marker = new THREE.Mesh( markerGeo, markerMaterial);
 		scene.add(marker);
 
 		/*var mgeo = new THREE.Geometry();
@@ -158,8 +161,10 @@ var ThreeEngine = function () {
 		
 		initMaterial();
 
+		var groundGeo = new THREE.BufferGeometry();
+		groundGeo.fromGeometry( new THREE.PlaneGeometry( 8000,8000 ) );
 		groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.5, blending:THREE.MultiplyBlending} );
-		planeBG = new THREE.Mesh( new THREE.PlaneGeometry( 8000,8000 ), groundMaterial );
+		planeBG = new THREE.Mesh( groundGeo, groundMaterial );
 		planeBG.rotation.x = -90*ToRad;
 		planeBG.position.y = 0.01;
 		planeBG.receiveShadow = true;
@@ -194,23 +199,71 @@ var ThreeEngine = function () {
 			height: window.innerHeight
 		} );
 
-		bokehPass.renderToScreen = true;
+		//bokehPass.renderToScreen = true;
 		
 		var colorCorrectionPass = new THREE.ShaderPass( THREE.ColorCorrectionShader );
 		colorCorrectionPass.uniforms[ "powRGB" ].value = new THREE.Vector3( 1.1, 1.1, 1.1 );
 		colorCorrectionPass.uniforms[ "mulRGB" ].value = new THREE.Vector3( 1.3, 1.3, 1.3 );
+
+		var fxaa = new THREE.ShaderPass( THREE.FXAAShader );
+		fxaa.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+		fxaa.renderToScreen = true;
+
+
+
+		var depthShader = THREE.ShaderLib[ "depthRGBA" ];
+		var depthUniforms = THREE.UniformsUtils.clone( depthShader.uniforms );
+
+		var depthMaterial = new THREE.ShaderMaterial( { fragmentShader: depthShader.fragmentShader, vertexShader: depthShader.vertexShader, uniforms: depthUniforms } );
+		depthMaterial.blending = THREE.NoBlending;
+
+
+
+		var depthTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
+
+		var ssao = new THREE.ShaderPass( THREE.SSAOShader );
+		ssao.uniforms[ 'tDepth' ].value = depthTarget;
+		ssao.uniforms[ 'size' ].value.set( window.innerWidth, window.innerHeight );
+		ssao.uniforms[ 'cameraNear' ].value = 1;//camera.near;
+		ssao.uniforms[ 'cameraFar' ].value = 2000;//550;
+		//ssao.uniforms[ 'fogNear' ].value = scene.fog.near;
+		//ssao.uniforms[ 'fogFar' ].value = scene.fog.far;
+		//ssao.uniforms[ 'fogEnabled' ].value = 0;
+		ssao.uniforms[ 'aoClamp' ].value = 0.5;//0.3;
+		ssao.uniforms[ 'lumInfluence' ].value = 0.1//0.1;
+		ssao.renderToScreen = true;
+
+		var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+		effectCopy.renderToScreen = true;
 		
 		var composer = new THREE.EffectComposer( renderer );
 
-		composer.addPass( bgPass );
+		//composer.addPass( bgPass );
 		composer.addPass( renderPass );
-		composer.addPass( colorCorrectionPass );
-		composer.addPass( bokehPass );
+		//composer.addPass( ssao );
+		composer.addPass( fxaa );
+		//composer.addPass( effectFXAA );
+		//composer.addPass( colorCorrectionPass );
+		//composer.addPass( bokehPass );
+		//composer.addPass( effectCopy );
 		
+		postprocessing.depthMaterial = depthMaterial;
 		postprocessing.composer = composer;
+		postprocessing.depthTarget = depthTarget;
+		postprocessing.fxaa = fxaa;
+
+		postprocessing.ssao = ssao;
+
+
 		postprocessing.colcor = colorCorrectionPass;
 		postprocessing.bokeh = bokehPass;
 
+	}
+
+	function resizePostprocess(){
+		postprocessing.composer.setSize( vsize.x, vsize.y );
+		postprocessing.fxaa.uniforms[ 'resolution' ].value.set( 1 / vsize.x, 1 / vsize.y );
+		postprocessing.ssao.uniforms[ 'size' ].value.set( window.innerWidth, window.innerHeight );
 	}
 
 	/*var initBackPlane = function () {
@@ -462,8 +515,6 @@ var ThreeEngine = function () {
 	var envTexture;
 	var groundMaterial;
 
-	
-
 	var textures = [];
 	var bTextures = [];
 	var poolTextures = [];
@@ -490,7 +541,7 @@ var ThreeEngine = function () {
 			poolTextures[i] = new eightBall(i);
 		}
 
-		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:0});//debugAlpha} );
+		debugMaterial = new THREE.MeshBasicMaterial( { color:debugColor, wireframe:true, transparent:true, opacity:0, fog: false, depthTest: false, depthWrite: false});//debugAlpha} );
 		jointMaterial = new THREE.LineBasicMaterial( { color: jointColor } );
 		
 		baseMaterial();
@@ -564,8 +615,6 @@ var ThreeEngine = function () {
 		}
 		return mat;
 	}
-
-	
 
 	//-----------------------------------------------------
 	//  CROSSED OIMO FUNCTIONS
@@ -957,8 +1006,9 @@ var ThreeEngine = function () {
 	}
 
 	//-----------------------------------
-	// BLOB
+	// BLOB DEMO
 	//-----------------------------------
+
 	var blobSetting = { strength:2, subtract:12 };
 
 	var addBlob = function(o){
@@ -970,10 +1020,6 @@ var ThreeEngine = function () {
 	    blobSetting.subtract = o.subtract || 12;
 	    blobSetting.size = o.size;
 	    
-
-	    //blobs.reset();
-	    //blobs.addPlaneY( 2, 12 );
-
 	    contentSpecial.add(blobs);
 	}
 
@@ -982,7 +1028,6 @@ var ThreeEngine = function () {
 
 		blobs.reset();
 
-		//var mtx = new THREE.Matrix4();
 		var i = m.length;
 		var subtract = o.subtract;//12;
 		var strength = o.strength;// / ( ( Math.sqrt( i ) - 1 ) / 4 + 1 );
@@ -997,6 +1042,7 @@ var ThreeEngine = function () {
     		//mtx.fromArray( m[i] );
     		blobs.addBall(((m[i][12]+x)/sx), ((m[i][13]+y)/sy), ((m[i][14]+z)/sz), strength, subtract);
     	}
+
     	blobs.addPlaneY( o.strength, o.subtract );
 
 		// fill the field with some metaballs
@@ -1160,8 +1206,6 @@ var ThreeEngine = function () {
 		lights[0] = new THREE.AmbientLight( 0x555557 );
 		scene.add(lights[0]);
 
-
-
 		//if(isOptimized) return
 
 		lights[1] = new THREE.DirectionalLight( 0xffffff, 1.3 );
@@ -1238,7 +1282,7 @@ var ThreeEngine = function () {
         geo01b.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
 
         geo02b = new THREE.BufferGeometry();
-        geo02b.fromGeometry( new THREE.SphereGeometry( 1, 32, 16 ) );
+        geo02b.fromGeometry( new THREE.SphereGeometry( 1, 22, 16 ) );//( 1, 32, 16 ) );
 
         geo04b = new THREE.BufferGeometry();
         geo04b.fromGeometry( new THREE.SphereGeometry( 1, 32, 16 ) );
@@ -1351,19 +1395,6 @@ var ThreeEngine = function () {
             case 'z': mtx.makeScale(s, s, -s); break;
         }
         geometry.applyMatrix(mtx);
-		
-		/*for( var i = 0; i < geometry.vertices.length; i++) {
-			var vertex	= geometry.vertices[i];
-			if(axe==='x')vertex.x *= -s;
-			else vertex.x *= s;
-			if(axe==='y')vertex.y *= -s;
-			else vertex.y *= s;
-			if(axe==='z')vertex.z *= -s;
-			else vertex.z *= s;
-		}*/
-		//geometry.computeFaceNormals();
-		//geometry.computeVertexNormals();
-		//geometry.verticesNeedUpdate = true;
 	}
 
 	//-----------------------------------------------------
@@ -1419,13 +1450,23 @@ var ThreeEngine = function () {
 		//renderer.render( scene, camera );
 
 		if ( postprocessing.enabled ) {
+			/*var i=content.children.length;
+			while (i--) {
+				if(content.children[ i ].material){
+					content.children[ i ].material= postprocessing.depthMaterial
+				}
+			}*/
 
-			postprocessing.composer.render( 0.1 );
+			//renderer.clear();
+			//scene.overrideMaterial = postprocessing.depthMaterial;
+			renderer.render( scene, camera, postprocessing.depthTarget );
+			//content.overrideMaterial = null;
+			postprocessing.composer.render();// 0.1 );
 
 		} else {
 
 			//renderer.clear();
-			renderer.render( sceneSky, cameraSky );
+			//renderer.render( sceneSky, cameraSky );
 			renderer.render( scene, camera );
 
 		}
@@ -1835,7 +1876,7 @@ var ThreeEngine = function () {
 		cameraSky.aspect = vsize.z;
 		cameraSky.updateProjectionMatrix();
 		renderer.setSize( vsize.x, vsize.y );
-		if ( postprocessing.enabled ) postprocessing.composer.setSize( vsize.x, vsize.y );
+		if ( postprocessing.enabled ) resizePostprocess();
 	}
 
 	var viewDivid = function () {

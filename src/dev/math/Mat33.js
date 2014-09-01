@@ -20,43 +20,35 @@ OIMO.Mat33.prototype = {
         return this;
     },
     add: function(m1,m2){
-        var te = this.elements;
-        var tem1 = m1.elements;
-        var tem2 = m2.elements;
+        var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
         te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
         te[3] = tem1[3] + tem2[3]; te[4] = tem1[4] + tem2[4]; te[5] = tem1[5] + tem2[5];
         te[6] = tem1[6] + tem2[6]; te[7] = tem1[7] + tem2[7]; te[8] = tem1[8] + tem2[8];
         return this;
     },
     addEqual: function(m){
-        var te = this.elements;
-        var tem = m.elements;
+        var te = this.elements, tem = m.elements;
         te[0] += tem[0]; te[1] += tem[1]; te[2] += tem[2];
         te[3] += tem[3]; te[4] += tem[4]; te[5] += tem[5];
         te[6] += tem[6]; te[7] += tem[7]; te[8] += tem[8];
         return this;
     },
     sub: function(m1,m2){
-        var te = this.elements;
-        var tem1 = m1.elements;
-        var tem2 = m2.elements;
-
+        var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
         te[0] = tem1[0] - tem2[0]; te[1] = tem1[1] - tem2[1]; te[2] = tem1[2] - tem2[2];
         te[3] = tem1[3] - tem2[3]; te[4] = tem1[4] - tem2[4]; te[5] = tem1[5] - tem2[5];
         te[6] = tem1[6] - tem2[6]; te[7] = tem1[7] - tem2[7]; te[8] = tem1[8] - tem2[8];
         return this;
     },
     subEqual:function(m){
-        var te = this.elements;
-        var tem = m.elements;
+        var te = this.elements, tem = m.elements;
         te[0] -= tem[0]; te[1] -= tem[1]; te[2] -= tem[2];
         te[3] -= tem[3]; te[4] -= tem[4]; te[5] -= tem[5];
         te[6] -= tem[6]; te[7] -= tem[7]; te[8] -= tem[8];
         return this;
     },
     scale: function(m,s){
-        var te = this.elements;
-        var tm = m.elements;
+        var te = this.elements, tm = m.elements;
         te[0] = tm[0] * s; te[1] = tm[1] * s; te[2] = tm[2] * s;
         te[3] = tm[3] * s; te[4] = tm[4] * s; te[5] = tm[5] * s;
         te[6] = tm[6] * s; te[7] = tm[7] * s; te[8] = tm[8] * s;
@@ -70,18 +62,13 @@ OIMO.Mat33.prototype = {
         return this;
     },
     mul: function(m1,m2){
-        var te = this.elements;
-        var tm1 = m1.elements;
-        var tm2 = m2.elements;
-
-        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
-        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
-        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
-
-        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
-        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
-        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
-
+        var te = this.elements, tm1 = m1.elements, tm2 = m2.elements,
+        a0 = tm1[0], a3 = tm1[3], a6 = tm1[6],
+        a1 = tm1[1], a4 = tm1[4], a7 = tm1[7],
+        a2 = tm1[2], a5 = tm1[5], a8 = tm1[8],
+        b0 = tm2[0], b3 = tm2[3], b6 = tm2[6],
+        b1 = tm2[1], b4 = tm2[4], b7 = tm2[7],
+        b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
         te[0] = a0*b0 + a1*b3 + a2*b6;
         te[1] = a0*b1 + a1*b4 + a2*b7;
         te[2] = a0*b2 + a1*b5 + a2*b8;
@@ -91,13 +78,11 @@ OIMO.Mat33.prototype = {
         te[6] = a6*b0 + a7*b3 + a8*b6;
         te[7] = a6*b1 + a7*b4 + a8*b7;
         te[8] = a6*b2 + a7*b5 + a8*b8;
-
         return this;
     },
     mulScale: function(m,sx,sy,sz,Prepend){
         var prepend = Prepend || false;
-        var te = this.elements;
-        var tm = m.elements;
+        var te = this.elements, tm = m.elements;
         if(prepend){
             te[0] = sx*tm[0]; te[1] = sx*tm[1]; te[2] = sx*tm[2];
             te[3] = sy*tm[3]; te[4] = sy*tm[4]; te[5] = sy*tm[5];
@@ -156,27 +141,19 @@ OIMO.Mat33.prototype = {
         return this;
     },
     transpose: function(m){
-        var te = this.elements;
-        var tm = m.elements;
+        var te = this.elements, tm = m.elements;
         te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
         te[3] = tm[1]; te[4] = tm[4]; te[5] = tm[7];
         te[6] = tm[2]; te[7] = tm[5]; te[8] = tm[8];
         return this;
     },
     setQuat: function(q){
-        var x2=2*q.x;
-        var y2=2*q.y;
-        var z2=2*q.z;
-        var xx=q.x*x2;
-        var yy=q.y*y2;
-        var zz=q.z*z2;
-        var xy=q.x*y2;
-        var yz=q.y*z2;
-        var xz=q.x*z2;
-        var sx=q.s*x2;
-        var sy=q.s*y2;
-        var sz=q.s*z2;
-        var te = this.elements;
+        var te = this.elements,
+        x2=2*q.x,  y2=2*q.y,  z2=2*q.z,
+        xx=q.x*x2, yy=q.y*y2, zz=q.z*z2,
+        xy=q.x*y2, yz=q.y*z2, xz=q.x*z2,
+        sx=q.s*x2, sy=q.s*y2, sz=q.s*z2;
+        
         te[0]=1-yy-zz;
         te[1]=xy-sz;
         te[2]=xz+sy;
@@ -189,18 +166,19 @@ OIMO.Mat33.prototype = {
         return this;
     },
     invert: function(m){
-        var te = this.elements;
+        var te = this.elements, tm = m.elements,
+        a0 = tm[0], a3 = tm[3], a6 = tm[6],
+        a1 = tm[1], a4 = tm[4], a7 = tm[7],
+        a2 = tm[2], a5 = tm[5], a8 = tm[8],
+        b01 = a4*a8-a7*a5,
+        b11 = a7*a2-a1*a8,
+        b21 = a1*a5-a4*a2,
+        dt= a0 * (b01) + a3 * (b11) + a6 * (b21);
 
-        var tm = m.elements;
-        var a0 = tm[0], a3 = tm[3], a6 = tm[6];
-        var a1 = tm[1], a4 = tm[4], a7 = tm[7];
-        var a2 = tm[2], a5 = tm[5], a8 = tm[8];
-
-        var dt= a0 * (a4*a8-a7*a5) + a3 * (a7*a2-a1*a8) + a6 * (a1*a5-a4*a2);
-        if(dt!=0){dt=1/dt;}
-        te[0] = dt*(a4*a8 - a5*a7);
-        te[1] = dt*(a2*a7 - a1*a8);
-        te[2] = dt*(a1*a5 - a2*a4);
+        if(dt!=0){dt=1.0/dt;}
+        te[0] = dt*b01;//(a4*a8 - a5*a7);
+        te[1] = dt*b11;//(a2*a7 - a1*a8);
+        te[2] = dt*b21;//(a1*a5 - a2*a4);
         te[3] = dt*(a5*a6 - a3*a8);
         te[4] = dt*(a0*a8 - a2*a6);
         te[5] = dt*(a2*a3 - a0*a5);
@@ -210,8 +188,7 @@ OIMO.Mat33.prototype = {
         return this;
     },
     copy: function(m){
-        var te = this.elements;
-        var tem = m.elements;
+        var te = this.elements, tem = m.elements;
         te[0] = tem[0]; te[1] = tem[1]; te[2] = tem[2];
         te[3] = tem[3]; te[4] = tem[4]; te[5] = tem[5];
         te[6] = tem[6]; te[7] = tem[7]; te[8] = tem[8];
