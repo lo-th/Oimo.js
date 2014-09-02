@@ -145,16 +145,20 @@ THREE.SkinnedMesh.prototype.dispose = function () {
 
 THREE.SkinnedMesh.prototype.CLONE = THREE.SkinnedMesh.prototype.clone;
 THREE.SkinnedMesh.prototype.clone = function ( object ) {
+	
 	var obj = THREE.SkinnedMesh.prototype.CLONE.call( this, object );
-	
 	obj.animations = [];
+	var refAnimations = this.geometry.animations;
 	
-	for (var i = 0; i < this.animations.length; i++) {
-		obj.animations[i] = new THREE.Animation( obj, this.animations[i].data.name );
-		obj.animations[i].loop = this.animations[i].loop;
-		obj.animations[i].name = this.animations[i].name;
+	for (var i = 0; i < refAnimations.length; i++) {
+		var name = refAnimations[i].name;
+		var data = refAnimations[i];
+		data.initialized = false;
+		obj.animations[i] = new THREE.Animation( obj, data );
+		obj.animations[i].loop = refAnimations[i].repeat;
+		obj.animations[i].name = name;
+		obj.animations[name] = obj.animations[i];
 	}
-	
 	return obj;
 }
 
