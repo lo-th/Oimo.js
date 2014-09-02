@@ -1,6 +1,6 @@
 <img src="http://lo-th.github.io/Oimo.js/images/logos.png"/>  Oimo.js 
 =========
-
+<img src="http://lo-th.github.io/Oimo.js/images/head.jpg"/>
 Oimo.js is a lightweight 3d physics engine for javascript.<br>
 It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/OimoPhysics)<br>
 created by [Saharan](http://el-ement.com/blog/) on ActionScript 3.0.<br>
