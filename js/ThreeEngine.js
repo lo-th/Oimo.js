@@ -535,8 +535,11 @@ var ThreeEngine = function () {
 		textures[1] = new createDiceTexture(1);
 		textures[2] = new createSnakeTexture();
 		textures[3] = new createWheelTexture(0);
-		textures[4] = new createGyroTexture();
-		textures[5] = new createDroidTexture();
+		textures[4] = THREE.ImageUtils.loadTexture( 'images/gyroscope.jpg' );//new createGyroTexture();
+		textures[5] = THREE.ImageUtils.loadTexture( 'images/droid.jpg' );//new createDroidTexture();
+
+		textures[5].repeat.set( 1, -1 );
+		textures[5].wrapS = textures[5].wrapT = THREE.RepeatWrapping;
 
 		bTextures[0] = new basicTexture(0);
 		bTextures[1] = new basicTexture(1);
@@ -582,7 +585,7 @@ var ThreeEngine = function () {
 		//makeMaterial( { n:12, map: bTextures[7], name:'mat07sleep' } );//12
 		makeMaterial( { n:12, color: 0xb4a56d, name:'mat07sleep' } );//12
 		makeMaterial( { n:13, map: textures[4], name:'matGyro' } );//13
-		makeMaterial( { n:14, map: textures[5], skinning: true, name:'matDroid' } );//14
+		makeMaterial( { n:14, map: textures[5], skinning: true, morphTargets:true, name:'matDroid' } );//14
 		for(var i=0; i!==16; i++){
 			makeMaterial( { n:15+i, map: poolTextures[i], shininess:60, specular:0xffffff, name:'pool'+i } );
 		}
@@ -906,14 +909,23 @@ var ThreeEngine = function () {
 			        mesh.add( helper );
 			        helper.name = "helpDroid";*/
 
-	    		    player = getMeshByName('Android');
+	    		    player = getMeshByName('droid');
 	    		    player.material = getMaterial('matDroid');
-	    		    player.play("Idle");
+	    		    
+	    		    var i = player.animations.length;
+	    		    while(i--){
+	    		    	name = player.animations[i].name;
+	    		    	player.animations[name].weight = 0;
+	    		    	player.animations[name].play( 0, 0 );
+	    		    }
+	    		    player.animations['idle'].weight = 1;//play(0,1);
+	    		    player.setWeight("droid001", 0.5);
+
 	    		    player.scale.set( 2, 2, -2 );
-	    		    player.position.y = 60;
+	    		    player.position.set(0,0,0);
 	    		    contentSpecial.add(player);
 		    		followSpecial = "droid";
-		    		name = "droid";;
+		    		name = "droid";
 		    		followObject = mesh;
 		    		resetPlayer();
 	    		break;
@@ -1511,7 +1523,7 @@ var ThreeEngine = function () {
 	}
 
 	var resetPlayer = function (){
-		playerSet = {animation:'Idle', x:0, z:0, r:0, destX:0, destZ:0, maxSpeed:0.02, speed:0, acc:0.001, decay:0.9};
+		playerSet = {animation:'idle', x:0, z:0, r:0, destX:0, destZ:0, maxSpeed:0.02, speed:0, acc:0.001, decay:0.9};
 		playeroldpos = {x:0, z:0, r:0};
 	}
 
@@ -1521,10 +1533,21 @@ var ThreeEngine = function () {
 			playerSet.destX = marker.position.x;
 			playerSet.destZ = marker.position.z;
 			if (playerSet.speed < playerSet.maxSpeed) playerSet.speed += playerSet.acc;
-			if(playerSet.animation === 'Idle'){ playerSet.animation = 'Walk'; player.play(playerSet.animation);}
+			if(playerSet.animation === 'idle'){ 
+				playerSet.animation = 'walk';
+				player.animations['walk'].weight =1;//play(0,1);//player.play(playerSet.animation);
+				player.animations['idle'].weight =0;
+
+		}
 		}else{
 			if (playerSet.speed > 0.001) playerSet.speed *= playerSet.decay;
-			else{ playerSet.speed = 0; if(playerSet.animation === 'Walk'){ playerSet.animation = 'Idle';player.play(playerSet.animation);} }	
+			else{ playerSet.speed = 0; if(playerSet.animation === 'walk'){ 
+				playerSet.animation = 'idle';
+				//player.play(playerSet.animation);
+				player.animations['walk'].weight =0;
+				player.animations['idle'].weight =1;
+
+			} }	
 		}
 
 		playerSet.x += (playerSet.destX - playerSet.x) * playerSet.speed;
