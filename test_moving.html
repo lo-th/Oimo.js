@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Oimo.js Moving</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=11" />
+<link rel="shortcut icon" href="favicon.ico">
+
+<style>
+    * {  margin: 0; padding: 0; border: 0;}
+    body { background-color: #3D4143;  background:linear-gradient(-45deg, #72797D, #3D4143); overflow: hidden; color: #cccccc; font-family: arial; font-size: 11px; }
+    input{ margin:0; padding:8px; background:linear-gradient(#72797D, #3D4143); color:#cccccc;}
+    input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
+    #interface{ position: absolute; left:10px; top:10px; width:456px; height:20px; }
+    #info{ pointer-events:none; position: absolute; left:10px; top:60px; width: 400px; height: 400px; }
+    #link{ position: absolute; right:10px; bottom:10px; font-size: 16px; word-spacing: 10px;}
+    a:link {color: #cccccc; text-decoration: none;}
+    a:visited {color: #cccccc; text-decoration: none;}
+    a:hover {color: #ED7600; text-decoration: none;}
+    a:active {color: #0099FF; text-decoration: none;}
+</style>
+
+<script src="js/three.min.js"></script>
+<script src="build/Oimo.min.js"></script>
+</head>
+<body>
+<div id='container'></div>
+<div id='interface'>
+    <input type="button" value="demo" onClick=populate(1)>
+    <input type="number" name="quantity" min="10" max="2000" value="40"  id='MaxNumber'>
+    <input type="submit" onClick=populate()>
+    <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
+</div>
+<div id='info'></div>
+<div id='link'>
+    <a href="test_basic.html">Basic</a>
+    <a href="test_compound.html">Compound</a>
+    <a href="test_ragdoll.html">Ragdoll</a>
+    <a href="test_collision.html">Collision</a>
+</div>
+<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
+<script>
+
+    // three var
+    var camera, scene, light, renderer, container, center, content;
+    var meshs = [];
+    var grounds = [];
+    var paddel;
+    var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
+    var buffgeoSphere, buffgeoBox;
+    var raycaster, projector;
+
+    // navigation var 
+    var camPos = { horizontal: 180, vertical: 60, distance: 400, automove: false };
+    var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
+    var vsize = {w:window.innerWidth, h:window.innerHeight}
+    var ToRad = Math.PI / 180;
+
+    //oimo var
+    var world = null;
+    var bodys = null;
+
+    var fps=0, time, time_prev=0, fpsint = 0;
+    var type=1;
+
+    init();
+    loop();
+
+    function init() {
+
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+        camera.position.set( 0, 100, 400 );
+        center = new THREE.Vector3();
+        moveCamera();
+
+        raycaster = new THREE.Raycaster();
+        projector = new THREE.Projector();
+
+        scene = new THREE.Scene();
+
+        content = new THREE.Object3D();
+        scene.add(content);
+
+        scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+
+        light = new THREE.DirectionalLight( 0xffffff , 1);
+        light.position.set( 300, 1000, 500 );
+        light.target.position.set( 0, 0, 0 );
+        light.castShadow = true;
+        light.shadowCameraNear = 500;
+        light.shadowCameraFar = 1600;
+        light.shadowCameraFov = 70;
+        light.shadowBias = 0.0001;
+        light.shadowDarkness = 0.7;
+        light.shadowMapWidth = light.shadowMapHeight = 1024;
+        scene.add( light );
+
+        buffgeoSphere = new THREE.BufferGeometry();
+        buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1 , 20, 10 ) );
+
+        buffgeoBox = new THREE.BufferGeometry();
+        buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
+
+        matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
+        matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
+        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
+        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
+        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
+        matGroundTrans = new THREE.MeshLambertMaterial( { color: 0x3D4143, transparent:true, opacity:0.6 } );
+
+        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true, alpha: true});
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setClearColor( 0x000000, 0 );
+        renderer.autoClear = false;
+        renderer.shadowMapEnabled = true;
+        renderer.shadowMapType = THREE.PCFShadowMap;
+        renderer.gammaInput = true;
+        renderer.gammaOutput = true;
+
+        paddel = new THREE.Mesh( buffgeoBox, matGround );
+        paddel.scale.set( 20, 40, 60 );
+        paddel.position.set( -150,20,0 );
+        scene.add( paddel );
+        velocity = new THREE.Vector3()
+
+        container = document.getElementById("container");
+        container.appendChild( renderer.domElement );
+
+        initEvents();
+        initOimoPhysics();
+    }
+
+    function loop() {
+        requestAnimationFrame( loop );
+        renderer.clear();
+        renderer.render( scene, camera );
+    }
+
+    function addStaticBox(size, position, rotation, spec) {
+        var mesh;
+        if(spec) mesh = new THREE.Mesh( buffgeoBox, matGroundTrans );
+        else mesh = new THREE.Mesh( buffgeoBox, matGround );
+        mesh.scale.set( size[0], size[1], size[2] );
+        mesh.position.set( position[0], position[1], position[2] );
+        mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
+        if(!grounds.length) content.add( mesh );
+        else scene.add( mesh );
+        grounds.push(mesh);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+    }
+
+    function clearMesh(){
+        var i=meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        grounds = [];
+        meshs = [];
+    }
+
+    //----------------------------------
+    //  OIMO PHYSICS
+    //----------------------------------
+
+    function initOimoPhysics(){
+
+        world = new OIMO.World(1/60, 2);
+        populate(1);
+        setInterval(updateOimoPhysics, 1000/60);
+
+    }
+
+    function populate(n) {
+
+        // The Bit of a collision group
+        var group1 = 1 << 0;  // 00000000 00000000 00000000 00000001
+        var group2 = 1 << 1;  // 00000000 00000000 00000000 00000010
+        var group3 = 1 << 2;  // 00000000 00000000 00000000 00000100
+        var all = 0xffffffff; // 11111111 11111111 11111111 11111111
+
+        var max = document.getElementById("MaxNumber").value;
+
+        type = 3;
+
+        // reset old
+        clearMesh();
+        world.clear();
+        bodys = [];
+
+        // Is all the physics setting for rigidbody
+        var config = [
+            1, // The density of the shape.
+            0.4, // The coefficient of friction of the shape.
+            0.2, // The coefficient of restitution of the shape.
+            1, // The bits of the collision groups to which the shape belongs.
+            all // The bits of the collision groups with which the shape collides.
+        ];
+
+        //add ground
+        var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
+        addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
+
+        var ground2 = new OIMO.Body({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
+        addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
+
+        /*config[3] = group1;
+        config[4] = all & ~group2;
+        var ground3 = new OIMO.Body({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
+        addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);*/
+
+        // now add object
+        var x, y, z, w, h, d;
+        var i = max;
+
+
+
+        while (i--){
+            if(type===3) t = Math.floor(Math.random()*2)+1;
+            else t = type;
+            x = 150;
+            z = -100 + Math.random()*200;
+            y = 100 + Math.random()*1000;
+            w = 10 + Math.random()*10;
+            h = 10 + Math.random()*10;
+            d = 10 + Math.random()*10;
+
+            config[4] = all;
+
+            if(t===1){
+                config[3] = group2;
+                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
+                meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
+                meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
+            } else if(t===2){
+                config[3] = group3;
+                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
+                meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
+                meshs[i].scale.set( w, h, d );
+            }
+
+            meshs[i].castShadow = true;
+            meshs[i].receiveShadow = true;
+
+            scene.add( meshs[i] );
+        }
+
+        config[3] = 1;
+        config[4] = all;
+        bodys[max] = new OIMO.Body({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, world:world, config:config});
+        meshs[max] = new THREE.Mesh( buffgeoBox, matBox );
+        meshs[max].scale.set( 20, 40, 60 );
+        scene.add( meshs[max] );
+    }
+
+    var f0, f1, f2 = 0;
+    
+
+    function updateOimoPhysics() {
+        f0 = Date.now();
+
+        // apply new position on last rigidbody
+        bodys[bodys.length-1].moveTo(paddel.position);
+
+        
+        world.step();
+
+        var p, r, m, x, y, z;
+        var mtx = new THREE.Matrix4();
+        var i = bodys.length;
+        var mesh;
+
+        while (i--){
+            var body = bodys[i].body;
+            mesh = meshs[i];
+
+            if(!body.sleeping){
+                mtx.fromArray(body.getMatrix());
+                mesh.position.setFromMatrixPosition( mtx );
+                mesh.quaternion.setFromRotationMatrix( mtx );
+
+                // change material
+                if(mesh.material.name === 'sbox') mesh.material = matBox;
+                if(mesh.material.name === 'ssph') mesh.material = matSphere; 
+
+                // reset position
+                if(mesh.position.y<-100){
+                    x = 150;
+                    z = -100 + Math.random()*200;
+                    y = 100 + Math.random()*1000;
+                    body.setPosition(x,y,z);
+                }
+            } else {
+                if(mesh.material.name === 'box') mesh.material = matBoxSleep;
+                if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
+            }
+        }
+        f1 = Date.now();
+        f2 = f1-f0;
+
+        displayInfo();
+    }
+
+    function gravity(g){
+        nG = document.getElementById("gravity").value
+        world.gravity = new OIMO.Vec3(0, nG, 0);
+    }
+
+    //----------------------------------
+    //  OIMO INFOS
+    //----------------------------------
+
+    function displayInfo(){
+        time = Date.now();
+        if (time - 1000 > time_prev) {
+            time_prev = time; fpsint = fps; fps = 0;
+        } fps++;
+        var w = world.performance;
+        var info =[
+            "Oimo.js DEV.1.1.0a<br><br>",
+            "FPS: " + fpsint +" fps<br><br>",
+            "Rigidbody: "+world.numRigidBodies+"<br>",
+            "Contact: "+world.numContacts+"<br>",
+            "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
+            "Contact Point: "+world.numContactPoints+"<br>",
+            "Island: "+world.numIslands +"<br><br>",
+            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
+            "Solving Time: "+w.solvingTime + " ms<br>",
+            "Updating Time: "+w.updatingTime + " ms<br>",
+            "Total Time: "+w.totalTime + " ms<br> "
+        ].join("\n");
+        document.getElementById("info").innerHTML = info;
+    }
+
+    //----------------------------------
+    //  TEXTURES
+    //----------------------------------
+
+    function basicTexture(n){
+
+        var canvas = document.createElement( 'canvas' );
+        canvas.width = canvas.height = 64;
+        var ctx = canvas.getContext( '2d' );
+        var colors = [];
+        if(n===0){ // sphere
+            colors[0] = "#58AA80";
+            colors[1] = "#58FFAA";
+        }
+        if(n===1){ // sphere sleep
+            colors[0] = "#383838";
+            colors[1] = "#38AA80";
+        }
+        if(n===2){ // box
+            colors[0] = "#AA8058";
+            colors[1] = "#FFAA58";
+        }
+        if(n===3){ // box sleep
+            colors[0] = "#383838";
+            colors[1] = "#AA8038";
+        }
+        ctx.fillStyle = colors[0];
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillStyle = colors[1];
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.fillRect(32, 32, 32, 32);
+
+        var tx = new THREE.Texture(canvas);
+        tx.needsUpdate = true;
+        return tx;
+    }
+
+    //----------------------------------
+    //  RAY TEST
+    //----------------------------------
+
+    var rayTest = function () {
+        var vector = new THREE.Vector3( mouse.mx, mouse.my, 1 );
+        projector.unprojectVector( vector, camera );
+        raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+        var intersects = raycaster.intersectObjects( content.children, true );
+        if ( intersects.length) {
+            paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
+        }
+    }
+
+    //----------------------------------
+    //  VIEW CONTROL
+    //----------------------------------
+
+    function moveCamera() {
+        camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
+        camera.lookAt(center);
+    }
+
+    function Orbit(origine, horizontal, vertical, distance) {
+        var p = new THREE.Vector3();
+        var phi = vertical*ToRad;
+        var theta = horizontal*ToRad;
+        p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
+        p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
+        p.y = (distance * Math.cos(phi)) + origine.y;
+        return p;
+    }
+
+    function initEvents(){
+        container.onmousemove = function(e){
+            e.preventDefault();
+            mouse.mx = ( e.clientX / vsize.w ) * 2 - 1;
+            mouse.my = - ( e.clientY / vsize.h ) * 2 + 1;
+            rayTest();
+
+            if (mouse.down ) {
+                document.body.style.cursor = 'move';
+                camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
+                camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
+                moveCamera();
+            }
+        }
+        container.onmousedown = function(e){
+            e.preventDefault();
+            mouse.ox = e.clientX;
+            mouse.oy = e.clientY;
+            mouse.h = camPos.horizontal;
+            mouse.v = camPos.vertical;
+            mouse.mx = ( e.clientX / vsize.w ) * 2 - 1;
+            mouse.my = - ( e.clientY / vsize.h ) * 2 + 1;
+            mouse.down = true;
+            rayTest();
+
+        }
+        container.onmouseup = function(e){
+            mouse.down = false;
+            document.body.style.cursor = 'auto';
+        }
+
+        container.addEventListener( 'mousewheel', onMouseWheel, false );
+        container.addEventListener( 'DOMMouseScroll', onMouseWheel, false );
+        window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+    function onMouseWheel(e) {
+        var delta = 0;
+        if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
+        else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
+        else if(e.detail){delta=-e.detail*1.0;}
+        camPos.distance-=(delta*10);
+        moveCamera();   
+    }
+
+    function onWindowResize() {
+        vsize = {w:window.innerWidth, h:window.innerHeight}
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+</script>
+</body>
+</html>

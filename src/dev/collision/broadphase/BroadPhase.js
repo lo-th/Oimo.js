@@ -60,7 +60,7 @@ OIMO.BroadPhase.prototype = {
         else js=b2.jointLink;
         while(js!=null){
            var joint=js.joint;
-           if( !joint.allowCollision && (joint.body1==b1&&joint.body2==b2|| joint.body1==b2&&joint.body2==b1) ){ return false; }
+           if( !joint.allowCollision && (joint.body1==b1&&joint.body2==b2 || joint.body1==b2&&joint.body2==b1) ){ return false; }
            js=js.next;
         }
         return true;
@@ -84,10 +84,10 @@ OIMO.BroadPhase.prototype = {
             //var newBufferSize=this.bufferSize*2;
             var newPairs=[];// vector
             newPairs.length = this.bufferSize;
-            var i = this.bufferSize;
-            var j;
-            while(i--){
-            //for(var i=0, j=this.bufferSize;i<j;i++){
+            //var i = this.bufferSize;
+            //var j;
+            //while(i--){
+            for(var i=0, j=this.bufferSize;i<j;i++){
                 newPairs[i]=this.pairs[i];
             }
             i = this.newBufferSize;

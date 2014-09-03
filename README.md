@@ -22,6 +22,8 @@ Basic demo no worker
 
 [collision test](http://lo-th.github.io/Oimo.js/test_collision.html)
 
+[moving test](http://lo-th.github.io/Oimo.js/test_moving.html)
+
 Basic demo worker transferrable
 
 [worker test](http://lo-th.github.io/Oimo.js/test_worker.html)

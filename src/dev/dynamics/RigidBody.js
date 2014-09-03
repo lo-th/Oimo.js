@@ -34,6 +34,10 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
 
     // It is the world coordinate of the center of gravity.
     this.position=new OIMO.Vec3(x,y,z); 
+    //this.oldposition=new OIMO.Vec3(x,y,z); 
+    this.newPosition = new OIMO.Vec3(0,0,0);
+    this.timer = 0;
+    this.controlPos = false;
 
     var len=ax*ax+ay*ay+az*az; 
     if(len>0){
@@ -309,6 +313,15 @@ OIMO.RigidBody.prototype = {
                 this.angularVelocity.z=0;*/
             break;
             case this.BODY_DYNAMIC:
+                if(this.controlPos){
+                    //this.linearVelocity.init();
+                     this.angularVelocity.init();
+                    //this.linearVelocity.init();
+                   
+                    this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
+                    this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
+                    this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+                }  
                 this.position.addTime(this.linearVelocity, timeStep);
                 /*var vx=this.linearVelocity.x;
                 var vy=this.linearVelocity.y;
@@ -438,6 +451,19 @@ OIMO.RigidBody.prototype = {
         /*this.angularVelocity.x+=rel.x;
         this.angularVelocity.y+=rel.y;
         this.angularVelocity.z+=rel.z;*/
+    },
+
+    moveTo:function(pos){
+       // this.oldposition.copy(this.position);
+        this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
+
+        this.controlPos = true;
+
+        /*this.linearVelocity.x = (this.oldposition.x-this.newPosition.x)/this.timer;
+        this.linearVelocity.y = (this.oldposition.y-this.newPosition.y)/this.timer;
+        this.linearVelocity.z = (this.oldposition.z-this.newPosition.z)/this.timer;*/
+
+
     },
 
 

@@ -86,3 +86,14 @@ OIMO.Body = function(Obj){
     this.body.name = this.name;
     obj.world.addRigidBody(this.body);
 }
+
+OIMO.Body.prototype = {
+
+    constructor: OIMO.Body,
+    moveTo:function(pos){
+        this.body.moveTo(pos);
+    },
+    getMatrix:function(){
+        return this.body.getMatrix();
+    }
+}

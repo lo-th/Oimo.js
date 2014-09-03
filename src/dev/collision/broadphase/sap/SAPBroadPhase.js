@@ -156,12 +156,12 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
             }
             do{
                 e2=e1.pair;
-                if(e2==min){
+                if(e2===min){
                     e1.pair=e2.pair;
                     break;
                 }
                 e1=e2;
-            }while(e1!=null);
+            }while(e1!==null);
         }
     }
     this.index2=(this.index1|this.index2)^3;
