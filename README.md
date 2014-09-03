@@ -24,6 +24,8 @@ Basic demo no worker
 
 [moving test](http://lo-th.github.io/Oimo.js/test_moving.html)
 
+[terrain test](http://lo-th.github.io/Oimo.js/test_terrain.html)
+
 Basic demo worker transferrable
 
 [worker test](http://lo-th.github.io/Oimo.js/test_worker.html)

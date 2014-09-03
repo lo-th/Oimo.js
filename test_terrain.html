@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Oimo.js Moving</title>
+<title>Oimo.js Terrain</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
@@ -22,6 +22,7 @@
 </style>
 
 <script src="js/three.min.js"></script>
+<script src="js/ImprovedNoise.js"></script>
 <script src="build/Oimo.min.js"></script>
 </head>
 <body>
@@ -50,6 +51,8 @@
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
     var buffgeoSphere, buffgeoBox;
     var raycaster, projector;
+
+    var terrain;
 
     // navigation var 
     var camPos = { horizontal: 180, vertical: 60, distance: 400, automove: false };
@@ -115,8 +118,8 @@
         renderer.autoClear = false;
         renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFShadowMap;
-        renderer.gammaInput = true;
-        renderer.gammaOutput = true;
+        //renderer.gammaInput = true;
+       // renderer.gammaOutput = true;
 
         paddel = new THREE.Object3D();
         scene.add( paddel );
@@ -153,6 +156,11 @@
         while (i--) scene.remove(meshs[ i ]);
         i = grounds.length;
         while (i--) scene.remove(grounds[ i ]);
+
+        if(terrain){
+            content.remove(terrain);
+            terrain.geometry.dispose();
+        }
         grounds = [];
         meshs = [];
     }
@@ -164,12 +172,58 @@
     function initOimoPhysics(){
 
         world = new OIMO.World(1/60, 2);
+        
         populate(1);
         setInterval(updateOimoPhysics, 1000/60);
 
     }
+    function initTerrain(w, h) {
+        w = 32 || w;
+        h = 32 || h;
+        var g = new THREE.PlaneGeometry( 600, 600, w-1, h-1);
+        g.applyMatrix(new THREE.Matrix4().makeRotationX( - Math.PI * 0.5 ));
+       
+        var size = w * h;
+        var data = new OIMO_ARRAY_TYPE( size );
+        var perlin = new ImprovedNoise(), quality = 1, z = Math.random() * 10;
+        for ( var j = 0; j < 4; j ++ ) {
+            for ( var i = 0; i < size; i ++ ) {
+                var x = i % w, y = ~~ ( i / w );
+                data[ i ] += (Math.abs( perlin.noise( x / quality, y / quality, z ) * quality *  0.5 ))
+            }
+            quality *= 5;
+        }
+
+        var b, v, m;
+        var r = 20;
+
+        for ( var i = 0, l = g.vertices.length; i < l; i ++ ) {
+            v = g.vertices[ i ];
+            v.y =( data[ i ] * 10) -100;
+
+            b = new OIMO.Body({type:'sphere', size:[r], pos:[v.x,v.y-r,v.z],world:world});
+
+            /*m = new THREE.Mesh( buffgeoSphere, matSphere );
+            m.scale.set( r,r,r );
+            m.position.set(v.x,v.y-r,v.z);
+            scene.add(m)*/
+
+        }
+        
+        g.computeFaceNormals();
+        g.computeVertexNormals();
+
+        buffgeo = new THREE.BufferGeometry();
+        buffgeo.fromGeometry( g );
+
+        terrain = new THREE.Mesh(buffgeo, new THREE.MeshPhongMaterial ({color: 0x3D4143, shininess:60 }));
+        terrain.castShadow = true;
+        terrain.receiveShadow = true;
+        content.add(terrain);
+    }
 
     function populate(n) {
+        
 
         // The Bit of a collision group
         var group1 = 1 << 0;  // 00000000 00000000 00000000 00000001
@@ -186,6 +240,9 @@
         world.clear();
         bodys = [];
 
+
+        initTerrain();
+
         // Is all the physics setting for rigidbody
         var config = [
             1, // The density of the shape.
@@ -194,18 +251,6 @@
             1, // The bits of the collision groups to which the shape belongs.
             all // The bits of the collision groups with which the shape collides.
         ];
-
-        //add ground
-        var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
-        addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
-
-        var ground2 = new OIMO.Body({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
-        addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
-
-        /*config[3] = group1;
-        config[4] = all & ~group2;
-        var ground3 = new OIMO.Body({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
-        addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);*/
 
         // now add object
         var x, y, z, w, h, d;
@@ -247,7 +292,7 @@
         config[4] = all;
         bodys[max] = new OIMO.Body({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, world:world, config:config});
         meshs[max] = new THREE.Mesh( buffgeoBox, matBox );
-        meshs[max].scale.set( 20, 40, 60 );
+        meshs[max].scale.set( 20, 40, 20 );
         scene.add( meshs[max] );
     }
 
@@ -273,19 +318,6 @@
             mesh = meshs[i];
 
             if(!body.sleeping){
-                //mtx.fromArray(body.getMatrix());
-                //mesh.position.setFromMatrixPosition( mtx );
-                //mesh.quaternion.setFromRotationMatrix( mtx );
-                //var quat = new OIMO.Quat().setFromRotationMatrix(body.rotation);
-                //var rot = new OIMO.Euler().setFromQuaternion(quat);
-                //var rot = new OIMO.Euler().setFromRotationMatrix(body.rotation)
-                //var rot = body.getRotation();
-                //var pos = body.getPosition();
-
-                //mesh.quaternion.set(quat.x, quat.y, quat.z, quat.s)
-
-               // mesh.position.set(pos.x, pos.y, pos.z)
-                //mesh.rotation.copy()set(rot.x, rot.y, rot.z);
 
                 mesh.position.copy(body.getPosition());
                 mesh.rotation.copy(body.getRotation());
@@ -296,7 +328,7 @@
                 if(mesh.material.name === 'ssph') mesh.material = matSphere; 
 
                 // reset position
-                if(mesh.position.y<-100){
+                if(mesh.position.y<-300){
                     x = 150;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
