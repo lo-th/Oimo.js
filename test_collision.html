@@ -240,9 +240,10 @@
         var mtx = new THREE.Matrix4();
         var i = bodys.length;
         var mesh;
+        var body;
 
         while (i--){
-            var body = bodys[i].body;
+            body = bodys[i].body;
             mesh = meshs[i];
 
             if(!body.sleeping){

@@ -411,7 +411,7 @@ OIMO.RigidBody.prototype = {
         return new OIMO.Euler().setFromRotationMatrix(this.rotation);
     },
     getQuaternion:function(){
-        return new OIMO.Quat().setFromRotationMatrix(this.rotation);
+        return new OIMO.Quaternion().setFromRotationMatrix(this.rotation);
     },
     getMatrix:function(){
         var m = this.matrix.elements;

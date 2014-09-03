@@ -310,19 +310,18 @@
         world.step();
 
         var p, r, m, x, y, z;
-        var mtx = new THREE.Matrix4();
         var i = bodys.length;
         var mesh;
+        var body;
 
         while (i--){
-
+            body = bodys[i].body;
             mesh = meshs[i];
 
-            if(!bodys[i].body.sleeping){
-                m = bodys[i].body.getMatrix();
-                mtx.fromArray(m);
-                mesh.position.setFromMatrixPosition( mtx );
-                mesh.quaternion.setFromRotationMatrix( mtx );
+            if(!body.sleeping){
+
+                mesh.position.copy(body.getPosition());
+                mesh.quaternion.copy(body.getQuaternion());
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = matBox;

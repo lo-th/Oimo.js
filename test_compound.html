@@ -294,15 +294,19 @@
         var mtx = new THREE.Matrix4();
         var i = bodys.length;
         var mesh;
+        var body;
 
         while (i--){
+            body = bodys[i];
             mesh = meshs[i];
 
-            if(!bodys[i].sleeping){
+            if(!body.sleeping){
 
-                mtx.fromArray(bodys[i].getMatrix());
+                /*mtx.fromArray(bodys[i].getMatrix());
                 mesh.position.setFromMatrixPosition( mtx );
-                mesh.quaternion.setFromRotationMatrix( mtx );
+                mesh.quaternion.setFromRotationMatrix( mtx );*/
+                mesh.position.copy(body.getPosition());
+                mesh.quaternion.copy(body.getQuaternion());
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = matBox;
@@ -313,7 +317,7 @@
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
-                    bodys[i].resetPosition(x,y,z);
+                    body.resetPosition(x,y,z);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
