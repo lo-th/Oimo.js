@@ -576,14 +576,19 @@ OIMO.RigidBody = function(Rad,Ax,Ay,Az){
     this.addedToIsland=false;
     this.sleeping=false;
 
-    var len=ax*ax+ay*ay+az*az;
     this.position=new OIMO.Vec3();
+    this.newPosition = new OIMO.Vec3(0,0,0);
+    this.controlPos = false;
+
+    var len=ax*ax+ay*ay+az*az;
+
     if(len>0){
         len=1/Math.sqrt(len);
         ax*=len;
         ay*=len;
         az*=len;
     }
+
     var sin=Math.sin(rad*0.5);
     var cos=Math.cos(rad*0.5);
     this.orientation=new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
@@ -782,6 +787,12 @@ OIMO.RigidBody.prototype = {
         this.angularVelocity.y=0;
         this.angularVelocity.z=0;
         }else if(this.type==OIMO.BODY_DYNAMIC){
+            if(this.controlPos){
+                this.angularVelocity.init();
+                this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
+                this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
+                this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+            }
         var vx=this.linearVelocity.x;
         var vy=this.linearVelocity.y;
         var vz=this.linearVelocity.z;
@@ -936,6 +947,10 @@ OIMO.RigidBody.prototype = {
 
     
     // for three js
+    moveTo:function(pos){
+        this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
+        this.controlPos = true;
+    },
     setPosition:function(x,y,z){
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
         this.linearVelocity.init();
@@ -1055,6 +1070,17 @@ OIMO.Body = function(Obj){
     // finaly add to physics world
     this.body.name = this.name;
     obj.world.addRigidBody(this.body);
+}
+
+OIMO.Body.prototype = {
+
+    constructor: OIMO.Body,
+    moveTo:function(pos){
+        this.body.moveTo(pos);
+    },
+    getMatrix:function(){
+        return this.body.getMatrix();
+    }
 }
 OIMO.Link = function(Obj){
     var obj = Obj || {};
