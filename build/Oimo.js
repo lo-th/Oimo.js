@@ -1124,23 +1124,36 @@ OIMO.RigidBody.prototype = {
         return m;
     }
 }
+/**
+* The main class of body.
+* is for simplify creation process and data access of rigidRody
+* Rigid body has the shape of a single or multiple collision processing, 
+* all setting in object
+* 
+* @author loth
+*/
 OIMO.Body = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
 
+    // Yep my name 
     this.name = obj.name || '';
+
+    // I'm dynamique or not
     var move = obj.move || false;
+
+    // I can sleep or not
     var noSleep  = obj.noSleep || false;
     
-    // position
+    // My start position
     var p = obj.pos || [0,0,0];
     p = p.map(function(x) { return x * OIMO.INV_SCALE; });
 
-    // scale
+    // My size 
     var s = obj.size || [1,1,1];
     s = s.map(function(x) { return x * OIMO.INV_SCALE; });
 
-    // rotation in degre
+    // My rotation in degre
     var rot = obj.rot || [0,0,0];
     rot = rot.map(function(x) { return x * OIMO.TO_RAD; });
     var r = [];
@@ -1149,7 +1162,7 @@ OIMO.Body = function(Obj){
         r.push(tmp[0]);  r.push(tmp[1]); r.push(tmp[2]); r.push(tmp[3]);
     }
 
-    // physics setting
+    // My physics setting
     var sc = obj.sc || new OIMO.ShapeConfig();
     if(obj.config){
         // The density of the shape.
@@ -1216,6 +1229,7 @@ OIMO.Body = function(Obj){
 OIMO.Body.prototype = {
 
     constructor: OIMO.Body,
+
     setPosition:function(pos){
         this.body.setPosition(pos);
     },
