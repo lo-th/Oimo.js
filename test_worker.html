@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Oimo.js worker example</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link rel="shortcut icon" href="favicon.ico">
+<title>Oimo.js worker example</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="shortcut icon" href="favicon.ico">
+<link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
 
 <style>
     * {  margin: 0; padding: 0; border: 0;}
@@ -40,12 +41,15 @@
             world.gravity.init(0,-10,0);
 
             // Ground plane
-            var ground = new OIMO.Body({size:[40, 4, 40], pos:[0,-2,0], world:world});
+            var ground = new OIMO.Body({size:[200, 20, 200], pos:[0,-10,0], world:world});
             
             var N = e.data.N;
+            var x, z;
             for(var i=0; i!==N; i++){
-                if(N < N*0.5) body[i] = new OIMO.Body({type:'sphere', size:[0.25], pos:[Math.random()-0.5,(0.5*i)+0.5,Math.random()-0.5], move:true, world:world});
-                else  body[i] = new OIMO.Body({type:'box', size:[0.5,0.5,0.5], pos:[1+Math.random()-0.5,((0.5*i)+0.5),Math.random()-0.5], move:true, world:world});
+                x = -2 + Math.random()*4;
+                z = -2 + Math.random()*4;
+                if(N < N*0.5) body[i] = new OIMO.Body({type:'sphere', size:[0.25], pos:[x,(0.5*i)+0.5,z], move:true, world:world});
+                else  body[i] = new OIMO.Body({type:'box', size:[0.5,0.5,0.5], pos:[x,((0.5*i)+0.5),z], move:true, world:world});
             }
         }
 
@@ -54,37 +58,43 @@
 
         // Copy over the data to the buffers
         var matrixs = e.data.matrixs;
-        var b=world.rigidBodies;
-        var m, j, i=0;
+        var minfo = e.data.minfo;
+        var b = world.rigidBodies;
+        var m, j, i=0, n;
+        var pos, quad;
         while(b!==null){
             if(b.type === 0x1){
-                m = b.getMatrix();
-                j = 16;
-                while(j--) matrixs[(16*i) + j] =m[j];//*1000;//.toFixed(2);
+                if(b.sleeeping){
+                    minfo[n+7] = 1;}
+                else{ 
+                    minfo[n+7] = 0;
+                    n = 8*i;
+                    // get position
+                    pos = b.getPosition();
+                    minfo[n+0] = pos.x;
+                    minfo[n+1] = pos.y;
+                    minfo[n+2] = pos.z;
+                    // get Quaternion
+                    quad = b.getQuaternion();
+                    minfo[n+3] = quad.x;
+                    minfo[n+4] = quad.y;
+                    minfo[n+5] = quad.z;
+                    minfo[n+6] = quad.w;
+                }
+
                 i++;
             }
             b=b.next;
         }
-
-       /* var matrixs = e.data.matrixs;
-        var i = body.length;
-        var m, j;
-        while(i--){
-            m = body[i].getMatrix();
-            j = 16;
-            while(j--) matrixs[(16*i) + j] = m[j];     
-        }*/
-       
-
         // Send data back to the main thread
-        self.postMessage({ perf:world.performance.fpsint, matrixs:matrixs }, [matrixs.buffer]);
+        self.postMessage({ perf:world.performance.fpsint, minfo:minfo }, [minfo.buffer]);
     };
 </script>
 
 <script>
     // Parameters
     var dt = 1/60;
-    var N= 2000;
+    var N= 1000;
     var ToRad = Math.PI / 180;
     var info = document.getElementById("info");
 
@@ -94,11 +104,7 @@
 
     var fps=0, time, time_prev=0, fpsint = 0;
 
-    // Data arrays. Contains all our kinematic data we need for rendering.
-    var matrixs = new Float32Array(N*16);
-    //var matrixs = new Float32Array(new ArrayBuffer(N*16))
-    //var matrixs = new Int32Array(N*16);
-    //var matrixs = new Int16Array(N*16);
+    var minfo = new Float32Array(N*8);
     var oimoInfo = 0;
 
     // Create a blob for the inline worker code
@@ -114,26 +120,23 @@
         oimoInfo = e.data.perf;
 
         // Get fresh data from the worker
-        matrixs = e.data.matrixs;
+        minfo = e.data.minfo;
 
         // Update rendering meshes
-        var mtx = new THREE.Matrix4();
         i = meshes.length;
+        var n = 0, mesh;
         while(i--){
-            var m = [];
-            //var mtx = new THREE.Matrix4();
-            j = 16;
-            while(j--) m[j] = matrixs[16*i + j];///1000;
-            mtx.fromArray( m );
-            meshes[i].position.setFromMatrixPosition( mtx )
-            meshes[i].rotation.setFromRotationMatrix( mtx );
+            mesh = meshes[i];
+            n = i*8;
+            if(minfo[n+7]!==1){
+                mesh.position.set( minfo[n+0], minfo[n+1], minfo[n+2]);
+                mesh.quaternion.set( minfo[n+3], minfo[n+4], minfo[n+5], minfo[n+6] );
+            }
         }
 
         // If the worker was faster than the time step (dt seconds), we want to delay the next timestep
         var delay = dt * 1000 - (Date.now()-sendTime);
-        if(delay < 0){
-            delay = 0;
-        }
+        if(delay < 0){  delay = 0; }
         setTimeout(sendDataToWorker,delay);
     }
 
@@ -143,8 +146,8 @@
             N : N,
             dt : dt,
             oimoUrl : document.location.href.replace(/\/[^/]*$/,"/") + "build/Oimo.js",
-            matrixs : matrixs,
-        },[matrixs.buffer]);
+            minfo : minfo
+        },[minfo.buffer]);
     }
 
 
@@ -158,15 +161,16 @@
     animate();
 
     function init() {
-        renderer = new THREE.WebGLRenderer( {precision: "mediump", antialias: false } );
+        renderer = new THREE.WebGLRenderer( {precision: "mediump", antialias:true, alpha: true } );
         renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.setClearColor( 0xbcbcbc, 1 );
+        renderer.setClearColor( 0x000000, 0 );
+        renderer.autoClear = false;
 
         container = document.getElementById("container");
         container.appendChild( renderer.domElement );
 
-        renderer.gammaInput = true;
-        renderer.gammaOutput = true;
+        //renderer.gammaInput = true;
+        //renderer.gammaOutput = true;
         renderer.shadowMapEnabled = true;
 
         // scene
@@ -182,9 +186,9 @@
 
         // lights
         var light, materials;
-        scene.add( new THREE.AmbientLight( 0x666666 ) );
+        scene.add( new THREE.AmbientLight( 0x303030 ) );
 
-        light = new THREE.DirectionalLight( 0xffffff, 1.75 );
+        light = new THREE.DirectionalLight( 0xffffff, 1.5 );
         var d = 40;
 
         light.position.set( d, d, d );
@@ -202,20 +206,20 @@
 
         light.shadowCameraFar = 3*d;
         light.shadowCameraNear = d;
-        light.shadowDarkness = 0.5;
+        light.shadowDarkness = 1;
 
         scene.add( light );
 
-        var material = new THREE.MeshLambertMaterial( { color: 0x777777 } );
+        var material = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent:true, opacity:0.06 } );
         var cubeMaterial = new THREE.MeshPhongMaterial( { color: 0xCC8888 } );
         var sphereMaterial = new THREE.MeshPhongMaterial( { color: 0x8888CC } );
 
         //geometry = THREE.BufferGeometryUtils.fromGeometry( new THREE.PlaneGeometry( 400, 400, 1, 1 ) );
         geometry = new THREE.BufferGeometry();
-        geometry.fromGeometry( new THREE.PlaneGeometry( 400, 400, 1, 1 ) );
+        geometry.fromGeometry( new THREE.PlaneGeometry( 200, 200, 1, 1 ) );
         
         var mesh = new THREE.Mesh( geometry, material );
-        mesh.castShadow = true;
+        mesh.castShadow = false;
         mesh.receiveShadow = true;
         mesh.rotation.x = -90 * ToRad;
         scene.add( mesh );
@@ -229,6 +233,7 @@
         for(var i=0; i<N*0.5; i++){
             mesh = new THREE.Mesh( cubeGeo, cubeMaterial );
             mesh.castShadow = true;
+            mesh.receiveShadow = true;
             meshes.push(mesh);
             scene.add( mesh );
         }
@@ -242,6 +247,7 @@
         for(var i=0; i<N*0.5; i++){
             mesh = new THREE.Mesh( sphereGeo, sphereMaterial );
             mesh.castShadow = true;
+            mesh.receiveShadow = true;
             meshes.push(mesh);
             scene.add( mesh );
         }

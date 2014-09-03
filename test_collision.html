@@ -222,7 +222,7 @@
     
 
     function updateOimoPhysics() {
-        
+
         world.step();
 
         var p, r, m, x, y, z;
@@ -236,9 +236,9 @@
             mesh = meshs[i];
 
             if(!body.sleeping){
-                mtx.fromArray(body.getMatrix());
-                mesh.position.setFromMatrixPosition( mtx );
-                mesh.quaternion.setFromRotationMatrix( mtx );
+
+                mesh.position.copy(body.getPosition());
+                mesh.quaternion.copy(body.getQuaternion());
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = matBox;
