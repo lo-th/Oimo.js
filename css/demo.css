@@ -1,0 +1,12 @@
+* {  margin: 0; padding: 0; border: 0;}
+@font-face { font-family: 'SourceCode'; src: url('../images/SourceCodePro.woff') format('woff');}
+body{ background-color: #3D4143;  background:linear-gradient(-135deg, #b0babf 0%, #72797D 20%, #3D4143 100%); overflow: hidden; color:#cccccc; font-family:SourceCode; font-size: 10px; }
+input{ margin:0; padding:8px; background:linear-gradient(#72797D , #3D4143); color:#cccccc; font-family:SourceCode; }
+input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
+#interface{ position: absolute; left:10px; top:10px; width:100%; height:20px; }
+#info{ pointer-events:none; position: absolute; left:10px; top:60px; width: 400px; height: 400px; }
+#link{ position: absolute; right:10px; bottom:10px; font-size: 14px; word-spacing: 10px;}
+a:link {color: #cccccc; text-decoration: none;}
+a:visited {color: #cccccc; text-decoration: none;}
+a:hover {color: #ED7600; text-decoration: none;}
+a:active {color: #0099FF; text-decoration: none;}

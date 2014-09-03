@@ -6,24 +6,12 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-
-<style>
-    * {  margin: 0; padding: 0; border: 0;}
-    body { background-color: #3D4143;  background:linear-gradient(-45deg, #72797D, #3D4143); overflow: hidden; color: #cccccc; font-family: arial; font-size: 11px; }
-    input{ margin:0; padding:8px; background:linear-gradient(#72797D, #3D4143); color:#cccccc;}
-    input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
-    #interface{ position: absolute; left:10px; top:10px; width:456px; height:20px; }
-    #info{ pointer-events:none; position: absolute; left:10px; top:60px; width: 400px; height: 400px; }
-    #link{ position: absolute; right:10px; bottom:10px; font-size: 16px; word-spacing: 10px;}
-    a:link {color: #cccccc; text-decoration: none;}
-    a:visited {color: #cccccc; text-decoration: none;}
-    a:hover {color: #ED7600; text-decoration: none;}
-    a:active {color: #0099FF; text-decoration: none;}
-</style>
+<link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
 
 <script src="js/three.min.js"></script>
 <script src="js/ImprovedNoise.js"></script>
 <script src="build/Oimo.min.js"></script>
+
 </head>
 <body>
 <div id='container'></div>
@@ -57,7 +45,7 @@
     var terrain;
 
     // navigation var 
-    var camPos = { horizontal: 180, vertical: 60, distance: 400, automove: false };
+    var camPos = { horizontal: 180, vertical: 60, distance: 600, automove: false };
     var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
     var vsize = {w:window.innerWidth, h:window.innerHeight}
     var ToRad = Math.PI / 180;
@@ -66,7 +54,7 @@
     var world = null;
     var bodys = null;
 
-    var fps=0, time, time_prev=0, fpsint = 0;
+    var fps = [0,0,0,0];
     var type=1;
 
     init();
@@ -201,7 +189,7 @@
 
         for ( var i = 0, l = g.vertices.length; i < l; i ++ ) {
             v = g.vertices[ i ];
-            v.y =( data[ i ] * 10) -100;
+            v.y =( data[ i ] * 10) -150;
 
             b = new OIMO.Body({type:'sphere', size:[r], pos:[v.x,v.y-r,v.z],world:world});
 
@@ -302,7 +290,6 @@
     
 
     function updateOimoPhysics() {
-        f0 = Date.now();
 
         // apply new position on last rigidbody
         bodys[bodys.length-1].setPosition(paddel.position);
@@ -341,8 +328,6 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
-        f1 = Date.now();
-        f2 = f1-f0;
 
         displayInfo();
     }
@@ -357,14 +342,14 @@
     //----------------------------------
 
     function displayInfo(){
-        time = Date.now();
-        if (time - 1000 > time_prev) {
-            time_prev = time; fpsint = fps; fps = 0;
-        } fps++;
+
+        fps[2] = Date.now();
+        if (fps[2]-1000>fps[1]){ fps[1]=fps[2]; fps[0]=fps[3]; fps[3]=0; } fps[3]++;
+
         var w = world.performance;
         var info =[
             "Oimo.js DEV.1.1.0a<br><br>",
-            "FPS: " + fpsint +" fps<br><br>",
+            "FPS: " + fps[0] +" fps<br><br>",
             "Rigidbody: "+world.numRigidBodies+"<br>",
             "Contact: "+world.numContacts+"<br>",
             "Pair Check: "+world.broadPhase.numPairChecks+"<br>",

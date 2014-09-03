@@ -6,23 +6,11 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-
-<style>
-    * {  margin: 0; padding: 0; border: 0;}
-    body { background-color: #3D4143;  background:linear-gradient(-45deg, #72797D, #3D4143); overflow: hidden; color: #cccccc; font-family: arial; font-size: 11px; }
-    input{ margin:0; padding:8px; background:linear-gradient(#72797D, #3D4143); color:#cccccc;}
-    input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
-    #interface{ position: absolute; left:10px; top:10px; width:456px; height:20px; }
-    #info{ pointer-events:none; position: absolute; left:10px; top:60px; width: 400px; height: 400px; }
-    #link{ position: absolute; right:10px; bottom:10px; font-size: 16px; word-spacing: 10px;}
-    a:link {color: #cccccc; text-decoration: none;}
-    a:visited {color: #cccccc; text-decoration: none;}
-    a:hover {color: #ED7600; text-decoration: none;}
-    a:active {color: #0099FF; text-decoration: none;}
-</style>
+<link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
 
 <script src="js/three.min.js"></script>
 <script src="build/Oimo.min.js"></script>
+
 </head>
 <body>
 <div id='container'></div>
@@ -62,8 +50,7 @@ var SphereShape = function (){console.log("zoob")}
     var world;
     var bodys = [];
 
-    var fps=0, time, time_prev=0, fpsint = 0;
-
+    var fps = [0,0,0,0];
     var type=1;
 
     init();
@@ -111,8 +98,8 @@ var SphereShape = function (){console.log("zoob")}
         renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFShadowMap;
         //renderer.shadowMapCullFace = THREE.CullFaceBack;
-        renderer.gammaInput = true;
-        renderer.gammaOutput = true;
+        //renderer.gammaInput = true;
+        //renderer.gammaOutput = true;
 
         container = document.getElementById("container");
         container.appendChild( renderer.domElement );
@@ -264,14 +251,14 @@ var SphereShape = function (){console.log("zoob")}
     //----------------------------------
 
     function displayInfo(){
-        time = Date.now();
-        if (time - 1000 > time_prev) {
-            time_prev = time; fpsint = fps; fps = 0;
-        } fps++;
+
+        fps[2] = Date.now();
+        if (fps[2]-1000>fps[1]){ fps[1]=fps[2]; fps[0]=fps[3]; fps[3]=0; } fps[3]++;
+
         var w = world.performance;
         var info =[
             "Oimo.js DEV.1.1.0a<br><br>",
-            "FPS: " + fpsint +" fps<br><br>",
+            "FPS: " + fps[0] +" fps<br><br>",
             "Rigidbody: "+world.numRigidBodies+"<br>",
             "Contact: "+world.numContacts+"<br>",
             "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
