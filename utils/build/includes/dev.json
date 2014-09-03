@@ -9,6 +9,7 @@
 	"src/dev/math/Mat33.js",
 	"src/dev/math/Quat.js",
 	"src/dev/math/Vec3.js",
+	"src/dev/math/Euler.js",
 	"src/dev/math/MatRotation.js",
 	"src/dev/math/Distance3d.js",
 	"src/dev/constraint/Constraint.js",

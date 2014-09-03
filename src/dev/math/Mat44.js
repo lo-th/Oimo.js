@@ -20,5 +20,35 @@ OIMO.Mat44.prototype = {
         te[3] = n41; te[7] = n42; te[11] = n43; te[15] = n44;
 
         return this;
-    }
+    }/*,
+    extractRotation: function () {
+
+        var v1 = new THREE.Vector3();
+
+        return function ( m ) {
+
+            var te = this.elements;
+            var me = m.elements;
+
+            var scaleX = 1 / v1.set( me[ 0 ], me[ 1 ], me[ 2 ] ).length();
+            var scaleY = 1 / v1.set( me[ 4 ], me[ 5 ], me[ 6 ] ).length();
+            var scaleZ = 1 / v1.set( me[ 8 ], me[ 9 ], me[ 10 ] ).length();
+
+            te[ 0 ] = me[ 0 ] * scaleX;
+            te[ 1 ] = me[ 1 ] * scaleX;
+            te[ 2 ] = me[ 2 ] * scaleX;
+
+            te[ 4 ] = me[ 4 ] * scaleY;
+            te[ 5 ] = me[ 5 ] * scaleY;
+            te[ 6 ] = me[ 6 ] * scaleY;
+
+            te[ 8 ] = me[ 8 ] * scaleZ;
+            te[ 9 ] = me[ 9 ] * scaleZ;
+            te[ 10 ] = me[ 10 ] * scaleZ;
+
+            return this;
+
+        };
+
+    }() */
 }

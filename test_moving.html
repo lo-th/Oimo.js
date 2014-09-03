@@ -276,9 +276,23 @@
             mesh = meshs[i];
 
             if(!body.sleeping){
-                mtx.fromArray(body.getMatrix());
-                mesh.position.setFromMatrixPosition( mtx );
-                mesh.quaternion.setFromRotationMatrix( mtx );
+                //mtx.fromArray(body.getMatrix());
+                //mesh.position.setFromMatrixPosition( mtx );
+                //mesh.quaternion.setFromRotationMatrix( mtx );
+                //var quat = new OIMO.Quat().setFromRotationMatrix(body.rotation);
+                //var rot = new OIMO.Euler().setFromQuaternion(quat);
+                //var rot = new OIMO.Euler().setFromRotationMatrix(body.rotation)
+                //var rot = body.getRotation();
+                //var pos = body.getPosition();
+
+                //mesh.quaternion.set(quat.x, quat.y, quat.z, quat.s)
+
+               // mesh.position.set(pos.x, pos.y, pos.z)
+                //mesh.rotation.copy()set(rot.x, rot.y, rot.z);
+
+                mesh.position.copy(body.getPosition());
+                mesh.rotation.copy(body.getRotation());
+
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = matBox;

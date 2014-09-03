@@ -93,6 +93,15 @@ OIMO.Body.prototype = {
     moveTo:function(pos){
         this.body.moveTo(pos);
     },
+    getPosition:function(){
+        return this.body.getPosition();
+    },
+    getRotation:function(){
+        return this.body.getRotation();
+    },
+    getQuaternion:function(){
+        return this.body.getQuaternion();
+    },
     getMatrix:function(){
         return this.body.getMatrix();
     }

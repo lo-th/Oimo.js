@@ -314,9 +314,8 @@ OIMO.RigidBody.prototype = {
             break;
             case this.BODY_DYNAMIC:
                 if(this.controlPos){
-                    //this.linearVelocity.init();
-                     this.angularVelocity.init();
-                    //this.linearVelocity.init();
+                    this.angularVelocity.init();
+                    this.linearVelocity.init();
                    
                     this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                     this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
@@ -453,21 +452,18 @@ OIMO.RigidBody.prototype = {
         this.angularVelocity.z+=rel.z;*/
     },
 
-    moveTo:function(pos){
+
+    // for three js
+
+    moveTo:function(pos, rot){
        // this.oldposition.copy(this.position);
         this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
 
+        this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
+
         this.controlPos = true;
-
-        /*this.linearVelocity.x = (this.oldposition.x-this.newPosition.x)/this.timer;
-        this.linearVelocity.y = (this.oldposition.y-this.newPosition.y)/this.timer;
-        this.linearVelocity.z = (this.oldposition.z-this.newPosition.z)/this.timer;*/
-
-
     },
 
-
-    // for three js
     setPosition:function(x,y,z){
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
         this.linearVelocity.init();
@@ -488,6 +484,15 @@ OIMO.RigidBody.prototype = {
         var cos=Math.cos(rad*0.5);
         this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
         this.angularVelocity.init();
+    },
+    getPosition:function(){
+        return new OIMO.Vec3().scale(this.position, OIMO.WORLD_SCALE);
+    },
+    getRotation:function(){
+        return new OIMO.Euler().setFromRotationMatrix(this.rotation);
+    },
+    getQuaternion:function(){
+        return new OIMO.Quat().setFromRotationMatrix(this.rotation);
     },
     getMatrix:function(){
         var m = this.matrix.elements;
@@ -515,6 +520,8 @@ OIMO.RigidBody.prototype = {
             m[12] = p.x*OIMO.WORLD_SCALE;
             m[13] = p.y*OIMO.WORLD_SCALE;
             m[14] = p.z*OIMO.WORLD_SCALE;
+
+            // sleep or not ?
             m[15] = 0;
         } else {
             m[15] = 1;
