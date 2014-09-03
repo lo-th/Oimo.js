@@ -78,8 +78,11 @@ OIMO.Body = function(Obj){
 OIMO.Body.prototype = {
 
     constructor: OIMO.Body,
-    moveTo:function(pos){
-        this.body.moveTo(pos);
+    setPosition:function(pos){
+        this.body.setPosition(pos);
+    },
+    resetPosition:function(x,y,z){
+        this.body.resetPosition(x,y,z);
     },
     getMatrix:function(){
         return this.body.getMatrix();

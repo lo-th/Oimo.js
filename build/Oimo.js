@@ -1049,16 +1049,16 @@ OIMO.RigidBody.prototype = {
 
     // for three js
 
-    moveTo:function(pos, rot){
+    setPosition:function(pos, rot){
        // this.oldposition.copy(this.position);
         this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
 
-        this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
+        //this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
 
         this.controlPos = true;
     },
 
-    setPosition:function(x,y,z){
+    resetPosition:function(x,y,z){
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
         this.linearVelocity.init();
         this.angularVelocity.init();
@@ -1216,8 +1216,11 @@ OIMO.Body = function(Obj){
 OIMO.Body.prototype = {
 
     constructor: OIMO.Body,
-    moveTo:function(pos){
-        this.body.moveTo(pos);
+    setPosition:function(pos){
+        this.body.setPosition(pos);
+    },
+    resetPosition:function(x,y,z){
+        this.body.resetPosition(x,y,z);
     },
     getPosition:function(){
         return this.body.getPosition();

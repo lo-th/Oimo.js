@@ -9,6 +9,7 @@
 	"src/rev/math/Mat33.js",
 	"src/rev/math/Quat.js",
 	"src/rev/math/Vec3.js",
+	"src/rev/math/Euler.js",
 	"src/rev/math/MatRotation.js",
 	"src/rev/math/Distance3d.js",
 	"src/rev/constraint/Constraint.js",

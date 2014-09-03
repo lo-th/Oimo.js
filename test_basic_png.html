@@ -206,7 +206,7 @@
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
-                    body.setPosition(x,y,z);
+                    body.resetPosition(x,y,z);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
