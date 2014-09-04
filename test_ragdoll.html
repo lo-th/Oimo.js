@@ -96,11 +96,11 @@
 
         geoCylinder2.applyMatrix( new THREE.Matrix4().makeRotationZ( Math.PI / 2 ) );
 
-        matSphere = new THREE.MeshPhongMaterial( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.8, shininess:100, specular:0xffffff } );
-        matHead = new THREE.MeshPhongMaterial( { color: 0xffffff, name:'sphHH', shininess:100, specular:0xffffff  } );
+        matSphere = new THREE.MeshPhongMaterial( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.6, shininess:120, specular:0xffffff} );
+        matHead = new THREE.MeshLambertMaterial( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
         matBox = new THREE.MeshPhongMaterial( {  map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
         matBox2  = new THREE.MeshPhongMaterial( {  map: basicTexture(2,1), name:'box2', shininess:100, specular:0xffffff  } );
-        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph',transparent:true, opacity:0.9 } );
+        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph',transparent:true, opacity:0.8 } );
         matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
         matBoxSleep2 = new THREE.MeshLambertMaterial( {  map: basicTexture(3,1), name:'sbox2' } );
         matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
@@ -145,6 +145,8 @@
         if(type==='sphere'){
             mesh = new THREE.Mesh( geoSphere, mat );
             m2 = new THREE.Mesh( geoSphere2, matHead );
+            m2.scale.set(1,1.4,1);
+            m2.position.set(0,-0.3,0);
             mesh.add(m2);
         }
         else if(type==='cylinder'){mesh = new THREE.Mesh( geoCylinder, mat );}
