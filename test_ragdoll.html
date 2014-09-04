@@ -78,6 +78,7 @@
         light.shadowMapWidth = light.shadowMapHeight = 1024;
         scene.add( light );
 
+        // geometry
         geoCylinder = new THREE.BufferGeometry();
         geoCylinder2 = new THREE.BufferGeometry();
         geoSphere = new THREE.BufferGeometry();
@@ -92,6 +93,7 @@
 
         geoCylinder2.applyMatrix( new THREE.Matrix4().makeRotationZ( Math.PI / 2 ) );
 
+        // material
         matSphere = new THREE.MeshPhongMaterial( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.6, shininess:120, specular:0xffffff} );
         matHead = new THREE.MeshLambertMaterial( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
         matBox = new THREE.MeshPhongMaterial( {  map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
@@ -106,6 +108,7 @@
         renderer.setClearColor( 0x000000, 0 );
         renderer.autoClear = false;
         renderer.shadowMapEnabled = true;
+        renderer.shadowMapType = THREE.PCFShadowMap;
         //renderer.gammaInput = true;
         //renderer.gammaOutput = true;
         
@@ -135,9 +138,11 @@
 
     function addThreeMesh(size, position, rotation, color, type) {
         var mesh, mat, m2;
+        
         if(color===1){ mat = matSphere; }
         else if(color===2){mat = matBox2;}
         else{ mat = matBox;}
+
         if(type==='sphere'){
             mesh = new THREE.Mesh( geoSphere, mat );
             m2 = new THREE.Mesh( geoSphere2, matHead );
@@ -147,7 +152,7 @@
         }
         else if(type==='cylinder'){mesh = new THREE.Mesh( geoCylinder, mat );}
         else if(type==='cylinder2'){mesh = new THREE.Mesh( geoCylinder2, mat );}
-        else {mesh = new THREE.Mesh( geoBox, mat );}
+        else { mesh = new THREE.Mesh( geoBox, mat ); }
         mesh.scale.set( size[0], size[1], size[2] );
         if(position)mesh.position.set( position[0], position[1], position[2] );
         if(rotation)mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
