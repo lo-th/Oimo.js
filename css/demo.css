@@ -1,12 +1,13 @@
 * {  margin: 0; padding: 0; border: 0;}
-@font-face { font-family: 'SourceCode'; src: url('../images/SourceCodePro.woff') format('woff');}
-body{ background-color: #3D4143;  background:linear-gradient(-135deg, #b0babf 0%, #72797D 20%, #3D4143 100%); overflow: hidden; color:#cccccc; font-family:SourceCode; font-size: 10px; }
-input{ margin:0; padding:8px; background:linear-gradient(#72797D , #3D4143); color:#cccccc; font-family:SourceCode; }
+@font-face { font-family: 'SourceCode'; src: url('../images/f.woff') format('woff');}
+body{ background-color: #3D4143;  background:linear-gradient(-155deg, #b0babf, #72797D, #3D4143, #1B1D1E); overflow: hidden; color:#cccccc; font-family:SourceCode; font-size: 10px; text-shadow: 1px 1px #000000;}
+input{ margin:0; padding:8px; background:linear-gradient(#72797D , #3D4143); color:#cccccc; font-family:SourceCode; text-shadow: 1px 1px #000000;}
 input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
+input[type='button']:hover{border: 2px solid #72797D; cursor: pointer;background: #11BBFF; color:#000000;}
 #interface{ position: absolute; left:10px; top:10px; width:100%; height:20px; }
 #info{ pointer-events:none; position: absolute; left:10px; top:60px; width: 400px; height: 400px; }
-#link{ position: absolute; right:10px; bottom:10px; font-size: 14px; word-spacing: 10px;}
+#link{ position: absolute; left:0; bottom:0; width:100%; height:30px; font-size:14px; word-spacing:10px; text-align:right; margin-left:-30px;}
 a:link {color: #cccccc; text-decoration: none;}
 a:visited {color: #cccccc; text-decoration: none;}
-a:hover {color: #ED7600; text-decoration: none;}
-a:active {color: #0099FF; text-decoration: none;}
+a:hover {color: #11BBFF; text-decoration: none;}
+a:active {color: #11BBFF; text-decoration: none;}
