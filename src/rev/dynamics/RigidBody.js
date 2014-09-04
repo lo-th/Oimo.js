@@ -399,10 +399,20 @@ OIMO.RigidBody.prototype = {
         this.linearVelocity.init();
         this.angularVelocity.init();
     },
-    setRotation:function(x,y,z){
-        /*this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
-        this.linearVelocity.init();
-        this.angularVelocity.init();*/
+    resetRotation:function(x,y,z){
+        this.angularVelocity.init();
+        var r = OIMO.EulerToAxis( x * OIMO.TO_RAD, y * OIMO.TO_RAD, z * OIMO.TO_RAD );
+        var rad = r[0], ax = r[1], ay = r[2], az = r[3];
+        var len=ax*ax+ay*ay+az*az; 
+        if(len>0){
+            len=1/Math.sqrt(len);
+            ax*=len;
+            ay*=len;
+            az*=len;
+        }
+        var sin=Math.sin(rad*0.5);
+        var cos=Math.cos(rad*0.5);
+        this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
     },
     getPosition:function(){
         return new OIMO.Vec3().scale(this.position, OIMO.WORLD_SCALE);

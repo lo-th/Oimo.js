@@ -94,9 +94,14 @@ OIMO.Body.prototype = {
     setPosition:function(pos){
         this.body.setPosition(pos);
     },
+    
     resetPosition:function(x,y,z){
         this.body.resetPosition(x,y,z);
     },
+    resetRotation:function(x,y,z){
+        this.body.resetRotation(x,y,z);
+    },
+
     getPosition:function(){
         return this.body.getPosition();
     },

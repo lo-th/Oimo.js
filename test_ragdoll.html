@@ -202,8 +202,8 @@
             ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
             addStaticBox([1000, 40, 1000], [0,-20,0], [0,0,0]);
         }else{
-            ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world});
-            addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
+            ground = new OIMO.Body({size:[300, 40, 300], pos:[0,-20,0], world:world});
+            addStaticBox([300, 40, 300], [0,-20,0], [0,0,0]);
         }
 
         var i = max;
@@ -314,38 +314,43 @@
                 if(mesh.material.name === 'ssph') mesh.material = matSphere; 
 
                 // reset position
-                /*if(m[13]<-100 && bodys[i].name.substring(0,5)==='chest'){
+                if(mesh.position.y<-200 && bodys[i].name.substring(0,6)==='pelvis'){
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
-                    y = 100 + Math.random()*1000;
-                    bodys[i+0].body.resetPosition(x,y,z);
-                    bodys[i+1].body.resetPosition(x,y+30,z);
-                    bodys[i+2].body.resetPosition(x,y-20,z);
+                    y = 500 + Math.random()*200;
+                    // chest
+                    bodys[i+0].body.resetPosition(x,y-20,z);
+                    bodys[i+1].body.resetPosition(x,y-10,z);
+                    bodys[i+2].body.resetPosition(x,y,z);
+                    bodys[i+3].body.resetPosition(x,y+10,z);
+                    bodys[i+4].body.resetPosition(x,y+30,z);
+                    // arm
+                    bodys[i+5].body.resetPosition(x-20,y+8,z);
+                    bodys[i+6].body.resetPosition(x-40,y,z);
+                    bodys[i+7].body.resetPosition(x+20,y+8,z);
+                    bodys[i+8].body.resetPosition(x+40,y,z);
+                    // leg
+                    bodys[i+9].body.resetPosition(x-6,y-40,z);
+                    bodys[i+10].body.resetPosition(x-15,y-70,z);
+                    bodys[i+11].body.resetPosition(x+6,y-40,z);
+                    bodys[i+12].body.resetPosition(x+15,y-70,z);
 
-                    bodys[i+3].body.resetPosition(x-20,y-8,z);
-                    bodys[i+4].body.resetPosition(x-40,y,z);
-                    bodys[i+5].body.resetPosition(x+20,y-8,z);
-                    bodys[i+6].body.resetPosition(x+40,y,z);
+                    bodys[i+0].body.resetRotation(0,0,0);
+                    bodys[i+1].body.resetRotation(0,0,0);
+                    bodys[i+2].body.resetRotation(0,0,0);
+                    bodys[i+3].body.resetRotation(0,0,0);
+                    bodys[i+4].body.resetRotation(0,0,0);
 
-                    bodys[i+7].body.resetPosition(x-5,y-40,z);
-                    bodys[i+8].body.resetPosition(x-15,y-70,z);
-                    bodys[i+9].body.resetPosition(x+5,y-40,z);
-                    bodys[i+10].body.resetPosition(x+15,y-70,z);
+                    bodys[i+5].body.resetRotation(0,0,20);
+                    bodys[i+6].body.resetRotation(0,0,20);
+                    bodys[i+7].body.resetRotation(0,0,-20);
+                    bodys[i+8].body.resetRotation(0,0,-20);
 
-                    bodys[i].body.setRotation(0,0,0);
-                    bodys[i+1].body.setRotation(0,0,0);
-                    bodys[i+2].body.setRotation(0,0,0);
-
-                    bodys[i+3].body.setRotation(0,0,20);
-                    bodys[i+4].body.setRotation(0,02,0);
-                    bodys[i+5].body.setRotation(0,0,-20);
-                    bodys[i+6].body.setRotation(0,0,-20);
-
-                    bodys[i+7].body.setRotation(0,0,-20);
-                    bodys[i+8].body.setRotation(0,0,-20);
-                    bodys[i+9].body.setRotation(0,0,20);
-                    bodys[i+10].body.setRotation(0,0,20);
-                }*/
+                    bodys[i+9].body.resetRotation(0,0,-20);
+                    bodys[i+10].body.resetRotation(0,0,-20);
+                    bodys[i+11].body.resetRotation(0,0,20);
+                    bodys[i+12].body.resetRotation(0,0,20);
+                }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
                 if(mesh.material.name === 'box2') mesh.material = matBoxSleep2;
