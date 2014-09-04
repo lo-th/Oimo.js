@@ -9,6 +9,7 @@
 <link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
 
 <script src="js/three.min.js"></script>
+<script src="js/navigation.js"></script>
 <script src="build/Oimo.min.js"></script>
 
 </head>
@@ -35,15 +36,11 @@
 <script>
 
     // three var
-    var camera, scene, light, renderer, container, center;
+    var camera, scene, light, renderer, container;
     var meshs = [];
     var grounds = [];
     var geoBox, geoSphere, geoSphere2, geoCylinder, geoCylinder2;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround,  matBoxSleep2, matBox2, matHead;
-
-    // navigation var 
-    var camPos = { horizontal: 90, vertical: 75, distance: 400, automove: false };
-    var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
     var ToRad = Math.PI / 180;
 
     //oimo var
@@ -61,10 +58,9 @@
 
     function init() {
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        camera.position.set( 0, 100, 400 );
-        center = new THREE.Vector3(0,50,0);
-        moveCamera();
-
+        center.y = 50;
+        initCamera(90,75,400);
+        
         scene = new THREE.Scene();
 
         scene.add( new THREE.AmbientLight( 0x3D4143 ) );
@@ -437,68 +433,6 @@
        var tx = new THREE.Texture(canvas);
        tx.needsUpdate = true;
        return tx;
-    }
-
-    //----------------------------------
-    //  VIEW CONTROL
-    //----------------------------------
-
-    function moveCamera() {
-        camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
-        camera.lookAt(center);
-    }
-
-    function Orbit(origine, horizontal, vertical, distance) {
-        var p = new THREE.Vector3();
-        var phi = vertical*ToRad;
-        var theta = horizontal*ToRad;
-        p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
-        p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
-        p.y = (distance * Math.cos(phi)) + origine.y;
-        return p;
-    }
-
-    function initEvents(){
-        container.onmousemove = function(e){
-            e.preventDefault();
-            if (mouse.down ) {
-                document.body.style.cursor = 'move';
-                camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
-                camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
-                moveCamera();
-            }
-        }
-        container.onmousedown = function(e){
-            e.preventDefault();
-            mouse.ox = e.clientX;
-            mouse.oy = e.clientY;
-            mouse.h = camPos.horizontal;
-            mouse.v = camPos.vertical;
-            mouse.down = true;
-        }
-        container.onmouseup = function(e){
-            mouse.down = false;
-            document.body.style.cursor = 'auto';
-        }
-
-        container.addEventListener( 'mousewheel', onMouseWheel, false );
-        container.addEventListener( 'DOMMouseScroll', onMouseWheel, false );
-        window.addEventListener( 'resize', onWindowResize, false );
-    }
-
-    function onMouseWheel(e) {
-        var delta = 0;
-        if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
-        else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
-        else if(e.detail){delta=-e.detail*1.0;}
-        camPos.distance-=(delta*10);
-        moveCamera();   
-    }
-
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
 </script>

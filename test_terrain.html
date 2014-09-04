@@ -9,6 +9,7 @@
 <link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
 
 <script src="js/three.min.js"></script>
+<script src="js/navigation.js"></script>
 <script src="js/ImprovedNoise.js"></script>
 <script src="build/Oimo.min.js"></script>
 
@@ -34,20 +35,14 @@
 <script>
 
     // three var
-    var camera, scene, light, renderer, container, center, content;
+    var camera, scene, light, renderer, container, content;
     var meshs = [];
     var grounds = [];
     var paddel;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
     var buffgeoSphere, buffgeoBox;
     var raycaster, projector;
-
     var terrain;
-
-    // navigation var 
-    var camPos = { horizontal: 180, vertical: 60, distance: 600, automove: false };
-    var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
-    var vsize = {w:window.innerWidth, h:window.innerHeight}
     var ToRad = Math.PI / 180;
 
     //oimo var
@@ -63,9 +58,7 @@
     function init() {
 
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        camera.position.set( 0, 100, 400 );
-        center = new THREE.Vector3();
-        moveCamera();
+        initCamera(180,60,600);
 
         raycaster = new THREE.Raycaster();
         projector = new THREE.Projector();
@@ -187,9 +180,34 @@
         var b, v, m;
         var r = 20;
 
+        var types = [];
+        var sizes = [];
+        var positions = [];
+        var n = 0;
+
         for ( var i = 0, l = g.vertices.length; i < l; i ++ ) {
             v = g.vertices[ i ];
             v.y =( data[ i ] * 10) -150;
+
+            /*
+            // test compound
+            types[n] = 'sphere';
+            sizes[n] = [r, r, r];
+            if(n==0)positions[n] = [0,0,0];
+            else positions[n] = [v.x,v.y-r,v.z];
+
+            n++;
+
+            if(n==64){
+                
+                b = new OIMO.Body({type:types, size:sizes, pos:positions, world:world, name:'pp'+i, move:false, config:[0, 0.4,0.1]});
+                //console.log('pp'+i, types)
+                types = [];
+                sizes = [];
+                positions = [];
+                n=0;
+            }*/
+            
 
             b = new OIMO.Body({type:'sphere', size:[r], pos:[v.x,v.y-r,v.z],world:world});
 
@@ -199,6 +217,8 @@
             scene.add(m)*/
 
         }
+
+        
         
         g.computeFaceNormals();
         g.computeVertexNormals();
@@ -318,7 +338,7 @@
 
                 // reset position
                 if(mesh.position.y<-300){
-                    x = 150;
+                    x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
                     body.resetPosition(x,y,z);
@@ -413,77 +433,6 @@
         if ( intersects.length) {
             paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
         }
-    }
-
-    //----------------------------------
-    //  VIEW CONTROL
-    //----------------------------------
-
-    function moveCamera() {
-        camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
-        camera.lookAt(center);
-    }
-
-    function Orbit(origine, horizontal, vertical, distance) {
-        var p = new THREE.Vector3();
-        var phi = vertical*ToRad;
-        var theta = horizontal*ToRad;
-        p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
-        p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
-        p.y = (distance * Math.cos(phi)) + origine.y;
-        return p;
-    }
-
-    function initEvents(){
-        container.onmousemove = function(e){
-            e.preventDefault();
-            mouse.mx = ( e.clientX / vsize.w ) * 2 - 1;
-            mouse.my = - ( e.clientY / vsize.h ) * 2 + 1;
-            rayTest();
-
-            if (mouse.down ) {
-                document.body.style.cursor = 'move';
-                camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
-                camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
-                moveCamera();
-            }
-        }
-        container.onmousedown = function(e){
-            e.preventDefault();
-            mouse.ox = e.clientX;
-            mouse.oy = e.clientY;
-            mouse.h = camPos.horizontal;
-            mouse.v = camPos.vertical;
-            mouse.mx = ( e.clientX / vsize.w ) * 2 - 1;
-            mouse.my = - ( e.clientY / vsize.h ) * 2 + 1;
-            mouse.down = true;
-            rayTest();
-
-        }
-        container.onmouseup = function(e){
-            mouse.down = false;
-            document.body.style.cursor = 'auto';
-        }
-
-        container.addEventListener( 'mousewheel', onMouseWheel, false );
-        container.addEventListener( 'DOMMouseScroll', onMouseWheel, false );
-        window.addEventListener( 'resize', onWindowResize, false );
-    }
-
-    function onMouseWheel(e) {
-        var delta = 0;
-        if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
-        else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
-        else if(e.detail){delta=-e.detail*1.0;}
-        camPos.distance-=(delta*10);
-        moveCamera();   
-    }
-
-    function onWindowResize() {
-        vsize = {w:window.innerWidth, h:window.innerHeight}
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
 </script>

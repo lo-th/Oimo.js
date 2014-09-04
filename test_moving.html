@@ -9,6 +9,7 @@
 <link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
 
 <script src="js/three.min.js"></script>
+<script src="js/navigation.js"></script>
 <script src="build/Oimo.min.js"></script>
 
 </head>
@@ -33,18 +34,13 @@
 <script>
 
     // three var
-    var camera, scene, light, renderer, container, center, content;
+    var camera, scene, light, renderer, container, content;
     var meshs = [];
     var grounds = [];
     var paddel;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
     var buffgeoSphere, buffgeoBox;
     var raycaster, projector;
-
-    // navigation var 
-    var camPos = { horizontal: 180, vertical: 60, distance: 400, automove: false };
-    var mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true };
-    var vsize = {w:window.innerWidth, h:window.innerHeight}
     var ToRad = Math.PI / 180;
 
     //oimo var
@@ -60,9 +56,7 @@
     function init() {
 
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        camera.position.set( 0, 100, 400 );
-        center = new THREE.Vector3();
-        moveCamera();
+        initCamera(180,60,400);
 
         raycaster = new THREE.Raycaster();
         projector = new THREE.Projector();
@@ -264,19 +258,6 @@
             mesh = meshs[i];
 
             if(!body.sleeping){
-                //mtx.fromArray(body.getMatrix());
-                //mesh.position.setFromMatrixPosition( mtx );
-                //mesh.quaternion.setFromRotationMatrix( mtx );
-                //var quat = new OIMO.Quat().setFromRotationMatrix(body.rotation);
-                //var rot = new OIMO.Euler().setFromQuaternion(quat);
-                //var rot = new OIMO.Euler().setFromRotationMatrix(body.rotation)
-                //var rot = body.getRotation();
-                //var pos = body.getPosition();
-
-                //mesh.quaternion.set(quat.x, quat.y, quat.z, quat.s)
-
-               // mesh.position.set(pos.x, pos.y, pos.z)
-                //mesh.rotation.copy()set(rot.x, rot.y, rot.z);
 
                 mesh.position.copy(body.getPosition());
                 mesh.quaternion.copy(body.getQuaternion());
@@ -385,77 +366,6 @@
         if ( intersects.length) {
             paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
         }
-    }
-
-    //----------------------------------
-    //  VIEW CONTROL
-    //----------------------------------
-
-    function moveCamera() {
-        camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
-        camera.lookAt(center);
-    }
-
-    function Orbit(origine, horizontal, vertical, distance) {
-        var p = new THREE.Vector3();
-        var phi = vertical*ToRad;
-        var theta = horizontal*ToRad;
-        p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
-        p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
-        p.y = (distance * Math.cos(phi)) + origine.y;
-        return p;
-    }
-
-    function initEvents(){
-        container.onmousemove = function(e){
-            e.preventDefault();
-            mouse.mx = ( e.clientX / vsize.w ) * 2 - 1;
-            mouse.my = - ( e.clientY / vsize.h ) * 2 + 1;
-            rayTest();
-
-            if (mouse.down ) {
-                document.body.style.cursor = 'move';
-                camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
-                camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
-                moveCamera();
-            }
-        }
-        container.onmousedown = function(e){
-            e.preventDefault();
-            mouse.ox = e.clientX;
-            mouse.oy = e.clientY;
-            mouse.h = camPos.horizontal;
-            mouse.v = camPos.vertical;
-            mouse.mx = ( e.clientX / vsize.w ) * 2 - 1;
-            mouse.my = - ( e.clientY / vsize.h ) * 2 + 1;
-            mouse.down = true;
-            rayTest();
-
-        }
-        container.onmouseup = function(e){
-            mouse.down = false;
-            document.body.style.cursor = 'auto';
-        }
-
-        container.addEventListener( 'mousewheel', onMouseWheel, false );
-        container.addEventListener( 'DOMMouseScroll', onMouseWheel, false );
-        window.addEventListener( 'resize', onWindowResize, false );
-    }
-
-    function onMouseWheel(e) {
-        var delta = 0;
-        if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
-        else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
-        else if(e.detail){delta=-e.detail*1.0;}
-        camPos.distance-=(delta*10);
-        moveCamera();   
-    }
-
-    function onWindowResize() {
-        vsize = {w:window.innerWidth, h:window.innerHeight}
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
 </script>
