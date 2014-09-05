@@ -17,7 +17,7 @@
 <div id='container'></div>
 <div id='interface'>
     <input type="button" value="demo" onClick=populate(1)>
-    <input type="number" name="quantity" min="10" max="2000" value="166"  id='MaxNumber'>
+    <input type="number" name="quantity" min="10" max="2000" value="60"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
 </div>
@@ -42,6 +42,8 @@
     var buffgeoSphere, buffgeoBox;
     var raycaster, projector;
     var ToRad = Math.PI / 180;
+    var ToDeg = 180 / Math.PI;
+    var rotTest;
 
     //oimo var
     var world = null;
@@ -103,7 +105,11 @@
         //renderer.gammaOutput = true;
 
         paddel = new THREE.Object3D();
-        scene.add( paddel );
+        /*paddel = new THREE.Mesh( buffgeoBox, matGroundTrans );
+        paddel.scale.set( 20, 40, 60 );
+        scene.add( paddel );*/
+
+        rotTest = new THREE.Vector3();
 
         container = document.getElementById("container");
         container.appendChild( renderer.domElement );
@@ -235,14 +241,19 @@
         scene.add( meshs[max] );
     }
 
-    var f0, f1, f2 = 0;
+
     
 
     function updateOimoPhysics() {
-        f0 = Date.now();
 
         // apply new position on last rigidbody
         bodys[bodys.length-1].setPosition(paddel.position);
+
+        paddel.lookAt(new THREE.Vector3(100,paddel.position.y, 0));
+        paddel.rotation.y+=90*ToRad;
+
+        // apply new rotation on last rigidbody
+        bodys[bodys.length-1].setQuaternion(paddel.quaternion);
 
         
         world.step();
@@ -279,8 +290,6 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
-        f1 = Date.now();
-        f2 = f1-f0;
 
         displayInfo();
     }
@@ -312,9 +321,17 @@
             "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
             "Solving Time: "+w.solvingTime + " ms<br>",
             "Updating Time: "+w.updatingTime + " ms<br>",
-            "Total Time: "+w.totalTime + " ms<br> "
+            "Total Time: "+w.totalTime + " ms<br> ",
+            unwrapDegrees(rotTest.z)
         ].join("\n");
         document.getElementById("info").innerHTML = info;
+    }
+
+    var unwrapDegrees = function (r) {
+        r = r % 360;
+        if (r > 180) r -= 360;
+        if (r < -180) r += 360;
+        return r;
     }
 
     //----------------------------------

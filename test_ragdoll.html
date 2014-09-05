@@ -21,7 +21,7 @@
     <input type="number" name="quantity" min="10" max="2000" value="32"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="button" value="collision off" onClick=switchCollision() id="col">
-    <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
+    <input type="number" name="gravity" min="-20" max="20" value="-1" id='gravity' onChange=gravity() >
 </div>
 <div id='info'></div>
 <div id='link'>
@@ -177,6 +177,7 @@
 
     function initOimoPhysics(){
         world = new OIMO.World();
+        gravity();
         populate(1);
         setInterval(updateOimoPhysics, 1000/60);
     }
@@ -365,11 +366,13 @@
         
     }
 
-    function gravity(g){
+    function gravity(){
         nG = document.getElementById("gravity").value
         world.gravity = new OIMO.Vec3(0, nG, 0);
-        var i = bodys.length;
-        while (i--){bodys[i].body.awake();}
+        if(bodys){
+            var i = bodys.length;
+            while (i--){bodys[i].body.awake();}
+        }
     }
 
     //----------------------------------

@@ -15,6 +15,7 @@ OIMO.WORLD_SCALE = 100;
 OIMO.INV_SCALE = 0.01;
 
 OIMO.TO_RAD = Math.PI / 180;
+OIMO.TwoPI = 2.0 * Math.PI;
 
 // Global identification of next shape.
 // This will be incremented every time a shape is created.

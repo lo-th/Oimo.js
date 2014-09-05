@@ -127,6 +127,33 @@ OIMO.Vec3.prototype = {
         this.z=v.z;
         return this;
     },
+    /*applyQuaternion: function ( q ) {
+
+        var x = this.x;
+        var y = this.y;
+        var z = this.z;
+
+        var qx = q.x;
+        var qy = q.y;
+        var qz = q.z;
+        var qs = q.s;
+
+        // calculate quat * vector
+
+        var ix =  qs * x + qy * z - qz * y;
+        var iy =  qs * y + qz * x - qx * z;
+        var iz =  qs * z + qx * y - qy * x;
+        var iw = - qx * x - qy * y - qz * z;
+
+        // calculate result * inverse quat
+
+        this.x = ix * qs + iw * - qx + iy * - qz - iz * - qy;
+        this.y = iy * qs + iw * - qy + iz * - qx - ix * - qz;
+        this.z = iz * qs + iw * - qz + ix * - qy - iy * - qx;
+
+        return this;
+
+    },*/
     testZero: function(){
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;

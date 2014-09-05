@@ -15,6 +15,7 @@ OIMO.WORLD_SCALE = 100;
 OIMO.INV_SCALE = 0.01;
 
 OIMO.TO_RAD = Math.PI / 180;
+OIMO.TwoPI = 2.0 * Math.PI;
 
 // Global identification of next shape.
 // This will be incremented every time a shape is created.
@@ -628,12 +629,18 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
 
     // It is the world coordinate of the center of gravity.
     this.position=new OIMO.Vec3(x,y,z); 
-    //this.oldposition=new OIMO.Vec3(x,y,z); 
-    this.newPosition = new OIMO.Vec3(0,0,0);
-    this.timer = 0;
-    this.controlPos = false;
 
-    var len=ax*ax+ay*ay+az*az; 
+
+    this.newPosition = new OIMO.Vec3(0,0,0);
+    this.controlPos = false;
+    this.newOrientation = new OIMO.Quat();
+    this.newRotation = new OIMO.Vec3(0,0,0);
+    this.currentRotation = new OIMO.Vec3(0,0,0);
+    this.controlRot = false;
+    this.controlRotInTime = false;
+
+    this.orientation = this.rotationAxisToQuad(rad,ax,ay,az);
+    /*var len=ax*ax+ay*ay+az*az; 
     if(len>0){
         len=1/Math.sqrt(len);
         ax*=len;
@@ -641,9 +648,9 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
         az*=len;
     }
     var sin=Math.sin(rad*0.5);
-    var cos=Math.cos(rad*0.5);
+    var cos=Math.cos(rad*0.5);*/
     // It is a quaternion that represents the attitude.
-    this.orientation=new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+    //this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
     // Is the translational velocity.
     this.linearVelocity=new OIMO.Vec3();
     // Is the angular velocity.
@@ -907,6 +914,7 @@ OIMO.RigidBody.prototype = {
                 this.angularVelocity.z=0;*/
             break;
             case this.BODY_DYNAMIC:
+
                 if(this.controlPos){
                     this.angularVelocity.init();
                     this.linearVelocity.init();
@@ -914,40 +922,20 @@ OIMO.RigidBody.prototype = {
                     this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                     this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
                     this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
-                }  
+
+                    this.controlPos = false;
+                }
+
+                if(this.controlRot){
+                    this.angularVelocity.init();
+                    this.orientation.copy(this.newOrientation);
+                    this.controlRot = false;
+                }
+
                 this.position.addTime(this.linearVelocity, timeStep);
-                /*var vx=this.linearVelocity.x;
-                var vy=this.linearVelocity.y;
-                var vz=this.linearVelocity.z;
-                this.position.x+=vx*timeStep;
-                this.position.y+=vy*timeStep;
-                this.position.z+=vz*timeStep;*/
 
                 this.orientation.addTime(this.angularVelocity, timeStep);
-                
-               /* var vx=this.angularVelocity.x;
-                var vy=this.angularVelocity.y;
-                var vz=this.angularVelocity.z;
-                var os=this.orientation.s;
-                var ox=this.orientation.x;
-                var oy=this.orientation.y;
-                var oz=this.orientation.z;
-                timeStep*=0.5;
-                var s=(-vx*ox-vy*oy-vz*oz)*timeStep;
-                var x=(vx*os+vy*oz-vz*oy)*timeStep;
-                var y=(-vx*oz+vy*os+vz*ox)*timeStep;
-                var z=(vx*oy-vy*ox+vz*os)*timeStep;
-                os+=s;
-                ox+=x;
-                oy+=y;
-                oz+=z;
-                s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
-                this.orientation.s=os*s;
-                this.orientation.x=ox*s;
-                this.orientation.y=oy*s;
-                this.orientation.z=oz*s;*/
 
-                
             break;
             default:
                 throw new Error("Invalid type.");
@@ -1049,13 +1037,51 @@ OIMO.RigidBody.prototype = {
 
     // for three js
 
-    setPosition:function(pos, rot){
-       // this.oldposition.copy(this.position);
+    rotationVectToQuad: function(rot){
+        var r = OIMO.EulerToAxis( rot.x * OIMO.TO_RAD, rot.y * OIMO.TO_RAD, rot.z * OIMO.TO_RAD );
+        return this.rotationAxisToQuad(r[0], r[1], r[2], r[3]);
+    },
+
+    rotationAxisToQuad: function(rad, ax, ay, az){ // in radian
+        var len=ax*ax+ay*ay+az*az; 
+        if(len>0){
+            len=1/Math.sqrt(len);
+            ax*=len;
+            ay*=len;
+            az*=len;
+        }
+        var sin=Math.sin(rad*0.5);
+        var cos=Math.cos(rad*0.5);
+        return new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+    },
+
+    unwrapDegrees:function (r) {
+        r = r % 360;
+        if (r > 180) r -= 360;
+        if (r < -180) r += 360;
+        return r;
+    },
+
+    unwrapRadian : function(r){
+        r = r % OIMO.TwoPI;
+        if (r > Math.PI) r -= OIMO.TwoPI;
+        if (r < -Math.PI) r += OIMO.TwoPI;
+        return r;
+    },
+
+    setPosition:function(pos){
         this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
-
-        //this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
-
         this.controlPos = true;
+    },
+
+    setQuaternion:function(q){ 
+        this.newOrientation = new OIMO.Quat(q.w,q.x,q.y,q.z); 
+        this.controlRot = true;
+    },
+
+    setRotation:function(rot){ 
+        this.newOrientation = this.rotationVectToQuad(rot);
+        this.controlRot = true;
     },
 
     resetPosition:function(x,y,z){
@@ -1066,19 +1092,9 @@ OIMO.RigidBody.prototype = {
     },
     resetRotation:function(x,y,z){
         this.angularVelocity.init();
-        var r = OIMO.EulerToAxis( x * OIMO.TO_RAD, y * OIMO.TO_RAD, z * OIMO.TO_RAD );
-        var rad = r[0], ax = r[1], ay = r[2], az = r[3];
-        var len=ax*ax+ay*ay+az*az; 
-        if(len>0){
-            len=1/Math.sqrt(len);
-            ax*=len;
-            ay*=len;
-            az*=len;
-        }
-        var sin=Math.sin(rad*0.5);
-        var cos=Math.cos(rad*0.5);
-        this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+        this.orientation = this.rotationVectToQuad(new OIMO.Vec3(x,y,z));
     },
+
     getPosition:function(){
         return new OIMO.Vec3().scale(this.position, OIMO.WORLD_SCALE);
     },
@@ -1232,6 +1248,12 @@ OIMO.Body.prototype = {
 
     setPosition:function(pos){
         this.body.setPosition(pos);
+    },
+    setQuaternion:function(q){
+        this.body.setQuaternion(q);
+    },
+    setRotation:function(rot){
+        this.body.setRotation(rot);
     },
 
     resetPosition:function(x,y,z){
@@ -1648,16 +1670,22 @@ OIMO.Quat.prototype = {
         return this;
     },
     addTime: function(v,t){
+        var vx = v.x;
+        var vy = v.y;
+        var vz = v.z;
         var os=this.s;
         var ox=this.x;
         var oy=this.y;
         var oz=this.z;
         t*=0.5;
-        var s=(-v.x*ox-v.y*oy-v.z*oz)*t;
-        var x=(v.x*os+v.y*oz-v.z*oy)*t;
-        var y=(-v.x*oz+v.y*os+v.z*ox)*t;
-        var z=(v.x*oy-v.y*ox+v.z*os)*t;
-        os+=s; ox+=x; oy+=y; oz+=z;
+        var s=(-vx*ox-vy*oy-vz*oz)*t;
+        var x=(vx*os+vy*oz-vz*oy)*t;
+        var y=(-vx*oz+vy*os+vz*ox)*t;
+        var z=(vx*oy-vy*ox+vz*os)*t;
+        os+=s;
+        ox+=x;
+        oy+=y;
+        oz+=z;
         s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
         this.s=os*s;
         this.x=ox*s;
@@ -1956,6 +1984,33 @@ OIMO.Vec3.prototype = {
         this.z=v.z;
         return this;
     },
+    /*applyQuaternion: function ( q ) {
+
+        var x = this.x;
+        var y = this.y;
+        var z = this.z;
+
+        var qx = q.x;
+        var qy = q.y;
+        var qz = q.z;
+        var qs = q.s;
+
+        // calculate quat * vector
+
+        var ix =  qs * x + qy * z - qz * y;
+        var iy =  qs * y + qz * x - qx * z;
+        var iz =  qs * z + qx * y - qy * x;
+        var iw = - qx * x - qy * y - qz * z;
+
+        // calculate result * inverse quat
+
+        this.x = ix * qs + iw * - qx + iy * - qz - iz * - qy;
+        this.y = iy * qs + iw * - qy + iz * - qx - ix * - qz;
+        this.z = iz * qs + iw * - qz + ix * - qy - iy * - qx;
+
+        return this;
+
+    },*/
     testZero: function(){
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;

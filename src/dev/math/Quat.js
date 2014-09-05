@@ -24,16 +24,22 @@ OIMO.Quat.prototype = {
         return this;
     },
     addTime: function(v,t){
+        var vx = v.x;
+        var vy = v.y;
+        var vz = v.z;
         var os=this.s;
         var ox=this.x;
         var oy=this.y;
         var oz=this.z;
         t*=0.5;
-        var s=(-v.x*ox-v.y*oy-v.z*oz)*t;
-        var x=(v.x*os+v.y*oz-v.z*oy)*t;
-        var y=(-v.x*oz+v.y*os+v.z*ox)*t;
-        var z=(v.x*oy-v.y*ox+v.z*os)*t;
-        os+=s; ox+=x; oy+=y; oz+=z;
+        var s=(-vx*ox-vy*oy-vz*oz)*t;
+        var x=(vx*os+vy*oz-vz*oy)*t;
+        var y=(-vx*oz+vy*os+vz*ox)*t;
+        var z=(vx*oy-vy*ox+vz*os)*t;
+        os+=s;
+        ox+=x;
+        oy+=y;
+        oz+=z;
         s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
         this.s=os*s;
         this.x=ox*s;

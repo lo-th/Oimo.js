@@ -107,6 +107,12 @@ OIMO.Body.prototype = {
     setPosition:function(pos){
         this.body.setPosition(pos);
     },
+    setQuaternion:function(q){
+        this.body.setQuaternion(q);
+    },
+    setRotation:function(rot){
+        this.body.setRotation(rot);
+    },
 
     resetPosition:function(x,y,z){
         this.body.resetPosition(x,y,z);
