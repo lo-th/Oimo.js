@@ -94,6 +94,9 @@ OIMO.Body.prototype = {
     setPosition:function(pos){
         this.body.setPosition(pos);
     },
+    setQuaternion:function(q){
+        this.body.setQuaternion(q);
+    },
     
     resetPosition:function(x,y,z){
         this.body.resetPosition(x,y,z);

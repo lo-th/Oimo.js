@@ -579,6 +579,8 @@ OIMO.RigidBody = function(Rad,Ax,Ay,Az){
     this.position=new OIMO.Vec3();
     this.newPosition = new OIMO.Vec3(0,0,0);
     this.controlPos = false;
+    this.newOrientation = new OIMO.Quat();
+    this.controlRot = false;
 
     var len=ax*ax+ay*ay+az*az;
 
@@ -789,10 +791,18 @@ OIMO.RigidBody.prototype = {
         }else if(this.type==OIMO.BODY_DYNAMIC){
             if(this.controlPos){
                 this.angularVelocity.init();
+                this.linearVelocity.init();
                 this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                 this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
                 this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+                this.controlPos = false;
             }
+             if(this.controlRot){
+                this.angularVelocity.init();
+                this.orientation.copy(this.newOrientation);
+                this.controlRot = false;
+            }
+
         var vx=this.linearVelocity.x;
         var vy=this.linearVelocity.y;
         var vz=this.linearVelocity.z;
@@ -950,6 +960,10 @@ OIMO.RigidBody.prototype = {
     setPosition:function(pos){
         this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
         this.controlPos = true;
+    },
+    setQuaternion:function(q){ 
+        this.newOrientation = new OIMO.Quat(q.w,q.x,q.y,q.z); 
+        this.controlRot = true;
     },
     resetPosition:function(x,y,z){
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
@@ -1109,6 +1123,9 @@ OIMO.Body.prototype = {
     constructor: OIMO.Body,
     setPosition:function(pos){
         this.body.setPosition(pos);
+    },
+    setQuaternion:function(q){
+        this.body.setQuaternion(q);
     },
     
     resetPosition:function(x,y,z){
