@@ -596,7 +596,7 @@ function heroVisibility() {
 var V = [];
 var M = [];
 
-function getValue(){
+/*function getValue(){
     var doc = document;
     for(var i = 0; i<7; i++){
         v = doc.getElementById("a"+i).value;
@@ -604,10 +604,10 @@ function getValue(){
         else{ V[i] = v; M[i] = 1;}
     }
 
-}
+}*/
 
 function updateSkinBones() {
-    getValue();
+    //getValue();
     var q = new THREE.Quaternion()
     q.setFromEuler(new THREE.Euler( 0, -90, -90, 'XYZ' ))
 
