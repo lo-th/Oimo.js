@@ -33,3 +33,7 @@ Basic demo worker transferrable
 Basic demo from png compression (dev:31kb rev:29kb)
 
 [png test](http://lo-th.github.io/Oimo.js/test_basic_png.html)
+
+Experimental demo BVH
+
+[BVH test](http://lo-th.github.io/Oimo.js/test_bvh.html)
