@@ -65,3 +65,17 @@ OIMO.MatrixToEuler = function(mtx){// angles in radians
     }
     return [x, y, z];
 }
+
+OIMO.unwrapDegrees = function (r) {
+    r = r % 360;
+    if (r > 180) r -= 360;
+    if (r < -180) r += 360;
+    return r;
+}
+
+OIMO.unwrapRadian = function(r){
+    r = r % OIMO.TwoPI;
+    if (r > Math.PI) r -= OIMO.TwoPI;
+    if (r < -Math.PI) r += OIMO.TwoPI;
+    return r;
+}

@@ -1555,7 +1555,9 @@ THREE.SEA3D.prototype.readSkeleton = function(sea) {
 		}
 		
 		pos.setFromMatrixPosition( mtx );
-		quat.setFromRotationMatrix( mtx );				
+		quat.setFromRotationMatrix( mtx );
+
+		//mtx.decompose(pos, quat, scale);				
 				
 		bones[i] = {
 				name:bone.name,

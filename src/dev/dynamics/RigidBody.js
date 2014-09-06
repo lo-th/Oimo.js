@@ -311,6 +311,15 @@ OIMO.RigidBody.prototype = {
             case this.BODY_STATIC:
                 this.linearVelocity.init();
                 this.angularVelocity.init();
+                // ONLY FOR TEST
+                if(this.controlPos){
+                    this.position.copy(this.newPosition);
+                    this.controlPos = false;
+                }
+                if(this.controlRot){
+                    this.orientation.copy(this.newOrientation);
+                    this.controlRot = false;
+                }
                 /*this.linearVelocity.x=0;
                 this.linearVelocity.y=0;
                 this.linearVelocity.z=0;
@@ -323,14 +332,11 @@ OIMO.RigidBody.prototype = {
                 if(this.controlPos){
                     this.angularVelocity.init();
                     this.linearVelocity.init();
-                   
                     this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                     this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
                     this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
-
                     this.controlPos = false;
                 }
-
                 if(this.controlRot){
                     this.angularVelocity.init();
                     this.orientation.copy(this.newOrientation);
@@ -338,7 +344,6 @@ OIMO.RigidBody.prototype = {
                 }
 
                 this.position.addTime(this.linearVelocity, timeStep);
-
                 this.orientation.addTime(this.angularVelocity, timeStep);
 
             break;
@@ -439,8 +444,11 @@ OIMO.RigidBody.prototype = {
         this.angularVelocity.z+=rel.z;*/
     },
 
-
-    // for three js
+    //---------------------------------------------
+    //
+    // FOR THREE JS
+    //
+    //---------------------------------------------
 
     rotationVectToQuad: function(rot){
         var r = OIMO.EulerToAxis( rot.x * OIMO.TO_RAD, rot.y * OIMO.TO_RAD, rot.z * OIMO.TO_RAD );
@@ -460,19 +468,9 @@ OIMO.RigidBody.prototype = {
         return new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
     },
 
-    unwrapDegrees:function (r) {
-        r = r % 360;
-        if (r > 180) r -= 360;
-        if (r < -180) r += 360;
-        return r;
-    },
-
-    unwrapRadian : function(r){
-        r = r % OIMO.TwoPI;
-        if (r > Math.PI) r -= OIMO.TwoPI;
-        if (r < -Math.PI) r += OIMO.TwoPI;
-        return r;
-    },
+    //---------------------------------------------
+    // SET DYNAMIQUE POSITION AND ROTATION
+    //---------------------------------------------
 
     setPosition:function(pos){
         this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
@@ -489,16 +487,30 @@ OIMO.RigidBody.prototype = {
         this.controlRot = true;
     },
 
+    //---------------------------------------------
+    // RESET DYNAMIQUE POSITION AND ROTATION
+    //---------------------------------------------
+
     resetPosition:function(x,y,z){
         this.linearVelocity.init();
         this.angularVelocity.init();
         this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
         this.awake();
     },
+    resetQuaternion:function(q){
+        this.angularVelocity.init();
+        this.orientation = new OIMO.Quat(q.w,q.x,q.y,q.z);
+        this.awake();
+    },
     resetRotation:function(x,y,z){
         this.angularVelocity.init();
         this.orientation = this.rotationVectToQuad(new OIMO.Vec3(x,y,z));
+        this.awake();
     },
+
+    //---------------------------------------------
+    // GET POSITION AND ROTATION
+    //---------------------------------------------
 
     getPosition:function(){
         return new OIMO.Vec3().scale(this.position, OIMO.WORLD_SCALE);
@@ -515,20 +527,9 @@ OIMO.RigidBody.prototype = {
         if(!this.sleeping){
             // rotation matrix
             r = this.rotation.elements;
-            m[0] = r[0];
-            m[1] = r[3];
-            m[2] = r[6];
-            m[3] = 0;
-
-            m[4] = r[1];
-            m[5] = r[4];
-            m[6] = r[7];
-            m[7] = 0;
-
-            m[8] = r[2];
-            m[9] = r[5];
-            m[10] = r[8];
-            m[11] = 0;
+            m[0] = r[0]; m[1] = r[3]; m[2] = r[6];  m[3] = 0;
+            m[4] = r[1]; m[5] = r[4]; m[6] = r[7];  m[7] = 0;
+            m[8] = r[2]; m[9] = r[5]; m[10] = r[8]; m[11] = 0;
 
             // position matrix
             p = this.position;

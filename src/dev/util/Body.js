@@ -9,6 +9,7 @@
 OIMO.Body = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
+    this.world = obj.world;
 
     // Yep my name 
     this.name = obj.name || '';
@@ -97,7 +98,7 @@ OIMO.Body = function(Obj){
 
     // finaly add to physics world
     this.body.name = this.name;
-    obj.world.addRigidBody(this.body);
+    this.world.addRigidBody(this.body);
 }
 
 OIMO.Body.prototype = {
@@ -132,5 +133,12 @@ OIMO.Body.prototype = {
     },
     getMatrix:function(){
         return this.body.getMatrix();
+    },
+
+    sleeping:function(){
+        return this.body.sleeping;
+    },
+    removeRigidBody:function(){
+        this.world.removeRigidBody(this.body);
     }
 }

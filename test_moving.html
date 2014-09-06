@@ -185,6 +185,8 @@
             all // The bits of the collision groups with which the shape collides.
         ];
 
+        
+
         //add ground
         var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
         addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
@@ -243,8 +245,9 @@
 
 
     
-
     function updateOimoPhysics() {
+
+        world.step();
 
         // apply new position on last rigidbody
         bodys[bodys.length-1].setPosition(paddel.position);
@@ -256,7 +259,7 @@
         bodys[bodys.length-1].setQuaternion(paddel.quaternion);
 
         
-        world.step();
+        
 
         var p, r, m, x, y, z;
         var mtx = new THREE.Matrix4();
