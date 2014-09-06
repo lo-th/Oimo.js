@@ -322,7 +322,7 @@ function createOimoSqueleton() {
             //console.log(node.name)
             
             meshsquel[name].castShadow = true;
-            meshsquel[name].receiveShadow = true;
+            //meshsquel[name].receiveShadow = true;
             scene.add( meshsquel[name] );
         }
     }
@@ -505,7 +505,7 @@ function populate() {
         ];*/
 
         //add ground
-        var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-15,0], world:world});
+        var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world});
         //addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
 
        // var ground2 = new OIMO.Body({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
@@ -526,10 +526,10 @@ function populate() {
             t = Math.floor(Math.random()*2)+1;
             x = -100 + Math.random()*200;;
             z = -100 + Math.random()*200;
-            y = 100 + Math.random()*1000;
-            w = 10 + Math.random()*10;
-            h = 10 + Math.random()*10;
-            d = 10 + Math.random()*10;
+            y = 100 + Math.random()*500;
+            w = 5 + Math.random()*10;
+            h = 5 + Math.random()*10;
+            d = 5 + Math.random()*10;
 
             
 
