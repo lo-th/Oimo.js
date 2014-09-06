@@ -121,7 +121,7 @@ function initInterface() {
     document.getElementById("b2").addEventListener( 'click', function ( e ) { loadBVH("bvh/story.png"); }, false );    
     document.getElementById("b3").addEventListener( 'click', function ( e ) {heroVisibility(); }, false );
 
-    s1 = new UI.Slide(topp, "speed", setSpeed, 80, [5,70, 150, 20]);
+    s1 = new UI.Slide(topp, "speed", setSpeed, 50, [5,70, 150, 20]);
     s2 = new UI.Slide(topp, "bones", setBones, 25, [5,110, 150, 20]);
 	
 	init3D();
@@ -246,17 +246,18 @@ function loadBVH(file) {
 
 function initOimoPhysics(){
     buffgeoSphere = new THREE.BufferGeometry();
-        buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1, 20, 10 ) );
+    buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1, 20, 10 ) );
 
-        buffgeoBox = new THREE.BufferGeometry();
-        buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
+    buffgeoBox = new THREE.BufferGeometry();
+    buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
 
-        matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
-        matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
-        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
-        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
+    matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
+    matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
+    matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
+    matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
 
     world = new OIMO.World(1/60, 2);
+    world.gravity = new OIMO.Vec3(0, -1, 0);
     populate();
     //populate(1);
     
