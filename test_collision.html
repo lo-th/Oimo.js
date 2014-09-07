@@ -175,7 +175,7 @@
         addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
 
         config[3] = group1;
-        config[4] = all & ~group2;
+        config[4] = all & ~group2; // all exepte groupe2
         var ground3 = new OIMO.Body({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
         addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);
 

@@ -172,7 +172,7 @@ function init3D() {
     back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(5*ToRad));
     scene.add( back );
     
-    var groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent: true } );
+    var groundMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, transparent: true,  depthWrite: false } );
 	groundMaterial.blending = THREE[ "MultiplyBlending" ];
 	var ground = new THREE.Mesh(new THREE.PlaneBufferGeometry( 1000, 1000, 4, 4 ), groundMaterial);
 	ground.position.set( 0, 5, 0 );
@@ -320,11 +320,11 @@ function createOimoSqueleton() {
             currentDistance[i] = distance;
 
             if(name=='Head'){
-                bodysquel[name] = new OIMO.Body({type:'sphere', name:node.name, size:[w], move:true, world:world, config:config});
+                bodysquel[name] = new OIMO.Body({type:'sphere', name:node.name, size:[w], move:true, noSleep:true, world:world, config:config});
                 meshsquel[name] = new THREE.Mesh( buffgeoSphere, boneHeadMaterial );
                 meshsquel[name].scale.set( w, w, w  );
             } else {
-                bodysquel[name] = new OIMO.Body({type:'box', name:node.name, size:[w,h,distance], move:true, world:world, config:config});
+                bodysquel[name] = new OIMO.Body({type:'box', name:node.name, size:[w,h,distance], move:true, noSleep:true, world:world, config:config});
                 meshsquel[name] = new THREE.Mesh( buffgeoBox, boneMaterial );
                 meshsquel[name].scale.set( w, h, distance  );
             }
@@ -449,19 +449,24 @@ function populate() {
 
     //add ground
     var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world, config:config});
+    // wall
+    var w0 = new OIMO.Body({ type:"box", size:[200,500,50], pos:[0,250,-100], world:world, config:config });
+    var w1 = new OIMO.Body({ type:"box", size:[200,500,50], pos:[0,250, 100], world:world, config:config });
+    var w2 = new OIMO.Body({ type:"box", size:[50,500,200], pos:[-100,250,0], world:world, config:config });
+    var w3 = new OIMO.Body({ type:"box", size:[50,500,200], pos:[100,250,0], world:world, config:config });
 
     config = [1,0.4,0.2, collisionGroupes.group2, collisionGroupes.all];
 
     // now add object
     var x, y, z, w, h, d;
-    var i = 100;
+    var i = 200;
 
     while (i--){
-        t = Math.floor(Math.random()*2)+1;
+        t = 1//Math.floor(Math.random()*2)+1;
         x = -100 + Math.random()*200;;
         z = -100 + Math.random()*200;
         y = 100 + Math.random()*500;
-        w = 5 + Math.random()*10;
+        w = 10 + Math.random()*10;
         h = 5 + Math.random()*10;
         d = 5 + Math.random()*10;
 
