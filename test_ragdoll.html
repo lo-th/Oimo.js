@@ -98,10 +98,13 @@
         matHead = new THREE.MeshLambertMaterial( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
         matBox = new THREE.MeshPhongMaterial( {  map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
         matBox2  = new THREE.MeshPhongMaterial( {  map: basicTexture(2,1), name:'box2', shininess:100, specular:0xffffff  } );
+        matBox3  = new THREE.MeshPhongMaterial( {  map: basicTexture(2,0), name:'box3', shininess:100, specular:0xffffff  } );
         matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph',transparent:true, opacity:0.8 } );
         matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
         matBoxSleep2 = new THREE.MeshLambertMaterial( {  map: basicTexture(3,1), name:'sbox2' } );
+        matBoxSleep3 = new THREE.MeshLambertMaterial( {  map: basicTexture(3,0), name:'sbox3' } );
         matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
+
 
         renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true, alpha: true});
         renderer.setSize( window.innerWidth, window.innerHeight );
@@ -141,6 +144,7 @@
         
         if(color===1){ mat = matSphere; }
         else if(color===2){mat = matBox2;}
+        else if(color===3){mat = matBox3;}
         else{ mat = matBox;}
 
         if(type==='sphere'){
@@ -256,14 +260,14 @@
             //arm
        
             bodys[j+5] = new OIMO.Body({type:"box", size:[20,10,10], pos:[px-20,py+8,pz], rot:[0,0,20], move:true, world:world, name:'L_arm'+j });
-            meshs[j+5] = addThreeMesh([20,10,10], null, null, 2, 'cylinder2');
+            meshs[j+5] = addThreeMesh([20,10,10], null, null, 3, 'cylinder2');
             bodys[j+6] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px-40,py,pz], rot:[0,0,20], move:true, world:world, name:'LF_arm'+j });
-            meshs[j+6] = addThreeMesh([20,8,8], null, null, 2, 'cylinder2');
+            meshs[j+6] = addThreeMesh([20,8,8], null, null, 3, 'cylinder2');
 
             bodys[j+7] = new OIMO.Body({type:"box", size:[20,10,10], pos:[px+20,py+8,pz], rot:[0,0,-20], move:true, world:world, name:'R_arm'+j });
-            meshs[j+7] = addThreeMesh([20,10,10], null, null, 2, 'cylinder2');
+            meshs[j+7] = addThreeMesh([20,10,10], null, null, 3, 'cylinder2');
             bodys[j+8] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px+40,py,pz], rot:[0,0,-20], move:true, world:world, name:'RF_arm'+j });
-            meshs[j+8] = addThreeMesh([20,8,8], null, null, 2, 'cylinder2');
+            meshs[j+8] = addThreeMesh([20,8,8], null, null, 3, 'cylinder2');
 
             joints[k+4] = new OIMO.Link({body1:'spine3_'+j, body2:'L_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
             joints[k+5] = new OIMO.Link({body1:'spine3_'+j, body2:'R_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
@@ -314,7 +318,8 @@
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = matBox;
-                if(mesh.material.name === 'sbo2x') mesh.material = matBox2;
+                if(mesh.material.name === 'sbox2') mesh.material = matBox2;
+                if(mesh.material.name === 'sbox3') mesh.material = matBox3;
                 if(mesh.material.name === 'ssph') mesh.material = matSphere; 
 
                 // reset position
@@ -358,6 +363,7 @@
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
                 if(mesh.material.name === 'box2') mesh.material = matBoxSleep2;
+                if(mesh.material.name === 'box3') mesh.material = matBoxSleep3;
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }

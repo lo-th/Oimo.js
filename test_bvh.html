@@ -275,8 +275,6 @@ function DistanceTest( p1, p2 ){
 
 function createOimoSqueleton() {
     deleteOldSkeleton();
-    //var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world});
-    //addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
 
     var nodes = bvh.nodes;
     var parentNodes = bvh.ParentNodes;
@@ -300,7 +298,8 @@ function createOimoSqueleton() {
                 var p2 = parentNodes[name].position;//new THREE.Vector3().setFromMatrixPosition( childNodes[name].matrixWorld );
                 distance = DistanceTest(p1, p2);
             }*/
-            if(childNodes[name] !== null){// get distance to child
+            if(childNodes[name] !== null){
+                // get distance to child
                 var p1 = new THREE.Vector3().setFromMatrixPosition( node.matrixWorld );//node.position;//new THREE.Vector3().setFromMatrixPosition( node.matrixWorld )
                 var p2 = childNodes[name].position;//new THREE.Vector3().setFromMatrixPosition( childNodes[name].matrixWorld );
                 distance = DistanceTest(p1, p2);
@@ -322,7 +321,7 @@ function createOimoSqueleton() {
             //console.log(node.name)
             
             meshsquel[name].castShadow = true;
-            //meshsquel[name].receiveShadow = true;
+            meshsquel[name].receiveShadow = true;
             scene.add( meshsquel[name] );
         }
     }
@@ -337,111 +336,55 @@ function deleteOldSkeleton() {
         name = currentNames[i];
         scene.remove(meshsquel[name]);
         bodysquel[name].removeRigidBody();
-        //bodysquel[name] = null;
     }
 }
 
 function updateOimoPhysics() {
 
-      world.step();
-   
+    world.step();
+
+    // update squeleton physics object
+
     var nodes = bvh.nodes;
     var parentNodes = bvh.ParentNodes;
     var childNodes = bvh.ChildNodes;
-    var boneByName = bvh.BoneByName;
-    var i = nodes.length;
+    
     var mtx = new THREE.Matrix4();
     var mtx2  = new THREE.Matrix4();
     var mtx3  = new THREE.Matrix4();
-    var mtx_inv = new THREE.Matrix4();
-    var mtx_base = new THREE.Matrix4();
-    var node, name, parent;
+    var node, name;
     var pos = new THREE.Vector3(), quat = new THREE.Quaternion();
-    var scale= new THREE.Vector3();
-    var quat2 = new THREE.Quaternion();
+    var pos_base = new THREE.Vector3();
+    var pos_target = new THREE.Vector3();
 
+    var i = nodes.length;
     while(i--){
         node = nodes[i];
         name = node.name;
         if(name!=='Site'){
             mtx = new THREE.Matrix4();
-
-            
-            mtx.makeTranslation(boneByName[name].position.x, boneByName[name].position.y, boneByName[name].position.z)
-            //mtx.makeRotationFromQuaternion(boneByName[name].quaternion);
-
-             mtx3 = new THREE.Matrix4();
-             //mtx3.makeTranslation(boneByName[name].position.x, boneByName[name].position.y, boneByName[name].position.z)
-             mtx3.makeRotationFromQuaternion(boneByName[name].quaternion);
-
-
-
-            //mtx.copy( boneByName[name].matrixWorld );
-            //mtx2 = new THREE.Matrix4();
-            //mtx2.makeTranslation( 0, 0, currentDistance[i]*0.5 );
-
-            mtx.multiply( mtx3 )
-           
-
+            // get position of node
+            pos_base.setFromMatrixPosition( node.matrixWorld );
+            // apply position on matrix
+            mtx.makeTranslation(pos_base.x, pos_base.y, pos_base.z);
 
             if( parentNodes[name] !== null ){
-                //parent = nodes[parentNodes[name]];
-                //mtx.copy( parentNodes[name].matrix );
-                //mtx.getInverse( parentNodes[name].matrix);
-               // mtx_inv.getInverse( parentNodes[name].matrix);
-               // mtx.multiply( mtx_inv );
-                //mtx.multiplyMatrices( mtx_inv, mtx );
-                 mtx2  = new THREE.Matrix4();
-            //mtx2.copy(parentNodes[name].matrixWorld)
-          //  mtx2.getInverse( parentNodes[name].matrix);
-           //  mtx.multiply( mtx2 );
             }
             if(childNodes[name] !== null){
-                /*var mtx3  = new THREE.Matrix4();
-                var target = new THREE.Vector3().setFromMatrixPosition( childNodes[name].matrixWorld );
-                var posit =  new THREE.Vector3().setFromMatrixPosition( node.matrixWorld );
-                var m1 = new THREE.Matrix4();
-                m1.lookAt( posit,target, new THREE.Vector3(0, 1, 0) );
-               // mtx3 = new THREE.Matrix4();
-                //mtx3.getInverse( childNodes[name].matrixWorld );
-                //quat2.setFromRotationMatrix( m1 );
-                quat2 = new THREE.Quaternion();
-                quat2.setFromEuler(new THREE.Euler( 90*ToRad, 0, 0 ))*/
-               // mtx3.makeRotationX(90*ToRad);
-
-                //mtx.multiply( m1 )
-
-            // mtx3 = new THREE.Matrix4();
-          // mtx3.lookAt(childNodes[name].position)//makeRotationX( 90*ToRad );
-            //mtx3.lookAt( node.position, childNodes[name].position);
-           // mtx2  = new THREE.Matrix4();
-            //mtx2.copy(childNodes[name].matrixWorld)
-           // mtx2.getInverse(childNodes[name].matrix);
-             
-            //mtx.multiply( mtx2 );
-
+                // get orientation look at child node
+                pos_target.setFromMatrixPosition( childNodes[name].matrixWorld );
+                mtx3 = new THREE.Matrix4();
+                mtx3.lookAt( pos_target, pos_base, new THREE.Vector3(0, 0, 1) );
+                mtx.multiply( mtx3 );
             }
-             /*else {
-                mtx.copy( node.matrixWorld );
-            }*/
-             //mtx.multiply( mtx2 );
-            //mtx.multiply( mtx2 );
 
-            //mtx.decompose( pos, quat, scale );
+            // translate to middle of node
             mtx2 = new THREE.Matrix4();
             mtx2.makeTranslation( 0,0,currentDistance[i]*0.5);
-
-            
-            //mtx.multiply( mtx3 )
             mtx.multiply( mtx2 );
 
             pos.setFromMatrixPosition( mtx );
-            //pos.copy(boneByName[name].position);
-            //pos.add(new THREE.Vector3( 0, 0, currentDistance[i]*0.5 ))
             quat.setFromRotationMatrix( mtx );
-           // quat.setFromEuler(new THREE.Euler( 90*ToRad, 0, 0 ))
-           //quat.copy(boneByName[name].quaternion)
-            //quat.multiply(quat2)
 
             if(bodysquel[name]!==null && bodysquel[name]!==null){
                 bodysquel[name].setPosition(pos);
@@ -452,10 +395,9 @@ function updateOimoPhysics() {
         }
     }
 
+   // update dynamique object
 
-   
-
-     var x, y, z;
+    var x, y, z;
     var i = bodys.length;
     var mesh;
     var body;
@@ -491,65 +433,43 @@ function updateOimoPhysics() {
 
 function populate() {
 
-        // reset old
-        bodys = [];
-        meshs = [];
+    // reset old
+    bodys = [];
+    meshs = [];
 
-        // Is all the physics setting for rigidbody
-        /*var config = [
-            1, // The density of the shape.
-            0.4, // The coefficient of friction of the shape.
-            0.2, // The coefficient of restitution of the shape.
-            1, // The bits of the collision groups to which the shape belongs.
-            all // The bits of the collision groups with which the shape collides.
-        ];*/
+    //add ground
+    var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world});
 
-        //add ground
-        var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world});
-        //addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
+    // now add object
+    var x, y, z, w, h, d;
+    var i = 100;
 
-       // var ground2 = new OIMO.Body({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
-       // addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
+    while (i--){
+        t = Math.floor(Math.random()*2)+1;
+        x = -100 + Math.random()*200;;
+        z = -100 + Math.random()*200;
+        y = 100 + Math.random()*500;
+        w = 5 + Math.random()*10;
+        h = 5 + Math.random()*10;
+        d = 5 + Math.random()*10;
 
-        /*config[3] = group1;
-        config[4] = all & ~group2;
-        var ground3 = new OIMO.Body({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
-        addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);*/
-
-        // now add object
-        var x, y, z, w, h, d;
-        var i = 100;
-
-
-
-        while (i--){
-            t = Math.floor(Math.random()*2)+1;
-            x = -100 + Math.random()*200;;
-            z = -100 + Math.random()*200;
-            y = 100 + Math.random()*500;
-            w = 5 + Math.random()*10;
-            h = 5 + Math.random()*10;
-            d = 5 + Math.random()*10;
-
+        if(t===1){
             
-
-            if(t===1){
-                
-                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
-                meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
-                meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
-            } else if(t===2){
-               
-                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
-                meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
-                meshs[i].scale.set( w, h, d );
-            }
-
-            meshs[i].castShadow = true;
-            meshs[i].receiveShadow = true;
-
-            scene.add( meshs[i] );
+            bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+            meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
+            meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
+        } else if(t===2){
+           
+            bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+            meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
+            meshs[i].scale.set( w, h, d );
         }
+
+        meshs[i].castShadow = true;
+        meshs[i].receiveShadow = true;
+
+        scene.add( meshs[i] );
+    }
 }
 
 
