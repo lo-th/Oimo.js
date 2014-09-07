@@ -259,9 +259,7 @@ function initOimoPhysics(){
     world = new OIMO.World(1/60, 2);
     world.gravity = new OIMO.Vec3(0, -1, 0);
     populate();
-    //populate(1);
-    
-
+    setInterval(updateOimoPhysics, 1000/60);
 }
 
 function DistanceTest( p1, p2 ){
@@ -325,8 +323,7 @@ function createOimoSqueleton() {
             scene.add( meshsquel[name] );
         }
     }
-
-    setInterval(updateOimoPhysics, 1000/60);
+    
 }
 
 function deleteOldSkeleton() {
@@ -467,7 +464,6 @@ function populate() {
 
         meshs[i].castShadow = true;
         meshs[i].receiveShadow = true;
-
         scene.add( meshs[i] );
     }
 }
