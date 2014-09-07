@@ -81,16 +81,18 @@ var BVHanimConfig = { debug:true, speed:0.5, size:1, px:0, py:0, pz:0, boneSize:
 var bones = null;
 var boneInverses = null;
 var isViewModel = false;
-var currentNames = [];
-var currentDistance = [];
+var currentNames = null;
+var currentDistance = null;
 //oimo var
 var world = null;
+var collisionGroupes = {};
 var bodysquel = null;
 var meshsquel = null;
 var meshs = null;
 var bodys = null;
 
 var doc = document;
+var isWithSqueleton = false;
 
 function initInterface() {
 	
@@ -245,6 +247,13 @@ function loadBVH(file) {
 //----------------------------------
 
 function initOimoPhysics(){
+    // The Bit of a collision group
+    collisionGroupes = {
+        group1 : 1 << 0,  // 00000000 00000000 00000000 00000001
+        group2 : 1 << 1,  // 00000000 00000000 00000000 00000010
+        group3 : 1 << 2,  // 00000000 00000000 00000000 00000100
+        all : 0xffffffff  // 11111111 11111111 11111111 11111111
+    }
     buffgeoSphere = new THREE.BufferGeometry();
     buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1, 20, 10 ) );
 
@@ -272,34 +281,37 @@ function DistanceTest( p1, p2 ){
 }
 
 function createOimoSqueleton() {
-    deleteOldSkeleton();
+    if(currentNames!==null)deleteOldSkeleton();
 
-    var nodes = bvh.nodes;
-    var parentNodes = bvh.ParentNodes;
-    var childNodes = bvh.ChildNodes;
-    var i = nodes.length;
-    var node, name;
     bodysquel = {};
     meshsquel = {};
     currentNames = [];
-    var w=6, h = 6, d=10;
-    var x=0, y=0, z=0;
+    currentDistance = [];
+
+    var node, name;
+
+    var w=6, h = 6;
     var distance = 2;
     var boneMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFF33, transparent:true, opacity:0.4 } );
     var boneHeadMaterial = new THREE.MeshBasicMaterial( { color: 0x33FF33, transparent:true, opacity:0.4 } )
+
+    var config = [10,0.4,0.2, collisionGroupes.group1, collisionGroupes.group2];
+
+    var i = bvh.nodes.length;
     while(i--){
-        node = nodes[i];
+        node = bvh.nodes[i];
         name = node.name;
         if(name!=='Site'){
-            /*if(parentNodes[name] !== null){
+            /*if(bvh.ParentNodes[name] !== null){
                 var p1 = node.position;//new THREE.Vector3().setFromMatrixPosition( node.matrixWorld )
-                var p2 = parentNodes[name].position;//new THREE.Vector3().setFromMatrixPosition( childNodes[name].matrixWorld );
+                var p2 = bvh.ParentNodes[name].position;//new THREE.Vector3().setFromMatrixPosition( childNodes[name].matrixWorld );
                 distance = DistanceTest(p1, p2);
             }*/
-            if(childNodes[name] !== null){
+            if(bvh.ChildNodes[name] !== null){
                 // get distance to child
-                var p1 = new THREE.Vector3().setFromMatrixPosition( node.matrixWorld );//node.position;//new THREE.Vector3().setFromMatrixPosition( node.matrixWorld )
-                var p2 = childNodes[name].position;//new THREE.Vector3().setFromMatrixPosition( childNodes[name].matrixWorld );
+                var p1 = new THREE.Vector3().setFromMatrixPosition( node.matrixWorld );
+                var p2 = bvh.ChildNodes[name].position;
+                //var p2 = new THREE.Vector3().setFromMatrixPosition( bvh.ChildNodes[name].matrix );
                 distance = DistanceTest(p1, p2);
             } else {
                 distance = 2;
@@ -308,26 +320,25 @@ function createOimoSqueleton() {
             currentDistance[i] = distance;
 
             if(name=='Head'){
-                bodysquel[name] = new OIMO.Body({type:'sphere', name:node.name, size:[w,w,w], pos:[x,y,z], move:true, world:world, config:[10,0.4,0.2]});
+                bodysquel[name] = new OIMO.Body({type:'sphere', name:node.name, size:[w], move:true, world:world, config:config});
                 meshsquel[name] = new THREE.Mesh( buffgeoSphere, boneHeadMaterial );
                 meshsquel[name].scale.set( w, w, w  );
             } else {
-                bodysquel[name] = new OIMO.Body({type:'box', name:node.name, size:[w,h,distance], pos:[x,y,z], move:true, world:world, config:[10,0.4,0.2]});
+                bodysquel[name] = new OIMO.Body({type:'box', name:node.name, size:[w,h,distance], move:true, world:world, config:config});
                 meshsquel[name] = new THREE.Mesh( buffgeoBox, boneMaterial );
                 meshsquel[name].scale.set( w, h, distance  );
             }
-            //console.log(node.name)
-            
             meshsquel[name].castShadow = true;
             meshsquel[name].receiveShadow = true;
             scene.add( meshsquel[name] );
         }
     }
-    
+    isWithSqueleton = true;
 }
 
 function deleteOldSkeleton() {
-    var i=currentNames.length;
+    isWithSqueleton = false;
+    var i = currentNames.length;
     var name;
     while (i--){
         name = currentNames[i];
@@ -341,53 +352,55 @@ function updateOimoPhysics() {
     world.step();
 
     // update squeleton physics object
+    if(isWithSqueleton){
+        var mtx = new THREE.Matrix4();
+        var mtx2  = new THREE.Matrix4();
+        var mtx3  = new THREE.Matrix4();
+        var node, name;
+        var pos = new THREE.Vector3(), quat = new THREE.Quaternion();
+        var pos_base = new THREE.Vector3();
+        var pos_target = new THREE.Vector3();
 
-    var nodes = bvh.nodes;
-    var parentNodes = bvh.ParentNodes;
-    var childNodes = bvh.ChildNodes;
-    
-    var mtx = new THREE.Matrix4();
-    var mtx2  = new THREE.Matrix4();
-    var mtx3  = new THREE.Matrix4();
-    var node, name;
-    var pos = new THREE.Vector3(), quat = new THREE.Quaternion();
-    var pos_base = new THREE.Vector3();
-    var pos_target = new THREE.Vector3();
+        var i = bvh.nodes.length;
+        while(i--){
+            node = bvh.nodes[i];
+            name = node.name;
+            if(name!=='Site'){
+                mtx = new THREE.Matrix4();
+                // get position of node
+                pos_base.setFromMatrixPosition( node.matrixWorld );
+                // apply position on matrix
+                mtx.makeTranslation(pos_base.x, pos_base.y, pos_base.z);
 
-    var i = nodes.length;
-    while(i--){
-        node = nodes[i];
-        name = node.name;
-        if(name!=='Site'){
-            mtx = new THREE.Matrix4();
-            // get position of node
-            pos_base.setFromMatrixPosition( node.matrixWorld );
-            // apply position on matrix
-            mtx.makeTranslation(pos_base.x, pos_base.y, pos_base.z);
+                if( bvh.ParentNodes[name] !== null ){
+                }
+                if(bvh.ChildNodes[name] !== null){
+                    // get orientation look at child node
+                    pos_target.setFromMatrixPosition( bvh.ChildNodes[name].matrixWorld );
+                    mtx3 = new THREE.Matrix4();
+                    mtx3.lookAt( pos_target, pos_base, new THREE.Vector3(0, 0, 1) );
+                    mtx.multiply( mtx3 );
+                }
 
-            if( parentNodes[name] !== null ){
-            }
-            if(childNodes[name] !== null){
-                // get orientation look at child node
-                pos_target.setFromMatrixPosition( childNodes[name].matrixWorld );
-                mtx3 = new THREE.Matrix4();
-                mtx3.lookAt( pos_target, pos_base, new THREE.Vector3(0, 0, 1) );
-                mtx.multiply( mtx3 );
-            }
+                // lock rotationZ
+                mtx2 = new THREE.Matrix4();
+                mtx2.makeRotationZ( 0 );
+                mtx.multiply( mtx2 );
 
-            // translate to middle of node
-            mtx2 = new THREE.Matrix4();
-            mtx2.makeTranslation( 0,0,currentDistance[i]*0.5);
-            mtx.multiply( mtx2 );
+                // translate to middle of node
+                mtx2 = new THREE.Matrix4();
+                mtx2.makeTranslation( 0,0,currentDistance[i]*0.5);
+                mtx.multiply( mtx2 );
 
-            pos.setFromMatrixPosition( mtx );
-            quat.setFromRotationMatrix( mtx );
+                pos.setFromMatrixPosition( mtx );
+                quat.setFromRotationMatrix( mtx );
 
-            if(bodysquel[name]!==null && bodysquel[name]!==null){
-                bodysquel[name].setPosition(pos);
-                bodysquel[name].setQuaternion(quat);
-                meshsquel[name].position.copy(pos);
-                meshsquel[name].quaternion.copy(quat);
+                if(bodysquel[name]!==null && bodysquel[name]!==null){
+                    bodysquel[name].setPosition(pos);
+                    bodysquel[name].setQuaternion(quat);
+                    meshsquel[name].position.copy(pos);
+                    meshsquel[name].quaternion.copy(quat);
+                }
             }
         }
     }
@@ -408,7 +421,6 @@ function updateOimoPhysics() {
             mesh.position.copy(body.getPosition());
             mesh.quaternion.copy(body.getQuaternion());
 
-
             // change material
             if(mesh.material.name === 'sbox') mesh.material = matBox;
             if(mesh.material.name === 'ssph') mesh.material = matSphere; 
@@ -425,7 +437,6 @@ function updateOimoPhysics() {
             if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
         }
     }
-
 }
 
 function populate() {
@@ -434,8 +445,12 @@ function populate() {
     bodys = [];
     meshs = [];
 
+    var config = [0,0.4,0.2, collisionGroupes.group3, collisionGroupes.all & ~ collisionGroupes.group1];
+
     //add ground
-    var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world});
+    var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world, config:config});
+
+    config = [1,0.4,0.2, collisionGroupes.group2, collisionGroupes.all];
 
     // now add object
     var x, y, z, w, h, d;
@@ -452,12 +467,12 @@ function populate() {
 
         if(t===1){
             
-            bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+            bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
             meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
             meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
         } else if(t===2){
            
-            bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+            bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
             meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
             meshs[i].scale.set( w, h, d );
         }
@@ -471,7 +486,7 @@ function populate() {
 
 
 //----------------------------------
-// SEA3D
+// TODO SEA3D TEST 
 //----------------------------------
 
 var origine ={};
@@ -507,20 +522,6 @@ function heroVisibility() {
     if(isViewModel){isViewModel = false; hero.visible=false; document.getElementById("b3").value = "show model";}
     else{ isViewModel = true; hero.visible=true; document.getElementById("b3").value = "hide model";}
 }
-
-
-var V = [];
-var M = [];
-
-/*function getValue(){
-    var doc = document;
-    for(var i = 0; i<7; i++){
-        v = doc.getElementById("a"+i).value;
-        if(v.length>1){V[i] = v[1]; M[i] = -1;}
-        else{ V[i] = v; M[i] = 1;}
-    }
-
-}*/
 
 function updateSkinBones() {
     //getValue();
