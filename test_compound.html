@@ -26,6 +26,7 @@
 <div id='link'>
     <a href="test_basic.html">Basic</a>
     <a href="test_compound.html">Compound</a>
+    <a href="test_compound2.html">Compound2</a>
     <a href="test_ragdoll.html">Ragdoll</a>
     <a href="test_collision.html">Collision</a>
     <a href="test_moving.html">Moving</a>
@@ -136,7 +137,7 @@
             m = new THREE.Matrix4().makeTranslation(positions[n+0], positions[n+1], positions[n+2]);
             m.scale(new THREE.Vector3(sizes[n+0], sizes[n+1], sizes[n+2]));
             
-            if(i==1 || i==2 || i==3 || i==4 || i==5 || i==6)g.merge(geoCyl, m);
+            if(i==1 || i==2 || i==3 || i==4 || i==5 || i==6) g.merge(geoCyl, m);
             else g.merge(geoBox,m);
         }
         chairGeometry = new THREE.BufferGeometry();

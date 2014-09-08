@@ -1333,6 +1333,28 @@ var ThreeEngine = function () {
 		gyroBuffer3 = getSeaGeometry('gyro', 1, 'x', 1, 2);
 	}
 
+	var capsuleGeometry = function(radius, height, SRadius, SHeight) {
+	    /*types = [ 'sphere', 'sphere','sphere'];
+        sizes = [ radius, radius,radius,radius, radius,radius,radius, radius,radius ];
+        positions = [0,0,0,   0,height*0.5,0, 0,height,0];*/
+        sRadius = SRadius || 20;
+        sHeight = SHeight || 10;
+        var o0 = Math.PI*2;
+        var o1 = Math.PI/2;
+        var g = new THREE.Geometry();
+        var m0 = new THREE.CylinderGeometry(radius, radius, height, sRadius, 1, true);
+        var m1 = new THREE.SphereGeometry(radius, sRadius, sHeight, 0, o0, 0, o1);
+        var m2 = new THREE.SphereGeometry(radius, sRadius, sHeight, 0, o0, o1, o1);
+        var mtx0 = new THREE.Matrix4().makeTranslation(0, 0,0);
+        var mtx1 = new THREE.Matrix4().makeTranslation(0, height*0.5,0);
+        var mtx2 = new THREE.Matrix4().makeTranslation(0, -height*0.5,0);
+        g.merge( m0, mtx0);
+        g.merge( m1, mtx1);
+        g.merge( m2, mtx2);
+        var capsuleGeometry = new THREE.BufferGeometry();
+        return capsuleGeometry.fromGeometry(g);
+	}
+
 	//-----------------------------------------------------
 	//  SEA3D IMPORT
 	//-----------------------------------------------------

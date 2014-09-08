@@ -53,12 +53,31 @@ BVH.Reader.prototype = {
     	this.type = fname.substring(fname.length-3,fname.length);
 
     	var _this = this;
-		var xhr = new XMLHttpRequest();
+    	var xhr = new XMLHttpRequest();
 		xhr.open( 'GET', fname, true );
+		
+		if(this.type === 'bvh'){// direct from file
+			
 
-		if(this.type === 'bvh'){ // direct from file
-			xhr.onreadystatechange = function(){ if ( this.readyState == 4 ){ _this.parseData(this.responseText.split(/\s+/g));}};			
-	    } else if(this.type === 'png'){ // from png compress
+			xhr.onreadystatechange = function(){ if ( this.readyState == 4 ){ _this.parseData(this.responseText.split(/\s+/g));}};	
+			//xhr.send( null );	
+	    } else if(this.type === 'png'){// from png compress
+	    	/*PNG.load(fname, function(pixels) {
+
+	    		var pi = pixels.decode();
+	    		var pix0, pix1, pix2, string ="";
+	    		for(var i = 0, m = pi.length; i < m; i+=4) {
+	    			pix0 = pi[i+0];
+			        //pix1 = pi[i+1];
+			        //pix2 = pi[i+2];
+			        if( pix0<96 ) string += String.fromCharCode(pix0+32);
+			       // if( pix1<96 ) string += String.fromCharCode(pix1+32);
+			        //if( pix2<96 ) string += String.fromCharCode(pix2+32);
+			    }
+			    console.log(string);
+			   // var array = string.split(",");
+			    //_this.parseData(array);
+			});*/
 	    	xhr.responseType = 'blob';
 	    	xhr.onload = function(e) {
 	    		if (this.readyState == 4 ) {//if (this.status == 200) {
@@ -74,7 +93,9 @@ BVH.Reader.prototype = {
 							pix = d[i];
 							if( pix<96 ) string += String.fromCharCode(pix+32);
 						}
+						//console.log(string)
 						var array = string.split(",");
+
 						_this.parseData(array);
 		    		    window.URL.revokeObjectURL(img.src); // Clean up after yourself.
 		    		}
@@ -101,8 +122,6 @@ BVH.Reader.prototype = {
 				this.root = this.parseNode(this.data);
 				this.root.position.copy(this.position);
 				this.root.scale.set(this.scale,this.scale,this.scale);
-
-
 
 				if(this.debug){
 					this.addSkeleton( this.nodes.length );

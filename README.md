@@ -18,6 +18,8 @@ Basic demo no worker
 
 [compound test](http://lo-th.github.io/Oimo.js/test_compound.html)
 
+[compound2 test](http://lo-th.github.io/Oimo.js/test_compound2.html)
+
 [ragdoll test](http://lo-th.github.io/Oimo.js/test_ragdoll.html)
 
 [collision test](http://lo-th.github.io/Oimo.js/test_collision.html)

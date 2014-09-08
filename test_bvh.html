@@ -22,8 +22,6 @@ body { background: #000; font:12px sans-serif; color:#fff; text-shadow:1px 1px 0
 #b2 { position:absolute; top:10px; left:82.5px; width:72.5px; height:30px; }
 #b3 { position:absolute; top:10px; right:5px; width:148px; height:30px; }
 
-
-
 #dragZone { position:absolute; bottom:60px; left:5px; width:144px; height:45px; background-color:none;  border: 3px dashed #ccc; pointer-events:auto; }
 #dragZone.hover { border: 3px dashed #333; }
 #topfiles { position:absolute; bottom:5px; left:5px; width:144px; height:45px; background-color:none; pointer-events:none; border: 3px solid #ccc;}
@@ -32,7 +30,7 @@ body { background: #000; font:12px sans-serif; color:#fff; text-shadow:1px 1px 0
 </style>
 </head>
 <body>
-
+<!--<script src="js/png.min.js"></script>-->
 <script src="js/bvh.js"></script>
 <script src="js/three.min.js"></script>
 <script src="js/navigation.js"></script>
@@ -96,14 +94,14 @@ var isWithSqueleton = false;
 
 function initInterface() {
 	
-	out1 = document.getElementById("ou1");
-    out2 = document.getElementById("out2");
-    debug = document.getElementById("debug");
-    fileButton = document.getElementById('files');
-    fileSel = document.getElementById('topfiles');
-	holder = document.getElementById('dragZone');
-	container = document.getElementById("viewport");
-	topp = document.getElementById("topp");
+	out1 = doc.getElementById("ou1");
+    out2 = doc.getElementById("out2");
+    debug = doc.getElementById("debug");
+    fileButton = doc.getElementById('files');
+    fileSel = doc.getElementById('topfiles');
+	holder = doc.getElementById('dragZone');
+	container = doc.getElementById("viewport");
+	topp = doc.getElementById("topp");
 	holder.ondragover = function () { this.className = 'hover'; return false; };
 	holder.ondragend = function () { this.className = ''; return false; };
 	holder.ondrop = function (e) {
@@ -119,9 +117,9 @@ function initInterface() {
     fileButton.addEventListener('change', handleFileSelect, false);
     fileButton.onmouseover = function () { fileSel.className = 'hover'; return false; };
     fileButton.onmouseout = function () { fileSel.className = ''; return false; };
-    document.getElementById("b1").addEventListener( 'click', function ( e ) { loadBVH("bvh/action.png"); }, false );
-    document.getElementById("b2").addEventListener( 'click', function ( e ) { loadBVH("bvh/story.png"); }, false );    
-    document.getElementById("b3").addEventListener( 'click', function ( e ) {heroVisibility(); }, false );
+    doc.getElementById("b1").addEventListener( 'click', function ( e ) { loadBVH("bvh/action.png"); }, false );
+    doc.getElementById("b2").addEventListener( 'click', function ( e ) { loadBVH("bvh/story.png"); }, false );    
+    doc.getElementById("b3").addEventListener( 'click', function ( e ) {heroVisibility(); }, false );
 
     s1 = new UI.Slide(topp, "speed", setSpeed, 50, [5,70, 150, 20]);
     s2 = new UI.Slide(topp, "bones", setBones, 25, [5,110, 150, 20]);
@@ -517,15 +515,15 @@ function loadSea3dBody(){
         
         hero.visible = true;
         isViewModel = true;
-        document.getElementById("b3").value = "hide model";
+        doc.getElementById("b3").value = "hide model";
     }
     loader.load( bodyLink );
 }
 
 function heroVisibility() {
     if(hero == null){ loadSea3dBody(); return;}
-    if(isViewModel){isViewModel = false; hero.visible=false; document.getElementById("b3").value = "show model";}
-    else{ isViewModel = true; hero.visible=true; document.getElementById("b3").value = "hide model";}
+    if(isViewModel){isViewModel = false; hero.visible=false; doc.getElementById("b3").value = "show model";}
+    else{ isViewModel = true; hero.visible=true; doc.getElementById("b3").value = "hide model";}
 }
 
 function updateSkinBones() {
@@ -539,16 +537,19 @@ function updateSkinBones() {
     var parent;
     var i = bones.length;
     var mtx = new THREE.Matrix4();
+    var mtx3 = new THREE.Matrix4();
     var mtx_inv = new THREE.Matrix4();
     var mtx_base = new THREE.Matrix4();
     var bone, node, invBone, name;
     var pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scale = new THREE.Vector3(1,1,1);
     var pos2 = new THREE.Vector3(), quat2 = new THREE.Quaternion(), scale2 = new THREE.Vector3(1,1,1);
+    var quat3 = new THREE.Quaternion()
     while(i--){
         //mtx.identity();
         //invmtx.identity();
         mtx = new THREE.Matrix4();
         mtx2 = new THREE.Matrix4();
+        mtx3 = new THREE.Matrix4();
         mtx_inv = new THREE.Matrix4();
         bone = bones[i];
         name = bone.name;
@@ -556,14 +557,29 @@ function updateSkinBones() {
             node = nodes[name];
 
             mtx.copy( node.matrixWorld );
+            mtx.copy( node.matrix);
+           // console.log(bone.parent)
+           // mtx_inv.copy(bone.matrixWorld);
+            //mtx_inv.getInverse( bone.matrixWorld );
             //mtx_inv.copy(node.matrixWorld);//= node.matrixWorld.clone();//.getInverse(bone.matrixWorld)
             //mtx = new THREE.Matrix4();
            // mtx.getInverse( mtx_base );
             //mtx.copy( node.matrix );
 
+            if( bone.parent ){
+               mtx2 = bone.matrix.clone()
+              // mtx_inv.getInverse( bone.matrixWorld.clone() );
+              // mtx2.multiply( mtx_inv )
+            }
+
+            //mtx.multiply( mtx2);
+
 
             //if( node.parent ){
             if( parentNodes[name] !== null ){
+                mtx3.getInverse( parentNodes[name].matrixWorld );
+                mtx3.multiply(node.matrixWorld);
+
                 //parent = nodes[parentNodes[name]];//nodes[node.parent.name];
 
                 //mtx_inv.copy( parent.matrixWorld );                  
@@ -589,18 +605,26 @@ function updateSkinBones() {
 
             //mtx.makeRotationAxis(new THREE.Vector3(0,1,0), 90*ToRad);
 
-            mtx.decompose(pos, quat, scale);
+            //mtx.decompose(pos, quat, scale);
             //quat.setFromRotationMatrix( mtx );
             //quat.inverse();
-            //quat.normalize();
+            //
 
-            //pos.setFromMatrixPosition( mtx );
-            //quat.setFromRotationMatrix( mtx );
+            pos.setFromMatrixPosition( mtx );
+           // quat.setFromRotationMatrix( mtx3 );
 
-           // bone.position.copy(pos);
-            bone.quaternion.copy(quat);
+            quat2.setFromRotationMatrix( mtx2 );
+
+            quat3.multiplyQuaternions(quat,quat2)
+
+            //quat2.x+= quat.x
+
+            //quat3.normalize();
+
+            //bone.position.copy(pos);
+            bone.quaternion.copy(quat3);
            // quat.multiplyQuaternions(q, quat)//normalize()
-          // bone.position.setFromMatrixPosition( mtx );
+           //bone.position.setFromMatrixPosition( mtx );
           
            //bone.quaternion.setFromRotationMatrix( mtx );
            //mtx2.getInverse( bone.matrix );
@@ -642,7 +666,7 @@ function updateSkinBones() {
 //----------------------------------
 
 function gradTexture(color) {
-    var c = document.createElement("canvas");
+    var c = doc.createElement("canvas");
     var ct = c.getContext("2d");
     c.width = 16; c.height = 256;
     var gradient = ct.createLinearGradient(0,0,0,256);
@@ -657,7 +681,7 @@ function gradTexture(color) {
 
 function basicTexture(n){
 
-        var canvas = document.createElement( 'canvas' );
+        var canvas = doc.createElement( 'canvas' );
         canvas.width = canvas.height = 64;
         var ctx = canvas.getContext( '2d' );
         var colors = [];
