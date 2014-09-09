@@ -202,7 +202,7 @@
                 if(mesh.material.name === 'ssph') mesh.material = matSphere; 
 
                 // reset position
-                if(m[13]<-100){
+                if(mesh.position.y<-100){
                     x = -100 + Math.random()*200;
                     z = -100 + Math.random()*200;
                     y = 100 + Math.random()*1000;
