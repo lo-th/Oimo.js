@@ -13,275 +13,134 @@ body{ padding: 0; margin: 0; overflow: hidden; background-color: #333;}
 </head>
 <body>
 <script src="../js/slider.js"></script>
+<script src="Human.js"></script>
 <!-- @Author _ishibashijun - http://jsdo.it/_ishibashijun -->
 <button id="walk">Walk</button>
 <button id="run">Run</button>
 <canvas id="c"></canvas>
 
 <script>
-var canvas, ctx, w, h, human, sliders, angle = 0, vx = 0, vy = 0, mouse = { x: 0, y: 0};
-var ToRad = Math.PI / 180;
+var canvas, ctx, human, sliders;
 
-var Segment = function ( x, y, width, height ) {
-	this.x = x || 0;
-	this.y = y || 0;
-	this.width = width || 0;
-	this.height = height || 0;
-	this.vx = 0;
-	this.vy = 0;
-	this.rotation = 0;
-	this.color = "#000";
-	this.lineWidth = 1;
-};
-
-Segment.prototype = {
-	draw: function () {
-		var height = this.height,
-			diagonal = this.width + height,
-			cornerRadius = height / 2,
-			cornerRadius2 = cornerRadius * 2;
-			
-		ctx.save();
-		ctx.translate( this.x, this.y );
-		ctx.rotate( this.rotation );
-		ctx.lineWidth = this.lineWidth;
-		ctx.strokeStyle = this.color;
-		ctx.fillStyle = "#fff";
-		ctx.beginPath();
-		ctx.moveTo( 0, -cornerRadius );
-		ctx.lineTo( diagonal - cornerRadius2, -cornerRadius );
-		ctx.quadraticCurveTo( -cornerRadius + diagonal, -cornerRadius, -cornerRadius + diagonal, 0 );
-		ctx.lineTo( -cornerRadius + diagonal, height - cornerRadius2 );
-		ctx.quadraticCurveTo( -cornerRadius + diagonal, -cornerRadius + height, diagonal - cornerRadius2, -cornerRadius + height );
-		ctx.lineTo( 0, -cornerRadius + height );
-		ctx.quadraticCurveTo( -cornerRadius, -cornerRadius + height, -cornerRadius, height - cornerRadius2 );
-		ctx.lineTo( -cornerRadius, 0 );
-		ctx.quadraticCurveTo( -cornerRadius, -cornerRadius, 0, -cornerRadius );
-		ctx.closePath();
-		ctx.fill();
-		ctx.stroke();
-		ctx.beginPath();
-		ctx.arc( 0, 0, 2, 0, 2 * Math.PI );
-		ctx.stroke();
-		ctx.closePath();
-		ctx.beginPath();
-		ctx.arc( this.width, 0, 2, 0, 2 * Math.PI );
-		ctx.stroke();
-		ctx.closePath();
-		ctx.restore();
-	},
-	getPin: function () {
-		return {
-			x: this.x + Math.cos( this.rotation ) * this.width,
-			y: this.y + Math.sin( this.rotation ) * this.width
-		};
-	}
-};
-
-var Human = function () {
-	this.thigh1 = new Segment( 200, 200, 50, 15 ); // cuisse
-	this.calf1 = new Segment( this.thigh1.getPin().x, this.thigh1.getPin().y, 60, 10 ); // mollet
-	this.thigh2 = new Segment( 200, 200, 50, 15 ); // cuisse
-	this.calf2 = new Segment( this.thigh1.getPin().x, this.thigh1.getPin().y, 60, 10 );
-	this.body = new Segment( this.thigh1.x, this.thigh1.y, 80, 15 );
-	this.neck = new Segment( this.body.getPin().x, this.body.getPin().y, 30, 5 );
-	this.head = new Head( this.neck.getPin().x, this.neck.getPin().y );
-	this.arm1 = new Segment( this.body.getPin().x, this.body.getPin().y, 40, 10 );
-	this.foreArm1 = new Segment( this.arm1.getPin().x, this.arm1.getPin().y, 50, 7 );
-	this.arm2 = new Segment( this.body.getPin().x, this.body.getPin().y, 40, 10 );
-	this.foreArm2 = new Segment( this.arm2.getPin().x, this.arm2.getPin().y, 50, 7 );
-	this.running = true;
-};
-
-Human.prototype = {
-	draw: function () {
-		this.arm1.draw();
-		this.foreArm1.draw();
-		this.thigh1.draw();
-		this.calf1.draw();
-		this.neck.draw();
-		this.head.draw();
-		this.body.draw();
-		this.calf2.draw();
-		this.thigh2.draw();
-		this.foreArm2.draw();
-		this.arm2.draw();
-	},
-	update: function(){
-		this.setVelocity();
-		this.moveLegs( this.thigh1, this.calf1, angle );
-	    this.moveLegs( this.thigh2, this.calf2, angle + Math.PI );
-	    this.bodyAngle( this.thigh1 );
-     	this.neckAngle();
-	    this.moveHead();
-	    this.moveArms( this.arm1, this.foreArm1, angle + Math.PI );
-	    this.moveArms( this.arm2, this.foreArm2, angle );
-	    this.checkFloor( this.calf1 );
-	    this.checkFloor( this.calf2 );
-	    this.checkWalls();
-	},
-	setVelocity : function () {
-		vy += sliders.gravitySlider.value;
-		human.thigh1.x += vx;
-		human.thigh1.y += vy;
-		human.thigh2.x += vx;
-		human.thigh2.y += vy;
-	},
-	moveLegs : function ( legA, legB, a ) {
-		var angle0 = ( Math.sin( a ) * sliders.thighRangeSlider.value + sliders.thighBaseSlider.value ) * ToRad,
-			angle1 = ( Math.sin( a + sliders.calfOffsetSlider.value ) * sliders.calfRangeSlider.value + sliders.calfRangeSlider.value ) * ToRad,
-			foot = legB.getPin(  ),
-			oneTwenty = 120 * ToRad;
-			
-		if ( !human.running ) legA.rotation = angle0;
-		else legA.rotation = angle0 > oneTwenty ? oneTwenty : angle0;
-		
-		legB.rotation = legA.rotation + angle1;
-		legB.x = legA.getPin().x;
-		legB.y = legA.getPin().y;
-		legB.vx = legB.getPin().x - foot.x;
-		legB.vy = legB.getPin().y - foot.y;
-	},
-	moveArms : function ( armA, armB, a ) {
-		var angle0 = ( Math.sin( a ) * sliders.armRangeSlider.value + sliders.thighBaseSlider.value ) * ToRad,
-			angle1 = ( Math.sin( a + sliders.foreArmOffsetSlider.value ) * sliders.foreArmRangeSlider.value + sliders.foreArmRangeSlider.value ) * ToRad,
-			fourtyFive = 45 * ToRad;
-			
-		armA.x = human.body.getPin().x;
-		armA.y = human.body.getPin().y;
-		armA.rotation = angle0;
-		
-		if ( !human.running ) armB.rotation = armA.rotation - angle1;
-		else armB.rotation = armA.rotation - angle1 - fourtyFive;
-		
-		armB.x = armA.getPin().x;
-		armB.y = armA.getPin().y;
-	},
-	bodyAngle : function ( leg ) {
-		var angle = -( 180 - sliders.thighBaseSlider.value ) * ToRad;
-		
-		this.body.rotation = angle;
-		this.body.x = leg.x;
-		this.body.y = leg.y;
-	},
-	neckAngle : function () {
-		var angle = -( 180 - sliders.thighBaseSlider.value ) * ToRad;
-		
-		this.neck.rotation = angle;
-		this.neck.x = this.body.getPin().x;
-		this.neck.y = this.body.getPin().y;
-	},
-	moveHead : function() {
-		this.head.x = this.neck.getPin().x;
-		this.head.y = this.neck.getPin().y;
-	},
-	checkFloor : function ( seg ) {
-		var yMax = seg.getPin().y + seg.height * 0.5;
-		if ( yMax > h ) {
-			var dy = yMax - h;
-			
-			this.thigh1.y -= dy;
-			this.calf1.y -= dy;
-			this.thigh2.y -= dy;
-			this.calf2.y -= dy;
-			
-			vx -= seg.vx;
-			vy -= seg.vy;
-		}
-	},
-	checkWalls : function () {
-		if ( this.thigh1.x >= w ) {
-			this.thigh1.x = 0;
-			this.thigh2.x = 0;
-			this.calf1.x = 0;
-			this.calf2.x = 0;
-		}
-	}
-};
-
-var Head = function ( x, y ) {
-	this.x = x || 0;
-	this.y = y || 0;
+function drawHuman(h){
+    drawSegment(h.bones.LeftUpArm);
+	drawSegment(h.bones.LeftLowArm);
+	drawSegment(h.bones.LeftUpLeg);
+	drawSegment(h.bones.LeftLowLeg);
+	drawSegment(h.bones.neck);
+	drawHead(h.bones.head);
+	drawSegment(h.bones.body);
+	drawSegment(h.bones.RightLowLeg);
+	drawSegment(h.bones.RightUpLeg);
+	drawSegment(h.bones.RightLowArm);
+	drawSegment(h.bones.RightUpArm);
 }
 
-Head.prototype = {
-	draw: function () {
-		ctx.beginPath();
-		ctx.fillStyle = "#fff";
-		ctx.strokeStyle = "#000";
-		ctx.lineWidth = 1;
-		ctx.arc( this.x, this.y, 15, 0, 2 * Math.PI );
-		ctx.closePath();
-		ctx.fill();
-		ctx.stroke();
-	}
-};
+function drawHead(s){
+	ctx.beginPath();
+	ctx.fillStyle = "#fff";
+	ctx.strokeStyle = "#000";
+	ctx.lineWidth = 1;
+	ctx.arc( s.x, s.y, 15, 0, 2 * Math.PI );
+	ctx.closePath();
+	ctx.fill();
+	ctx.stroke();
+}
+
+function drawSegment(s){
+	var height = s.height,
+		diagonal = s.width + height,
+		cornerRadius = height / 2,
+		cornerRadius2 = cornerRadius * 2;
+		
+	ctx.save();
+	ctx.translate( s.x, s.y );
+	ctx.rotate( s.rotation );
+	ctx.lineWidth = s.lineWidth;
+	ctx.strokeStyle = s.color;
+	ctx.fillStyle = "#fff";
+	ctx.beginPath();
+	ctx.moveTo( 0, -cornerRadius );
+	ctx.lineTo( diagonal - cornerRadius2, -cornerRadius );
+	ctx.quadraticCurveTo( -cornerRadius + diagonal, -cornerRadius, -cornerRadius + diagonal, 0 );
+	ctx.lineTo( -cornerRadius + diagonal, height - cornerRadius2 );
+	ctx.quadraticCurveTo( -cornerRadius + diagonal, -cornerRadius + height, diagonal - cornerRadius2, -cornerRadius + height );
+	ctx.lineTo( 0, -cornerRadius + height );
+	ctx.quadraticCurveTo( -cornerRadius, -cornerRadius + height, -cornerRadius, height - cornerRadius2 );
+	ctx.lineTo( -cornerRadius, 0 );
+	ctx.quadraticCurveTo( -cornerRadius, -cornerRadius, 0, -cornerRadius );
+	ctx.closePath();
+	ctx.fill();
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.arc( 0, 0, 2, 0, 2 * Math.PI );
+	ctx.stroke();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc( s.width, 0, 2, 0, 2 * Math.PI );
+	ctx.stroke();
+	ctx.closePath();
+	ctx.restore();
+}
 
 function initWalk() {
-	human.running = false;
-	sliders.speedSlider.value = 0.15;
-	sliders.thighRangeSlider.value = 25;
-	sliders.thighBaseSlider.value = 90;
-	sliders.calfRangeSlider.value = 20;
-	sliders.armRangeSlider.value = 17;
-	sliders.foreArmRangeSlider.value = 15;
-	sliders.gravitySlider.value = 0.17;
+	human.initWalk();
 	slideUpdate();
 }
 
 function initRun() {
-	human.running = true;
-	sliders.speedSlider.value = 0.30;
-	sliders.thighRangeSlider.value = 50;
-	sliders.thighBaseSlider.value = 100;
-	sliders.calfRangeSlider.value = 30;
-	sliders.armRangeSlider.value = 55;
-	sliders.foreArmRangeSlider.value = 20;
-	sliders.gravitySlider.value = 0.92;
+	human.initRun();
 	slideUpdate();
 }
 
 function slideUpdate() {
-	for ( var key in sliders ) sliders[ key ].updatePosition();
+	for ( var key in sliders ){
+		sliders[ key ].value = human.sets[ key ];
+	    sliders[ key ].updatePosition();
+	}
+}
+
+function humanSets() {
+    for ( var key in sliders ){
+		human.sets[ key ] = sliders[ key ].value;
+	}
 }
 
 function render() {
 	ctx.clearRect( 0, 0, canvas.width, canvas.height );
-	
-	angle += sliders.speedSlider.value;
-	
 	human.update();
-	human.draw();
+	drawHuman(human);
 	
-	setTimeout( render, 30 );
+	setTimeout( render, 1000/60 );
 }
 
 function onLoad() {
-	w = window.innerWidth;
-	h = window.innerHeight;
 	canvas = document.getElementById( "c" );
-	canvas.width = w;
-	canvas.height = h;
+	canvas.width = window.innerWidth;
+	canvas.height =  window.innerHeight;
 	ctx = canvas.getContext( "2d" );
 
 	human = new Human();
+	human.zw = window.innerWidth;
+	human.zh = window.innerHeight;
 
 	var older = document.body;
 	sliders = {
-		speedSlider : new UI.Slide(older, "speed", null, 0.3, [5,100, 150, 20], 0.5, 0, ' ', 2),
-        thighRangeSlider : new UI.Slide(older, "thigh Range", null, 50, [5,140, 150, 20], 90,0, '°'),
-        thighBaseSlider : new UI.Slide(older, "thigh Base", null, 100, [5,180, 150, 20], 180, 0, '°'),
-        calfRangeSlider : new UI.Slide(older, "calf Range", null, 30, [5,220, 150, 20], 90,0, '°'),
-        calfOffsetSlider : new UI.Slide(older, "calf Offset", null, -1.57, [5,260, 150, 20], 3.14, -3.14, '°', 2),
-        armRangeSlider : new UI.Slide(older, "arm Range", null, 55, [5,300, 150, 20], 360,0, '°'),
-        foreArmRangeSlider : new UI.Slide(older, "foreArm Range", null, 20, [5,340, 150, 20], 75, 0, '°'),
-        foreArmOffsetSlider : new UI.Slide(older, "foreArm Offset", null, -1.57, [5,380, 150, 20], 3.14, -3.14, '°', 2),
-        gravitySlider : new UI.Slide(older, "gravity", null, 0.88, [5,420, 150, 20], 1,0, 'g', 2),
-	
+		speed : new UI.Slide(older, "speed", humanSets, 0.3, [5,100, 150, 20], 0.5, 0, ' ', 2),
+        thighRange : new UI.Slide(older, "thigh Range", humanSets, 50, [5,140, 150, 20], 90,0, '°'),
+        thighBase : new UI.Slide(older, "thigh Base", humanSets, 100, [5,180, 150, 20], 180, 0, '°'),
+        calfRange : new UI.Slide(older, "calf Range", humanSets, 30, [5,220, 150, 20], 90,0, '°'),
+        calfOffset : new UI.Slide(older, "calf Offset", humanSets, -1.57, [5,260, 150, 20], 3.14, -3.14, '°', 2),
+        armRange : new UI.Slide(older, "arm Range", humanSets, 55, [5,300, 150, 20], 360,0, '°'),
+        foreArmRange : new UI.Slide(older, "foreArm Range", humanSets, 20, [5,340, 150, 20], 75, 0, '°'),
+        foreArmOffset : new UI.Slide(older, "foreArm Offset", humanSets, -1.57, [5,380, 150, 20], 3.14, -3.14, '°', 2),
+        gravity : new UI.Slide(older, "gravity", humanSets, 0.88, [5,420, 150, 20], 1,0, 'g', 2),
 	}
 
 	document.getElementById( "walk" ).addEventListener( "click", initWalk, false );
 	document.getElementById( "run" ).addEventListener( "click", initRun, false );
+
+	initWalk();
 	
 	render();
 }

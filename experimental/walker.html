@@ -15,6 +15,7 @@ body{ background-color: #3D4143; overflow: hidden; color:#cccccc; font-family:Ar
 <body>
 <script src="../js/three.min.js"></script>
 <script src="../js/navigation.js"></script>
+<script src="Human.js"></script>
 <script src="../js/slider.js"></script>
 <script src="../build/Oimo.min.js"></script>
 
@@ -27,6 +28,7 @@ var geos = {};
 var mats = {};
 
 var human;
+var sliders;
 
 var ToRad = Math.PI / 180;
 
@@ -85,6 +87,19 @@ function init() {
     container = document.getElementById("container");
     container.appendChild( renderer.domElement );
 
+    var older = document.body;
+	sliders = {
+		speed : new UI.Slide(older, "speed", humanSets, 0.3, [5,100, 150, 20], 0.5, 0, ' ', 2),
+        thighRange : new UI.Slide(older, "thigh Range", humanSets, 50, [5,140, 150, 20], 90,0, '°'),
+        thighBase : new UI.Slide(older, "thigh Base", humanSets, 100, [5,180, 150, 20], 180, 0, '°'),
+        calfRange : new UI.Slide(older, "calf Range", humanSets, 30, [5,220, 150, 20], 90,0, '°'),
+        calfOffset : new UI.Slide(older, "calf Offset", humanSets, -1.57, [5,260, 150, 20], 3.14, -3.14, '°', 2),
+        armRange : new UI.Slide(older, "arm Range", humanSets, 55, [5,300, 150, 20], 360,0, '°'),
+        foreArmRange : new UI.Slide(older, "foreArm Range", humanSets, 20, [5,340, 150, 20], 75, 0, '°'),
+        foreArmOffset : new UI.Slide(older, "foreArm Offset", humanSets, -1.57, [5,380, 150, 20], 3.14, -3.14, '°', 2),
+        gravity : new UI.Slide(older, "gravity", humanSets, 0.88, [5,420, 150, 20], 1,0, 'g', 2),
+	}
+
     initEvents();
     initOimoPhysics();
     loop();
@@ -100,47 +115,28 @@ function loop() {
 //  HUMAN PHYSICS
 //----------------------------------
 
-var Human = function () {
-	this.thigh1 = new Segment( 200, 200, 50, 15 ); // cuisse
-	this.calf1 = new Segment( this.thigh1.getPin().x, this.thigh1.getPin().y, 60, 10 ); // mollet
-	this.thigh2 = new Segment( 200, 200, 50, 15 ); // cuisse
-	this.calf2 = new Segment( this.thigh1.getPin().x, this.thigh1.getPin().y, 60, 10 );
-	this.body = new Segment( this.thigh1.x, this.thigh1.y, 80, 15 );
-	this.neck = new Segment( this.body.getPin().x, this.body.getPin().y, 30, 5 );
-	this.head = new Head( this.neck.getPin().x, this.neck.getPin().y );
-	this.arm1 = new Segment( this.body.getPin().x, this.body.getPin().y, 40, 10 );
-	this.foreArm1 = new Segment( this.arm1.getPin().x, this.arm1.getPin().y, 50, 7 );
-	this.arm2 = new Segment( this.body.getPin().x, this.body.getPin().y, 40, 10 );
-	this.foreArm2 = new Segment( this.arm2.getPin().x, this.arm2.getPin().y, 50, 7 );
-	this.running = true;
+function initWalk() {
+	human.initWalk();
+	slideUpdate();
 }
 
-Human.prototype = {
+function initRun() {
+	human.initRun();
+	slideUpdate();
 }
 
-var Head = function ( x, y ) {
-	this.x = x || 0;
-	this.y = y || 0;
-}
-
-var Segment = function ( x, y, width, height ) {
-	this.x = x || 0;
-	this.y = y || 0;
-	this.width = width || 0;
-	this.height = height || 0;
-	this.vx = 0;
-	this.vy = 0;
-	this.rotation = 0;
-};
-
-Segment.prototype = {
-	getPin: function () {
-		return {
-			x: this.x + Math.cos( this.rotation ) * this.width,
-			y: this.y + Math.sin( this.rotation ) * this.width
-		};
+function slideUpdate() {
+	for ( var key in sliders ){
+		sliders[ key ].value = human.sets[ key ];
+	    sliders[ key ].updatePosition();
 	}
-};
+}
+
+function humanSets() {
+    for ( var key in sliders ){
+		human.sets[ key ] = sliders[ key ].value;
+	}
+}
 
 //----------------------------------
 //  OIMO PHYSICS
@@ -148,15 +144,18 @@ Segment.prototype = {
 
 function initOimoPhysics(){
     world = new OIMO.World(1/60, 2, 8);
+
     human = new Human();
+    human.zw = window.innerWidth;
+	human.zh = window.innerHeight;
+
     setInterval(updateOimoPhysics, 1000/60);
 }
 
 function updateOimoPhysics() {
     world.step();
+    human.update();
 }
-
-
 
 //----------------------------------
 //  TEXTURES
