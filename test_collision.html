@@ -72,6 +72,13 @@
         light.shadowMapWidth = light.shadowMapHeight = 1024;
         scene.add( light );
 
+        // background
+        var buffgeoBack = new THREE.BufferGeometry();
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
+        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
+        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
+        scene.add( back );
+
         buffgeoSphere = new THREE.BufferGeometry();
         buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1 , 20, 10 ) );
 
@@ -85,9 +92,8 @@
         matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
         matGroundTrans = new THREE.MeshLambertMaterial( { color: 0x3D4143, transparent:true, opacity:0.6 } );
 
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true, alpha: true});
+        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
         renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.setClearColor( 0x000000, 0 );
         renderer.autoClear = false;
         renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFShadowMap;
@@ -292,6 +298,20 @@
     //  TEXTURES
     //----------------------------------
 
+    function gradTexture(color) {
+        var c = document.createElement("canvas");
+        var ct = c.getContext("2d");
+        c.width = 16; c.height = 256;
+        var gradient = ct.createLinearGradient(0,0,0,256);
+        var i = color[0].length;
+        while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
+        ct.fillStyle = gradient;
+        ct.fillRect(0,0,16,256);
+        var texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+    }
+
     function basicTexture(n){
 
         var canvas = document.createElement( 'canvas' );
@@ -325,68 +345,6 @@
         return tx;
     }
 
-    //----------------------------------
-    //  VIEW CONTROL
-    //----------------------------------
-
-    /*function moveCamera() {
-        camera.position.copy(Orbit(center, camPos.horizontal, camPos.vertical, camPos.distance));
-        camera.lookAt(center);
-    }
-
-    function Orbit(origine, horizontal, vertical, distance) {
-        var p = new THREE.Vector3();
-        var phi = vertical*ToRad;
-        var theta = horizontal*ToRad;
-        p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
-        p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
-        p.y = (distance * Math.cos(phi)) + origine.y;
-        return p;
-    }
-
-    function initEvents(){
-        container.onmousemove = function(e){
-            e.preventDefault();
-            if (mouse.down ) {
-                document.body.style.cursor = 'move';
-                camPos.horizontal = ((e.clientX - mouse.ox) * 0.3) + mouse.h;
-                camPos.vertical = (-(e.clientY - mouse.oy) * 0.3) + mouse.v;
-                moveCamera();
-            }
-        }
-        container.onmousedown = function(e){
-            e.preventDefault();
-            mouse.ox = e.clientX;
-            mouse.oy = e.clientY;
-            mouse.h = camPos.horizontal;
-            mouse.v = camPos.vertical;
-            mouse.down = true;
-        }
-        container.onmouseup = function(e){
-            mouse.down = false;
-            document.body.style.cursor = 'auto';
-        }
-
-        container.addEventListener( 'mousewheel', onMouseWheel, false );
-        container.addEventListener( 'DOMMouseScroll', onMouseWheel, false );
-        window.addEventListener( 'resize', onWindowResize, false );
-    }
-
-    function onMouseWheel(e) {
-        var delta = 0;
-        if(e.wheelDeltaY){delta=e.wheelDeltaY*0.01;}
-        else if(e.wheelDelta){delta=e.wheelDelta*0.05;}
-        else if(e.detail){delta=-e.detail*1.0;}
-        camPos.distance-=(delta*10);
-        moveCamera();   
-    }
-
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
-    }
-*/
 </script>
 </body>
 </html>

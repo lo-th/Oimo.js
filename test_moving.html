@@ -83,6 +83,13 @@
         light.shadowMapWidth = light.shadowMapHeight = 1024;
         scene.add( light );
 
+        // background
+        var buffgeoBack = new THREE.BufferGeometry();
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
+        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
+        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
+        scene.add( back );
+
         buffgeoSphere = new THREE.BufferGeometry();
         buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1, 20, 10 ) );
 
@@ -96,9 +103,8 @@
         matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
         matGroundTrans = new THREE.MeshLambertMaterial( { color: 0x3D4143, transparent:true, opacity:0.6 } );
 
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true, alpha: true});
+        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
         renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.setClearColor( 0x000000, 0 );
         renderer.autoClear = false;
         renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFShadowMap;
@@ -342,8 +348,21 @@
     //  TEXTURES
     //----------------------------------
 
-    function basicTexture(n){
+    function gradTexture(color) {
+        var c = document.createElement("canvas");
+        var ct = c.getContext("2d");
+        c.width = 16; c.height = 256;
+        var gradient = ct.createLinearGradient(0,0,0,256);
+        var i = color[0].length;
+        while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
+        ct.fillStyle = gradient;
+        ct.fillRect(0,0,16,256);
+        var texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+    }
 
+    function basicTexture(n){
         var canvas = document.createElement( 'canvas' );
         canvas.width = canvas.height = 64;
         var ctx = canvas.getContext( '2d' );
