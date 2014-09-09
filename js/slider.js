@@ -1,22 +1,26 @@
 'use strict';
 var UI = {};
 
-UI.Slide = function(target, name, endFunction, value, set ,max){
+UI.Slide = function(target, name, endFunction, value, set , max, min, type, num){
 	this.colors = ['rgba(220,220,220,1)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.6)', 'rgba(200,200,200,0.6)', 'rgba(200,200,200,1)'];
 	this.radius = "-moz-border-radius: 16px; -webkit-border-radius: 16px; border-radius: 16px;";
+	this.num = num || 0;
+	this.min = min || 0;
 	this.max = max || 100;
-	this.set = set || [20,100, 180, 20];
+	this.name = name || "slider";
+	this.type = type || '%';
+	this.valueRange = this.max - this.min;
+	this.set = set || [20,100,180,20];
 	this.endFunction = endFunction || null; 
 	this.w = this.set[2]-10;
-	this.add(target, name, value);
+	this.value = value || 0;
+	this.add(target);
 };
 
 UI.Slide.prototype = {
     constructor: UI.Slide,
-	add:function(target, name, value){
+	add:function(target, name){
 	    var _this = this;
-	    var name = name || "slider";
-	    var value = value || 0;
 	    var txt = document.createElement( 'div' );
 	    var bg = document.createElement( 'div' );
 	    var sel = document.createElement( 'div' );
@@ -26,47 +30,35 @@ UI.Slide.prototype = {
 	    
 	    bg.appendChild( sel );
 	    bg.appendChild( txt );
-	    bg.name = name;
-	    bg.id = name;
+	    bg.name = this.name;
+	    bg.id = this.name;
 
 	    target.appendChild( bg );
-
-	    txt.innerHTML = name+" : "+value+'%';
-	    
-	    sel.style.width = this.w*(value/this.max)+'px';
 	    bg.className = "up";
-
 	    bg.addEventListener( 'mouseout',  function(e){ e.preventDefault(); this.className = "up"; this.style.backgroundColor = _this.colors[1]; this.childNodes[0].style.backgroundColor = _this.colors[3]; }, false );
 	    bg.addEventListener( 'mouseover', function(e){ e.preventDefault(); this.style.backgroundColor = _this.colors[2]; this.childNodes[0].style.backgroundColor = _this.colors[4];}, false );
 	    bg.addEventListener( 'mouseup',   function(e){ e.preventDefault(); this.className = "up"; }, false );
 	    bg.addEventListener( 'mousedown', function(e){ e.preventDefault(); this.className = "down"; _this.drag(this, e.clientX); }, false );
 	    bg.addEventListener( 'mousemove', function(e){ e.preventDefault(); _this.drag(this, e.clientX); } , false );
+
+	    this.sel = sel;
+	    this.txt = txt;
+	    this.updatePosition();
 	},
 
-	setValue:function(value){
-	    var children = this.childNodes;
-	    children[0].style.width = this.w *(value/this.max)+'px';
-	    children[1].innerHTML = name+" "+value+'%';
+	updatePosition:function(){
+	    this.sel.style.width = (this.w * ((this.value-this.min)/this.valueRange))+'px';
+	    this.txt.innerHTML = this.name+" "+this.value+this.type;
 	},
 
 	drag:function(t, x){
 	    if(t.className == "down"){
-	        var children = t.childNodes;
 	        var rect = t.getBoundingClientRect();
-	        var value = Math.round(((x-rect.left)/this.w)*this.max);
-	        if(value<0) value = 0;
-	        if(value>this.max) value = this.max;
-	        children[0].style.width = this.w*(value/this.max)+'px';
-	        children[1].innerHTML = t.name+" "+value+'%';
-
-	        if(this.endFunction!==null)this.endFunction(value);
-
-	        /*switch(t.name){
-	            case 'Taxe': children[1].innerHTML = t.name+" "+value+'%'; this.taxRate = value; break;
-	            case 'Roads': children[1].innerHTML = t.name+" "+value+'% of '+this.roadFund+"$ = " + Math.floor(this.roadFund * (value / 100))+"$"; this.roadRate = value; break;
-	            case 'Fire': children[1].innerHTML = t.name+" "+value+'% of '+this.fireFund+"$ = " + Math.floor(this.fireFund * (value / 100))+"$"; this.fireRate = value; break;
-	            case 'Police': children[1].innerHTML = t.name+" "+value+'% of '+this.policeFund+"$ = " + Math.floor(this.policeFund * (value / 100))+"$"; this.policeRate = value; break;
-	        }*/
+	        this.value = ((((x-rect.left)/this.w)*this.valueRange+this.min).toFixed(this.num))/1;
+	        if(this.value<this.min) this.value = this.min;
+	        if(this.value>this.max) this.value = this.max;
+	        this.updatePosition();
+	        if(this.endFunction!==null)this.endFunction(this.value);
 	    }
 	}
 };

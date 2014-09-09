@@ -8,7 +8,7 @@
 <link rel="icon" href="../favicon.ico" />
 <style>
 * {  margin: 0; padding: 0; border: 0;}	
-body{ background-color: #3D4143;  background:linear-gradient(-155deg, #b0babf, #72797D, #3D4143, #1B1D1E); overflow: hidden; color:#cccccc; font-family:Arial; font-size: 10px; text-shadow: 1px 1px #000000;}
+body{ background-color: #3D4143; overflow: hidden; color:#cccccc; font-family:Arial; font-size: 10px; text-shadow: 1px 1px #000000;}
 
 </style>
 </head>
@@ -26,8 +26,12 @@ var camera, scene, light, renderer, container;
 var geos = {};
 var mats = {};
 
-init();
-loop();
+var human;
+
+var ToRad = Math.PI / 180;
+
+window.onload = init;
+
 
 function init() {
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -49,6 +53,13 @@ function init() {
     //light.shadowCameraVisible = true;
     light.shadowMapWidth = light.shadowMapHeight = 1024;
     scene.add( light );
+
+     // background
+    var buffgeoBack = new THREE.BufferGeometry();
+    buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
+    var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
+    back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
+    scene.add( back );
 
     // geometrys
     geos['sphere'] = new THREE.BufferGeometry();
@@ -75,13 +86,94 @@ function init() {
     container.appendChild( renderer.domElement );
 
     initEvents();
-    //initOimoPhysics();
+    initOimoPhysics();
+    loop();
 }
 
 function loop() {
     requestAnimationFrame( loop );
     renderer.clear();
     renderer.render( scene, camera );
+}
+
+//----------------------------------
+//  HUMAN PHYSICS
+//----------------------------------
+
+var Human = function () {
+	this.thigh1 = new Segment( 200, 200, 50, 15 ); // cuisse
+	this.calf1 = new Segment( this.thigh1.getPin().x, this.thigh1.getPin().y, 60, 10 ); // mollet
+	this.thigh2 = new Segment( 200, 200, 50, 15 ); // cuisse
+	this.calf2 = new Segment( this.thigh1.getPin().x, this.thigh1.getPin().y, 60, 10 );
+	this.body = new Segment( this.thigh1.x, this.thigh1.y, 80, 15 );
+	this.neck = new Segment( this.body.getPin().x, this.body.getPin().y, 30, 5 );
+	this.head = new Head( this.neck.getPin().x, this.neck.getPin().y );
+	this.arm1 = new Segment( this.body.getPin().x, this.body.getPin().y, 40, 10 );
+	this.foreArm1 = new Segment( this.arm1.getPin().x, this.arm1.getPin().y, 50, 7 );
+	this.arm2 = new Segment( this.body.getPin().x, this.body.getPin().y, 40, 10 );
+	this.foreArm2 = new Segment( this.arm2.getPin().x, this.arm2.getPin().y, 50, 7 );
+	this.running = true;
+}
+
+Human.prototype = {
+}
+
+var Head = function ( x, y ) {
+	this.x = x || 0;
+	this.y = y || 0;
+}
+
+var Segment = function ( x, y, width, height ) {
+	this.x = x || 0;
+	this.y = y || 0;
+	this.width = width || 0;
+	this.height = height || 0;
+	this.vx = 0;
+	this.vy = 0;
+	this.rotation = 0;
+};
+
+Segment.prototype = {
+	getPin: function () {
+		return {
+			x: this.x + Math.cos( this.rotation ) * this.width,
+			y: this.y + Math.sin( this.rotation ) * this.width
+		};
+	}
+};
+
+//----------------------------------
+//  OIMO PHYSICS
+//----------------------------------
+
+function initOimoPhysics(){
+    world = new OIMO.World(1/60, 2, 8);
+    human = new Human();
+    setInterval(updateOimoPhysics, 1000/60);
+}
+
+function updateOimoPhysics() {
+    world.step();
+}
+
+
+
+//----------------------------------
+//  TEXTURES
+//----------------------------------
+
+function gradTexture(color) {
+    var c = document.createElement("canvas");
+    var ct = c.getContext("2d");
+    c.width = 16; c.height = 256;
+    var gradient = ct.createLinearGradient(0,0,0,256);
+    var i = color[0].length;
+    while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
+    ct.fillStyle = gradient;
+    ct.fillRect(0,0,16,256);
+    var texture = new THREE.Texture(c);
+    texture.needsUpdate = true;
+    return texture;
 }
 
 </script>
