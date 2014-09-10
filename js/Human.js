@@ -95,7 +95,7 @@ Human.prototype = {
 		this.sets.thighRange = 25;
 		this.sets.thighBase = 90;
 		this.sets.calfRange = 20;
-		this.sets.armRange = 17;
+		this.sets.armRange = 60//17;
 		this.sets.foreArmRange = 15;
 		this.sets.gravity = 0.17;
     },
