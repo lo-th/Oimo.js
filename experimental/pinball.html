@@ -44,7 +44,7 @@ function init() {
     scene = new THREE.Scene();
 
     // lights
-    scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+    scene.add( new THREE.AmbientLight( 0x606060 ) );
     light = new THREE.DirectionalLight( 0xffffff , 1);
     light.position.set( 300, 1000, 500 );
     light.target.position.set( 0, 0, 0 );
@@ -110,6 +110,7 @@ function loadSea3d(){
         var mesh, mtx;
         for (var i=0; i !== loader.meshes.length; i++){
             mesh = loader.meshes[i];
+            mesh.material.ambient.setHex(0x999999);
             mtx = new THREE.Matrix4();
             mtx.makeScale(size, size, -size);
             mesh.geometry.applyMatrix(mtx);
@@ -130,7 +131,8 @@ function initPinball(){
     seaMeshs.glass.material.transparent = true;
     seaMeshs.glass.material.opacity =0.3;
     body.add(seaMeshs.glass);
-    //body.add(seaMeshs.deco)
+    body.add(seaMeshs.deco)
+    body.add(seaMeshs.level)
     body.rotation.z = -5*ToRad;
 
 
