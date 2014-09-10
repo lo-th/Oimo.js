@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8" />
-<title>autowash</title>
+<title>pinball</title>
 <meta name="Description" content="" />
 <meta name="Keywords"  content="" />
 <link rel="icon" href="../favicon.ico" />
@@ -18,7 +18,9 @@ button:hover{border: 2px solid #72797D; cursor: pointer; background: #11BBFF; co
 <body>
 <div id='container'></div>
 <script src="../js/three.min.js"></script>
-
+<script src="../js/loaders/sea3d/SEA3D.js"></script>
+<script src="../js/loaders/sea3d/SEA3DLoader.js"></script>
+<script src="../js/loaders/sea3d/SEA3DLZMA.js"></script>
 <script src="../js/navigation.js"></script>
 <script src="../build/Oimo.min.js"></script>
 <script>
@@ -29,14 +31,15 @@ var geos = {};
 var mats = {};
 var ToRad = Math.PI / 180;
 
-
+var seaLink = '../models/pinball.sea';
+var seaMeshs = {};
 
 init();
 loop();
 
 function init() {
-    camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-    initCamera(90,60,400);
+    camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+    initCamera(360,60,500);
 
     scene = new THREE.Scene();
 
@@ -95,7 +98,44 @@ function loop() {
     renderer.render( scene, camera );
 }
 
+//----------------------------------
+// SEA3D 
+//----------------------------------
 
+function loadSea3d(){
+    var size = 1;
+    var loader = new THREE.SEA3D( true );
+    loader.onComplete = function( e ) {
+        var size = 4;
+        var mesh, mtx;
+        for (var i=0; i !== loader.meshes.length; i++){
+            mesh = loader.meshes[i];
+            mtx = new THREE.Matrix4();
+            mtx.makeScale(size, size, -size);
+            mesh.geometry.applyMatrix(mtx);
+            seaMeshs[mesh.name] = mesh;
+        }
+        initPinball();
+    }
+    loader.load( seaLink );
+}
+
+function initPinball(){
+    var body = new THREE.Object3D();
+    body.add(seaMeshs.base);
+    body.add(seaMeshs.foot);
+    body.add(seaMeshs.baseup);
+    body.add(seaMeshs.inside);
+    body.add(seaMeshs.screen);
+    seaMeshs.glass.material.transparent = true;
+    seaMeshs.glass.material.opacity =0.3;
+    body.add(seaMeshs.glass);
+    //body.add(seaMeshs.deco)
+    body.rotation.z = -5*ToRad;
+
+
+    scene.add(body);
+}
 
 //----------------------------------
 //  TEXTURES

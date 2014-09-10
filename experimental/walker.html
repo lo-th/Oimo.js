@@ -70,7 +70,7 @@ function init() {
     light.shadowMapWidth = light.shadowMapHeight = 1024;
     scene.add( light );
 
-     // background
+    // background
     var buffgeoBack = new THREE.BufferGeometry();
     buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
     var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
