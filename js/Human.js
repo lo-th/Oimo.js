@@ -18,8 +18,8 @@ var Human = function () {
 	};
 
 	this.bones = {
-		body : new Human.bone( 0,0,0,   80,15,15 ),
-		neck : new Human.bone( 0,0,0,   30,5,5 ),
+		body : new Human.bone( 0,0,0,   80,20,36 ),
+		neck : new Human.bone( 0,0,0,   25,10,10 ),
 		head : new Human.bone( 0,0,0    ),
 
 		LeftUpLeg : new Human.bone(   200,200,-10,  50,15,15 ),
@@ -27,10 +27,10 @@ var Human = function () {
 		RightUpLeg : new Human.bone(  200,200,10,   50,15,15 ),
 		RightLowLeg : new Human.bone( 0,0,10,       60,10,10 ),
 		
-		LeftUpArm : new Human.bone(   0,0,-15,      40,10,10 ),
-		LeftLowArm : new Human.bone(  0,0,-15,      50,7,7   ),
-		RightUpArm : new Human.bone(  0,0,15,       40,10,10 ),
-		RightLowArm : new Human.bone( 0,0,15,       50,7,7   )
+		LeftUpArm : new Human.bone(   0,0,-22,      40,10,10 ),
+		LeftLowArm : new Human.bone(  0,0,-22,      50,7,7   ),
+		RightUpArm : new Human.bone(  0,0,22,       40,10,10 ),
+		RightLowArm : new Human.bone( 0,0,22,       50,7,7   )
 	};
 
 	

@@ -38,3 +38,5 @@ Basic demo with png compression (dev:32kb rev:30kb)
 Experimental demo BVH
 
 [BVH test](http://lo-th.github.io/Oimo.js/test_bvh.html)
+
+[The walker](http://lo-th.github.io/Oimo.js/experimental/walker.html)
