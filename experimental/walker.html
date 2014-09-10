@@ -36,9 +36,12 @@ var human;
 var sliders;
 
 var world = null;
-var meshs = {};
-var bodys = {};
+var Hmeshs = {};
+var Hbodys = {};
 var nHuman = 6;
+
+var bodys = [];
+var meshs = [];
 
 var ToRad = Math.PI / 180;
 
@@ -210,6 +213,35 @@ function initOimoPhysics(){
         }
     }
 
+    //add random object
+    var x, y, z, w, h, d;
+    var i = 40;
+
+    while (i--){
+        t = 1//Math.floor(Math.random()*2)+1;
+        x = -400 + Math.random()*800;
+        z = -400 + Math.random()*800;
+        y = 100 + Math.random()*1000;
+        w = 10 + Math.random()*30;
+        h = 10 + Math.random()*30;
+        d = 10 + Math.random()*30;
+
+        if(t===1){
+            bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+            meshs[i] = new THREE.Mesh( geos.sphere, mats.sph );
+            meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
+        } else if(t===2){
+            bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+            meshs[i] = new THREE.Mesh( geos.box, mats.box );
+            meshs[i].scale.set( w, h, d );
+        }
+
+        meshs[i].castShadow = true;
+        meshs[i].receiveShadow = true;
+
+        scene.add( meshs[i] );
+    }
+
     setInterval(updateOimoPhysics, 1000/60);
 }
 
@@ -218,16 +250,16 @@ function addOimoObject(name, pos, size, type) {
     var pos = pos || [0, 0, 0];
     var size = size || [10, 10, 10];
     if(type==1){
-        body = new OIMO.Body({type:'sphere', name:name, size:size, pos:pos, move:true, world:world});
-        mesh = new THREE.Mesh( geos.sphere, mats.sph );
+        body = new OIMO.Body({type:'sphere', name:name, size:size, pos:pos, move:true, noSleep:true, world:world});
+        mesh = new THREE.Mesh( geos.sphere, mats.ssph );
         mesh.scale.set( size[0], size[0], size[0] );
     } else if(type==2){
-        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, world:world});
+        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world});
         mesh = new THREE.Mesh( capsuleGeometry(size[0]/2, size[1]-(size[0]/2)), mats.box );
         if(name.substr(0,4) == 'body')mesh.scale.set(1, 1, 1.8 );
        // mesh.scale.set( size[0], size[1], size[2] );
     } else {
-        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, world:world});
+        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world});
         mesh = new THREE.Mesh( geos.box, mats.box );
         mesh.scale.set( size[0], size[1], size[2] );
     }
@@ -236,8 +268,8 @@ function addOimoObject(name, pos, size, type) {
     mesh.receiveShadow = true;
     scene.add( mesh );
 
-    meshs[name] = mesh;
-    bodys[name] = body;
+    Hmeshs[name] = mesh;
+    Hbodys[name] = body;
 }
 
 function updateOimoPhysics() {
@@ -265,12 +297,45 @@ function updateOimoPhysics() {
             pos.setFromMatrixPosition( mtx );
             quat.setFromRotationMatrix( mtx );
 
-            bodys[name].setPosition(pos);
-            bodys[name].setQuaternion(quat);
-            meshs[name].position.copy(pos);
-            meshs[name].quaternion.copy(quat);
+            Hbodys[name].setPosition(pos);
+            Hbodys[name].setQuaternion(quat);
+            Hmeshs[name].position.copy(pos);
+            Hmeshs[name].quaternion.copy(quat);
         }
     }
+
+    var x, y, z;
+    var i = bodys.length;
+    var mesh;
+    var body; 
+
+    while (i--){
+        body = bodys[i].body;
+        mesh = meshs[i];
+
+        if(!body.sleeping){
+
+            mesh.position.copy(body.getPosition());
+            mesh.quaternion.copy(body.getQuaternion());
+
+            // change material
+            if(mesh.material.name === 'sbox') mesh.material = mats.box;
+            if(mesh.material.name === 'ssph') mesh.material = mats.sph; 
+
+            // reset position
+            if(mesh.position.y<-100){
+                x = -100 + Math.random()*200;
+                z = -100 + Math.random()*200;
+                y = 100 + Math.random()*1000;
+                body.resetPosition(x,y,z);
+            }
+        } else {
+            if(mesh.material.name === 'box') mesh.material = mats.sbox;
+            if(mesh.material.name === 'sph') mesh.material = mats.ssph;
+        }
+    }
+
+
 }
 
 //----------------------------------
