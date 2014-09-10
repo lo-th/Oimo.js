@@ -44,6 +44,7 @@
 
     //oimo var
     var world = null;
+    var collisionGroupes = {};
     var bodys = null;
 
     var fps=0, time, time_prev=0, fpsint = 0;
@@ -141,7 +142,7 @@
     //----------------------------------
 
     function initOimoPhysics(){
-
+        
         world = new OIMO.World(1/60, 2);
         populate(1);
         setInterval(updateOimoPhysics, 1000/60);

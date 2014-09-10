@@ -192,11 +192,19 @@ function humanSets() {
 //----------------------------------
 
 function initOimoPhysics(){
+    collisionGroupes = {
+        group1 : 1 << 0,  // 00000000 00000000 00000000 00000001
+        group2 : 1 << 1,  // 00000000 00000000 00000000 00000010
+        group3 : 1 << 2,  // 00000000 00000000 00000000 00000100
+        all : 0xffffffff  // 11111111 11111111 11111111 11111111
+    };
+
     world = new OIMO.World(1/60, 2, 8);
 
     var ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-18,0], world:world});
     addStaticBox([1000, 40, 1000], [0,-18,0], [0,0,0]);
 
+    // make humans
     human = new Human();
     human.zw = 1000;
 	human.zh = 400;
@@ -214,12 +222,13 @@ function initOimoPhysics(){
         }
     }
 
-    //add random object
+    // add random object
+    var config = [1,0.4,0.2, collisionGroupes.group2, collisionGroupes.all];
     var x, y, z, w, h, d;
-    var i = 40;
+    var i = 100;
 
     while (i--){
-        t = 1//Math.floor(Math.random()*2)+1;
+        t = Math.floor(Math.random()*2)+1;
         x = -400 + Math.random()*800;
         z = -400 + Math.random()*800;
         y = 100 + Math.random()*1000;
@@ -228,11 +237,11 @@ function initOimoPhysics(){
         d = 10 + Math.random()*30;
 
         if(t===1){
-            bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+            bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
             meshs[i] = new THREE.Mesh( geos.sphere, mats.sph );
             meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
         } else if(t===2){
-            bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+            bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
             meshs[i] = new THREE.Mesh( geos.box, mats.box );
             meshs[i].scale.set( w, h, d );
         }
@@ -247,20 +256,21 @@ function initOimoPhysics(){
 }
 
 function addOimoObject(name, pos, size, type) {
+    var config = [10,0.4,0.2, collisionGroupes.group1, collisionGroupes.group2];
     var mesh, body;
     var pos = pos || [0, 0, 0];
     var size = size || [10, 10, 10];
     if(type==1){
-        body = new OIMO.Body({type:'sphere', name:name, size:size, pos:pos, move:true, noSleep:true, world:world});
+        body = new OIMO.Body({type:'sphere', name:name, size:size, pos:pos, move:true, noSleep:true, world:world, config:config});
         mesh = new THREE.Mesh( geos.sphere, mats.ssph );
         mesh.scale.set( size[0], size[0], size[0] );
     } else if(type==2){
-        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world});
+        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world, config:config});
         mesh = new THREE.Mesh( capsuleGeometry(size[0]/2, size[1]-(size[0]/2)), mats.box );
-        if(name.substr(0,4) == 'body')mesh.scale.set(1, 1, 1.8 );
+        if(name.substr(0,4) == 'body')mesh.scale.set(1,1,1.8);
        // mesh.scale.set( size[0], size[1], size[2] );
     } else {
-        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world});
+        body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world, config:config});
         mesh = new THREE.Mesh( geos.box, mats.box );
         mesh.scale.set( size[0], size[1], size[2] );
     }
@@ -285,7 +295,7 @@ function updateOimoPhysics() {
             name = key+i;
 
             mtx = new THREE.Matrix4();
-            mtx.makeTranslation( bone.x-500, 400-bone.y, bone.z+(i*100)-150);
+            mtx.makeTranslation( bone.x-500, 400-bone.y, bone.z+(i*120)-250);
 
             mtx2 = new THREE.Matrix4();
             mtx2.makeRotationZ( -bone.rotation+(90*ToRad ));
