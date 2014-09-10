@@ -12,6 +12,7 @@
 </style>
 </head>
 <body>
+<div id='container'></div>
 <script src="../js/three.min.js"></script>
 <script src="../js/navigation.js"></script>
 <script src="../build/Oimo.min.js"></script>
@@ -60,9 +61,8 @@ function init() {
     mats['ground'] = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
 
     // three renderer
-    renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true, alpha: true});
+    renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true});
     renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setClearColor( 0x000000, 0 );
     renderer.autoClear = false;
     renderer.shadowMapEnabled = true;
     renderer.shadowMapType = THREE.PCFShadowMap;
@@ -71,12 +71,11 @@ function init() {
     container.appendChild( renderer.domElement );
 
     initEvents();
-    //initOimoPhysics();
+
 }
 
 function loop() {
     requestAnimationFrame( loop );
-    renderer.clear();
     renderer.render( scene, camera );
 }
 

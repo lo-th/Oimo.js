@@ -94,7 +94,7 @@
 <script>
     // Parameters
     var dt = 1/60;
-    var N= 1000;
+    var N= 666;
     var ToRad = Math.PI / 180;
     var info = document.getElementById("info");
 
@@ -113,6 +113,8 @@
     // Create worker
     var worker = new Worker(window.URL.createObjectURL(blob));
     worker.postMessage = worker.webkitPostMessage || worker.postMessage;
+
+    worker.postMessage({  N:N, dt:dt, oimoUrl:document.location.href.replace(/\/[^/]*$/,"/") + "build/Oimo.js", minfo : minfo },[minfo.buffer]);
 
     var sendTime; // Time when we sent last message
     worker.onmessage = function(e) {
@@ -142,12 +144,7 @@
 
     function sendDataToWorker(){
         sendTime = Date.now();
-        worker.postMessage({
-            N : N,
-            dt : dt,
-            oimoUrl : document.location.href.replace(/\/[^/]*$/,"/") + "build/Oimo.js",
-            minfo : minfo
-        },[minfo.buffer]);
+        worker.postMessage({ minfo : minfo },[minfo.buffer]);
     }
 
 
@@ -196,8 +193,7 @@
         light.castShadow = true;
         //light.shadowCameraVisible = true;
 
-        light.shadowMapWidth = 2048;
-        light.shadowMapHeight = 2048;
+        light.shadowMapWidth = light.shadowMapHeight = 1024;
 
         light.shadowCameraLeft = -d;
         light.shadowCameraRight = d;
@@ -241,7 +237,7 @@
         // sphere
         //var sphereGeo = THREE.BufferGeometryUtils.fromGeometry(new THREE.SphereGeometry( 0.25, 16, 8));
         var sphereGeo = new THREE.BufferGeometry();
-        sphereGeo.fromGeometry( new THREE.SphereGeometry( 0.25, 16, 8) );
+        sphereGeo.fromGeometry( new THREE.SphereGeometry( 0.25, 10, 8) );
         
 
         for(var i=0; i<N*0.5; i++){
@@ -345,7 +341,7 @@
     }
 
     // Start the worker!
-    sendDataToWorker();
+    //sendDataToWorker();
 
  </script>
 </body>

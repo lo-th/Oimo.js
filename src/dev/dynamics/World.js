@@ -134,7 +134,7 @@ OIMO.World.prototype = {
         var result = null;
         var body=this.rigidBodies;
         while(body!==null){
-            if(body.name!== "" && body.name === name) result = body;
+            if(body.name!== " " && body.name === name) result = body;
             body=body.next;
         }
         var joint=this.joints;
@@ -536,7 +536,7 @@ OIMO.World.prototype = {
             newContact=this.unusedContacts;
             this.unusedContacts=this.unusedContacts.next;
         }else{
-            newContact=new OIMO.Contact();
+            newContact = new OIMO.Contact();
         }
         newContact.attach(s1,s2);
         newContact.detector=this.detectors[s1.type][s2.type];
@@ -556,6 +556,17 @@ OIMO.World.prototype = {
         contact.next=this.unusedContacts;
         this.unusedContacts=contact;
         this.numContacts--;
+    },
+    checkContact:function(name1, name2){
+        var n1, n2;
+        var contact = this.contacts;
+        while(contact!==null){
+            n1 = contact.body1.name || ' ';
+            n2 = contact.body2.name || ' ';
+            if((n1==name1 && n2==name2) || (n2==name1 && n1==name2)){ if(contact.touching) return true; else return false;}
+            else contact = contact.next;
+        }
+        return false;
     },
     calSleep:function(body){
         if(!body.allowSleep)return false;

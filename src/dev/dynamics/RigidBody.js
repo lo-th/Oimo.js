@@ -13,7 +13,7 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     var y = Y || 0;
     var z = Z || 0;
     
-    this.name = "";
+    this.name = " ";
     // It is a kind of rigid body that represents the dynamic rigid body.
     this.BODY_DYNAMIC=0x1;
     // It is a kind of rigid body that represents the static rigid body.

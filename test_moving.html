@@ -226,12 +226,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config, name:'sphere'});
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config, name:'box'});
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
@@ -244,7 +244,7 @@
 
         config[3] = 1;
         config[4] = all;
-        bodys[max] = new OIMO.Body({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, world:world, config:config});
+        bodys[max] = new OIMO.Body({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, world:world, config:config, name:'paddle'});
         meshs[max] = new THREE.Mesh( buffgeoBox, matBox );
         meshs[max].scale.set( 20, 40, 60 );
         scene.add( meshs[max] );
@@ -300,6 +300,11 @@
                 if(mesh.material.name === 'sph') mesh.material = matSphereSleep;
             }
         }
+
+        // contact test
+        if(world.checkContact('paddle', 'sphere')) meshs[bodys.length-1].material = matSphere;
+        else if(world.checkContact('paddle', 'box')) meshs[bodys.length-1].material = matBox;
+        else meshs[bodys.length-1].material = matBoxSleep;
 
         displayInfo();
     }
