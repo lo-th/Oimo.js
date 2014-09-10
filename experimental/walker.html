@@ -18,7 +18,7 @@ button:hover{border: 2px solid #72797D; cursor: pointer; background: #11BBFF; co
 <body>
 <script src="../js/three.min.js"></script>
 <script src="../js/navigation.js"></script>
-<script src="../js/Human.js"></script>
+<script src="../js/Human.js"></script><!-- @Author _ishibashijun - http://jsdo.it/_ishibashijun -->
 <script src="../js/slider.js"></script>
 <script src="../build/Oimo.min.js"></script>
 
@@ -27,27 +27,27 @@ button:hover{border: 2px solid #72797D; cursor: pointer; background: #11BBFF; co
 <button id="run">Run</button>
 <a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="../images/ribbon.png" alt="Fork me on GitHub"></a>      
 <script>
+
 // three var
 var camera, scene, light, renderer, container;
-
 var geos = {};
 var mats = {};
 
+// human
 var human;
+var nHuman = 6;
 var sliders;
 
+// oimo
 var world = null;
 var Hmeshs = {};
 var Hbodys = {};
-var nHuman = 6;
-
 var bodys = [];
 var meshs = [];
 
 var ToRad = Math.PI / 180;
 
 window.onload = init;
-
 
 function init() {
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -93,30 +93,12 @@ function init() {
     // three renderer
     renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true, alpha: true});
     renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setClearColor( 0x000000, 0 );
     renderer.autoClear = false;
     renderer.shadowMapEnabled = true;
     renderer.shadowMapType = THREE.PCFShadowMap;
 
     container = document.getElementById("container");
     container.appendChild( renderer.domElement );
-
-    var older = document.body;
-	sliders = {
-		speed : new UI.Slide(older, "speed", humanSets, 0.3, [5,100, 150, 20], 0.5, 0, ' ', 2),
-        thighRange : new UI.Slide(older, "thigh Range", humanSets, 50, [5,140, 150, 20], 90,0, '°'),
-        thighBase : new UI.Slide(older, "thigh Base", humanSets, 100, [5,180, 150, 20], 180, 0, '°'),
-        calfRange : new UI.Slide(older, "calf Range", humanSets, 30, [5,220, 150, 20], 90,0, '°'),
-        calfOffset : new UI.Slide(older, "calf Offset", humanSets, -1.57, [5,260, 150, 20], 3.14, -3.14, '°', 2),
-        armRange : new UI.Slide(older, "arm Range", humanSets, 55, [5,300, 150, 20], 360,0, '°'),
-        foreArmRange : new UI.Slide(older, "foreArm Range", humanSets, 20, [5,340, 150, 20], 75, 0, '°'),
-        foreArmOffset : new UI.Slide(older, "foreArm Offset", humanSets, -1.57, [5,380, 150, 20], 3.14, -3.14, '°', 2),
-        gravity : new UI.Slide(older, "gravity", humanSets, 0.88, [5,420, 150, 20], 1,0, 'g', 2),
-	}
-
-    document.getElementById( "walk" ).addEventListener( "click", initWalk, false );
-    document.getElementById( "run" ).addEventListener( "click", initRun, false );
-
 
     initEvents();
     initOimoPhysics();
@@ -125,7 +107,6 @@ function init() {
 
 function loop() {
     requestAnimationFrame( loop );
-    renderer.clear();
     renderer.render( scene, camera );
 }
 
@@ -135,7 +116,6 @@ function addStaticBox(size, position, rotation) {
     mesh.position.set( position[0], position[1], position[2] );
     mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
     scene.add( mesh );
-    //grounds.push(mesh);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 }
@@ -161,8 +141,30 @@ function capsuleGeometry (radius, height, SRadius, SHeight) {
 }
 
 //----------------------------------
-//  HUMAN PHYSICS
+//  HUMAN KINEMATIC
 //----------------------------------
+
+function initHuman() {
+    var older = document.body;
+    sliders = {
+        speed : new UI.Slide(older, "speed", humanSets, 0.3, [5,100, 150, 20], 0.5, 0, ' ', 2),
+        thighRange : new UI.Slide(older, "thigh Range", humanSets, 50, [5,140, 150, 20], 90,0, '°'),
+        thighBase : new UI.Slide(older, "thigh Base", humanSets, 100, [5,180, 150, 20], 180, 0, '°'),
+        calfRange : new UI.Slide(older, "calf Range", humanSets, 30, [5,220, 150, 20], 90,0, '°'),
+        calfOffset : new UI.Slide(older, "calf Offset", humanSets, -1.57, [5,260, 150, 20], 3.14, -3.14, '°', 2),
+        armRange : new UI.Slide(older, "arm Range", humanSets, 55, [5,300, 150, 20], 360,0, '°'),
+        foreArmRange : new UI.Slide(older, "foreArm Range", humanSets, 20, [5,340, 150, 20], 75, 0, '°'),
+        foreArmOffset : new UI.Slide(older, "foreArm Offset", humanSets, -1.57, [5,380, 150, 20], 3.14, -3.14, '°', 2),
+        gravity : new UI.Slide(older, "gravity", humanSets, 0.88, [5,420, 150, 20], 1,0, 'g', 2),
+    }
+    document.getElementById( "walk" ).addEventListener( "click", initWalk, false );
+    document.getElementById( "run" ).addEventListener( "click", initRun, false );
+
+    human = new Human();
+    human.zw = 1000;
+    human.zh = 400;
+    initWalk();
+}
 
 function initWalk() {
 	human.initWalk();
@@ -204,11 +206,8 @@ function initOimoPhysics(){
     var ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-18,0], world:world});
     addStaticBox([1000, 40, 1000], [0,-18,0], [0,0,0]);
 
-    // make humans
-    human = new Human();
-    human.zw = 1000;
-	human.zh = 400;
-    initWalk();
+    // make physics humans
+    initHuman();
 
     var bone, name, size, pos;
     for ( var i=0; i<nHuman; i++ ){
@@ -268,7 +267,6 @@ function addOimoObject(name, pos, size, type) {
         body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world, config:config});
         mesh = new THREE.Mesh( capsuleGeometry(size[0]/2, size[1]-(size[0]/2)), mats.box );
         if(name.substr(0,4) == 'body')mesh.scale.set(1,1,1.8);
-       // mesh.scale.set( size[0], size[1], size[2] );
     } else {
         body = new OIMO.Body({type:'box', name:name, size:size, pos:pos, move:true, noSleep:true, world:world, config:config});
         mesh = new THREE.Mesh( geos.box, mats.box );
@@ -285,6 +283,8 @@ function addOimoObject(name, pos, size, type) {
 
 function updateOimoPhysics() {
     world.step();
+
+    //update humans
     human.update();
     var bone, name;
     var mtx, mtx2;
@@ -315,6 +315,7 @@ function updateOimoPhysics() {
         }
     }
 
+    // update random object
     var x, y, z;
     var i = bodys.length;
     var mesh;
@@ -345,8 +346,6 @@ function updateOimoPhysics() {
             if(mesh.material.name === 'sph') mesh.material = mats.ssph;
         }
     }
-
-
 }
 
 //----------------------------------
