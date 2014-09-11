@@ -48,8 +48,7 @@
     var world = null;
     var bodys = null;
     var joints = null;
-
-    var fps = [0,0,0,0];
+    var infos;
     var type=1;
     var collision=false;
     var bgColor = 0x252627;
@@ -58,6 +57,8 @@
     loop();
 
     function init() {
+        infos = document.getElementById("info");
+
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
         center.y = 50;
         initCamera(90,75,400);
@@ -375,8 +376,7 @@
             }
         }
 
-        displayInfo();
-        
+        infos.innerHTML = world.performance.show();     
     }
 
     function gravity(){
@@ -386,33 +386,6 @@
             var i = bodys.length;
             while (i--){bodys[i].body.awake();}
         }
-    }
-
-    //----------------------------------
-    //  OIMO INFOS
-    //----------------------------------
-
-    function displayInfo(){
-
-        fps[2] = Date.now();
-        if (fps[2]-1000>fps[1]){ fps[1]=fps[2]; fps[0]=fps[3]; fps[3]=0; } fps[3]++;
-
-        var w = world.performance;
-        var info =[
-            "Oimo.js DEV.1.1.0a<br><br>",
-            "FPS: " + fps[0] +" fps<br><br>",
-            "Rigidbody: "+world.numRigidBodies+"<br>",
-            "Contact: "+world.numContacts+"<br>",
-            "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
-            "Contact Point: "+world.numContactPoints+"<br>",
-            "Island: "+world.numIslands +"<br><br>",
-            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
-            "Solving Time: "+w.solvingTime + " ms<br>",
-            "Updating Time: "+w.updatingTime + " ms<br>",
-            "Total Time: "+w.totalTime + " ms "
-        ].join("\n");
-        document.getElementById("info").innerHTML = info;
     }
 
     //----------------------------------

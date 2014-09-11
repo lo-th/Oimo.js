@@ -1,4 +1,4 @@
-OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
+OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
 
     // The time between each step
     this.timeStep= TimeStep || 1/60;
@@ -13,6 +13,9 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     }
     // Whether the constraints randomizer is enabled or not.
     this.enableRandomizer=true;
+
+    this.isNoStat = NoStat || false;
+
 
     // The rigid body list
     this.rigidBodies=null;
@@ -37,7 +40,8 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     this.gravity=new OIMO.Vec3(0,-9.80665,0);
 
     // This is the detailed information of the performance. 
-    this.performance = new OIMO.Performance();
+    this.performance = null;
+    if(!this.isNoStat) this.performance = new OIMO.Performance(this);
 
     var numShapeTypes=3;
     this.detectors=[];
@@ -214,7 +218,8 @@ OIMO.World.prototype = {
     step:function(){
         var time0, time1, time2, time3;
 
-        time0=Date.now();
+        if(!this.isNoStat) time0=Date.now();
+
         var body=this.rigidBodies;
 
         while(body!==null){
@@ -243,7 +248,8 @@ OIMO.World.prototype = {
         //------------------------------------------------------
 
         // broad phase
-        time1=Date.now();
+        if(!this.isNoStat) time1=Date.now();
+
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
@@ -281,8 +287,11 @@ OIMO.World.prototype = {
                 this.addContact(s1,s2);
             }
         }// while(i-- >0);
-        time2=Date.now();
-        this.performance.broadPhaseTime=time2-time1;
+
+        if(!this.isNoStat){
+            time2=Date.now();
+            this.performance.broadPhaseTime=time2-time1;
+        }
 
         // update & narrow phase
         this.numContactPoints=0;
@@ -312,8 +321,11 @@ OIMO.World.prototype = {
             contact.constraint.addedToIsland=false;
             contact=contact.next;
         }
-        time3=Date.now();
-        this.performance.narrowPhaseTime=time3-time2;
+
+        if(!this.isNoStat){
+            time3=Date.now();
+            this.performance.narrowPhaseTime=time3-time2;
+        }
 
         //------------------------------------------------------
         //   SOLVE ISLANDS
@@ -511,24 +523,22 @@ OIMO.World.prototype = {
             }
             this.numIslands++;
         }
-        time2=Date.now();
-        this.performance.solvingTime=time2-time1;
 
+        if(!this.isNoStat){
+            time2=Date.now();
+            this.performance.solvingTime=time2-time1;
 
-        //------------------------------------------------------
-        //   END SIMULATION
-        //------------------------------------------------------
+            //------------------------------------------------------
+            //   END SIMULATION
+            //------------------------------------------------------
 
-        time2=Date.now();
-        // fps update
-        if (time2 - 1000 > this.performance.time_prev) {
-            this.performance.time_prev = time2;
-            this.performance.fpsint = this.performance.fps; 
-            this.performance.fps = 0;
-        } this.performance.fps++;
+            time2=Date.now();
+            // fps update
+            this.performance.upfps();
 
-        this.performance.totalTime=time2-time0;
-        this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+            this.performance.totalTime=time2-time0;
+            this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+        }
     },
     addContact:function(s1,s2){
         var newContact;

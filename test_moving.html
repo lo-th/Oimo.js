@@ -49,14 +49,14 @@
     //oimo var
     var world = null;
     var bodys = null;
-
-    var fps = [0,0,0,0];
+    var infos;
     var type=1;
 
     init();
     loop();
 
     function init() {
+        infos = document.getElementById("info");
 
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
         initCamera(180,60,400);
@@ -306,40 +306,12 @@
         else if(world.checkContact('paddle', 'box')) meshs[bodys.length-1].material = matBox;
         else meshs[bodys.length-1].material = matBoxSleep;
 
-        displayInfo();
+        infos.innerHTML = world.performance.show();
     }
 
     function gravity(g){
         nG = document.getElementById("gravity").value
         world.gravity = new OIMO.Vec3(0, nG, 0);
-    }
-
-    //----------------------------------
-    //  OIMO INFOS
-    //----------------------------------
-
-    function displayInfo(){
-
-        fps[2] = Date.now();
-        if (fps[2]-1000>fps[1]){ fps[1]=fps[2]; fps[0]=fps[3]; fps[3]=0; } fps[3]++;
-
-        var w = world.performance;
-        var info =[
-            "Oimo.js DEV.1.1.0a<br><br>",
-            "FPS: " + fps[0] +" fps<br><br>",
-            "Rigidbody: "+world.numRigidBodies+"<br>",
-            "Contact: "+world.numContacts+"<br>",
-            "Pair Check: "+world.broadPhase.numPairChecks+"<br>",
-            "Contact Point: "+world.numContactPoints+"<br>",
-            "Island: "+world.numIslands +"<br><br>",
-            "Broad-Phase Time: "+w.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: "+w.narrowPhaseTime + " ms<br>",
-            "Solving Time: "+w.solvingTime + " ms<br>",
-            "Updating Time: "+w.updatingTime + " ms<br>",
-            "Total Time: "+w.totalTime + " ms<br> ",
-            unwrapDegrees(rotTest.z)
-        ].join("\n");
-        document.getElementById("info").innerHTML = info;
     }
 
     var unwrapDegrees = function (r) {

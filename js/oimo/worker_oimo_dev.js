@@ -14,8 +14,7 @@
 //---------------------------------------------------
 
 'use strict';
-//importScripts('../../build/Oimo.min.js');
-importScripts('../../build/Oimo.js');
+importScripts('../../build/Oimo.min.js');
 importScripts('demos.js');
 
 importScripts('vehicle/car.js');
@@ -47,7 +46,6 @@ var matrixJoint = [];
 var types = [], sizes = [];
 var statics = [], staticTypes = [], staticSizes = [], staticMatrix = [];
 
-var infos = new ARRAY_TYPE(13);
 var currentDemo = 0;
 var maxDemo = 10;
 
@@ -220,9 +218,9 @@ var update = function(){
         matrixJoint[i] = joints[i].getMatrix();
     }
    
-    worldInfo();
+    //worldInfo();
 
-    self.postMessage({tell:"RUN", infos:infos, matrix:matrix, matrixJoint:matrixJoint });
+    self.postMessage({tell:"RUN", infos:world.performance.toArray(), matrix:matrix, matrixJoint:matrixJoint });
 
     if(isTimout){
         delay = timerStep - (Date.now()-timeStart);
@@ -451,26 +449,5 @@ var addJoint = function(obj){
     var j = new OIMO.Link(obj);
     if(obj.type === "jointDistance" || obj.show )joints.push(j.joint);
     return j.joint;
-
-}
-
-//--------------------------------------------------
-//   WORLD INFO
-//--------------------------------------------------
-
-var worldInfo = function(){
-
-    infos[0] = world.broadPhase.types;
-    infos[1] = world.numRigidBodies;
-    infos[2] = world.numContacts;
-    infos[3] = world.broadPhase.numPairChecks;
-    infos[4] = world.numContactPoints;
-    infos[5] = world.numIslands;
-    infos[6] = world.performance.broadPhaseTime;
-    infos[7] = world.performance.narrowPhaseTime ;
-    infos[8] = world.performance.solvingTime;
-    infos[9] = world.performance.updatingTime;
-    infos[10] = world.performance.totalTime;
-    infos[11] = world.performance.fpsint;
 
 }

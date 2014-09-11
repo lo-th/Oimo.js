@@ -27,6 +27,8 @@
 <!-- Worker script, will be run in separate thread -->
 <script id="worker1" type="javascript/worker">    
     var world;
+    var fps = 0;
+    var f = [0,0,0];
     var body = [];
     self.onmessage = function(e) {
 
@@ -37,7 +39,7 @@
             // Init physics
             OIMO.WORLD_SCALE = 1;
             OIMO.INV_SCALE = 1;
-            world = new OIMO.World(e.data.dt, 2, 8);
+            world = new OIMO.World(e.data.dt, 2, 8, true);
             world.gravity.init(0,-10,0);
 
             // Ground plane
@@ -86,8 +88,11 @@
             }
             b=b.next;
         }
+
+        f[1] = Date.now();
+        if (f[1]-1000>f[0]){ f[0]=f[1]; fps=f[2]; f[2]=0; } f[2]++;
         // Send data back to the main thread
-        self.postMessage({ perf:world.performance.fpsint, minfo:minfo }, [minfo.buffer]);
+        self.postMessage({ perf:fps, minfo:minfo }, [minfo.buffer]);
     };
 </script>
 
@@ -114,7 +119,7 @@
     var worker = new Worker(window.URL.createObjectURL(blob));
     worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 
-    worker.postMessage({  N:N, dt:dt, oimoUrl:document.location.href.replace(/\/[^/]*$/,"/") + "build/Oimo.js", minfo : minfo },[minfo.buffer]);
+    worker.postMessage({  N:N, dt:dt, oimoUrl:document.location.href.replace(/\/[^/]*$/,"/") + "build/Oimo.min.js", minfo : minfo },[minfo.buffer]);
 
     var sendTime; // Time when we sent last message
     worker.onmessage = function(e) {

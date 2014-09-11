@@ -6,7 +6,7 @@
  * @author LoTh / http://3dflashlo.wordpress.com/
  */
  
-var OIMO = { REVISION: 'DEV.1.1.1a' };
+var OIMO = { REVISION: 'DEV.1.1.2a' };
 
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;
@@ -23,7 +23,7 @@ OIMO.nextID = 0;
 
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }
-OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
+OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
 
     // The time between each step
     this.timeStep= TimeStep || 1/60;
@@ -38,6 +38,9 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     }
     // Whether the constraints randomizer is enabled or not.
     this.enableRandomizer=true;
+
+    this.isNoStat = NoStat || false;
+
 
     // The rigid body list
     this.rigidBodies=null;
@@ -62,7 +65,8 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations){
     this.gravity=new OIMO.Vec3(0,-9.80665,0);
 
     // This is the detailed information of the performance. 
-    this.performance = new OIMO.Performance();
+    this.performance = null;
+    if(!this.isNoStat) this.performance = new OIMO.Performance(this);
 
     var numShapeTypes=3;
     this.detectors=[];
@@ -239,7 +243,8 @@ OIMO.World.prototype = {
     step:function(){
         var time0, time1, time2, time3;
 
-        time0=Date.now();
+        if(!this.isNoStat) time0=Date.now();
+
         var body=this.rigidBodies;
 
         while(body!==null){
@@ -268,7 +273,8 @@ OIMO.World.prototype = {
         //------------------------------------------------------
 
         // broad phase
-        time1=Date.now();
+        if(!this.isNoStat) time1=Date.now();
+
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
         var numPairs=this.broadPhase.numPairs;
@@ -306,8 +312,11 @@ OIMO.World.prototype = {
                 this.addContact(s1,s2);
             }
         }// while(i-- >0);
-        time2=Date.now();
-        this.performance.broadPhaseTime=time2-time1;
+
+        if(!this.isNoStat){
+            time2=Date.now();
+            this.performance.broadPhaseTime=time2-time1;
+        }
 
         // update & narrow phase
         this.numContactPoints=0;
@@ -337,8 +346,11 @@ OIMO.World.prototype = {
             contact.constraint.addedToIsland=false;
             contact=contact.next;
         }
-        time3=Date.now();
-        this.performance.narrowPhaseTime=time3-time2;
+
+        if(!this.isNoStat){
+            time3=Date.now();
+            this.performance.narrowPhaseTime=time3-time2;
+        }
 
         //------------------------------------------------------
         //   SOLVE ISLANDS
@@ -536,24 +548,22 @@ OIMO.World.prototype = {
             }
             this.numIslands++;
         }
-        time2=Date.now();
-        this.performance.solvingTime=time2-time1;
 
+        if(!this.isNoStat){
+            time2=Date.now();
+            this.performance.solvingTime=time2-time1;
 
-        //------------------------------------------------------
-        //   END SIMULATION
-        //------------------------------------------------------
+            //------------------------------------------------------
+            //   END SIMULATION
+            //------------------------------------------------------
 
-        time2=Date.now();
-        // fps update
-        if (time2 - 1000 > this.performance.time_prev) {
-            this.performance.time_prev = time2;
-            this.performance.fpsint = this.performance.fps; 
-            this.performance.fps = 0;
-        } this.performance.fps++;
+            time2=Date.now();
+            // fps update
+            this.performance.upfps();
 
-        this.performance.totalTime=time2-time0;
-        this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+            this.performance.totalTime=time2-time0;
+            this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+        }
     },
     addContact:function(s1,s2){
         var newContact;
@@ -1360,16 +1370,55 @@ OIMO.Link = function(Obj){
     this.joint.name = this.name;
     obj.world.addJoint(this.joint);
 }
-OIMO.Performance = function(){
-    this.time_prev=0;
-    this.fpsint=0;
-    this.fps=0;
+OIMO.Performance = function(world){
+	this.parent = world;
+	this.infos = new OIMO_ARRAY_TYPE(13);
+	this.f = [0,0,0];
 
+    this.fps=0;
     this.broadPhaseTime=0;
     this.narrowPhaseTime=0;
     this.solvingTime=0;
     this.updatingTime=0;
     this.totalTime=0;
+}
+OIMO.Performance.prototype = {
+	upfps : function(){
+		this.f[1] = Date.now();
+        if (this.f[1]-1000>this.f[0]){ this.f[0]=this.f[1]; this.fps=this.f[2]; this.f[2]=0; } this.f[2]++;
+	},
+	show : function(){
+		var info =[
+            "Oimo.js DEV.1.1.2a<br><br>",
+            "FPS: " + this.fps +" fps<br><br>",
+            "Rigidbody: "+this.parent.numRigidBodies+"<br>",
+            "Contact: "+this.parent.numContacts+"<br>",
+            "Pair Check: "+this.parent.broadPhase.numPairChecks+"<br>",
+            "Contact Point: "+this.parent.numContactPoints+"<br>",
+            "Island: "+this.parent.numIslands +"<br><br>",
+            "Broad-Phase Time: "+this.broadPhaseTime + " ms<br>",
+            "Narrow-Phase Time: "+this.narrowPhaseTime + " ms<br>",
+            "Solving Time: "+this.solvingTime + " ms<br>",
+            "Updating Time: "+this.updatingTime + " ms<br>",
+            "Total Time: "+this.totalTime + " ms "
+        ].join("\n");
+        return info;
+	},
+	toArray : function(){
+		this.infos[0] = this.parent.broadPhase.types;
+	    this.infos[1] = this.parent.numRigidBodies;
+	    this.infos[2] = this.parent.numContacts;
+	    this.infos[3] = this.parent.broadPhase.numPairChecks;
+	    this.infos[4] = this.parent.numContactPoints;
+	    this.infos[5] = this.parent.numIslands;
+	    this.infos[6] = this.broadPhaseTime;
+	    this.infos[7] = this.narrowPhaseTime;
+	    this.infos[8] = this.solvingTime;
+	    this.infos[9] = this.updatingTime;
+	    this.infos[10] = this.totalTime;
+	    this.infos[11] = this.fps;
+		return this.infos;
+	}
 }
 OIMO.Mat44 = function(n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44){
     this.elements = new OIMO_ARRAY_TYPE(16);

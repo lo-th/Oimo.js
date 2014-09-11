@@ -6,7 +6,7 @@
  * @author LoTh / http://3dflashlo.wordpress.com/
  */
  
-var OIMO = { REVISION: 'DEV.1.1.1a' };
+var OIMO = { REVISION: 'DEV.1.1.2a' };
 
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;

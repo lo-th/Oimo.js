@@ -201,7 +201,7 @@ function initOimoPhysics(){
         all : 0xffffffff  // 11111111 11111111 11111111 11111111
     };
 
-    world = new OIMO.World(1/60, 2, 8);
+    world = new OIMO.World(1/60, 2, 8, true);
 
     var ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-18,0], world:world});
     addStaticBox([1000, 40, 1000], [0,-18,0], [0,0,0]);
