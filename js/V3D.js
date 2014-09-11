@@ -12,13 +12,13 @@ V3D.View = function(){
 	this.h = window.innerHeight;
 	this.id = 'container';
 
-	this.init()
+	this.init();
 	this.initBasic();
 }
 V3D.View.prototype = {
     constructor: V3D.View,
     init:function(){
-    	this.camera = new THREE.PerspectiveCamera( 60, this.w / this.h, 1, 1000 );
+    	this.camera = new THREE.PerspectiveCamera( 60, this.w/this.h, 1, 1000 );
     	this.scene = new THREE.Scene();
     	this.initLight();
     	
@@ -46,9 +46,9 @@ V3D.View.prototype = {
     	var geos = {};
 		geos['sph'] = new THREE.BufferGeometry();
 		geos['box'] = new THREE.BufferGeometry();
-	    geos['sph'].fromGeometry( new THREE.SphereGeometry( 1 , 12, 10 ) );  
-	    geos['box'].fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
-	    geos['plane'] = new THREE.PlaneBufferGeometry( 1, 1 );
+	    geos['sph'].fromGeometry( new THREE.SphereGeometry(1,12,10));  
+	    geos['box'].fromGeometry( new THREE.BoxGeometry(1,1,1));
+	    geos['plane'] = new THREE.PlaneBufferGeometry(1,1);
 
 	    var mats = {};
 	    mats['sph'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(0), name:'sph' } );

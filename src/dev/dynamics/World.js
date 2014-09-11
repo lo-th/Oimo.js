@@ -1,3 +1,8 @@
+/**
+* The class of physical computing world. 
+* You must be added to the world physical all computing objects
+* @author saharan
+*/
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
 
     // The time between each step

@@ -119,7 +119,6 @@ OIMO.Body.prototype = {
     },
     // GET
     getPosition:function(){
-        this.sleeping = this.body.sleeping;
         return this.body.getPosition();
     },
     getRotation:function(){
@@ -132,8 +131,7 @@ OIMO.Body.prototype = {
         return this.body.getMatrix();
     },
     getSleep:function(){
-        this.sleeping = this.body.sleeping;
-        return this.sleeping;
+        return this.body.sleeping;
     },
     // RESET
     resetPosition:function(x,y,z){

@@ -44,6 +44,8 @@
     function init() {
         infos = document.getElementById("info");
         v3d = new V3D.View();
+        OIMO.WORLD_SCALE = 10;
+        OIMO.INV_SCALE = 0.1;
         world = new OIMO.World(1/60, 2, 8);
         populate(1);
         setInterval(updateOimoPhysics, 1000/60);
@@ -115,7 +117,7 @@
             body = bodys[i];
             mesh = meshs[i];
 
-            if(!body.sleeping){
+            if(!body.getSleep()){
 
                 mesh.position.copy(body.getPosition());
                 mesh.quaternion.copy(body.getQuaternion());

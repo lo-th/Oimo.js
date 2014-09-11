@@ -40,3 +40,10 @@ Experimental demo BVH
 [BVH test](http://lo-th.github.io/Oimo.js/test_bvh.html)
 
 [The walker](http://lo-th.github.io/Oimo.js/experimental/walker.html)
+
+
+Important note :
+Oimo Physics use international system units 0.1 to 10 meters max for dynamique body
+for demo with three.js i scale all by 100, you can change world scale
+for three : OIMO.WORLD_SCALE = 100; OIMO.INV_SCALE = 0.01;
+default : OIMO.WORLD_SCALE = 1; OIMO.INV_SCALE = 1;
