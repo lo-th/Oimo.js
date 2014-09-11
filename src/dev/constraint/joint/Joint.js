@@ -149,6 +149,12 @@ OIMO.Joint.prototype.postSolve = function () {
 /**
 * Three js add
 */
+OIMO.Joint.prototype.getPosition = function () {
+    var p1 = new OIMO.Vec3().scale(this.anchorPoint1, OIMO.WORLD_SCALE);
+    var p2 = new OIMO.Vec3().scale(this.anchorPoint2, OIMO.WORLD_SCALE);
+    return [p1, p2];
+}
+
 OIMO.Joint.prototype.getMatrix = function () {
     var m = this.matrix.elements;
     var p1 = this.anchorPoint1;

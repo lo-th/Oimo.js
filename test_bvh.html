@@ -263,7 +263,7 @@ function initOimoPhysics(){
     matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
     matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
 
-    world = new OIMO.World(1/60, 2);
+    world = new OIMO.World(1/60, 2, 8, true);
     world.gravity = new OIMO.Vec3(0, -1, 0);
     populate();
     setInterval(updateOimoPhysics, 1000/60);

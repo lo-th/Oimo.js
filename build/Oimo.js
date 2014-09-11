@@ -1173,7 +1173,9 @@ OIMO.RigidBody.prototype = {
 OIMO.Body = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
-    this.world = obj.world;
+
+    // the world where i am
+    this.parent = obj.world;
 
     // Yep my name 
     this.name = obj.name || '';
@@ -1225,10 +1227,10 @@ OIMO.Body = function(Obj){
         sc.relativeRotation = OIMO.EulerToMatrix(obj.massRot[0], obj.massRot[1], obj.massRot[2]);
     }
     
-    // the rigidbody
+    // My rigidbody
     this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
 
-    // the shapes
+    // My shapes
     var shapes = [];
     var type = obj.type || "box";
     if( typeof type === 'string' ) type = [type];// single shape
@@ -1250,7 +1252,7 @@ OIMO.Body = function(Obj){
         }
     } 
     
-    // static or move
+    // I'm static or i move
     if(move){
         if(obj.massPos || obj.massRot)this.body.setupMass(0x1, false);
         else this.body.setupMass(0x1, true);
@@ -1259,16 +1261,17 @@ OIMO.Body = function(Obj){
     } else {
         this.body.setupMass(0x2);
     }
+    
+    this.body.name = this.name;
+    this.sleeping = this.body.sleeping;
 
     // finaly add to physics world
-    this.body.name = this.name;
-    this.world.addRigidBody(this.body);
+    this.parent.addRigidBody(this.body);
 }
 
 OIMO.Body.prototype = {
-
     constructor: OIMO.Body,
-
+    // SET
     setPosition:function(pos){
         this.body.setPosition(pos);
     },
@@ -1278,15 +1281,9 @@ OIMO.Body.prototype = {
     setRotation:function(rot){
         this.body.setRotation(rot);
     },
-
-    resetPosition:function(x,y,z){
-        this.body.resetPosition(x,y,z);
-    },
-    resetRotation:function(x,y,z){
-        this.body.resetRotation(x,y,z);
-    },
-    
+    // GET
     getPosition:function(){
+        this.sleeping = this.body.sleeping;
         return this.body.getPosition();
     },
     getRotation:function(){
@@ -1298,17 +1295,43 @@ OIMO.Body.prototype = {
     getMatrix:function(){
         return this.body.getMatrix();
     },
-
-    sleeping:function(){
-        return this.body.sleeping;
+    getSleep:function(){
+        this.sleeping = this.body.sleeping;
+        return this.sleeping;
     },
-    removeRigidBody:function(){
-        this.world.removeRigidBody(this.body);
+    // RESET
+    resetPosition:function(x,y,z){
+        this.body.resetPosition(x,y,z);
+    },
+    resetRotation:function(x,y,z){
+        this.body.resetRotation(x,y,z);
+    },
+    // force wakeup
+    awake:function(){
+        this.body.awake();
+    },
+    // remove rigidbody
+    remove:function(){
+        this.parent.removeRigidBody(this.body);
+    },
+    // test if this object hit another
+    checkContact:function(name){
+        this.parent.checkContact(this.name, name);
     }
 }
+/**
+* The main class of link.
+* is for simplify creation process and data access of Joint
+* all setting in object
+* 
+* @author loth
+*/
 OIMO.Link = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
+
+    // the world where i am
+    this.parent = obj.world;
 
     this.name = obj.name || '';
     var type = obj.type || "jointHinge";
@@ -1366,9 +1389,29 @@ OIMO.Link = function(Obj){
         break;
     }
 
-    // finaly add to physics world
     this.joint.name = this.name;
-    obj.world.addJoint(this.joint);
+    
+    // finaly add to physics world
+    this.parent.addJoint(this.joint);
+}
+
+OIMO.Link.prototype = {
+    constructor: OIMO.Link,
+    getPosition:function(){
+        // array of two vect3 [point1, point2]
+        return this.joint.getPosition();
+    },
+    getMatrix:function(){
+        return this.joint.getMatrix();
+    },
+    // remove joint
+    remove:function(){
+        this.parent.removeJoint(this.joint);
+    },
+    // force wakeup linked body
+    awake:function(){
+        this.joint.awake();
+    }
 }
 OIMO.Performance = function(world){
 	this.parent = world;
@@ -2724,6 +2767,12 @@ OIMO.Joint.prototype.postSolve = function () {
 /**
 * Three js add
 */
+OIMO.Joint.prototype.getPosition = function () {
+    var p1 = new OIMO.Vec3().scale(this.anchorPoint1, OIMO.WORLD_SCALE);
+    var p2 = new OIMO.Vec3().scale(this.anchorPoint2, OIMO.WORLD_SCALE);
+    return [p1, p2];
+}
+
 OIMO.Joint.prototype.getMatrix = function () {
     var m = this.matrix.elements;
     var p1 = this.anchorPoint1;

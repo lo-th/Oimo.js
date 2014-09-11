@@ -9,7 +9,9 @@
 OIMO.Body = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
-    this.world = obj.world;
+
+    // the world where i am
+    this.parent = obj.world;
 
     // Yep my name 
     this.name = obj.name || '';
@@ -61,10 +63,10 @@ OIMO.Body = function(Obj){
         sc.relativeRotation = OIMO.EulerToMatrix(obj.massRot[0], obj.massRot[1], obj.massRot[2]);
     }
     
-    // the rigidbody
+    // My rigidbody
     this.body = new OIMO.RigidBody(p[0], p[1], p[2], r[0], r[1], r[2], r[3]);
 
-    // the shapes
+    // My shapes
     var shapes = [];
     var type = obj.type || "box";
     if( typeof type === 'string' ) type = [type];// single shape
@@ -86,7 +88,7 @@ OIMO.Body = function(Obj){
         }
     } 
     
-    // static or move
+    // I'm static or i move
     if(move){
         if(obj.massPos || obj.massRot)this.body.setupMass(0x1, false);
         else this.body.setupMass(0x1, true);
@@ -95,16 +97,17 @@ OIMO.Body = function(Obj){
     } else {
         this.body.setupMass(0x2);
     }
+    
+    this.body.name = this.name;
+    this.sleeping = this.body.sleeping;
 
     // finaly add to physics world
-    this.body.name = this.name;
-    this.world.addRigidBody(this.body);
+    this.parent.addRigidBody(this.body);
 }
 
 OIMO.Body.prototype = {
-
     constructor: OIMO.Body,
-
+    // SET
     setPosition:function(pos){
         this.body.setPosition(pos);
     },
@@ -114,15 +117,9 @@ OIMO.Body.prototype = {
     setRotation:function(rot){
         this.body.setRotation(rot);
     },
-
-    resetPosition:function(x,y,z){
-        this.body.resetPosition(x,y,z);
-    },
-    resetRotation:function(x,y,z){
-        this.body.resetRotation(x,y,z);
-    },
-    
+    // GET
     getPosition:function(){
+        this.sleeping = this.body.sleeping;
         return this.body.getPosition();
     },
     getRotation:function(){
@@ -134,11 +131,27 @@ OIMO.Body.prototype = {
     getMatrix:function(){
         return this.body.getMatrix();
     },
-
-    sleeping:function(){
-        return this.body.sleeping;
+    getSleep:function(){
+        this.sleeping = this.body.sleeping;
+        return this.sleeping;
     },
-    removeRigidBody:function(){
-        this.world.removeRigidBody(this.body);
+    // RESET
+    resetPosition:function(x,y,z){
+        this.body.resetPosition(x,y,z);
+    },
+    resetRotation:function(x,y,z){
+        this.body.resetRotation(x,y,z);
+    },
+    // force wakeup
+    awake:function(){
+        this.body.awake();
+    },
+    // remove rigidbody
+    remove:function(){
+        this.parent.removeRigidBody(this.body);
+    },
+    // test if this object hit another
+    checkContact:function(name){
+        this.parent.checkContact(this.name, name);
     }
 }

@@ -1,6 +1,16 @@
+/**
+* The main class of link.
+* is for simplify creation process and data access of Joint
+* all setting in object
+* 
+* @author loth
+*/
 OIMO.Link = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
+
+    // the world where i am
+    this.parent = obj.world;
 
     this.name = obj.name || '';
     var type = obj.type || "jointHinge";
@@ -58,7 +68,27 @@ OIMO.Link = function(Obj){
         break;
     }
 
-    // finaly add to physics world
     this.joint.name = this.name;
-    obj.world.addJoint(this.joint);
+    
+    // finaly add to physics world
+    this.parent.addJoint(this.joint);
+}
+
+OIMO.Link.prototype = {
+    constructor: OIMO.Link,
+    getPosition:function(){
+        // array of two vect3 [point1, point2]
+        return this.joint.getPosition();
+    },
+    getMatrix:function(){
+        return this.joint.getMatrix();
+    },
+    // remove joint
+    remove:function(){
+        this.parent.removeJoint(this.joint);
+    },
+    // force wakeup linked body
+    awake:function(){
+        this.joint.awake();
+    }
 }

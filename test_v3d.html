@@ -35,8 +35,6 @@
     //oimo var
     var world = null;
     var bodys = [];
-
-    var fps = [0,0,0,0];
     var type=1;
     var infos;
 
@@ -114,7 +112,7 @@
         var body; 
 
         while (i--){
-            body = bodys[i].body;
+            body = bodys[i];
             mesh = meshs[i];
 
             if(!body.sleeping){

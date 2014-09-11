@@ -73,15 +73,16 @@
                     n = 8*i;
                     // get position
                     pos = b.getPosition();
-                    minfo[n+0] = pos.x;
-                    minfo[n+1] = pos.y;
-                    minfo[n+2] = pos.z;
+                    minfo[n+0] = pos.x//.toFixed(3)*1;
+                    minfo[n+1] = pos.y//.toFixed(3)*1;
+                    minfo[n+2] = pos.z//.toFixed(3)*1;
                     // get Quaternion
                     quad = b.getQuaternion();
-                    minfo[n+3] = quad.x;
-                    minfo[n+4] = quad.y;
-                    minfo[n+5] = quad.z;
-                    minfo[n+6] = quad.w;
+                    //if(i==2)console.log(pos.x)
+                    minfo[n+3] = quad.x//.toFixed(3)*1;
+                    minfo[n+4] = quad.y//.toFixed(3)*1;
+                    minfo[n+5] = quad.z//.toFixed(3)*1;
+                    minfo[n+6] = quad.w//.toFixed(3)*1;
                 }
 
                 i++;
