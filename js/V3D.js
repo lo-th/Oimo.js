@@ -18,19 +18,28 @@ V3D.View = function(){
 V3D.View.prototype = {
     constructor: V3D.View,
     init:function(){
-    	this.camera = new THREE.PerspectiveCamera( 60, this.w/this.h, 1, 1000 );
-    	this.scene = new THREE.Scene();
-    	this.initLight();
-    	
+
     	this.renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false});
     	this.renderer.setSize( this.w, this.h );
     	this.renderer.setClearColor( 0x1d1f20, 1 );
-    	//this.renderer.autoClear = false;
+    	this.camera = new THREE.PerspectiveCamera( 60, this.w/this.h, 1, 2000 );
+    	this.scene = new THREE.Scene();
+    	this.initLight();
+    	this.initBackground();
+    	//
         this.container = document.getElementById(this.id)
         this.container.appendChild( this.renderer.domElement );
 
         this.nav = new V3D.Navigation(this);
         this.nav.initCamera(90,60,400);
+    },
+    initBackground:function(){
+    	var buffgeoBack = new THREE.BufferGeometry();
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(1000,1) );
+        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:this.gradTexture([[0.75,0.6,0.4,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false, fog:false }  ));
+        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*Math.PI / 180));
+        this.scene.add( back );
+        this.renderer.autoClear = false;
     },
     initLight:function(){
     	if(this.isMobile) return;
@@ -46,7 +55,9 @@ V3D.View.prototype = {
     	var geos = {};
 		geos['sph'] = new THREE.BufferGeometry();
 		geos['box'] = new THREE.BufferGeometry();
-	    geos['sph'].fromGeometry( new THREE.SphereGeometry(1,12,10));  
+		geos['cyl'] = new THREE.BufferGeometry();
+	    geos['sph'].fromGeometry( new THREE.SphereGeometry(1,12,10)); 
+	    geos['cyl'].fromGeometry( new THREE.CylinderGeometry(0.5,0.5,1,12,1));  
 	    geos['box'].fromGeometry( new THREE.BoxGeometry(1,1,1));
 	    geos['plane'] = new THREE.PlaneBufferGeometry(1,1);
 
@@ -55,6 +66,8 @@ V3D.View.prototype = {
 	    mats['ssph'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(1), name:'ssph' } );
 	    mats['box'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(2), name:'box' } );
 	    mats['sbox'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(3), name:'sbox' } );
+	    mats['cyl'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(5), name:'cyl' } );
+	    mats['scyl'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(6), name:'scyl' } );
 	    mats['static'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(4, 6), name:'static' } );
 
 	    this.mats = mats;
@@ -74,6 +87,8 @@ V3D.View.prototype = {
     	if(type=='box' && !move) mesh = new THREE.Mesh( this.geos.box, this.mats.static);
     	if(type=='sphere' && move) mesh = new THREE.Mesh( this.geos.sph, this.mats.sph );
     	if(type=='sphere' && !move) mesh = new THREE.Mesh( this.geos.sph, this.mats.static);
+    	if(type=='cylinder' && move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.cyl );
+    	if(type=='cylinder' && !move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.static);
     	mesh.scale.set( size[0], size[1], size[2] );
         mesh.position.set( pos[0], pos[1], pos[2] );
         mesh.rotation.set( rot[0]*Math.PI / 180, rot[1]*Math.PI / 180, rot[2]*Math.PI / 180 );
@@ -83,6 +98,19 @@ V3D.View.prototype = {
 
 
 
+    gradTexture : function(color) {
+        var c = document.createElement("canvas");
+        var ct = c.getContext("2d");
+        c.width = 16; c.height = 128;
+        var gradient = ct.createLinearGradient(0,0,0,128);
+        var i = color[0].length;
+        while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
+        ct.fillStyle = gradient;
+        ct.fillRect(0,0,16,128);
+        var texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+    },
     basicTexture : function (n, r){
         var canvas = document.createElement( 'canvas' );
         canvas.width = canvas.height = 64;

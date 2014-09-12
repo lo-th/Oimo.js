@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>editor</title>
+<style>
+*{ padding:0; margin: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;}
+@font-face { font-family: 'SourceCode'; src: url('../images/SourceCodePro.woff') format('woff'); font-weight: normal; font-style: normal; }
+html, body {background-color: #1d1f20;  font: normal 12px SourceCode;}
+#menu{position: absolute; top:0; left:0; width:100%; height:30px; background-color: #1d1f20;  color:#343434;}
+#title{position: absolute; top:6px; left:10px; width:200px; height:14px; color:#343434; font-weight:bold; font-size:14px;  pointer-events:none;}
+#b0{position: absolute; top:6px; right:6px; width:20px; height:20px; background-color: #1d1f20; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center;}
+#dragBare{}
+
+</style>
+</head>
+<body>
+<div id='menu'></div>
+<div id='title'>OIMO docs</div>
+<div id='b0'>V</div>
+<div id="preview"></div>
+<script>
+var b0 = document.getElementById('b0');
+var views = [], v;
+//var content;
+var rootValue = null;
+var viewType = 'vertical';
+var defStyle = 'position:absolute; display:block; border:none; border-left:1px solid #27292a; border-top:1px solid #000000;';
+var topy = 30;
+
+var vLink =  ['frame/drag', 'frame/edit', 'frame/result'];
+
+
+var i = 2;
+while(i--){
+	v = document.createElement( 'iframe' );
+	v.id = vLink[i];
+	v.src = vLink[i]+'.html';
+	v.style.cssText = defStyle;
+	document.body.appendChild(v);
+	views[i] = v;
+}
+
+
+var preview = document.getElementById( 'preview' );
+preview.style.cssText = defStyle;
+preview.style.background = '#1d1f20';
+views[2] = preview;
+
+window.onload = init;
+
+function init(){
+	b0.onclick = function (e){
+		if(viewType=='vertical'){
+			viewType = 'horizon'; 
+			b0.innerHTML = 'H';
+		}else {
+			viewType = 'vertical'; 
+			b0.innerHTML = 'V';
+		}
+		resize();
+	}
+	views[0].contentWindow.setRoot(this);
+	views[1].contentWindow.setRoot(this);
+    //content = views[2].contentDocument || views[2].contentWindow.document;
+    resize();
+    window.onresize = resize;
+}
+
+function resize(){
+	var w = window.innerWidth;
+	var h = window.innerHeight;
+	var v0 = 80;
+	var v1 = Math.floor((w-v0)*0.5);
+	var v2 = Math.floor((h-v0-topy)*0.5);
+	switch(viewType){
+		case 'vertical':
+		    setStyle (0, 0, topy, v0, h-topy);
+		    setStyle (1, v0, topy, v1, h-topy);
+		    setStyle (2, v0+v1, topy, v1, h-topy);
+		break;
+		case 'horizon':
+		    setStyle (0, 0, topy, w, v0);
+		    setStyle (1, 0, topy+v0, w, v2);
+		    setStyle (2, 0, topy+v0+v2, w, v2);
+		break;
+	}
+}
+
+function setStyle(n, l, t, w, h){
+	views[n].style.left=l+'px';
+	views[n].style.top=t+'px';
+	views[n].style.width=w+'px';
+	views[n].style.height=h+'px';
+}
+
+function openFile(o){
+    views[1].contentWindow.openFile(o);
+}
+
+function update(value, isPureSrcipt) {
+	if(value) rootValue = value;
+	if ( preview.children.length > 0 )preview.removeChild( preview.firstChild );
+	var iframe = document.createElement( 'iframe' );
+	iframe.style.width = '100%';
+	iframe.style.height = 'calc(100% - 4px)';
+	iframe.style.border = '0';
+	preview.appendChild( iframe );
+	
+	if(isPureSrcipt){
+		iframe.src = 'frame/basic.html';
+		iframe.onload = function (e){
+			var content = iframe.contentDocument || iframe.contentWindow.document;
+			var head = content.getElementsByTagName('head')[0];
+			var nscript = content.createElement("script");
+			nscript.type = "text/javascript";
+			nscript.id = "topScript";
+			nscript.charset = "utf-8";
+			nscript.text = rootValue;
+			head.appendChild(nscript);
+		}
+	} else {
+		var content = iframe.contentDocument || iframe.contentWindow.document;
+		content.open();
+		content.write( rootValue );
+		content.close();
+	}
+
+	
+}
+
+</script>
+</body>
+</html>

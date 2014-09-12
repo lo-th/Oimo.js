@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-<link href="css/demo.css"  media="screen, print" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="css/demo.css">
 
 <script src="js/three.min.js"></script>
 <script src="js/navigation.js"></script>
@@ -133,7 +133,7 @@
 
     function initCapsuleGeometry (radius, height, SRadius, SHeight) {
         types = [ 'sphere', 'sphere','sphere'];
-        sizes = [ radius, radius,radius,radius, radius,radius,radius, radius,radius ];
+        sizes = [ radius,radius,radius, radius,radius,radius, radius,radius,radius ];
         positions = [0,0,0,   0,height*0.5,0, 0,height,0];
         var sRadius = SRadius || 20;
         var sHeight = SHeight || 10;

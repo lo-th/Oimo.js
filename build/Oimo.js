@@ -23,6 +23,11 @@ OIMO.nextID = 0;
 
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }
+/**
+* The class of physical computing world. 
+* You must be added to the world physical all computing objects
+* @author saharan
+*/
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
 
     // The time between each step
@@ -1432,16 +1437,17 @@ OIMO.Performance.prototype = {
 		var info =[
             "Oimo.js DEV.1.1.2a<br><br>",
             "FPS: " + this.fps +" fps<br><br>",
-            "Rigidbody: "+this.parent.numRigidBodies+"<br>",
-            "Contact: "+this.parent.numContacts+"<br>",
-            "Pair Check: "+this.parent.broadPhase.numPairChecks+"<br>",
-            "Contact Point: "+this.parent.numContactPoints+"<br>",
-            "Island: "+this.parent.numIslands +"<br><br>",
-            "Broad-Phase Time: "+this.broadPhaseTime + " ms<br>",
-            "Narrow-Phase Time: "+this.narrowPhaseTime + " ms<br>",
-            "Solving Time: "+this.solvingTime + " ms<br>",
-            "Updating Time: "+this.updatingTime + " ms<br>",
-            "Total Time: "+this.totalTime + " ms "
+            "body "+this.parent.numRigidBodies+"<br>",
+            "contact "+this.parent.numContacts+"<br>",
+            "pair "+this.parent.broadPhase.numPairChecks+"<br>",
+            "contact "+this.parent.numContactPoints+"<br>",
+            "island "+this.parent.numIslands +"<br><br>",
+            "Time in ms <br>",
+            "broad-phase &nbsp;"+this.broadPhaseTime + "<br>",
+            "narrow-phase "+this.narrowPhaseTime + "<br>",
+            "solving &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+this.solvingTime + "<br>",
+            "updating &nbsp;&nbsp;&nbsp;&nbsp;"+this.updatingTime + "<br>",
+            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+this.totalTime
         ].join("\n");
         return info;
 	},

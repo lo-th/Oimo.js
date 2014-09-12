@@ -1,6 +1,6 @@
 * {  margin: 0; padding: 0; border: 0;}
-@font-face { font-family: 'SourceCode'; src: url('../images/f.woff') format('woff');}
-body{ background-color: #3D4143; overflow: hidden; color:#cccccc; font-family:SourceCode; font-size: 12px;}
+@font-face { font-family: 'SourceCode'; src: url('../images/SourceCodePro.woff') format('woff');}
+body{ background-color: #3D4143; overflow: hidden; color:#cccccc; font-family:SourceCode; font-size: 11px;}
 input{ margin:0; padding:8px; background:linear-gradient(#72797D , #3D4143); color:#cccccc; font-family:SourceCode;}
 input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
 input[type='button']:hover{border: 2px solid #72797D; cursor: pointer;background: #11BBFF; color:#000000;}

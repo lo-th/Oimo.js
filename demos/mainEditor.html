@@ -4,8 +4,7 @@
 		<title>EDITOR</title>
 		<meta charset="utf-8">
 		<style> html,body { border:none; margin:0px; padding: 0px; width:100%; height:100%;  overflow:hidden; } </style>
-		<link rel="stylesheet" href="../js/codemirror/codemirror.css">
-		<link rel="stylesheet" href="../js/codemirror/monokai.css">
+		<link rel="stylesheet" href="../css/codemirror.css">
 		<style>
 		html, body {
 			margin:0; padding:0; border:none; overflow:hidden; width:100%; height:100%; background:#1d1f20 );
@@ -65,54 +64,52 @@
 		</style>
 	</head>
 	<body>
-	<div id="editor"></div>
-	    <script src="../js/codemirror/codemirror.js"></script>
-	    <script src="../js/codemirror/mode/javascript.js"></script>
-	    <script src="../js/codemirror/addon/matchbrackets.js"></script>
-	    
-		<script>
+	<script src="../js/libs/codemirror.min.js"></script>
 
-		window.onload = init;
-		var codeEditor;
-		var fileref;
-		var head;
-		var base = null;
+	<div id="editor"></div>    
+	<script>
 
-		function init() {
-		    head = document.getElementsByTagName("head")[0];
-		    codeEditor = CodeMirror(document.getElementById( 'editor' ), {
-		        lineNumbers: true,
-		        styleActiveLine: true,
-		        matchBrackets: true,
-		        styleActiveLine: true,
-		        theme:'monokai',
-		        mode:'javascript'
-		    });
-		}
+	window.onload = init;
+	var codeEditor;
+	var fileref;
+	var head;
+	var base = null;
 
-		function close(){
-			codeEditor.getInputField().blur();
-		}
+	function init() {
+	    head = document.getElementsByTagName("head")[0];
+	    codeEditor = CodeMirror(document.getElementById( 'editor' ), {
+	        lineNumbers: true,
+	        styleActiveLine: true,
+	        matchBrackets: true,
+	        styleActiveLine: true,
+	        theme:'monokai',
+	        mode:'javascript'
+	    });
+	}
 
-		function setBase(b){
-			if(base==null)base = b;
-		}
+	function close(){
+		codeEditor.getInputField().blur();
+	}
 
-		function loadfileJS(url){
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url, true);
-			xhr.responseType = 'blob';
-			xhr.onload = function(e) {
-			    var reader = new FileReader();
-			    reader.onload = function(e) {
-			    	codeEditor.setValue(e.target.result);
-			    	base.update();
-			    }
-			    reader.readAsText(this.response);
-			};
-			xhr.send();
-		}
+	function setBase(b){
+		if(base==null)base = b;
+	}
 
-		</script>
+	function loadfileJS(url){
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, true);
+		xhr.responseType = 'blob';
+		xhr.onload = function(e) {
+		    var reader = new FileReader();
+		    reader.onload = function(e) {
+		    	codeEditor.setValue(e.target.result);
+		    	base.update();
+		    }
+		    reader.readAsText(this.response);
+		};
+		xhr.send();
+	}
+
+	</script>
 	</body>
 </html>
