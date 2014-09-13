@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'ConsolasRegular';
+    src: url('consolas/consolas-webfont.eot');
+    src: url('consolas/consolas-webfont.eot?#iefix') format('embedded-opentype'),
+         url('consolas/consolas-webfont.woff') format('woff'),
+         url('consolas/consolas-webfont.ttf') format('truetype'),
+         url('consolas/consolas-webfont.svg#ConsolasRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.crayon-font-consolas * {
+    font-family: Consolas, 'ConsolasRegular', 'Courier New', monospace !important;
+}
