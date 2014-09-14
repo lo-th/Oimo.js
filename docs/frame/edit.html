@@ -16,6 +16,8 @@
 	#editor .CodeMirror {
 		height: 100%;
 		font-family: Consolas, 'ConsolasRegular', 'Courier New', monospace !important;
+		-webkit-font-smoothing: subpixel-antialiased;
+
 		font-size: 11px;
 		/*letter-spacing:0px;*/
 		padding-right: 20px;
@@ -89,7 +91,7 @@ function init() {
         indentWithTabs: true,
         styleActiveLine: true,
         theme:'monokai',
-        mode:'htmlmixed',
+        mode:'text/javascript',
 		tabSize: 4,
 		indentUnit: 4,
 		highlightSelectionMatches: {showToken: /\w/}
@@ -129,8 +131,8 @@ function loadfile(url){
 	    var reader = new FileReader();
 	    reader.onload = function(e) {
 	    	if(type=='html') editor.setOption("mode", 'htmlmixed' );
-        	else if(type=='js') editor.setOption("mode", 'javascript' );
-	    	editor.setOption("mode", 'javascript' );
+        	else if(type=='js') editor.setOption("mode", "text/javascript" );
+	    	//editor.setOption("mode", 'text/javascript' );
 	    	editor.setValue(e.target.result);
 	    	//base.update();
 	    }
@@ -150,7 +152,7 @@ function loadfile(url){
     fileref.charset = "utf-8";
     fileref.id = "fileref";
     if(type=='html')fileref.type = "text/html";
-    else if(type=='js')fileref.type = "application/javascript";
+    else if(type=='js')fileref.type = "application/text/javascript";
     fileref.src = url;
 
     fileref.onreadystatechange = callback;
@@ -164,7 +166,7 @@ function save() {
 	if(mode == 'htmlmixed'){
 			type = 'text/html;charset=utf-8';
 		} else {
-			type = 'application/javascript;charset=utf-8';
+			type = 'application/text/javascript;charset=utf-8';
 		}
 
 		//documents[ 0 ].code = editor.getValue();
@@ -208,7 +210,7 @@ function decode( string ) {
 function openFile(o){
 	//var t
 	//if(o.t=='html')t = "text/html";
-    //else if(o.t=='js')t = "application/javascript";
+    //else if(o.t=='js')t = "application/text/javascript";
 	/*var blob = new Blob( [ o.result ], {type:t} );
 	var objectURL = URL.createObjectURL( blob );*/
 	currentName = o.name;
@@ -217,15 +219,15 @@ function openFile(o){
 	var reader = new FileReader();
         reader.onload = function(e) {
         	if(o.t=='html') editor.setOption("mode", 'htmlmixed' );
-        	else if(o.t=='js') editor.setOption("mode", 'javascript' );
+        	else if(o.t=='js') editor.setOption("mode", 'text/javascript' );
             editor.setValue(e.target.result);
            // root.update(o.t);
         }
         reader.readAsText(o.file);
         //reader.readAsDataURL(o.file);
 	//loadfile(o.name, o.t);
-//var str = o.result.replace("data:application/javascript;base64,", "");
-//editor.setValue( decode(o.result.replace("data:application/javascript;base64,", " ")) );
+//var str = o.result.replace("data:application/text/javascript;base64,", "");
+//editor.setValue( decode(o.result.replace("data:application/text/javascript;base64,", " ")) );
 //console.log( decode(str) )
 }
 

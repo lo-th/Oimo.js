@@ -1,63 +1,69 @@
-// three var
+
+/**
+* OIMO WORLD - basic setup
+*/
+
+// The time between each step
+var timestep = 1/60;
+
+// Algorithm used for collision
+// 1: BruteForceBroadPhase  2: sweep and prune  3: dynamic bounding volume tree
+// default is 2 : best speed and lower cpu use.
+var boardphase = 2;
+
+// The number of iterations for constraint solvers : default 8.
+var Iterations = 8;
+
+// calculate statistique or not
+var noStat = false;
+
+// create new oimo world contains all rigidBodys and joint.
+var world = new OIMO.World( timestep, boardphase, Iterations, noStat );
+
+// you can choose world gravity 
+world.gravity = new OIMO.Vec3(0, -9.8, 0);
+
+// Oimo Physics use international system units 0.1 to 10 meters max for dynamique body.
+// for three.js i use by default *100  so object is between 10 to 10000 three unit.
+world.worldscale(100);
+
+
+// basic three.js view with geometrys and materials
 var v3d = new V3D.View();
-var meshs = [];
-var grounds = [];
 
-// oimo var
-var world = new OIMO.World(1/60, 2, 8);
+
+// create array to keep reference of rigidbody
 var bodys = [];
-var type=1;
-var infos = document.getElementById("info");
+// reference to three mesh
+var meshs = [];
 
-OIMO.WORLD_SCALE = 10;
-OIMO.INV_SCALE = 0.1;
 populate(1);
 
-setInterval(updateOimoPhysics, 1000/60);
-loop();
+// start loops
+setInterval(oimoLoop, timestep*1000);
+renderLoop();
 
-
-function loop() {
-    requestAnimationFrame( loop );
-    //updateOimoPhysics();
+/* three.js render loop */
+function renderLoop() {
+    requestAnimationFrame( renderLoop );
     v3d.render();
 }
 
-function clearMesh(){
-    var i=meshs.length;
-    while (i--) v3d.scene.remove(meshs[i]);
-    i = grounds.length;
-    while (i--) v3d.scene.remove(grounds[i]);
-    grounds = [];
-    meshs = [];
-}
-
 function populate(n) {
+
     var obj;
-    var max = 100;
 
-    if(n===1) type = 1
-    else if(n===2) type = 2;
-    else if(n===3) type = 3;
-    else if(n===4) type = 4;
+    //add basic ground
+    obj = { size:[400, 40, 390], pos:[0,-20,0], world:world }
+    new OIMO.Body(obj);
+    v3d.add(obj);
 
-    // reset old
-    clearMesh();
-    world.clear();
-    bodys=[];
-
-    obj = {size:[400, 40, 390], pos:[0,-20,0], world:world}
-    //add ground
-    var ground = new OIMO.Body(obj);
-    ground[0] = v3d.add(obj);
-
-    //add object
-    var x, y, z, w, h, d;
-    var i = max;
+    //add random objects
+    var x, y, z, w, h, d, t;
+    var i = 100;
 
     while (i--){
-        if(type===4) t = Math.floor(Math.random()*3)+1;
-        else t = type;
+        t = Math.floor(Math.random()*3)+1;
         x = -100 + Math.random()*200;
         z = -100 + Math.random()*200;
         y = 100 + Math.random()*1000;
@@ -65,29 +71,31 @@ function populate(n) {
         h = 10 + Math.random()*10;
         d = 10 + Math.random()*10;
 
-        if(t===1) obj = {type:'sphere', size:[w*0.5, w*0.5, w*0.5], pos:[x,y,z], move:true, world:world};
-        if(t===2) obj = {type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world};
-        if(t===3) obj = {type:'cylinder', size:[w,h,w, w,h,w, w,h,w, w,h,w], pos:[x,y,z, 0,0,0, 0,0,0, 0,0,0], rot:[0,0,0, 0,45,0, 0,22.5,0, 0,-22.5,0], move:true, world:world};
+        if(t===1) obj = { type:'sphere', size:[w*0.5, w*0.5, w*0.5], pos:[x,y,z], move:true, world:world };
+        if(t===2) obj = { type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world };
+        if(t===3) obj = { type:'cylinder', size:[w,h,w, w,h,w, w,h,w, w,h,w], pos:[x,y,z, 0,0,0, 0,0,0, 0,0,0], rot:[0,0,0, 0,45,0, 0,22.5,0, 0,-22.5,0], move:true, world:world };
         
         bodys[i] = new OIMO.Body(obj);
         meshs[i] = v3d.add(obj);
     }
 }
 
-function updateOimoPhysics() {
+/* oimo loop */
+function oimoLoop() {
+
+    // update world
     world.step();
 
-    var x, y, z;
+    var x, y, z, mesh, body;
     var i = bodys.length;
-    var mesh;
-    var body; 
 
     while (i--){
         body = bodys[i];
         mesh = meshs[i];
 
-        if(!body.getSleep()){
+        if(!body.getSleep()){ // if body didn't sleep
 
+            // apply rigidbody position and rotation to mesh
             mesh.position.copy(body.getPosition());
             mesh.quaternion.copy(body.getQuaternion());
 
@@ -108,10 +116,5 @@ function updateOimoPhysics() {
         }
     }
 
-    infos.innerHTML = world.performance.show();
-}
-
-function gravity(g){
-    nG = document.getElementById("gravity").value
-    world.gravity = new OIMO.Vec3(0, nG, 0);
+    document.getElementById("info").innerHTML = world.performance.show();
 }

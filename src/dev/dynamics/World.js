@@ -217,6 +217,11 @@ OIMO.World.prototype = {
         remove.parent=null;
     },
 
+    worldscale:function(scale){
+        OIMO.WORLD_SCALE = scale || 100;
+        OIMO.INV_SCALE = 1/OIMO.WORLD_SCALE;
+    },
+
     /**
     * I will proceed only time step seconds time of World.
     */
