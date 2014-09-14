@@ -85,8 +85,8 @@ function update(n) {
         size = [s, s];
     }
 
-    createImage32(str);
-    //createImage(str);
+    //createImage32(str);
+    createImage(str);
     output.value = canvas.toDataURL('image/png');
     // output.value = canvas.toDataURL('image/svg+xml');
     IM.src = output.value;

@@ -140,25 +140,6 @@ function loadfile(url){
 	};
 	xhr.send();
 }
-/*function loadfile(url, type){
-	var reader = new FileReader();
-    reader.onload = function(e) {
-        editor.setValue(e.target.result);
-    }
-    reader.readAsText(url);*/
-        /*
-    if(fileref) head.removeChild(fileref);
-    fileref = document.createElement("frame");
-    fileref.charset = "utf-8";
-    fileref.id = "fileref";
-    if(type=='html')fileref.type = "text/html";
-    else if(type=='js')fileref.type = "application/text/javascript";
-    fileref.src = url;
-
-    fileref.onreadystatechange = callback;
-    fileref.onload = callback;
-    head.appendChild(fileref);*/
-//}
 
 function save() {
 	var mode = editor.getOption('mode');
@@ -190,15 +171,7 @@ function save() {
 	};
 
 function callback(e){
-   /* var doc; 
-    var frame = document.getElementById("fileref");
-    if(frame.contentDocument) doc = frame.contentDocument; 
-    else doc = frame.contentWindow.document; 
-    var v = doc.getElementsByTagName("head")[0].innerHTML;
-    //var txt = v.slice(53, -10);*/
-    editor.setValue( e.target.result );//v );
-
-    //base.update();
+    editor.setValue( e.target.result );
 }
 
 function decode( string ) {

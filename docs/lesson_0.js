@@ -1,6 +1,6 @@
 
 /**
-* OIMO WORLD - basic setup
+*  0 - OIMO WORLD - basic setup
 */
 
 // The time between each step
@@ -44,51 +44,19 @@ setInterval(oimoLoop, timestep*1000);
 renderLoop();
 
 /* three.js render loop */
-function renderLoop() {
+function renderLoop()
+{
     requestAnimationFrame( renderLoop );
     v3d.render();
 }
 
-function populate(n) {
-
-    var obj;
-
-    //add static ground
-    obj = { size:[400, 40, 390], pos:[0,-20,0], world:world }
-    new OIMO.Body(obj);
-    v3d.add(obj);
-
-    //add random objects
-    var x, y, z, w, h, d, t;
-    var i = 100;
-
-    while (i--){
-        t = Math.floor(Math.random()*3)+1;
-        x = -100 + Math.random()*200;
-        z = -100 + Math.random()*200;
-        y = 100 + Math.random()*1000;
-        w = 10 + Math.random()*10;
-        h = 10 + Math.random()*10;
-        d = 10 + Math.random()*10;
-
-        if(t===1) obj = { type:'sphere', size:[w*0.5, w*0.5, w*0.5], pos:[x,y,z], move:true, world:world };
-        if(t===2) obj = { type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world };
-        if(t===3) obj = { type:'cylinder', size:[w,h,w, w,h,w, w,h,w, w,h,w], pos:[x,y,z, 0,0,0, 0,0,0, 0,0,0], rot:[0,0,0, 0,45,0, 0,22.5,0, 0,-22.5,0], move:true, world:world };
-        
-        bodys[i] = new OIMO.Body(obj);
-        meshs[i] = v3d.add(obj);
-    }
-}
-
 /* oimo loop */
-function oimoLoop() {
-
-    // update world
-    world.step();
+function oimoLoop() 
+{  
+    world.step();// update world
 
     var x, y, z, mesh, body;
     var i = bodys.length;
-
     while (i--){
         body = bodys[i];
         mesh = meshs[i];
@@ -105,9 +73,9 @@ function oimoLoop() {
 
             // reset position
             if(mesh.position.y<-100){
-                x = -100 + Math.random()*200;
-                z = -100 + Math.random()*200;
-                y = 100 + Math.random()*1000;
+                x = rand(-100,100);
+                z = rand(-100,100);
+                y = rand(100,1000);
                 body.resetPosition(x,y,z);
             }
         } else {
@@ -115,6 +83,47 @@ function oimoLoop() {
             if(mesh.material.name === 'sph') mesh.material = v3d.mats.ssph;
         }
     }
-
+    // oimo stat display
     document.getElementById("info").innerHTML = world.performance.show();
+}
+
+/* add random object */
+function populate(n) 
+{
+    var obj;
+
+    //add static ground
+    obj = { size:[400, 40, 390], pos:[0,-20,0], world:world }
+    new OIMO.Body(obj);
+    v3d.add(obj);
+
+    //add random objects
+    var x, y, z, w, h, d, t;
+    var i = 100;
+
+    while (i--){
+        t = rand(1,3);
+        x = rand(-100,100);
+        z = rand(-100,100);
+        y = rand(100,1000);
+        w = rand(10,20);
+        h = rand(10,20);
+        d = rand(10,20);
+
+        if(t===1) obj = { type:'sphere', size:[w*0.5, w*0.5, w*0.5], pos:[x,y,z], move:true, world:world };
+        if(t===2) obj = { type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world };
+        if(t===3) obj = { type:'cylinder', size:[w,h,w, w,h,w, w,h,w, w,h,w], pos:[x,y,z], rot:[0,0,0, 0,45,0, 0,22.5,0, 0,-22.5,0], move:true, world:world };
+        
+        bodys[i] = new OIMO.Body(obj);
+        meshs[i] = v3d.add(obj);
+    }
+}
+
+/* random number */
+function rand(min, max, n)
+{
+    var r, n = n||0;
+    if (min < 0) r = min + Math.random() * (Math.abs(min)+max);
+    else r = min + Math.random() * max;
+    return r.toFixed(n)*1;
 }
