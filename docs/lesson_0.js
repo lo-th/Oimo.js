@@ -53,7 +53,7 @@ function populate(n) {
 
     var obj;
 
-    //add basic ground
+    //add static ground
     obj = { size:[400, 40, 390], pos:[0,-20,0], world:world }
     new OIMO.Body(obj);
     v3d.add(obj);

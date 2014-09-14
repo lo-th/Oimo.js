@@ -225,6 +225,12 @@ OIMO.World.prototype = {
         }
         return result;
     },
+    
+    worldscale:function(scale){
+        OIMO.WORLD_SCALE = scale || 100;
+        OIMO.INV_SCALE = 1/OIMO.WORLD_SCALE;
+    },
+
     step:function(){
         var time1=Date.now();
         var tmpC=this.contacts;
