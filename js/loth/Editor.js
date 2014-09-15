@@ -14,7 +14,7 @@ var Editor = function (Pos) {
 	var open = false;
 
     var container = doc.createElement( 'div' );
-	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:SourceCode; pointer-events:none; display:none; background: linear-gradient(45deg, #1d1f20, #2f3031);';
+	container.style.cssText = unselect+'position:absolute; margin:0; padding:0; top:0px; left:50%; color:#CCCCCC; width:50%; height:100%; font-size:12px; font-family:Consolas; pointer-events:none; display:none; background: linear-gradient(45deg, #1d1f20, #2f3031);';
 	container.id = 'Editor';
 
 	var show = function(mode){

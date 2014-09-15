@@ -2,8 +2,9 @@
 'use strict';
 var THREE;
 var V3D = {};
+V3D.ToRad = Math.PI/180;
 
-V3D.View = function(){
+V3D.View = function(h,v,d){
 	var n = navigator.userAgent;
 	this.isMobile = false;
     if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)) this.isMobile = true;      
@@ -12,13 +13,14 @@ V3D.View = function(){
 	this.h = window.innerHeight;
 	this.id = 'container';
 
-	this.init();
+	this.init(v,h,d);
 	this.initBasic();
 }
 
 V3D.View.prototype = {
     constructor: V3D.View,
-    init:function(){
+    init:function(h,v,d){
+    	this.clock = new THREE.Clock();
 
     	this.renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false});
     	this.renderer.setSize( this.w, this.h );
@@ -32,7 +34,10 @@ V3D.View.prototype = {
         this.container.appendChild( this.renderer.domElement );
 
         this.nav = new V3D.Navigation(this);
-        this.nav.initCamera(90,60,400);
+        this.nav.initCamera( h || 90,v || 60,d || 400 );
+
+        this.miniMap = null;
+        this.player = null;
 
         //this.projector = new THREE.Projector();
     	//this.raycaster = new THREE.Raycaster();
@@ -115,7 +120,9 @@ V3D.View.prototype = {
     	}
     	
     },
-
+    initKeyboard:function(){
+    	this.nav.bindKeys();
+    },
 
 
 
@@ -171,7 +178,6 @@ V3D.View.prototype = {
 
 
 
-
 //----------------------------------
 //  NAVIGATION
 //----------------------------------
@@ -208,6 +214,12 @@ V3D.Navigation.prototype = {
 	    p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
 	    p.y = (distance * Math.cos(phi)) + origine.y;
 	    return p;
+	},
+	unwrapDegrees:function(r){
+		r = r % 360;
+		if (r > 180) r -= 360;
+		if (r < -180) r += 360;
+		return r;
 	},
 	initEvents : function (){
 		var _this = this;
@@ -324,11 +336,10 @@ V3D.Navigation.prototype = {
 
 
 //----------------------------------
-//  LOADER
+//  LOADER IMAGE/SEA3D
 //----------------------------------
-V3D.Pool = function(root){
-	this.parent = root;
 
+V3D.Pool = function(){
 	this.imgs = {};
 	this.meshs = {};
 }
@@ -339,11 +350,13 @@ V3D.Pool.prototype = {
     // LOAD IMAGES Array
     loadImages:function(url, endFunction){
     	var _this = this;
-    	var img = new Image(), name;
+    	var img = new Image();
     	img.onload = function(){
-    		name = url[0].substr(0, url[0].lastIndexOf("."));
+    		var name = url[0].substring(url[0].lastIndexOf("/")+1, url[0].lastIndexOf("."));
     		_this.imgs[name] = this;
-    		if(url.length !== 0) { url.shift(); _this.loadImages(url); }
+    		
+    		url.shift();
+    		if(url.length) _this.loadImages(url, endFunction);
     		else if(endFunction)endFunction();
     	};
         img.src = url[0];
@@ -351,7 +364,8 @@ V3D.Pool.prototype = {
     getTexture:function( name, revers ){
     	var tx = new THREE.Texture(this.imgs[name]);
     	if(revers){
-    		tx.repeat.set( 1, -1 ); tx.wrapS = tx.wrapT = THREE.RepeatWrapping;
+    		tx.repeat.set( 1, -1 ); 
+    		tx.wrapS = tx.wrapT = THREE.RepeatWrapping;
     	}
     	tx.needsUpdate = true;
     	return tx;
@@ -362,19 +376,23 @@ V3D.Pool.prototype = {
 	    var loader = new THREE.SEA3D( true );
 	    loader.onComplete = function( e ) {
 	        var i = loader.meshes.length;
-	        while(i--){
-	            _this.meshs[loader.meshes[i].name] = loader.meshes[i];
-	        }
-    		if(url.length !== 0) { url.shift(); _this.loadModels(url); }
+	        while(i--){ _this.meshs[loader.meshes[i].name] = loader.meshes[i];}
+	        url.shift();
+    		if(url.length) _this.loadModels(url, endFunction);
     		else if(endFunction)endFunction();
 	    }
 	    loader.load( url[0] );
 	},
-	scaleGeometry:function (g, s){
+	getMesh:function (name){
+		return this.meshs[name];
+	},
+	getGeometry:function (name, s){
 		s = s || 1;
+		var g = this.meshs[name].geometry;
 		var mtx = new THREE.Matrix4().makeScale(s, s, -s);
 		g.applyMatrix(mtx);
 	    g.computeBoundingBox();
 		g.computeBoundingSphere();
+		return g;
 	}
 }

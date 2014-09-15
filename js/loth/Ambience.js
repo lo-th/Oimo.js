@@ -14,7 +14,7 @@ var Ambience = function (Pos) {
 	var startHeight = 416;
 
     var container = doc.createElement( 'div' );
-	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:SourceCode; text-align:center; pointer-events:none;';
+	container.style.cssText = unselect+'position:absolute; bottom:0px; left:'+left+'px; color:#CCCCCC; font-size:12px; font-family:Consolas; text-align:center; pointer-events:none;';
 	container.id = 'Ambience';
 
 	var borderL = '-webkit-border-top-left-radius:20px; border-top-left-radius:20px;';

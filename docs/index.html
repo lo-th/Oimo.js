@@ -5,8 +5,17 @@
 <title>DOCS</title>
 <style>
 *{ padding:0; margin: 0; -o-user-select:none; -ms-user-select:none; -khtml-user-select:none; -webkit-user-select:none; -moz-user-select: none; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;}
-@font-face { font-family: 'SourceCode'; src: url('../images/SourceCodePro.woff') format('woff'); font-weight: normal; font-style: normal; }
-html, body {background-color: #212324;  font: normal 12px SourceCode;}
+@font-face {
+    font-family: 'ConsolasRegular';
+    src: url('../font/consolas/consolas-webfont.eot');
+    src: url('../font/consolas/consolas-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../font/consolas/consolas-webfont.woff') format('woff'),
+         url('../font/consolas/consolas-webfont.ttf') format('truetype'),
+         url('../font/consolas/consolas-webfont.svg#ConsolasRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+html, body {background-color: #212324;  font: normal 12px Consolas;}
 #menu{position: absolute; top:0; left:0; width:100%; height:30px; background-color: #212324;  color:#343434;}
 #menutop{position:absolute; top:0px; left:150px; width:300px; height:30px; }
 #title{position: absolute; top:6px; left:10px; width:200px; height:14px; color:#a6a6a6; font-weight:bold; font-size:14px;  pointer-events:none;}

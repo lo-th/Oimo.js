@@ -1,0 +1,12 @@
+body { background-color: #1a1a1a; margin:0; padding:0; overflow: hidden; height:100%; width: 100%; }
+	@font-face {
+        font-family: 'ConsolasRegular';
+        src: url('../font/consolas/consolas-webfont.eot');
+        src: url('../font/consolas/consolas-webfont.eot?#iefix') format('embedded-opentype'),
+             url('../font/consolas/consolas-webfont.woff') format('woff'),
+             url('../font/consolas/consolas-webfont.ttf') format('truetype'),
+             url('../font/consolas/consolas-webfont.svg#ConsolasRegular') format('svg');
+        font-weight: normal;
+        font-style: normal;
+    }
+	a { text-decoration:none; }

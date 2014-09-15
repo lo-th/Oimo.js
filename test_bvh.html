@@ -414,7 +414,7 @@ function updateOimoPhysics() {
         body = bodys[i];
         mesh = meshs[i];
 
-        if(!body.sleeping()){
+        if(!body.getSleep()){
 
             mesh.position.copy(body.getPosition());
             mesh.quaternion.copy(body.getQuaternion());
