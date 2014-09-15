@@ -35,7 +35,7 @@ Basic demo with png compression (dev:32kb rev:30kb)
 
 [png test](http://lo-th.github.io/Oimo.js/test_basic_png.html)
 
-Experimental demo BVH
+Experimental demos
 
 [BVH test](http://lo-th.github.io/Oimo.js/test_bvh.html)
 

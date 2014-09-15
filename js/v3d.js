@@ -13,7 +13,7 @@ V3D.View = function(h,v,d){
 	this.h = window.innerHeight;
 	this.id = 'container';
 
-	this.init(v,h,d);
+	this.init(h,v,d);
 	this.initBasic();
 }
 
@@ -25,16 +25,15 @@ V3D.View.prototype = {
     	this.renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false});
     	this.renderer.setSize( this.w, this.h );
     	this.renderer.setClearColor( 0x1d1f20, 1 );
-    	this.camera = new THREE.PerspectiveCamera( 60, this.w/this.h, 1, 2000 );
+    	this.camera = new THREE.PerspectiveCamera( 60, this.w/this.h, 0.1, 2000 );
     	this.scene = new THREE.Scene();
-    	this.initLight();
     	this.initBackground();
-    	//
+    	
         this.container = document.getElementById(this.id)
         this.container.appendChild( this.renderer.domElement );
 
         this.nav = new V3D.Navigation(this);
-        this.nav.initCamera( h || 90,v || 60,d || 400 );
+        this.nav.initCamera( h,v,d );
 
         this.miniMap = null;
         this.player = null;
@@ -46,19 +45,35 @@ V3D.View.prototype = {
     	var buffgeoBack = new THREE.BufferGeometry();
         buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(1000,1) );
         var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:this.gradTexture([[0.75,0.6,0.4,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false, fog:false }  ));
-        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*Math.PI / 180));
+        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*V3D.ToRad));
         this.scene.add( back );
         this.renderer.autoClear = false;
     },
     initLight:function(){
     	if(this.isMobile) return;
-    	this.scene.fog = new THREE.Fog( 0x1d1f20, 100, 600 );
+    	//this.scene.fog = new THREE.Fog( 0x1d1f20, 100, 600 );
     	//this.scene.add( new THREE.AmbientLight( 0x3D4143 ) );
-    	var hemiLight = new THREE.HemisphereLight( 0xffff00, 0x0011ff, 0.3 );
+    	var hemiLight = new THREE.HemisphereLight( 0xffffff, 0x303030, 0.3 );
 		this.scene.add( hemiLight );
-		var dirLight = new THREE.DirectionalLight( 0xffffff, 2 );
+		var dirLight = new THREE.DirectionalLight( 0xffffff, 1.2 );
 		dirLight.position.set( 0.5, 1, 0.5 ).normalize();
 		this.scene.add( dirLight );
+    },
+    initLightShadow:function(){
+    	if(this.isMobile) return;
+    	this.scene.add( new THREE.AmbientLight( 0x606060 ) );
+	    var light = new THREE.DirectionalLight( 0xffffff , 1);
+	    light.position.set( 300, 1000, 500 );
+	    light.target.position.set( 0, 0, 0 );
+	    light.castShadow = true;
+	    light.shadowCameraNear = 500;
+	    light.shadowCameraFar = 1600;
+	    light.shadowCameraFov = 70;
+	    light.shadowBias = 0.0001;
+	    light.shadowDarkness = 0.7;
+	    //light.shadowCameraVisible = true;
+	    light.shadowMapWidth = light.shadowMapHeight = 1024;
+	    this.scene.add( light );
     },
     initBasic:function(){
     	var geos = {};
@@ -114,7 +129,7 @@ V3D.View.prototype = {
 	    	if(type=='cylinder' && !move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.static);
 	    	mesh.scale.set( size[0], size[1], size[2] );
 	        mesh.position.set( pos[0], pos[1], pos[2] );
-	        mesh.rotation.set( rot[0]*Math.PI / 180, rot[1]*Math.PI / 180, rot[2]*Math.PI / 180 );
+	        mesh.rotation.set( rot[0]*V3D.ToRad, rot[1]*V3D.ToRad, rot[2]*V3D.ToRad );
 	        this.scene.add( mesh );
 	        return mesh;
     	}
@@ -208,8 +223,8 @@ V3D.Navigation.prototype = {
 	Orbit : function (origine, h, v, distance) {
 	    origine = origine || new THREE.Vector3();
 	    var p = new THREE.Vector3();
-	    var phi = v*Math.PI / 180;
-	    var theta = h*Math.PI / 180;
+	    var phi = v*V3D.ToRad;
+	    var theta = h*V3D.ToRad;
 	    p.x = (distance * Math.sin(phi) * Math.cos(theta)) + origine.x;
 	    p.z = (distance * Math.sin(phi) * Math.sin(theta)) + origine.z;
 	    p.y = (distance * Math.cos(phi)) + origine.y;
@@ -354,7 +369,6 @@ V3D.Pool.prototype = {
     	img.onload = function(){
     		var name = url[0].substring(url[0].lastIndexOf("/")+1, url[0].lastIndexOf("."));
     		_this.imgs[name] = this;
-    		
     		url.shift();
     		if(url.length) _this.loadImages(url, endFunction);
     		else if(endFunction)endFunction();

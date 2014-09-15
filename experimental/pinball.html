@@ -21,142 +21,50 @@ button:hover{border: 2px solid #72797D; cursor: pointer; background: #11BBFF; co
 <script src="../js/loaders/sea3d/SEA3D.js"></script>
 <script src="../js/loaders/sea3d/SEA3DLoader.js"></script>
 <script src="../js/loaders/sea3d/SEA3DLZMA.js"></script>
-<script src="../js/navigation.js"></script>
 <script src="../build/Oimo.min.js"></script>
+<script src="../js/v3d.js"></script>
 <script>
-// three var
-var camera, scene, light, renderer, container;
-
+var v3d, pool;
 var geos = {};
 var mats = {};
 var ToRad = Math.PI / 180;
-
-var seaLink = '../models/pinball.sea';
-var seaMeshs = {};
 
 init();
 loop();
 
 function init() {
-    camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-    initCamera(360,60,500);
-
-    scene = new THREE.Scene();
-
-    // lights
-    scene.add( new THREE.AmbientLight( 0x606060 ) );
-    light = new THREE.DirectionalLight( 0xffffff , 1);
-    light.position.set( 300, 1000, 500 );
-    light.target.position.set( 0, 0, 0 );
-    light.castShadow = true;
-    light.shadowCameraNear = 500;
-    light.shadowCameraFar = 1600;
-    light.shadowCameraFov = 70;
-    light.shadowBias = 0.0001;
-    light.shadowDarkness = 0.7;
-    //light.shadowCameraVisible = true;
-    light.shadowMapWidth = light.shadowMapHeight = 1024;
-    scene.add( light );
-
-    // background
-    var buffgeoBack = new THREE.BufferGeometry();
-    buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
-    var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
-    back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
-    scene.add( back );
-
-    // geometrys
-    geos['sphere'] = new THREE.BufferGeometry();
-    geos['sphere'].fromGeometry( new THREE.SphereGeometry( 1 , 20, 10 ) );
-    geos['box'] = new THREE.BufferGeometry();
-    geos['box'].fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
-
-    // materials
-    mats['sph'] = new THREE.MeshPhongMaterial( { color: 0x99999A, name:'sph' ,specular: 0xFFFFFF, shininess: 120, transparent: true, opacity: 0.9 } );
-    mats['box'] = new THREE.MeshLambertMaterial( {  color: 0xAA8058, name:'box' } );
-    mats['ssph'] = new THREE.MeshPhongMaterial( { color:  0x666667, name:'ssph', specular: 0xFFFFFF, shininess: 120 , transparent: true, opacity: 0.7} );
-    mats['sbox'] = new THREE.MeshLambertMaterial( {  color: 0x383838, name:'sbox' } );
-    mats['ground'] = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
-
-    // three renderer
-    renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:true});
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.autoClear = false;
-    renderer.shadowMapEnabled = true;
-    renderer.shadowMapType = THREE.PCFShadowMap;
-
-    container = document.getElementById("container");
-    container.appendChild( renderer.domElement );
-
-    initEvents();
-    loadSea3d();
-
+    v3d = new V3D.View(360,60,500);
+    v3d.initLightShadow();
+    pool = new V3D.Pool();
+    pool.loadModels( ['../models/pinball.sea'], initPinball );
 }
 
 function loop() {
+    v3d.render();
     requestAnimationFrame( loop );
-    renderer.render( scene, camera );
-}
-
-//----------------------------------
-// SEA3D 
-//----------------------------------
-
-function loadSea3d(){
-    var size = 1;
-    var loader = new THREE.SEA3D( true );
-    loader.onComplete = function( e ) {
-        var size = 4;
-        var mesh, mtx;
-        for (var i=0; i !== loader.meshes.length; i++){
-            mesh = loader.meshes[i];
-            mesh.material.ambient.setHex(0x999999);
-            mtx = new THREE.Matrix4();
-            mtx.makeScale(size, size, -size);
-            mesh.geometry.applyMatrix(mtx);
-            seaMeshs[mesh.name] = mesh;
-        }
-        initPinball();
-    }
-    loader.load( seaLink );
 }
 
 function initPinball(){
     var body = new THREE.Object3D();
-    body.add(seaMeshs.base);
-    body.add(seaMeshs.foot);
-    body.add(seaMeshs.baseup);
-    body.add(seaMeshs.inside);
-    body.add(seaMeshs.screen);
-    seaMeshs.glass.material.transparent = true;
-    seaMeshs.glass.material.opacity =0.3;
-    body.add(seaMeshs.glass);
-    body.add(seaMeshs.deco)
-    body.add(seaMeshs.level)
+    body.add(pool.getMesh('base'));
+    body.add(pool.getMesh('foot'));
+    body.add(pool.getMesh('baseup'));
+    body.add(pool.getMesh('inside'));
+    body.add(pool.getMesh('screen'));
+    body.add(pool.getMesh('glass'));
+    body.add(pool.getMesh('deco'));
+    body.add(pool.getMesh('level'));
+    var mtx = new THREE.Matrix4();
+    mtx.makeScale(4, 4, -4);
+    for(var i = 0; i<body.children.length;i++){
+        body.children[i].geometry.applyMatrix(mtx);
+        body.children[i].material.ambient.setHex(0x999999);
+    }
+    pool.getMesh('glass').transparent = true;
+    pool.getMesh('glass').opacity = 0.4;
     body.rotation.z = -5*ToRad;
-
-
-    scene.add(body);
+    v3d.scene.add(body);
 }
-
-//----------------------------------
-//  TEXTURES
-//----------------------------------
-
-function gradTexture(color) {
-    var c = document.createElement("canvas");
-    var ct = c.getContext("2d");
-    c.width = 16; c.height = 256;
-    var gradient = ct.createLinearGradient(0,0,0,256);
-    var i = color[0].length;
-    while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
-    ct.fillStyle = gradient;
-    ct.fillRect(0,0,16,256);
-    var texture = new THREE.Texture(c);
-    texture.needsUpdate = true;
-    return texture;
-}
-</script>
 
 </script>
 </body>

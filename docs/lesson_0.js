@@ -31,6 +31,7 @@ world.worldscale(100);
 
 // three.js view with geometrys and materials ../js/v3d.js
 var v3d = new V3D.View();
+v3d.initLight();
 
 
 // Array to keep reference of rigidbody
