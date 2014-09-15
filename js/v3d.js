@@ -15,6 +15,7 @@ V3D.View = function(){
 	this.init();
 	this.initBasic();
 }
+
 V3D.View.prototype = {
     constructor: V3D.View,
     init:function(){
@@ -32,6 +33,9 @@ V3D.View.prototype = {
 
         this.nav = new V3D.Navigation(this);
         this.nav.initCamera(90,60,400);
+
+        //this.projector = new THREE.Projector();
+    	//this.raycaster = new THREE.Raycaster();
     },
     initBackground:function(){
     	var buffgeoBack = new THREE.BufferGeometry();
@@ -70,6 +74,8 @@ V3D.View.prototype = {
 	    mats['scyl'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(6), name:'scyl' } );
 	    mats['static'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(4, 6), name:'static' } );
 
+	    mats['joint']  = new THREE.LineBasicMaterial( { color: 0x00ff00 } );
+
 	    this.mats = mats;
 	    this.geos = geos;
     },
@@ -82,21 +88,47 @@ V3D.View.prototype = {
     	var pos = obj.pos || [0,0,0];
     	var rot = obj.rot || [0,0,0];
     	var move = obj.move || false;
-    	var mesh;
-    	if(type=='box' && move) mesh = new THREE.Mesh( this.geos.box, this.mats.box );
-    	if(type=='box' && !move) mesh = new THREE.Mesh( this.geos.box, this.mats.static);
-    	if(type=='sphere' && move) mesh = new THREE.Mesh( this.geos.sph, this.mats.sph );
-    	if(type=='sphere' && !move) mesh = new THREE.Mesh( this.geos.sph, this.mats.static);
-    	if(type=='cylinder' && move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.cyl );
-    	if(type=='cylinder' && !move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.static);
-    	mesh.scale.set( size[0], size[1], size[2] );
-        mesh.position.set( pos[0], pos[1], pos[2] );
-        mesh.rotation.set( rot[0]*Math.PI / 180, rot[1]*Math.PI / 180, rot[2]*Math.PI / 180 );
-        this.scene.add( mesh );
-        return mesh;
+    	
+    	if(type.substring(0,5) === 'joint'){//_____________ Joint
+    		var joint;
+    		var pos1 = obj.pos1 || [0,0,0];
+    		var pos2 = obj.pos2 || [0,0,0];
+			var geo = new THREE.Geometry();
+			geo.vertices.push( new THREE.Vector3( obj.pos1[0], obj.pos1[1], obj.pos1[2] ) );
+			geo.vertices.push( new THREE.Vector3( obj.pos2[0], obj.pos2[1], obj.pos2[2] ) );
+			joint = new THREE.Line( geo, mats.joint, THREE.LinePieces );
+			this.scene.add( joint );
+			return joint;
+    	} else {//_____________ Object
+    		var mesh;
+    		if(type=='box' && move) mesh = new THREE.Mesh( this.geos.box, this.mats.box );
+	    	if(type=='box' && !move) mesh = new THREE.Mesh( this.geos.box, this.mats.static);
+	    	if(type=='sphere' && move) mesh = new THREE.Mesh( this.geos.sph, this.mats.sph );
+	    	if(type=='sphere' && !move) mesh = new THREE.Mesh( this.geos.sph, this.mats.static);
+	    	if(type=='cylinder' && move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.cyl );
+	    	if(type=='cylinder' && !move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.static);
+	    	mesh.scale.set( size[0], size[1], size[2] );
+	        mesh.position.set( pos[0], pos[1], pos[2] );
+	        mesh.rotation.set( rot[0]*Math.PI / 180, rot[1]*Math.PI / 180, rot[2]*Math.PI / 180 );
+	        this.scene.add( mesh );
+	        return mesh;
+    	}
+    	
     },
 
 
+
+
+
+    customShader:function(shader){
+    	var material = new THREE.ShaderMaterial({
+			uniforms: shader.uniforms,
+			attributes: shader.attributes,
+			vertexShader: shader.vs,
+			fragmentShader: shader.fs
+		});
+		return material;
+    },
 
     gradTexture : function(color) {
         var c = document.createElement("canvas");
@@ -107,9 +139,9 @@ V3D.View.prototype = {
         while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
         ct.fillStyle = gradient;
         ct.fillRect(0,0,16,128);
-        var texture = new THREE.Texture(c);
-        texture.needsUpdate = true;
-        return texture;
+        var tx = new THREE.Texture(c);
+        tx.needsUpdate = true;
+        return tx;
     },
     basicTexture : function (n, r){
         var canvas = document.createElement( 'canvas' );
@@ -150,6 +182,7 @@ V3D.Navigation = function(root){
 	this.mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true, button:0 };
 	this.vsize = { w:this.parent.w, h:this.parent.h};
 	this.center = { x:0, y:0, z:0 };
+	this.key = [0,0,0,0,0,0,0];
 	this.rayTest = null;
 
 	this.initEvents();
@@ -178,6 +211,9 @@ V3D.Navigation.prototype = {
 	},
 	initEvents : function (){
 		var _this = this;
+		// disable context menu
+        document.addEventListener("contextmenu", function(e){ e.preventDefault(); }, false);
+
 	    this.parent.container.addEventListener( 'mousemove', function(e) {_this.onMouseMove(e)}, false );
 	    this.parent.container.addEventListener( 'mousedown', function(e) {_this.onMouseDown(e)}, false );
 	    this.parent.container.addEventListener( 'mouseout',  function(e) {_this.onMouseUp(e)}, false );
@@ -251,5 +287,94 @@ V3D.Navigation.prototype = {
 	    this.parent.camera.aspect = this.vsize.w / this.vsize.h;
 	    this.parent.camera.updateProjectionMatrix();
 	    this.parent.renderer.setSize( this.vsize.w, this.vsize.h );
+	},
+	// ACTIVE KEYBOARD
+	bindKeys:function(){
+		var _this = this;
+		document.onkeydown = function(e) {
+		    e = e || window.event;
+			switch ( e.keyCode ) {
+			    case 38: case 87: case 90: _this.key[0] = 1; break; // up, W, Z
+				case 40: case 83:          _this.key[1] = 1; break; // down, S
+				case 37: case 65: case 81: _this.key[2] = 1; break; // left, A, Q
+				case 39: case 68:          _this.key[3] = 1; break; // right, D
+				case 17: case 67:          _this.key[4] = 1; break; // ctrl, C
+				case 69:                   _this.key[5] = 1; break; // E
+				case 32:                   _this.key[6] = 1; break; // space
+				case 16:                   _this.key[7] = 1; break; // shift
+			}
+		}
+		document.onkeyup = function(e) {
+		    e = e || window.event;
+			switch( e.keyCode ) {
+				case 38: case 87: case 90: _this.key[0] = 0; break; // up, W, Z
+				case 40: case 83:          _this.key[1] = 0; break; // down, S
+				case 37: case 65: case 81: _this.key[2] = 0; break; // left, A, Q
+				case 39: case 68:          _this.key[3] = 0; break; // right, D
+				case 17: case 67:          _this.key[4] = 0; break; // ctrl, C
+				case 69:                   _this.key[5] = 0; break; // E
+				case 32:                   _this.key[6] = 0; break; // space
+				case 16:                   _this.key[7] = 0; break; // shift
+			}
+		}
+	    //self.focus();
+	}
+}
+
+
+
+//----------------------------------
+//  LOADER
+//----------------------------------
+V3D.Pool = function(root){
+	this.parent = root;
+
+	this.imgs = {};
+	this.meshs = {};
+}
+
+V3D.Pool.prototype = {
+    constructor: V3D.Pool,
+    
+    // LOAD IMAGES Array
+    loadImages:function(url, endFunction){
+    	var _this = this;
+    	var img = new Image(), name;
+    	img.onload = function(){
+    		name = url[0].substr(0, url[0].lastIndexOf("."));
+    		_this.imgs[name] = this;
+    		if(url.length !== 0) { url.shift(); _this.loadImages(url); }
+    		else if(endFunction)endFunction();
+    	};
+        img.src = url[0];
+    },
+    getTexture:function( name, revers ){
+    	var tx = new THREE.Texture(this.imgs[name]);
+    	if(revers){
+    		tx.repeat.set( 1, -1 ); tx.wrapS = tx.wrapT = THREE.RepeatWrapping;
+    	}
+    	tx.needsUpdate = true;
+    	return tx;
+    },
+    // LOAD MODELS Array
+    loadModels:function (url, endFunction){
+    	var _this = this;
+	    var loader = new THREE.SEA3D( true );
+	    loader.onComplete = function( e ) {
+	        var i = loader.meshes.length;
+	        while(i--){
+	            _this.meshs[loader.meshes[i].name] = loader.meshes[i];
+	        }
+    		if(url.length !== 0) { url.shift(); _this.loadModels(url); }
+    		else if(endFunction)endFunction();
+	    }
+	    loader.load( url[0] );
+	},
+	scaleGeometry:function (g, s){
+		s = s || 1;
+		var mtx = new THREE.Matrix4().makeScale(s, s, -s);
+		g.applyMatrix(mtx);
+	    g.computeBoundingBox();
+		g.computeBoundingSphere();
 	}
 }

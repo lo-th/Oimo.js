@@ -17,7 +17,7 @@ var Iterations = 8;
 // calculate statistique or not
 var noStat = false;
 
-// create new oimo world contains all rigidBodys and joint.
+// create oimo world contains all rigidBodys and joint.
 var world = new OIMO.World( timestep, boardphase, Iterations, noStat );
 
 // you can choose world gravity 
@@ -25,16 +25,17 @@ world.gravity = new OIMO.Vec3(0, -9.8, 0);
 
 // Oimo Physics use international system units 0.1 to 10 meters max for dynamique body.
 // for three.js i use by default *100  so object is between 10 to 10000 three unit.
+// big object give better precision try change value 10 , 1 ...
 world.worldscale(100);
 
 
-// basic three.js view with geometrys and materials
+// three.js view with geometrys and materials ../js/v3d.js
 var v3d = new V3D.View();
 
 
-// create array to keep reference of rigidbody
+// Array to keep reference of rigidbody
 var bodys = [];
-// reference to three mesh
+// Array to keep reference of three mesh
 var meshs = [];
 
 populate(1);

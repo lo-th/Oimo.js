@@ -3,18 +3,15 @@
 *  1 - RIGIDBODYS
 */
 
-// create new oimo world contains all rigidBodys and joint.
+// create oimo world contains all rigidBodys and joint.
 var world = new OIMO.World();
-world.gravity = new OIMO.Vec3(0, -9.8, 0);
 
-
-// basic three.js view with geometrys and materials
+// three.js view with geometrys and materials ../js/v3d.js
 var v3d = new V3D.View();
 
-
-// create array to keep reference of rigidbody
+// Array to keep reference of rigidbody
 var bodys = [];
-// reference to three mesh
+// Array to keep reference of three mesh
 var meshs = [];
 
 populate(1);
