@@ -38,6 +38,7 @@ body { background: #000; font:12px sans-serif; color:#fff; text-shadow:1px 1px 0
 <script src="js/loaders/sea3d/SEA3DLoader.js"></script>
 <script src="js/loaders/sea3d/SEA3DLZMA.js"></script>
 <script src="js/slider.js"></script>
+<script src="js/png.min.js"></script>
 <script src="build/Oimo.min.js"></script>
 
 <div id="viewport"></div>
@@ -214,7 +215,7 @@ function animate() {
 
 function initBVH() {
     bvh = new BVH.Reader();
-    loadBVH("bvh/story.png");
+    loadBVH("bvh/story2.png");
 }
 
 function updateBVH() {
@@ -237,7 +238,7 @@ function setBones(v) {
 function loadBVH(file) {
     bvh.boneSize = BVHanimConfig.boneSize;
     bvh.speed = BVHanimConfig.speed;
-    bvh.load(file);
+    bvh.load(file, true);
     bvh.endFunction = createOimoSqueleton;
 }
 //----------------------------------

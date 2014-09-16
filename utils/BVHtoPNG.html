@@ -84,7 +84,7 @@ function update(n) {
         s = Math.ceil(Math.sqrt(str.length));
         size = [s, s];
     }
-
+    console.log(str[str.length-1], str[str.length-2], str[0], str[1])
     //createImage32(str);
     createImage(str);
     output.value = canvas.toDataURL('image/png');
@@ -170,8 +170,8 @@ function createImage(str) {
     var c;
     
     for(i = 0, l = image.data.length; i < l; i+=4) {
-        c = str.charCodeAt(i-n) || 32;
-        c = c-32;
+        c = str.charCodeAt(i-n);// || 32;
+        //c = c-32;
         img[i+0] = c;
         img[i+1] = c;
         img[i+2] = c;
@@ -206,7 +206,7 @@ var output = document.getElementById('output');
 
 document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
-update(2);
+update(3);
 
 
 </script>

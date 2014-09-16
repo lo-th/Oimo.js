@@ -27,24 +27,26 @@ button:hover{border: 2px solid #72797D; cursor: pointer; background: #11BBFF; co
 var v3d, pool;
 var geos = {};
 var mats = {};
-var ToRad = Math.PI / 180;
 
 init();
 loop();
 
-function init() {
+function init() 
+{
     v3d = new V3D.View(360,60,500);
     v3d.initLightShadow();
     pool = new V3D.Pool();
     pool.loadModels( ['../models/pinball.sea'], initPinball );
 }
 
-function loop() {
+function loop()
+{
     v3d.render();
     requestAnimationFrame( loop );
 }
 
-function initPinball(){
+function initPinball()
+{
     var body = new THREE.Object3D();
     body.add(pool.getMesh('base'));
     body.add(pool.getMesh('foot'));
@@ -62,7 +64,7 @@ function initPinball(){
     }
     pool.getMesh('glass').transparent = true;
     pool.getMesh('glass').opacity = 0.4;
-    body.rotation.z = -5*ToRad;
+    body.rotation.z = -5*V3D.ToRad;
     v3d.scene.add(body);
 }
 
