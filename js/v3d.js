@@ -246,9 +246,11 @@ V3D.Navigation.prototype = {
 	    this.parent.container.addEventListener( 'mouseout',  function(e) {_this.onMouseUp(e)}, false );
 	    this.parent.container.addEventListener( 'mouseup', function(e) {_this.onMouseUp(e)}, false );
 
-	    this.parent.container.addEventListener( 'touchstart', function(e) {_this.onMouseDown(e)}, false );
-	    this.parent.container.addEventListener( 'touchend', function(e) {_this.onMouseUp(e)}, false );
-	    this.parent.container.addEventListener( 'touchmove', function(e) {_this.onMouseMove(e)}, false );
+	    if (typeof window.ontouchstart !== 'undefined') {
+		    this.parent.container.addEventListener( 'touchstart', function(e) {_this.onMouseDown(e)}, false );
+		    this.parent.container.addEventListener( 'touchend', function(e) {_this.onMouseUp(e)}, false );
+		    this.parent.container.addEventListener( 'touchmove', function(e) {_this.onMouseMove(e)}, false );
+		}
 
 	    this.parent.container.addEventListener( 'mousewheel', function(e) {_this.onMouseWheel(e)}, false );
 	    this.parent.container.addEventListener( 'DOMMouseScroll', function(e) {_this.onMouseWheel(e)}, false );

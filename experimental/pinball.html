@@ -23,10 +23,18 @@ button:hover{border: 2px solid #72797D; cursor: pointer; background: #11BBFF; co
 <script src="../js/loaders/sea3d/SEA3DLZMA.js"></script>
 <script src="../build/Oimo.min.js"></script>
 <script src="../js/v3d.js"></script>
+<script src="../js/libs/tween.min.js"></script>
 <script>
 var v3d, pool;
 var geos = {};
 var mats = {};
+var world = null;
+
+var ball = [];
+var ballMesh = [];
+
+var paddle = [];
+var paddleMesh = [];
 
 init();
 loop();
@@ -66,6 +74,44 @@ function initPinball()
     pool.getMesh('glass').opacity = 0.4;
     body.rotation.z = -5*V3D.ToRad;
     v3d.scene.add(body);
+
+    initPhysics();
+}
+
+function initPhysics()
+{
+    world = new OIMO.World();
+    var obj = { size:[600, 100, 300], pos:[0,-50,0], rot:[0,0,-5], world:world }
+    new OIMO.Body(obj);
+    //v3d.add(obj);
+    obj = { size:[600, 100, 30], pos:[0,50,-128], rot:[0,0,-5], world:world }
+    new OIMO.Body(obj);
+    //v3d.add(obj);
+    obj.pos[2] = 122;
+    new OIMO.Body(obj);
+    //v3d.add(obj);
+
+    obj = { type:'sphere', size:[6, 6, 6], pos:[-200,50,0], move:true, world:world };
+    var i = 3;
+    while (i--){
+        obj.pos[1] = 50+(i*14);
+        ball[i] = new OIMO.Body(obj);
+        ballMesh[i] = v3d.add(obj);
+    }
+
+
+    setInterval(oimoLoop, 1000/60);
+
+}
+
+function oimoLoop()
+{
+    world.step();
+    var i = ball.length;
+    while (i--){
+        ballMesh[i].position.copy(ball[i].getPosition());
+        ballMesh[i].quaternion.copy(ball[i].getQuaternion());
+    }
 }
 
 </script>
