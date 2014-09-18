@@ -116,7 +116,7 @@ V3D.View.prototype = {
 			var geo = new THREE.Geometry();
 			geo.vertices.push( new THREE.Vector3( obj.pos1[0], obj.pos1[1], obj.pos1[2] ) );
 			geo.vertices.push( new THREE.Vector3( obj.pos2[0], obj.pos2[1], obj.pos2[2] ) );
-			joint = new THREE.Line( geo, mats.joint, THREE.LinePieces );
+			joint = new THREE.Line( geo, this.mats.joint, THREE.LinePieces );
 			this.scene.add( joint );
 			return joint;
     	} else {//_____________ Object

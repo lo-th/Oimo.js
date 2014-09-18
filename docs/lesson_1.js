@@ -38,6 +38,8 @@ obj.config = [
     1, // The bits of the collision groups to which the shape belongs.
     0xffffffff // The bits of the collision groups with which the shape collides.
 ];
+// you can choose unique name for each rigidbody
+obj.name = 'myName';
 
 
 // finaly add body 

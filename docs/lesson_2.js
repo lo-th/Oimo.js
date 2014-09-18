@@ -12,10 +12,67 @@ v3d.initLight();
 
 // Array to keep reference of rigidbody
 var bodys = [];
+// Array to keep reference of joint
+var joints = [];
 // Array to keep reference of three mesh
 var meshs = [];
+// Array to keep reference of three joint
+var lines = [];
 
-populate(1);
+
+// create first static body
+var obj = { size:[100, 100, 100], pos:[0,200,0], world:world, name:'base' }
+new OIMO.Body(obj);
+v3d.add(obj);
+// create second dynamique body
+obj = { size:[100, 100, 100], pos:[0,200,200], world:world, name:'moving', move:true }
+bodys[0] = new OIMO.Body(obj);
+meshs[0] = v3d.add(obj);
+
+
+// OIMO.Link is the main class of joint
+// it use object to define propriety
+obj = {};
+// the world where joint is /!\ important
+obj.world = world;
+// the type of joint
+// jointHinge : allows only for relative rotation of rigid bodies along the axis.
+// jointDistance : limits the distance between two anchor points on rigidBody.
+// jointPrisme : allows only for relative translation of rigid bodies along the axis.
+// jointSlide : allows for relative translation and relative rotation between two rigid bodies along the axis.
+// jointBall : limits relative translation on two anchor points on rigidBody.
+// jointWheel : rotation between two rigid bodies along two axes and translation for the suspension.
+obj.type = 'jointDistance';
+// the first rigidbody can be name or body reference
+obj.body1 = 'base';
+// the second rigidbody can be name or body reference
+obj.body2 = 'moving';
+// if body1 and body2 keep collision between them
+obj.collision = true;
+// the position of the first point relative to body1 can be static or dynamique
+obj.pos1 = [0,-50,0];
+// the position of the second point relative to body2 can be static or dynamique
+obj.pos2 = [0,50,0];
+// the first axis limite
+obj.axe1 = [1,0,0];
+// the second axis limite
+obj.axe2 = [1,0,0];
+// min max distance for jointDistance or angles in degree for jointHinge
+obj.min = 45;
+obj.max = 200;
+// extra propriety 
+// Limit for jointWheel and Spring
+obj.limite = null;
+// Spring for JointDistance, JointHinge, jointWheel
+obj.spling = null;
+// you can choose unique name for each rigidbody
+obj.name = 'myName';
+
+// finaly add body 
+joints[0] = new OIMO.Link(obj);
+// add Three display mesh
+lines[0] = v3d.add(obj);
+
 
 // start loops
 setInterval(oimoLoop, 1000/60);
@@ -33,75 +90,16 @@ function oimoLoop()
 {  
     world.step();// update world
 
-    var x, y, z, mesh, body;
-    var i = bodys.length;
-    while (i--){
-        body = bodys[i];
-        mesh = meshs[i];
+    // get rigidbody position and rotation and apply to mesh 
+    meshs[0].position.copy(bodys[0].getPosition());
+    meshs[0].quaternion.copy(bodys[0].getQuaternion());
 
-        if(!body.getSleep()){ // if body didn't sleep
+    // get joint point position and apply to three line
+    var pos = joints[0].getPosition();
+    lines[0].geometry.vertices[0].copy( pos[0] );
+    lines[0].geometry.vertices[1].copy( pos[1] );
+    lines[0].geometry.verticesNeedUpdate = true;
 
-            // apply rigidbody position and rotation to mesh
-            mesh.position.copy(body.getPosition());
-            mesh.quaternion.copy(body.getQuaternion());
-
-            // change material
-            if(mesh.material.name === 'sbox') mesh.material = v3d.mats.box;
-            if(mesh.material.name === 'ssph') mesh.material = v3d.mats.sph; 
-
-            // reset position
-            if(mesh.position.y<-100){
-                x = rand(-100,100);
-                z = rand(-100,100);
-                y = rand(100,1000);
-                body.resetPosition(x,y,z);
-            }
-        } else {
-            if(mesh.material.name === 'box') mesh.material = v3d.mats.sbox;
-            if(mesh.material.name === 'sph') mesh.material = v3d.mats.ssph;
-        }
-    }
     // oimo stat display
     document.getElementById("info").innerHTML = world.performance.show();
-}
-
-/* add random object */
-function populate(n) 
-{
-    var obj;
-
-    //add static ground
-    obj = { size:[400, 40, 390], pos:[0,-20,0], world:world }
-    new OIMO.Body(obj);
-    v3d.add(obj);
-
-    //add random objects
-    var x, y, z, w, h, d, t;
-    var i = 100;
-
-    while (i--){
-        t = rand(1,3);
-        x = rand(-100,100);
-        z = rand(-100,100);
-        y = rand(100,1000);
-        w = rand(10,20);
-        h = rand(10,20);
-        d = rand(10,20);
-
-        if(t===1) obj = { type:'sphere', size:[w*0.5, w*0.5, w*0.5], pos:[x,y,z], move:true, world:world };
-        if(t===2) obj = { type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world };
-        if(t===3) obj = { type:'cylinder', size:[w,h,w, w,h,w, w,h,w, w,h,w], pos:[x,y,z], rot:[0,0,0, 0,45,0, 0,22.5,0, 0,-22.5,0], move:true, world:world };
-        
-        bodys[i] = new OIMO.Body(obj);
-        meshs[i] = v3d.add(obj);
-    }
-}
-
-/* random number */
-function rand(min, max, n)
-{
-    var r, n = n||0;
-    if (min < 0) r = min + Math.random() * (Math.abs(min)+max);
-    else r = min + Math.random() * max;
-    return r.toFixed(n)*1;
 }
