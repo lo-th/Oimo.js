@@ -20,12 +20,16 @@ html, body {background-color: #212324;  font: normal 12px Consolas;}
 #menutop{position:absolute; top:0px; left:150px; width:300px; height:30px; }
 #title{position: absolute; top:6px; left:10px; width:200px; height:14px; color:#a6a6a6; font-weight:bold; font-size:14px;  pointer-events:none;}
 #b0{position: absolute; top:6px; right:6px; width:20px; height:20px; background-color: #212324; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center;}
+#b1{position: absolute; top:6px; right:36px; width:20px; height:20px; background-color: #128812; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center; display:none;}
+a { color: #128812; text-decoration: none; font-size:14px; }
+a[data-disabled] { color: #888; text-decoration: line-through; pointer-events:none;}
 </style>
 </head>
 <body>
 <div id='menu'></div>
 <div id='title'>OIMO lesson &gt;</div>
 <div id='b0'>V</div>
+<div id='b1'>S</div>
 <div id="preview"></div>
 <div id='menutop'></div>
 <script>
@@ -34,6 +38,7 @@ var numLesson = 3;
 
 var doc = document;
 var b0 = doc.getElementById('b0');
+var b1 = doc.getElementById('b1');
 var menutop = doc.getElementById( 'menutop' );
 var views = [];
 var items = [];
@@ -42,6 +47,7 @@ var viewType = 'vertical';
 var defStyle = 'position:absolute; display:block; border:none; border-left:1px solid #27292a; border-top:1px solid #000000;';
 var topy = 30;
 var currentLesson = -1;
+var a = null;
 
 window.onload = init;
 
@@ -66,7 +72,11 @@ function init(){
 			b0.innerHTML = 'V';
 		}
 		resize();
-	}
+	};
+
+	b1.onclick = function (e){
+		views[0].contentWindow.save();
+	};
 
 	var item, txt;
 	for(var i=0; i< numLesson; i++){
@@ -116,6 +126,7 @@ function setStyle(n, l, t, w, h){
 
 function loadFile(name){
     views[0].contentWindow.loadfile(name);
+    showSave();
 }
 
 function openFile(o){
@@ -158,6 +169,37 @@ function checkCurrent(){
 	}
 }
 
+function createLink(blob, name, type){
+	window.URL = window.webkitURL || window.URL;
+	if (a) {
+	    window.URL.revokeObjectURL(a.href);
+	    doc.body.removeChild(a);
+	}
+	a = document.createElement('a');
+	a.style.cssText = "position:absolute; top:7px; right:100px; width:200px; height:25px; text-align:right;"
+	a.download = name; //container.querySelector('input[type="text"]').value;
+	a.href = window.URL.createObjectURL(blob);
+	a.textContent = 'Download ready';
+
+	a.dataset.downloadurl = [type, a.download, a.href].join(':');
+	a.draggable = true; // Don't really need, but good practice.
+	a.classList.add('dragout');
+	doc.body.appendChild(a);
+	a.onclick = function(e) {
+	    if ('disabled' in this.dataset) return false;
+	    cleanUp();
+	};
+}
+
+function cleanUp() {
+	a.textContent = 'Downloaded';
+	a.dataset.disabled = true;
+	// Need a small delay for the revokeObjectURL to work properly.
+	setTimeout(function() { window.URL.revokeObjectURL(a.href); }, 1500);
+};
+function showSave(){
+	b1.style.display = 'block';
+}
 </script>
 </body>
 </html>

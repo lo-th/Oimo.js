@@ -63,6 +63,7 @@
 	::-webkit-scrollbar-track:horizontal {
 	    margin-right: 12px;
 	}
+
 </style>
 </head>
 <body>
@@ -70,7 +71,7 @@
 <script src="../../js/libs/codemirror.min.js"></script>
 <script src="../../js/libs/rawinflate.js"></script>
 <script src="../../js/libs/rawdeflate.js"></script>
-<script src="../../js/libs/FileSaver.js"></script>
+<!--<script src="../../js/libs/FileSaver.js"></script>-->
 <script src="../../js/libs/esprima.min.js"></script>
     
 <script>
@@ -123,7 +124,9 @@ function close(){
 }
 
 function loadfile(url){
-	var type = url.substr(url.lastIndexOf(".")+1, url.length);
+	var type = url.substring(url.lastIndexOf(".")+1, url.length);
+	currentName = url.substring(0,url.lastIndexOf(".") );
+	console.log(type, currentName);
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', "../"+url, true);
 	xhr.responseType = 'blob';
@@ -143,11 +146,13 @@ function loadfile(url){
 
 function save() {
 	var mode = editor.getOption('mode');
-	var type;
+	var type, ex;
 	if(mode == 'htmlmixed'){
 			type = 'text/html;charset=utf-8';
+			ex = '.html';
 		} else {
 			type = 'application/text/javascript;charset=utf-8';
+			ex = '.js'
 		}
 
 		//documents[ 0 ].code = editor.getValue();
@@ -157,8 +162,10 @@ function save() {
 		var blob = new Blob( [ editor.getValue() ], { type: type } );
 		//var objectURL = URL.createObjectURL( blob );
 
-		var fileSaver = saveAs(blob, "../test.js" );
-		fileSaver.onwriteend = function(e) {console.log("file save")}
+		//var fileSaver = saveAs(blob, currentName+ex );
+		//fileSaver.onwriteend = function(e) {console.log("file save")}
+
+		root.createLink(blob, currentName+ex, type);
 
 		//buttonDownload.href = objectURL;
 
