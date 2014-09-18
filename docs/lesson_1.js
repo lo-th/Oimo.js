@@ -50,7 +50,7 @@ meshs[0] = v3d.add(obj);
 
 
 //add simple static ground
-obj = { size:[400, 40, 390], pos:[0,-20,0], world:world }
+obj = { size:[400, 40, 390], pos:[0,-20,0], world:world, flat:true }
 new OIMO.Body(obj);
 v3d.add(obj);
 

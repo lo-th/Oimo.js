@@ -21,11 +21,11 @@ var lines = [];
 
 
 // create first static body
-var obj = { size:[100, 100, 100], pos:[0,200,0], world:world, name:'base' }
+var obj = { size:[40, 100, 40], pos:[0,200,0], world:world, name:'base' }
 new OIMO.Body(obj);
 v3d.add(obj);
 // create second dynamique body
-obj = { size:[100, 100, 100], pos:[0,200,200], world:world, name:'moving', move:true }
+obj = { size:[100, 100, 100], pos:[60,200,200], world:world, name:'moving', move:true }
 bodys[0] = new OIMO.Body(obj);
 meshs[0] = v3d.add(obj);
 

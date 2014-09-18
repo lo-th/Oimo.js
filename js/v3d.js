@@ -84,6 +84,7 @@ V3D.View.prototype = {
 	    geos['cyl'].fromGeometry( new THREE.CylinderGeometry(0.5,0.5,1,12,1));  
 	    geos['box'].fromGeometry( new THREE.BoxGeometry(1,1,1));
 	    geos['plane'] = new THREE.PlaneBufferGeometry(1,1);
+	    geos['plane'].applyMatrix(new THREE.Matrix4().makeRotationX(-90*V3D.ToRad));
 
 	    var mats = {};
 	    mats['sph'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(0), name:'sph' } );
@@ -92,7 +93,8 @@ V3D.View.prototype = {
 	    mats['sbox'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(3), name:'sbox' } );
 	    mats['cyl'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(5), name:'cyl' } );
 	    mats['scyl'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(6), name:'scyl' } );
-	    mats['static'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(4, 6), name:'static' } );
+	    mats['static'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(4), name:'static' } );
+	    mats['static2'] = new THREE.MeshLambertMaterial( { map: this.basicTexture(4, 6), name:'static2' } );
 
 	    mats['joint']  = new THREE.LineBasicMaterial( { color: 0x00ff00 } );
 
@@ -108,6 +110,7 @@ V3D.View.prototype = {
     	var pos = obj.pos || [0,0,0];
     	var rot = obj.rot || [0,0,0];
     	var move = obj.move || false;
+    	if(obj.flat){ type = 'plane'; pos[1]+=size[1]*0.5; }
     	
     	if(type.substring(0,5) === 'joint'){//_____________ Joint
     		var joint;
@@ -123,6 +126,7 @@ V3D.View.prototype = {
     		var mesh;
     		if(type=='box' && move) mesh = new THREE.Mesh( this.geos.box, this.mats.box );
 	    	if(type=='box' && !move) mesh = new THREE.Mesh( this.geos.box, this.mats.static);
+	    	if(type=='plane' && !move) mesh = new THREE.Mesh( this.geos.plane, this.mats.static2);
 	    	if(type=='sphere' && move) mesh = new THREE.Mesh( this.geos.sph, this.mats.sph );
 	    	if(type=='sphere' && !move) mesh = new THREE.Mesh( this.geos.sph, this.mats.static);
 	    	if(type=='cylinder' && move) mesh = new THREE.Mesh( this.geos.cyl, this.mats.cyl );

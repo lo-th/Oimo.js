@@ -21,8 +21,8 @@ html, body {background-color: #212324;  font: normal 12px Consolas;}
 #title{position: absolute; top:6px; left:10px; width:200px; height:14px; color:#a6a6a6; font-weight:bold; font-size:14px;  pointer-events:none;}
 #b0{position: absolute; top:6px; right:6px; width:20px; height:20px; background-color: #212324; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center;}
 #b1{position: absolute; top:6px; right:36px; width:20px; height:20px; background-color: #128812; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center; display:none;}
-a { color: #128812; text-decoration: none; font-size:14px; }
-a[data-disabled] { color: #888; text-decoration: line-through; pointer-events:none;}
+a { color:#128812; text-decoration:none; font-size:14px; border:1px solid #128812;}
+a[data-disabled] { color: #343434; text-decoration:none; pointer-events:none; border:1px solid #343434;}
 </style>
 </head>
 <body>
@@ -176,7 +176,7 @@ function createLink(blob, name, type){
 	    doc.body.removeChild(a);
 	}
 	a = document.createElement('a');
-	a.style.cssText = "position:absolute; top:7px; right:100px; width:200px; height:25px; text-align:right;"
+	a.style.cssText = "position:absolute; top:6px; right:65px; width:120px; height:20px; text-align:center;"
 	a.download = name; //container.querySelector('input[type="text"]').value;
 	a.href = window.URL.createObjectURL(blob);
 	a.textContent = 'Download ready';
