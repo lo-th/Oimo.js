@@ -37,6 +37,7 @@ OIMO.Link = function(Obj){
 
     var limit = obj.limit || null;
     var spring = obj.spring || null;
+    var motor = obj.motor || null;
 
     // joint setting
     var jc = new OIMO.JointConfig();
@@ -53,11 +54,12 @@ OIMO.Link = function(Obj){
     
     switch(type){
         case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); 
-             if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);
-
+            if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);
+            if(motor !== null) this.joint.limitMotor.setSpring(motor[0], motor[1]);
         break;
         case "jointHinge": this.joint = new OIMO.HingeJoint(jc, min, max);
             if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
+            if(motor !== null) this.joint.limitMotor.setSpring(motor[0], motor[1]);
         break;
         case "jointPrisme": this.joint = new OIMO.PrismaticJoint(jc, min, max); break;
         case "jointSlide": this.joint = new OIMO.SliderJoint(jc, min, max); break;
@@ -65,6 +67,7 @@ OIMO.Link = function(Obj){
         case "jointWheel": this.joint = new OIMO.WheelJoint(jc);  
             if(limit !== null) this.joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
             if(spring !== null) this.joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+            if(motor !== null) this.joint.rotationalLimitMotor1.setSpring(motor[0], motor[1]);
         break;
     }
 

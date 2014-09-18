@@ -20,7 +20,7 @@ var meshs = [];
 var obj = {};
 // the world where object is /!\ important
 obj.world = world;
-// the type of body : box sphere or ( cylinder in rev)
+// the type of body : box sphere or (cylinder in rev)
 obj.type = 'box';
 // the start position
 obj.pos = [0,200,0];
@@ -28,7 +28,7 @@ obj.pos = [0,200,0];
 obj.rot = [0,45,0];
 // the size
 obj.size = [100,100,50];
-// is dynamique or not 
+// is dynamic or static 
 obj.move = true;
 // the physics config
 obj.config = [

@@ -42,6 +42,7 @@ obj.world = world;
 // jointSlide : allows for relative translation and relative rotation between two rigid bodies along the axis.
 // jointBall : limits relative translation on two anchor points on rigidBody.
 // jointWheel : rotation between two rigid bodies along two axes and translation for the suspension.
+// (note: rev version have jointBall, jointDistance, jointHinge, jointHinge2)
 obj.type = 'jointDistance';
 // the first rigidbody can be name or body reference
 obj.body1 = 'base';
@@ -49,22 +50,31 @@ obj.body1 = 'base';
 obj.body2 = 'moving';
 // if body1 and body2 keep collision between them
 obj.collision = true;
-// the position of the first point relative to body1 can be static or dynamique
+// the position of the first point relative to body1 can be static or dynamic
 obj.pos1 = [0,-50,0];
-// the position of the second point relative to body2 can be static or dynamique
+// the position of the second point relative to body2 can be static or dynamic
 obj.pos2 = [0,50,0];
-// the first axis limite
+// the first axis limite XYZ 1:active 0:inactive
 obj.axe1 = [1,0,0];
-// the second axis limite
+// the second axis limite XYZ 1:active 0:inactive
 obj.axe2 = [1,0,0];
 // min max distance for jointDistance or angles in degree for jointHinge
 obj.min = 45;
 obj.max = 200;
+
 // extra propriety 
 // Limit for jointWheel and Spring
+// defined by array [lowerLimit,upperLimit]
 obj.limite = null;
 // Spring for JointDistance, JointHinge, jointWheel
-obj.spling = null;
+// defined by array [frequency,dampingRatio]
+obj.spring = [8, 0.2];
+// motor for JointDistance, JointHinge, jointWheel
+// defined by array [motorSpeed,maxMotorForce]
+obj.motor = null;
+
+
+
 // you can choose unique name for each rigidbody
 obj.name = 'myName';
 
