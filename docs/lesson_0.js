@@ -1,7 +1,7 @@
 
-/**
-*  0 - OIMO WORLD - basic setup
-*/
+//--------------------------------
+//   0 - OIMO WORLD
+//--------------------------------
 
 // The time between each step
 var timestep = 1/60;

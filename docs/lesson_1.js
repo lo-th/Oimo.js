@@ -1,7 +1,7 @@
 
-/**
-*  1 - RIGIDBODYS
-*/
+//--------------------------------
+//   1 - RIGIDBODYS _ Body
+//--------------------------------
 
 // create oimo world contains all rigidBodys and joint.
 var world = new OIMO.World();
