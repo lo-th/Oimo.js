@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>SCRIPT to PNG</title>
+<title>Script to Png</title>
 <link href="../css/codemirror.css" rel="stylesheet">
 <style>
 body {
@@ -17,22 +17,21 @@ textarea {
   resize: none;
   width: 100%;
 }
-input{ margin:10px; padding:10px; }
-
-#interface{ position: absolute; left:0; top:0; width:100%; height:260px; }
+input{ margin:10px; padding:6px; }
+#interface{ position: absolute; left:0; top:0px; width:100%; height:260px; }
 #title{ position: absolute; left:10px; top:10px; width:300px; height:30px; font-size: 170%; pointer-events:none;}
 #colorSelect{position:absolute; left:180px; top:10px; text-align: center;}
 #cr{ position: absolute; left:0px; top:0px; width: 30px; padding-top:7px; padding-bottom:7px; cursor:pointer; background: red;}
 #cg{ position: absolute; left:34px; top:0px; width: 30px; padding-top:7px; padding-bottom:7px; cursor:pointer; background: green;}
 #cb{ position: absolute; left:68px; top:0px; width: 30px; padding-top:7px; padding-bottom:7px; cursor:pointer; background: blue;}
-#imageSizeX{ position: absolute; left:300px; top:10px; width: 50px;}
-#imageSizeY{ position: absolute; left:400px; top:10px; width: 50px;}
-#but01{ position: absolute; left:500px; top:10px; width: 60px; cursor:pointer;}
-#but02{ position: absolute; left:564px; top:10px; width: 60px; cursor:pointer;}
-#but03{ position: absolute; left:628px; top:10px; width: 60px; cursor:pointer;}
-#but04{ position: absolute; left:692px; top:10px; width: 80px; cursor:pointer;}
-#xtxt{ position: absolute; left:300px; top:30px; margin-left:-8px; width: 20px; }
-#ytxt{ position: absolute; left:400px; top:30px; margin-left:-8px; width: 20px; }
+#imageSizeX{ position: absolute; left:310px; top:3px; width: 50px;}
+#imageSizeY{ position: absolute; left:400px; top:3px; width: 50px;}
+#but01{ position: absolute; left:500px; top:3px; width: 60px; cursor:pointer;}
+#but02{ position: absolute; left:564px; top:3px; width: 60px; cursor:pointer;}
+#but03{ position: absolute; left:628px; top:3px; width: 60px; cursor:pointer;}
+#but04{ position: absolute; left:692px; top:3px; width: 80px; cursor:pointer;}
+#xtxt{ position: absolute; left:310px; top:20px; margin-left:-8px; width: 20px; }
+#ytxt{ position: absolute; left:400px; top:20px; margin-left:-8px; width: 20px; }
 #files{ position: absolute; left:10px; top:40px; cursor:pointer; margin-left:0; padding:0;}
 #images{ position: absolute; left:10px; top:310px; border:1px solid red;}
 #link{ position: absolute; left:820px; top:10px; width:280px;}
@@ -56,7 +55,7 @@ a{color:#ff8800;text-decoration:none;}
 
 <body>
 <div id='interface'>
-    <div id="title"> SCRIPT to PNG </div>
+    <div id="title"> Script to Png </div>
     <div id="xtxt">X</div> <input type="number" name="quantity" min="32" max="2048" value="200"  id='imageSizeX'>
     <div id="ytxt">Y</div> <input type="number" name="quantity" min="32" max="2048" value="200"  id='imageSizeY'>
     <div id="colorSelect">
