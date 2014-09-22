@@ -127,9 +127,12 @@ function canvas2d(image){
 }
 
 function decodeData(data){
+    var color = 0;
+    if(data[1]!==0)color=1;
+    if(data[2]!==0)color=2;
 	var pix, string = "";
 	for ( var i = 0, l = data.length; i<l; i+=4){
-        pix = data[i+1]+32;
+        pix = data[i+color]+32;
         if(pix===127) pix = 10;
         if(pix && pix<127 ) string += String.fromCharCode(pix);
     }
