@@ -75,12 +75,12 @@ obj.motor = null;
 
 
 
-// you can choose unique name for each rigidbody
+// you can choose unique name for each joints
 obj.name = 'myName';
 
-// finaly add body 
+// finaly add joint 
 joints[0] = new OIMO.Link(obj);
-// add Three display mesh
+// add Three display line
 lines[0] = v3d.add(obj);
 
 

@@ -182,14 +182,25 @@ function createLink(blob, name, type){
 	a.textContent = 'Download ready';
 
 	a.dataset.downloadurl = [type, a.download, a.href].join(':');
+	//a.dataset.downloadurl = [type, name, a.href].join(':');
 	a.draggable = true; // Don't really need, but good practice.
 	a.classList.add('dragout');
+	//a.filename = name;
 	doc.body.appendChild(a);
 	a.onclick = function(e) {
 	    if ('disabled' in this.dataset) return false;
 	    cleanUp();
 	};
+
 }
+
+// drag link outside :)
+document.body.addEventListener('dragstart', function(e) {
+  var a = e.target;
+  if (a.classList.contains('dragout')) {
+    e.dataTransfer.setData('DownloadURL', a.dataset.downloadurl);
+  }
+}, false);
 
 function cleanUp() {
 	a.textContent = 'Downloaded';
