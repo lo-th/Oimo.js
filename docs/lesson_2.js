@@ -21,13 +21,13 @@ var lines = [];
 
 
 // create first static body
-var obj = { size:[40, 100, 40], pos:[0,200,0], world:world, name:'base' }
-new OIMO.Body(obj);
-v3d.add(obj);
-// create second dynamique body
-obj = { size:[100, 100, 100], pos:[60,200,200], world:world, name:'moving', move:true }
+var obj = { size:[40, 100, 40], pos:[0,200,0], world:world, name:'base', move:true }
 bodys[0] = new OIMO.Body(obj);
 meshs[0] = v3d.add(obj);
+// create second dynamique body
+obj = { size:[100, 100, 100], pos:[60,200,200], world:world, name:'moving', move:true }
+bodys[1] = new OIMO.Body(obj);
+meshs[1] = v3d.add(obj);
 
 
 // OIMO.Link is the main class of joint
@@ -94,15 +94,22 @@ function renderLoop()
     requestAnimationFrame( renderLoop );
     v3d.render();
 }
-
+var s = 0;
 /* oimo loop */
 function oimoLoop() 
 {  
     world.step();// update world
+	if(meshs[0].position.x<40 && s==0) {meshs[0].position.x++; }
+	else s=1;
+	if(meshs[0].position.x>-40 && s==1) {meshs[0].position.x--; }
+	else s=0;
+	
+	bodys[0].setPosition(meshs[0].position);
+	bodys[0].setQuaternion(meshs[0].quaternion);
 
     // get rigidbody position and rotation and apply to mesh 
-    meshs[0].position.copy(bodys[0].getPosition());
-    meshs[0].quaternion.copy(bodys[0].getQuaternion());
+    meshs[1].position.copy(bodys[1].getPosition());
+    meshs[1].quaternion.copy(bodys[1].getQuaternion());
 
     // get joint point position and apply to three line
     var pos = joints[0].getPosition();

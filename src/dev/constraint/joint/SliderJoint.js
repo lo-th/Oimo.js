@@ -4,7 +4,7 @@
 */
 OIMO.SliderJoint = function(config,lowerTranslation,upperTranslation){
     OIMO.Joint.call( this, config);
-    this.type=this.joint.Joint.JOINT_SLIDER;
+    this.type=this.JOINT_SLIDER;
 
     // The first axis in local coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);

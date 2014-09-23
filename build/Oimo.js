@@ -1348,8 +1348,8 @@ OIMO.Link = function(Obj){
     var pos1 = obj.pos1 || [0,0,0];
     var pos2 = obj.pos2 || [0,0,0];
 
-    pos1 = pos1.map(function(x) { return x * OIMO.INV_SCALE; });
-    pos2 = pos2.map(function(x) { return x * OIMO.INV_SCALE; });
+    pos1 = pos1.map(function(x){ return x * OIMO.INV_SCALE; });
+    pos2 = pos2.map(function(x){ return x * OIMO.INV_SCALE; });
 
     var min, max;
     if(type==="jointDistance"){
@@ -1383,11 +1383,11 @@ OIMO.Link = function(Obj){
     
     switch(type){
         case "jointDistance": this.joint = new OIMO.DistanceJoint(jc, min, max); 
-            if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);
+            if(spring !== null) this.joint.limitMotor.setSpring(spring[0], spring[1]);
             if(motor !== null) this.joint.limitMotor.setSpring(motor[0], motor[1]);
         break;
         case "jointHinge": this.joint = new OIMO.HingeJoint(jc, min, max);
-            if(spring !== null)this.joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
+            if(spring !== null) this.joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
             if(motor !== null) this.joint.limitMotor.setSpring(motor[0], motor[1]);
         break;
         case "jointPrisme": this.joint = new OIMO.PrismaticJoint(jc, min, max); break;
@@ -3157,7 +3157,7 @@ OIMO.PrismaticJoint.prototype.postSolve = function () {
 */
 OIMO.SliderJoint = function(config,lowerTranslation,upperTranslation){
     OIMO.Joint.call( this, config);
-    this.type=this.joint.Joint.JOINT_SLIDER;
+    this.type=this.JOINT_SLIDER;
 
     // The first axis in local coordinate system.
     this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);

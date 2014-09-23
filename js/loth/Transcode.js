@@ -7,7 +7,7 @@ Transcode.Pool = function(Files, End, Types){
 	this.head = document.getElementsByTagName('head')[0];
 	this.ref = [];// get reference script for worker
 
-	if( this.isArray(Files) ) this.files = Files; 
+	if(this.isArray(Files)) this.files = Files; 
 	else this.files[0] = Files;
 
 	this.types = Types || [];
