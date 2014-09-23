@@ -30,17 +30,13 @@ body { background: #000; font:12px sans-serif; color:#fff; text-shadow:1px 1px 0
 </style>
 </head>
 <body>
-<!--<script src="js/png.min.js"></script>-->
 <script src="js/bvh.js"></script>
 <script src="js/three.min.js"></script>
 <script src="js/navigation.js"></script>
-<script src="js/loaders/sea3d/SEA3D.js"></script>
-<script src="js/loaders/sea3d/SEA3DLoader.js"></script>
-<script src="js/loaders/sea3d/SEA3DLZMA.js"></script>
+<script src="js/loaders/sea3d.min.js"></script>
 <script src="js/slider.js"></script>
-<script src="js/png.min.js"></script>
+<script src="js/loth/Transcode.js"></script>
 <script src="build/Oimo.min.js"></script>
-<script src="js/loth/Transcode2.js"></script>
 
 <div id="viewport"></div>
 <div id="l1"></div>
@@ -242,6 +238,7 @@ function loadBVH(file) {
     bvh.load(file);
     bvh.endFunction = createOimoSqueleton;
 }
+
 //----------------------------------
 //  OIMO PHYSICS
 //----------------------------------
