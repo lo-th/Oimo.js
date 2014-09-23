@@ -94,6 +94,24 @@ Transcode.Load.prototype = {
 
 	    this.decodeData(data);
 	},
+	pngMethode : function (url){ 
+		// need libs/png.min.js
+	    // work but with uncompressed png
+	    // not use script_png
+		/*
+		PNG.load('three.png', function(pixels) {
+		    var pi = pixels.decode();
+		    var pix, string ="";
+		    for(var i = 0, l = pi.length; i < l; i+=4) {
+		        pix = pi[i+1]+32;
+		        if(pix===127) pix = 10;
+		        if(pix && pix<127 )string += String.fromCharCode(pix);
+		    }
+		    //document.getElementById('input').innerHTML = st.join("\n");
+		    //document.getElementById('input').innerHTML = string;
+		    editor.setValue(string);
+		})*/
+	},
 	decodeData : function (data){
 	    var color = 0;
 	    if(data[1]!==0)color=1;
