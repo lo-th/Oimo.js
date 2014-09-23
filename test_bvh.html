@@ -40,6 +40,7 @@ body { background: #000; font:12px sans-serif; color:#fff; text-shadow:1px 1px 0
 <script src="js/slider.js"></script>
 <script src="js/png.min.js"></script>
 <script src="build/Oimo.min.js"></script>
+<script src="js/loth/Transcode2.js"></script>
 
 <div id="viewport"></div>
 <div id="l1"></div>
@@ -215,7 +216,7 @@ function animate() {
 
 function initBVH() {
     bvh = new BVH.Reader();
-    loadBVH("bvh/story2.png");
+    loadBVH("bvh/story.png");
 }
 
 function updateBVH() {
@@ -238,7 +239,7 @@ function setBones(v) {
 function loadBVH(file) {
     bvh.boneSize = BVHanimConfig.boneSize;
     bvh.speed = BVHanimConfig.speed;
-    bvh.load(file, true);
+    bvh.load(file);
     bvh.endFunction = createOimoSqueleton;
 }
 //----------------------------------
@@ -342,7 +343,7 @@ function deleteOldSkeleton() {
     while (i--){
         name = currentNames[i];
         scene.remove(meshsquel[name]);
-        bodysquel[name].removeRigidBody();
+        bodysquel[name].remove();
     }
 }
 

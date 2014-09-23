@@ -49,62 +49,21 @@ BVH.Reader = function(){
 BVH.Reader.prototype = {
     constructor: BVH.Reader,
 
-    load:function(fname, direct){
+    load:function(fname){
     	this.type = fname.substring(fname.length-3,fname.length);
     	var _this = this;
-
-    	if(direct && this.type === 'png'){
-    		PNG.load(fname, function(pixels) {
-	    		var pi = pixels.decode();
-	    		var pix0, pix1, pix2, string ="";
-	    		for(var i = 0, l = pi.length; i < l; i+=4) {
-	    			pix0 = pi[i+0];
-			        //pix1 = pi[i+1];
-			        //pix2 = pi[i+2];
-			        if( pix0<128 )string += String.fromCharCode(pix0);
-			       // if( pix0<96 ) string += String.fromCharCode(pix0+32);
-			       // if( pix1<96 ) string += String.fromCharCode(pix1+32);
-			        //if( pix2<96 ) string += String.fromCharCode(pix2+32);
-			    }
-			    //console.log(string);
-			    var array = string.split(",");
-			    _this.parseData(array);
-			   //  _this.parseData(string);
-			});
-    	} else {
-	    	var xhr = new XMLHttpRequest();
-			xhr.open( 'GET', fname, true );
 			
-			if(this.type === 'bvh'){// direct from file
-				xhr.onreadystatechange = function(){ if ( this.readyState == 4 ){ _this.parseData(this.responseText.split(/\s+/g));}};
-		    } else if(this.type === 'png'){
-		    	xhr.responseType = 'blob';
-		    	xhr.onload = function(e) {
-		    		if (this.readyState == 4 ) {//if (this.status == 200) {
-			    		var blob = this.response;
-			    		var img = document.createElement('img');
-			    		img.onload = function(e) {
-			    			var c=document.createElement("canvas"), r='', pix, i, string = "";
-			    			c.width = this.width;
-			    			c.height = this.height;
-			    			c.getContext('2d').drawImage(this, 0, 0);
-			    			var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-			    			for ( i = 0, l=d.length; i<l; i+=4){
-								pix = d[i];
-								//string += String.fromCharCode(pix);
-								if( pix<96 ) string += String.fromCharCode(pix+32);
-							}
-							//console.log(d)
-							var array = string.split(",");
-							_this.parseData(array);
-			    		    window.URL.revokeObjectURL(img.src); // Clean up after yourself.
-			    		}
-			    		img.src = window.URL.createObjectURL(blob);
-			    	}
-		    	}
-		    }
-		    xhr.send( null );
+		if(this.type === 'bvh'){// direct from file
+			var xhr = new XMLHttpRequest();
+		    xhr.open( 'GET', fname, true );
+			xhr.onreadystatechange = function(){ if ( this.readyState == 4 ){ _this.parseData(this.responseText.split(/\s+/g));}};
+			xhr.send( null );
+	    } else if(this.type === 'png'){// from png link
+	    	var trans = new Transcode.Load(fname, _this.getData, _this);
 		}
+    },
+    getData:function(string, t){
+    	t.parseData(string.split(/\s+/g));
     },
     parseData:function(data){
     	this.data = data;

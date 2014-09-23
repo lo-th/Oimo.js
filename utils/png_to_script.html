@@ -27,7 +27,8 @@ input{ margin:10px; padding:6px; }
 #editor{ position: absolute; left:10px; top:80px; width:calc(100% - 40px); height:300px; }
 #files{ position: absolute; left:10px; top:40px; cursor:pointer; margin-left:0; padding:0;}
 </style>
-<script src="../js/libs/codemirror.min.js"></script> 
+<script src="../js/libs/codemirror.min.js"></script>
+<script src="../js/loth/Transcode2.js"></script>
 </head>
 <body>
 <div id="title">PNG to SCRIPT</div>
@@ -53,19 +54,23 @@ function handleFileSelect(e) {
     e.stopPropagation();
     e.preventDefault();
     var f = e.target.files[0];
-    //console.log(f)
+    
     var reader = new FileReader();
     reader.onload = (function(theFile) { return function(e) {
        // editor.setValue(e.target.result); 
         var image = new Image();
         image.src = e.target.result;
         image.onload = function() {
-            canvas3d(image);
+            //canvas3d(image);
+            var trans = new Transcode.Load(image, end);
         }
     }; })(f);
     reader.readAsDataURL(f);
 }
-
+function end(string) {
+    editor.setValue(string);
+}
+/*
 function canvas3d(image) {
 	var w = image.width;
     var h = image.height;
@@ -180,7 +185,7 @@ var bitmapShader = {
         '}'
     ].join("\n")
 };
-
+*/
 
 </script>
 
