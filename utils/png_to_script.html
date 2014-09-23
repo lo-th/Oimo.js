@@ -49,6 +49,7 @@ var editor = CodeMirror(document.getElementById( 'editor' ), {
     indentUnit: 4,
     highlightSelectionMatches: {showToken: /\w/}
 });
+var trans = new Transcode.Load('../images/oimo.min.png', end);
 
 function handleFileSelect(e) {
     e.stopPropagation();
