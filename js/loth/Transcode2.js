@@ -1,9 +1,8 @@
 var Transcode = { REV: 0.2 };
 
-Transcode.Load = function(file, endFunction, root){
+Transcode.Load = function(file, endFunction){
 	this.result = null;
 	this.endFunction = endFunction;
-	this.root = root || null;
 	var _this = this;
 	if(file === file + ''){
 		var xhr = new XMLHttpRequest();
@@ -99,18 +98,8 @@ Transcode.Load.prototype = {
 	    // work but with uncompressed png
 	    // not use script_png
 		/*
-		PNG.load('three.png', function(pixels) {
-		    var pi = pixels.decode();
-		    var pix, string ="";
-		    for(var i = 0, l = pi.length; i < l; i+=4) {
-		        pix = pi[i+1]+32;
-		        if(pix===127) pix = 10;
-		        if(pix && pix<127 )string += String.fromCharCode(pix);
-		    }
-		    //document.getElementById('input').innerHTML = st.join("\n");
-		    //document.getElementById('input').innerHTML = string;
-		    editor.setValue(string);
-		})*/
+		PNG.load(url, function(pixels) { this.decodeData(pixels.decode()); })
+		*/
 	},
 	decodeData : function (data){
 	    var color = 0;
@@ -123,7 +112,7 @@ Transcode.Load.prototype = {
 	        if(pix && pix<127 ) string += String.fromCharCode(pix);
 	    }
 	    this.result = string;
-	    this.endFunction(string, this.root);
+	    this.endFunction(string);
 	}
 }
 

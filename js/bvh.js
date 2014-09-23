@@ -59,11 +59,8 @@ BVH.Reader.prototype = {
 			xhr.onreadystatechange = function(){ if ( this.readyState == 4 ){ _this.parseData(this.responseText.split(/\s+/g));}};
 			xhr.send( null );
 	    } else if(this.type === 'png'){// from png link
-	    	var trans = new Transcode.Load(fname, _this.getData, _this);
+	    	var trans = new Transcode.Load(fname, function(string) { _this.parseData(string.split(/\s+/g))} );
 		}
-    },
-    getData:function(string, t){
-    	t.parseData(string.split(/\s+/g));
     },
     parseData:function(data){
     	this.data = data;
