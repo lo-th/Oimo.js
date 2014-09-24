@@ -169,7 +169,8 @@
     function initTerrain(w, h) {
         w = 32 || w;
         h = 32 || h;
-        var g = new THREE.PlaneGeometry( 600, 600, w-1, h-1);
+        //var g = new THREE.PlaneGeometry( 600, 600, w-1, h-1);
+        var g = new THREE.PlaneBufferGeometry( 600, 600,  w-1, h-1 );
         g.applyMatrix(new THREE.Matrix4().makeRotationX( - Math.PI * 0.5 ));
        
         var size = w * h;
@@ -190,10 +191,13 @@
         var sizes = [];
         var positions = [];
         var n = 0;
+        var vertices = g.attributes.position.array;
 
-        for ( var i = 0, l = g.vertices.length; i < l; i ++ ) {
-            v = g.vertices[ i ];
-            v.y =( data[ i ] * 10) -150;
+       // for ( var i = 0, l = vertices.length; i < l; i ++ ) {
+        for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
+           // v = vertices[ i ];
+            //v.y =( data[ i ] * 10) -150;
+            vertices[ j + 1 ] = data[ i ] * 10;
 
             /*
             // test compound
@@ -215,7 +219,8 @@
             }*/
             
 
-            b = new OIMO.Body({type:'sphere', size:[r], pos:[v.x,v.y-r,v.z],world:world});
+            //b = new OIMO.Body({type:'sphere', size:[r], pos:[v.x,v.y-r,v.z],world:world});
+            b = new OIMO.Body({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]],world:world});
 
             /*m = new THREE.Mesh( buffgeoSphere, matSphere );
             m.scale.set( r,r,r );
@@ -229,10 +234,10 @@
         g.computeFaceNormals();
         g.computeVertexNormals();
 
-        buffgeo = new THREE.BufferGeometry();
-        buffgeo.fromGeometry( g );
+        //buffgeo = new THREE.BufferGeometry();
+        //buffgeo.fromGeometry( g );
 
-        terrain = new THREE.Mesh(buffgeo, new THREE.MeshPhongMaterial ({color: 0x3D4143, shininess:60 }));
+        terrain = new THREE.Mesh(g, new THREE.MeshPhongMaterial ({color: 0x3D4143, shininess:60 }));
         terrain.castShadow = true;
         terrain.receiveShadow = true;
         content.add(terrain);

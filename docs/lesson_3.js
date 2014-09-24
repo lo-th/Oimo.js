@@ -78,7 +78,7 @@ while (i--){
 
 //obj={type:"jointHinge", axe1:[0,1,0], axe2:[0,1,0] }
 
-joints[0] = new OIMO.Link({type:"jointHinge", axe1:[0,1,0], axe2:[0,1,0], body1:'p1', body2:'p2', pos1 : [0,0,0], pos2:[11.18,0,0], min:1, max:20 });
+joints[0] = new OIMO.Link({type:"jointHinge", axe1:[0,1,0], axe2:[0,1,0], body1:'p1', body2:'p2', pos1 : [0,0,0], pos2:[11.18,0,0], min:1, max:20, world:world });
 
 
 //console.log(meshs[0].rotation.y*ToDeg)
