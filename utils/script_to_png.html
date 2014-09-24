@@ -113,11 +113,13 @@ function testSelectColor() {
 }
 var current = 3;
 var currentName = "";
+var noReturn = false;
 
 function update(n) {
 	var s=30;
 	current = n;
     var str = editor.getValue();
+    //if(noReturn)str.replace(/[\n]/gi, "");
     var sizer = str.length;
     if(!str.length) return;
     if(n===0){ 

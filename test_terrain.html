@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
+<link rel="stylesheet" href="css/consolas.css">
 <link rel="stylesheet" href="css/demo.css">
 
 <script src="js/three.min.js"></script>
@@ -18,7 +19,7 @@
 <div id='container'></div>
 <div id='interface'>
     <input type="button" value="demo" onClick=populate(1)>
-    <input type="number" name="quantity" min="10" max="2000" value="200"  id='MaxNumber'>
+    <input type="number" name="quantity" min="10" max="2000" value="100"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
 </div>
@@ -195,37 +196,10 @@
 
        // for ( var i = 0, l = vertices.length; i < l; i ++ ) {
         for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
-           // v = vertices[ i ];
-            //v.y =( data[ i ] * 10) -150;
-            vertices[ j + 1 ] = data[ i ] * 10;
 
-            /*
-            // test compound
-            types[n] = 'sphere';
-            sizes[n] = [r, r, r];
-            if(n==0)positions[n] = [0,0,0];
-            else positions[n] = [v.x,v.y-r,v.z];
+            vertices[ j + 1 ] = (data[ i ] * 10)-100;
 
-            n++;
-
-            if(n==64){
-                
-                b = new OIMO.Body({type:types, size:sizes, pos:positions, world:world, name:'pp'+i, move:false, config:[0, 0.4,0.1]});
-                //console.log('pp'+i, types)
-                types = [];
-                sizes = [];
-                positions = [];
-                n=0;
-            }*/
-            
-
-            //b = new OIMO.Body({type:'sphere', size:[r], pos:[v.x,v.y-r,v.z],world:world});
-            b = new OIMO.Body({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]],world:world});
-
-            /*m = new THREE.Mesh( buffgeoSphere, matSphere );
-            m.scale.set( r,r,r );
-            m.position.set(v.x,v.y-r,v.z);
-            scene.add(m)*/
+            b = new OIMO.Body({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]],world:world})
 
         }
 
@@ -233,9 +207,6 @@
         
         g.computeFaceNormals();
         g.computeVertexNormals();
-
-        //buffgeo = new THREE.BufferGeometry();
-        //buffgeo.fromGeometry( g );
 
         terrain = new THREE.Mesh(g, new THREE.MeshPhongMaterial ({color: 0x3D4143, shininess:60 }));
         terrain.castShadow = true;
