@@ -41,7 +41,7 @@ function init()
 {
     v3d = new V3D.View(360,60,500);
     v3d.initLightShadow();
-    pool = new V3D.Pool();
+    pool = new SEA3D.Pool();
     pool.loadModels( ['../models/pinball.sea'], initPinball );
 }
 
@@ -54,22 +54,22 @@ function loop()
 function initPinball()
 {
     var body = new THREE.Object3D();
-    body.add(pool.getMesh('base'));
-    body.add(pool.getMesh('foot'));
-    body.add(pool.getMesh('baseup'));
-    body.add(pool.getMesh('inside'));
-    body.add(pool.getMesh('screen'));
-    body.add(pool.getMesh('glass'));
-    body.add(pool.getMesh('deco'));
-    body.add(pool.getMesh('level'));
+    body.add(pool.getMesh('pinball_base'));
+    body.add(pool.getMesh('pinball_foot'));
+    body.add(pool.getMesh('pinball_baseup'));
+    body.add(pool.getMesh('pinball_inside'));
+    body.add(pool.getMesh('pinball_screen'));
+    body.add(pool.getMesh('pinball_glass'));
+    body.add(pool.getMesh('pinball_deco'));
+    body.add(pool.getMesh('pinball_level'));
     var mtx = new THREE.Matrix4();
     mtx.makeScale(4, 4, -4);
     for(var i = 0; i<body.children.length;i++){
         body.children[i].geometry.applyMatrix(mtx);
         body.children[i].material.ambient.setHex(0x999999);
     }
-    pool.getMesh('glass').transparent = true;
-    pool.getMesh('glass').opacity = 0.4;
+    pool.getMesh('pinball_glass').material.transparent = true;
+    pool.getMesh('pinball_glass').material.opacity = 0.4;
     body.rotation.z = -5*V3D.ToRad;
     v3d.scene.add(body);
 

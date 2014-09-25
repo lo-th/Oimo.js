@@ -43,7 +43,7 @@ function init()
     v3d.initKeyboard();
     v3d.miniMap = new V3D.Minimap();
     v3d.player = new V3D.Player(v3d);
-    pool = new V3D.Pool();
+    pool = new SEA3D.Pool();
     pool.loadImages(['../images/hero.jpg'], loadModels );
     loop();
 }
@@ -56,17 +56,17 @@ function loadModels()
 function endLoading()
 {
 	var mapHeigth =  v3d.customShader(deepShader);
-	var base = pool.getMesh('base').clone();
+	var base = pool.getMesh('base_base').clone();
 	base.material = mapHeigth;
 	base.scale.set(1,1,-1);
 	v3d.scene.add(base);
 
-	var base2 = new THREE.Mesh( pool.getMesh('base').geometry.clone(), mapHeigth.clone())//, v3d.customShader(deepShader));//this.mapHeigth.clone());
+	var base2 = new THREE.Mesh( pool.getMesh('base_base').geometry.clone(), mapHeigth.clone())//, v3d.customShader(deepShader));//this.mapHeigth.clone());
     base2.scale.set(1,1,-1);
 	v3d.miniMap.scene.add(base2);
 
 	//v3d.player = new V3D.Player(v3d);
-	v3d.player.addModel(pool.getMesh('hero'), pool.getTexture("hero", true));
+	v3d.player.addModel(pool.getMesh('hero_hero'), pool.getTexture("hero", true));
 }
 
 function loop()
