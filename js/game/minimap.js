@@ -34,12 +34,14 @@ V3D.Minimap.prototype = {
 	    this.setMapTestSize(8);
 		this.renderer = new THREE.WebGLRenderer({ canvas:this.miniGlCanvas, precision: "lowp", antialias: false});
 		this.renderer.setSize( this.miniSize.w, this.miniSize.h, true );
-		this.renderer.sortObjects = false;
-		this.renderer.sortElements = false;
+		//this.renderer.sortObjects = false;
+		//this.renderer.sortElements = false;
 		this.renderer.setClearColor( 0xff0000, 1 );
 		this.scene = new THREE.Scene();
 	    var w = 3;//6;// 500*this.miniSize.f;
-	    this.camera = new THREE.OrthographicCamera( -w , w , w , -w , 0.1, 1000 );
+	    this.camera = new THREE.OrthographicCamera( -w , w , w , -w , 0.1, 400 );
+	    this.camera.position.x = 0;
+	    this.camera.position.z = 0;
 	    this.camera.position.y = 100;//(200)*this.miniSize.f;
 	    this.camera.lookAt( new THREE.Vector3(0,0,0) );
 
@@ -82,7 +84,7 @@ V3D.Minimap.prototype = {
 		this.gl.readPixels(this.zsize[0], this.zsize[1], this.zsize[2], this.zsize[2], this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.zone);
 
 		// collision
-		var i = 8;
+		var i = 9;
         while(i--){ this.lock[i] = this.colorTest(this.pp[i]); }
 
 		// height
@@ -104,13 +106,15 @@ V3D.Minimap.prototype = {
 	},
 
 	setMapTestSize:function(s){
-		this.lock =  new this.ar8(s);//[0,0,0,0, 0,0,0,0];
+	    //this.zsize = [(this.miniSize.w*0.5)-s, (this.miniSize.h*0.5)-s, s*2];
+	    this.zsize = [(this.miniSize.w*0.5)+s, (this.miniSize.h*0.5)+s, s*2];
+		this.lock =  [0,0,0,0, 0,0,0,0];
 		var max =((s*2)*(s*2))*4;
-        //[front, back, left, right, fl, fr, bl, br, middle];
-        //   0     1      2     3     4   5  6    7   8
-        this.pp = [max-(s*4), s*4, max*0.5, max*0.5 + (((s*4)*2)-4), 211*4, 222*4, 34*4, 45*4,  max*0.5 + (s*4)];
+		console.log(this.zsize)
+        //[          front,  back,  left,        right,                fl,   fr,     bl,  br,       middle];
+        //             0       1      2             3                  4     5       6    7         8
+        this.pp = [max-(s*4), s*4, max*0.5, max*0.5 + (((s*4)*2)-4), 211*4, 222*4, 34*4, 45*4,  max*0.5+(s*4)];//+ (s*4)];
         this.zone = new this.ar8(max);
-        this.zsize = [(this.miniSize.w*0.5)-s, (this.miniSize.h*0.5)-s, s*2];
 	},
 
 	initTopMap:function(){

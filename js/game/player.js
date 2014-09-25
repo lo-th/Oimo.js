@@ -29,24 +29,24 @@ V3D.Player.prototype = {
         //g.fromGeometry( m.geometry );
 
         this.hero = m.clone();
-        this.hero1 = m.clone();
+        //this.hero1 = m.clone();
         //this.hero2 = new THREE.SkinnedMesh(m.geometry,  new THREE.MeshBasicMaterial( {map:t, color:0xffffff, skinning:true } ), false );
-        this.hero2 = m.clone();
+        //this.hero2 = m.clone();
 
         this.hero.material = new THREE.MeshBasicMaterial( { map:t, color:0xffffff, skinning:true } );
-        this.hero1.material = new THREE.MeshBasicMaterial( { map:t, color:0xffffff, skinning:true } );
-        this.hero2.material = new THREE.MeshBasicMaterial( { map:t, color:0xffffff, skinning:true } );
+        //this.hero1.material = new THREE.MeshBasicMaterial( { map:t, color:0xffffff, skinning:true } );
+        //this.hero2.material = new THREE.MeshBasicMaterial( { map:t, color:0xffffff, skinning:true } );
 
         this.hero.name = m.name+"0";
-        this.hero1.name = m.name+"1";
-        this.hero2.name = m.name+"2";
+        //this.hero1.name = m.name+"1";
+        //this.hero2.name = m.name+"2";
 
         this.hero.position.set(0,0.9,0);
-        this.hero1.position.set(1,0.9,0);
-        this.hero2.position.set(-1,0.9,0)
+        //this.hero1.position.set(1,0.9,0);
+        //this.hero2.position.set(-1,0.9,0)
         this.hero.scale.set(0.023,0.023,-0.023);
-        this.hero1.scale.set(0.023,0.023,-0.023);
-        this.hero2.scale.set(0.023,0.023,-0.023);
+        //this.hero1.scale.set(0.023,0.023,-0.023);
+        //this.hero2.scale.set(0.023,0.023,-0.023);
 
         //this.animations = this.hero.animations;
         this.animLength = this.hero.animations.length;
@@ -62,18 +62,19 @@ V3D.Player.prototype = {
             this.hero.animations[i].weight = this.W[name];
             this.hero.animations[i].play( 0, this.W[name] );
 
-            this.hero1.animations[i].weight = this.W[name];
-            this.hero1.animations[i].play( 0, this.W[name] );
+            //this.hero1.animations[i].weight = this.W[name];
+            //this.hero1.animations[i].play( 0, this.W[name] );
 
-            this.hero2.animations[i].weight = this.W[name];
-            this.hero2.animations[i].play( 0, this.W[name] );
+            //this.hero2.animations[i].weight = this.W[name];
+            //this.hero2.animations[i].play( 0, this.W[name] );
         }
 
         var bbox = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 0.1, 0.1 ) );
 
         this.obj.add(this.hero);
-        this.obj.add(this.hero1);
-        this.obj.add(this.hero2);
+        //this.obj.add(bbox)
+        //this.obj.add(this.hero1);
+        //this.obj.add(this.hero2);
 
         this.parent.scene.add(this.obj);
         this.model = true;
@@ -280,17 +281,17 @@ V3D.Player.prototype = {
         var a0, a1, a2
         while(i--){
             a0 = this.hero.animations[i];
-            a1 = this.hero1.animations[i];
-            a2 = this.hero2.animations[i];
+            //a1 = this.hero1.animations[i];
+            //a2 = this.hero2.animations[i];
 
             name = a0.name;
             a0.weight = this.W[name];
-            a1.weight = this.W[name];
-            a2.weight = this.W[name];
+            //a1.weight = this.W[name];
+            //a2.weight = this.W[name];
             if(name=='walk'){
                 a0.timeScale = this.timeScale;
-                a1.timeScale = this.timeScale;
-                a2.timeScale = this.timeScale;
+                //a1.timeScale = this.timeScale;
+                //a2.timeScale = this.timeScale;
             }
         }
     }

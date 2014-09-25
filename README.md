@@ -41,6 +41,10 @@ Experimental demos
 
 [The walker](http://lo-th.github.io/Oimo.js/experimental/walker.html)
 
+[Pinball (in progress)](http://lo-th.github.io/Oimo.js/experimental/pinball.html)
+
+[Darkthree (in progress)](http://lo-th.github.io/Oimo.js/experimental/darkthree.html)
+
 Interactive documentation
 
 [DOCS](http://lo-th.github.io/Oimo.js/docs/index.html)
