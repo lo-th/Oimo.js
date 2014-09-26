@@ -33,27 +33,44 @@ var ballMesh = [];
 
 var paddle = [];
 var paddleMesh = [];
+var testMesh = [];
+var paddleRef = null;
+var paddleRef2 = null;
+var key;
+
+var body = null;
 
 init();
-loop();
+
 
 function init() 
 {
     v3d = new V3D.View(360,60,500);
     v3d.initLightShadow();
+    v3d.initKeyboard();
+    key = v3d.nav.key;
     pool = new SEA3D.Pool();
     pool.loadModels( ['../models/pinball.sea'], initPinball );
 }
 
 function loop()
 {
+    movePad();
+    /*if(v3d.nav.key[2]){// left
+        movePad(0);
+    }
+    if(v3d.nav.key[3]){// right
+        movePad(1);
+    }*/
     v3d.render();
     requestAnimationFrame( loop );
 }
 
 function initPinball()
 {
-    var body = new THREE.Object3D();
+    paddleRef = pool.getMesh('pinball_paddle2');
+    paddleRef2 = pool.getMesh('pinball_paddle3');
+    body = new THREE.Object3D();
     body.add(pool.getMesh('pinball_base'));
     body.add(pool.getMesh('pinball_foot'));
     body.add(pool.getMesh('pinball_baseup'));
@@ -74,11 +91,22 @@ function initPinball()
     v3d.scene.add(body);
 
     initPhysics();
-}
+    initPaddles(0, new THREE.Vector3(176, 0, 46));
+    initPaddles(1, new THREE.Vector3(176, 0, -26));
+    initPaddles(2, new THREE.Vector3(-18, 0, -80));
 
+    loop();
+}
+var group1, group2, group3, all;
 function initPhysics()
 {
+    group1 = 1 << 0;  // 00000000 00000000 00000000 00000001
+    group2 = 1 << 1;  // 00000000 00000000 00000000 00000010
+    group3 = 1 << 2;  // 00000000 00000000 00000000 00000100
+    all = 0xffffffff; // 11111111 11111111 11111111 11111111
+
     world = new OIMO.World();
+    world.worldscale(100);
     var obj = { size:[600, 100, 300], pos:[0,-50,0], rot:[0,0,-5], world:world }
     new OIMO.Body(obj);
     //v3d.add(obj);
@@ -88,11 +116,19 @@ function initPhysics()
     obj.pos[2] = 122;
     new OIMO.Body(obj);
     //v3d.add(obj);
-
-    obj = { type:'sphere', size:[6, 6, 6], pos:[-200,50,0], move:true, world:world };
-    var i = 3;
+    var config = [
+        1, // The density of the shape.
+        0.1, // The coefficient of friction of the shape.
+        0.6, // The coefficient of restitution of the shape.
+        group1, // The bits of the collision groups to which the shape belongs.
+        all // The bits of the collision groups with which the shape collides.
+    ];
+    obj = { type:'sphere', size:[5, 5, 5], pos:[-200,50,0], move:true, world:world, config:config };
+    var i = 20;
     while (i--){
-        obj.pos[1] = 50+(i*14);
+        obj.pos[1] = 50+(i*10);
+       // obj.pos[0] -= (i*10);
+        obj.pos[2] = (i*10);
         ball[i] = new OIMO.Body(obj);
         ballMesh[i] = v3d.add(obj);
     }
@@ -102,9 +138,119 @@ function initPhysics()
 
 }
 
+var padMeshs = [];
+var padPhys = [];
+function initPaddles(n, pos)
+{
+    var py = 5.676;
+    var rz = -35*V3D.ToRad;
+    var g = paddleRef.geometry.clone();
+    var mtx = new THREE.Matrix4();
+    
+    if (n==0){
+        mtx.makeScale(4, 4, -4);
+        g = paddleRef.geometry.clone();
+        
+    } else {
+        mtx.makeScale(-4, 4, 4);
+        g = paddleRef2.geometry.clone();
+        rz = 35*V3D.ToRad;
+        if(n==2) rz = 70*V3D.ToRad;
+    }
+    g.applyMatrix(mtx);
+    
+    //g.applyMatrix(mtx);
+    g.computeBoundingBox();
+    g.computeBoundingSphere();
+    //var ref = g; 
+    var mat = paddleRef.material;
+    //mat.transparent = true;
+    //mat.opacity = 0.7;
+    padMeshs[n] = new THREE.Mesh(g, mat);
+    padMeshs[n].position.y = py;
+    padMeshs[n].position.x = pos.x;
+    padMeshs[n].position.z = pos.z;
+    padMeshs[n].rotation.y = rz;
+
+    body.add(padMeshs[n]);
+    var config = [
+            10, // The density of the shape.
+            0.3, // The coefficient of friction of the shape.
+            0.9, // The coefficient of restitution of the shape.
+            group2, // The bits of the collision groups to which the shape belongs.
+            group1 // The bits of the collision groups with which the shape collides.
+        ];
+    var obj = {type:'box', size:[11.2, 11.2, 27.2], pos:[0,0,0], rot:[0,0,0],
+        move:true, noSleep:true, config:config,
+        world:world
+    }
+    /*var obj = {
+        type:['sphere','sphere','box','box'], 
+        size:[5.5, 5.5, 5.5,  3.1, 3.1, 3.1,  6, 11, 27,  6, 11, 27], 
+        pos:[0,0,0,  0,0,-27.4,   0,0,-14.4,   0,0,-14.4],
+        rot:[0,0,0,   0,0,0,  0,-5.5,0,   0,5.5,0],
+        move:true, noSleep:true, config:config,
+        world:world
+    }*/
+    padPhys[n] = new OIMO.Body(obj);
+
+    
+
+        // apply new rotation on last rigidbody
+        
+
+    // test
+    /*obj = {type:'sphere', size:[5.5, 5.5, 5.5], pos:[0,0,0]}
+    v3d.add(obj);
+    obj = {type:'sphere', size:[3.08, 3.08, 3.08], pos:[0,0,-27.4]}
+    v3d.add(obj);
+    obj = {type:'box', size:[5, 5.744, 27], pos:[-1.7,0,-14.4],rot:[0,-5.5,0]}
+    v3d.add(obj);*/
+    //obj = {type:'box', size:[5, 5.744, 27], pos:[1.7,0,-14.4],rot:[0, 5.5,0]}
+    testMesh[n] = v3d.add(obj)
+
+
+    
+}
+function movePad(n){
+    if(key[2])padMeshs[0].rotation.y = 35*V3D.ToRad;
+    else padMeshs[0].rotation.y = -35*V3D.ToRad;
+
+    if(key[3]){padMeshs[1].rotation.y = -35*V3D.ToRad;padMeshs[2].rotation.y = 0*V3D.ToRad;}
+    else{ padMeshs[1].rotation.y = 35*V3D.ToRad; padMeshs[2].rotation.y = 70*V3D.ToRad;}
+}
+
+
 function oimoLoop()
 {
+    var m, p, q, m2;
+    var i = 3;
+    while(i--){
+    //for(var i=0; i<2;i++){
+        m = padMeshs[i].matrixWorld;
+        m2 = new THREE.Matrix4();
+        if(i==1)m2.makeTranslation(0,0,13.6);
+        else m2.makeTranslation(0,0,-13.6);
+        m.multiply( m2 );
+
+        p = new THREE.Vector3().setFromMatrixPosition( m );
+        q = new THREE.Quaternion().setFromRotationMatrix( m );
+
+
+
+        //if(i==0) padMeshs[i].rotation.y +=0.05;
+        //else padMeshs[i].rotation.y -=0.05;
+        padPhys[i].setPosition(p);
+        padPhys[i].setQuaternion(q);
+        //testMesh[i].position.copy(padPhys[i].getPosition());
+        //testMesh[i].quaternion.copy(padPhys[i].getQuaternion());
+    }
+    
+    
+
     world.step();
+
+
     var i = ball.length;
     while (i--){
         ballMesh[i].position.copy(ball[i].getPosition());
