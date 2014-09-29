@@ -143,7 +143,6 @@ Transcode.Load.prototype = {
 	    c.height = image.height;
 	    c.getContext('2d').drawImage(image, 0, 0);
 	    var data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-
 	    this.decodeData(data);
 	},
 	pngMethode : function (url){ 

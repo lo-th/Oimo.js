@@ -126,15 +126,15 @@ var Ambience = function (Pos) {
 
 	
 	var bigMap = doc.createElement( 'div' );
-	bigMap.style.cssText = ' width:256px;height:256px; position:relative; display:none; ';
+	bigMap.style.cssText = 'width:256px; height:256px; position:relative; display:none; ';
 	deco.appendChild( bigMap );
 
 	var bigGradian = doc.createElement( 'div' );
-	bigGradian.style.cssText = ' width:256px; height:60px; position:relative; display:none; ';
+	bigGradian.style.cssText = 'width:256px; height:60px; position:relative; display:none; ';
 	deco.appendChild( bigGradian );
 
 	var bigColor = doc.createElement( 'div' );
-	bigColor.style.cssText = ' width:256px; height:40px; position:relative; display:none; ';
+	bigColor.style.cssText = 'width:256px; height:40px; position:relative; display:none; ';
 	deco.appendChild( bigColor );
 
 	//-------------------------------------------------

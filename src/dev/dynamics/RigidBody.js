@@ -57,9 +57,9 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     // It is a quaternion that represents the attitude.
     //this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
     // Is the translational velocity.
-    this.linearVelocity=new OIMO.Vec3();
+    this.linearVelocity = new OIMO.Vec3();
     // Is the angular velocity.
-    this.angularVelocity=new OIMO.Vec3();
+    this.angularVelocity = new OIMO.Vec3();
 
     // return matrix for three.js
     this.matrix = new OIMO.Mat44();
@@ -306,6 +306,7 @@ OIMO.RigidBody.prototype = {
     * There is no need to call from outside usually. 
     * @param  timeStep time 
     */
+
     updatePosition:function(timeStep){
         switch(this.type){
             case this.BODY_STATIC:
@@ -340,6 +341,21 @@ OIMO.RigidBody.prototype = {
                 if(this.controlRot){
                     this.angularVelocity.init();
                     this.orientation.copy(this.newOrientation);
+
+                    //var t=timeStep//*0.5;
+                    //var q = new OIMO.Quat();
+                    //q.sub(this.newOrientation, this.orientation);
+                    //q.normalize(q);
+                    /*q.s = (this.newOrientation.s - this.orientation.s)/t;
+                    q.x = (this.newOrientation.x - this.orientation.x)/t;
+                    q.y = (this.newOrientation.y - this.orientation.y)/t;
+                    q.z = (this.newOrientation.z - this.orientation.z)/t;*/
+
+                    //this.angularVelocity.applyQuaternion(q);
+                    //this.angularVelocity.x = this.angularVelocity.x/t;
+                    //this.angularVelocity.y = this.angularVelocity.y/t;
+                    //this.angularVelocity.z = this.angularVelocity.z/t;
+                    
                     this.controlRot = false;
                 }
 
@@ -478,7 +494,9 @@ OIMO.RigidBody.prototype = {
     },
 
     setQuaternion:function(q){ 
-        this.newOrientation = new OIMO.Quat(q.w,q.x,q.y,q.z); 
+        //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
+
+        this.newOrientation.init(q.w,q.x,q.y,q.z); 
         this.controlRot = true;
     },
 

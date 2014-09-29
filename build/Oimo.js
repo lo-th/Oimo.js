@@ -42,7 +42,7 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
         case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
     }
     // Whether the constraints randomizer is enabled or not.
-    this.enableRandomizer=true;
+    this.enableRandomizer = true;
 
     this.isNoStat = NoStat || false;
 
@@ -683,9 +683,9 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     // It is a quaternion that represents the attitude.
     //this.orientation = new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
     // Is the translational velocity.
-    this.linearVelocity=new OIMO.Vec3();
+    this.linearVelocity = new OIMO.Vec3();
     // Is the angular velocity.
-    this.angularVelocity=new OIMO.Vec3();
+    this.angularVelocity = new OIMO.Vec3();
 
     // return matrix for three.js
     this.matrix = new OIMO.Mat44();
@@ -932,6 +932,7 @@ OIMO.RigidBody.prototype = {
     * There is no need to call from outside usually. 
     * @param  timeStep time 
     */
+
     updatePosition:function(timeStep){
         switch(this.type){
             case this.BODY_STATIC:
@@ -966,6 +967,21 @@ OIMO.RigidBody.prototype = {
                 if(this.controlRot){
                     this.angularVelocity.init();
                     this.orientation.copy(this.newOrientation);
+
+                    //var t=timeStep//*0.5;
+                    //var q = new OIMO.Quat();
+                    //q.sub(this.newOrientation, this.orientation);
+                    //q.normalize(q);
+                    /*q.s = (this.newOrientation.s - this.orientation.s)/t;
+                    q.x = (this.newOrientation.x - this.orientation.x)/t;
+                    q.y = (this.newOrientation.y - this.orientation.y)/t;
+                    q.z = (this.newOrientation.z - this.orientation.z)/t;*/
+
+                    //this.angularVelocity.applyQuaternion(q);
+                    //this.angularVelocity.x = this.angularVelocity.x/t;
+                    //this.angularVelocity.y = this.angularVelocity.y/t;
+                    //this.angularVelocity.z = this.angularVelocity.z/t;
+                    
                     this.controlRot = false;
                 }
 
@@ -1104,7 +1120,9 @@ OIMO.RigidBody.prototype = {
     },
 
     setQuaternion:function(q){ 
-        this.newOrientation = new OIMO.Quat(q.w,q.x,q.y,q.z); 
+        //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
+
+        this.newOrientation.init(q.w,q.x,q.y,q.z); 
         this.controlRot = true;
     },
 
@@ -1794,27 +1812,27 @@ OIMO.Quat.prototype = {
         return this;
     },
     addTime: function(v,t){
-        var vx = v.x;
-        var vy = v.y;
-        var vz = v.z;
-        var os=this.s;
-        var ox=this.x;
-        var oy=this.y;
-        var oz=this.z;
+        var x = v.x;
+        var y = v.y;
+        var z = v.z;
+        var qs=this.s;
+        var qx=this.x;
+        var qy=this.y;
+        var qz=this.z;
         t*=0.5;
-        var s=(-vx*ox-vy*oy-vz*oz)*t;
-        var x=(vx*os+vy*oz-vz*oy)*t;
-        var y=(-vx*oz+vy*os+vz*ox)*t;
-        var z=(vx*oy-vy*ox+vz*os)*t;
-        os+=s;
-        ox+=x;
-        oy+=y;
-        oz+=z;
-        s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
-        this.s=os*s;
-        this.x=ox*s;
-        this.y=oy*s;
-        this.z=oz*s;
+        var ns=(-x*qx - y*qy - z*qz)*t;
+        var nx=( x*qs + y*qz - z*qy)*t;
+        var ny=(-x*qz + y*qs + z*qx)*t;
+        var nz=( x*qy - y*qx + z*qs)*t;
+        qs += ns;
+        qx += nx;
+        qy += ny;
+        qz += nz;
+        var s=1/Math.sqrt(qs*qs+qx*qx+qy*qy+qz*qz);
+        this.s=qs*s;
+        this.x=qx*s;
+        this.y=qy*s;
+        this.z=qz*s;
         return this;
     },
     sub: function(q1,q2){
@@ -2108,7 +2126,7 @@ OIMO.Vec3.prototype = {
         this.z=v.z;
         return this;
     },
-    /*applyQuaternion: function ( q ) {
+    applyQuaternion: function ( q ) {
 
         var x = this.x;
         var y = this.y;
@@ -2134,7 +2152,7 @@ OIMO.Vec3.prototype = {
 
         return this;
 
-    },*/
+    },
     testZero: function(){
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;

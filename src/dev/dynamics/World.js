@@ -17,7 +17,7 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
         case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
     }
     // Whether the constraints randomizer is enabled or not.
-    this.enableRandomizer=true;
+    this.enableRandomizer = true;
 
     this.isNoStat = NoStat || false;
 

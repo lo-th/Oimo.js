@@ -19,8 +19,7 @@ html, body {background-color: #212324;  font: normal 12px Consolas;}
 #menu{position: absolute; top:0; left:0; width:100%; height:30px; background-color: #212324;  color:#343434;}
 #menutop{position:absolute; top:0px; left:150px; width:300px; height:30px; }
 #title{position: absolute; top:6px; left:10px; width:200px; height:14px; color:#a6a6a6; font-weight:bold; font-size:14px;  pointer-events:none;}
-#b0{position: absolute; top:6px; right:6px; width:20px; height:20px; background-color: #212324; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center;}
-#b1{position: absolute; top:6px; right:36px; width:20px; height:20px; background-color: #128812; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border: 1px solid #343434; text-align:center; display:none;}
+.b{ position:absolute; top:6px; width:20px; height:20px; background-color: #212324; color:#343434; font-weight:bold; font-size:14px; cursor: pointer; border:1px solid #343434; text-align:center;}
 a { color:#128812; text-decoration:none; font-size:14px; border:1px solid #128812;}
 a[data-disabled] { color: #343434; text-decoration:none; pointer-events:none; border:1px solid #343434;}
 </style>
@@ -28,8 +27,8 @@ a[data-disabled] { color: #343434; text-decoration:none; pointer-events:none; bo
 <body>
 <div id='menu'></div>
 <div id='title'>OIMO lesson &gt;</div>
-<div id='b0'>V</div>
-<div id='b1'>S</div>
+<div id='b0' style="right:6px" class="b">V</div>
+<div id='b1' style="right:36px; display:none; background-color:#128812;" class="b">S</div>
 <div id="preview"></div>
 <div id='menutop'></div>
 <script>

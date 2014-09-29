@@ -127,7 +127,7 @@ OIMO.Vec3.prototype = {
         this.z=v.z;
         return this;
     },
-    /*applyQuaternion: function ( q ) {
+    applyQuaternion: function ( q ) {
 
         var x = this.x;
         var y = this.y;
@@ -153,7 +153,7 @@ OIMO.Vec3.prototype = {
 
         return this;
 
-    },*/
+    },
     testZero: function(){
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;

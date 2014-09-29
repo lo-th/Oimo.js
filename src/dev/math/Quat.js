@@ -24,27 +24,27 @@ OIMO.Quat.prototype = {
         return this;
     },
     addTime: function(v,t){
-        var vx = v.x;
-        var vy = v.y;
-        var vz = v.z;
-        var os=this.s;
-        var ox=this.x;
-        var oy=this.y;
-        var oz=this.z;
+        var x = v.x;
+        var y = v.y;
+        var z = v.z;
+        var qs=this.s;
+        var qx=this.x;
+        var qy=this.y;
+        var qz=this.z;
         t*=0.5;
-        var s=(-vx*ox-vy*oy-vz*oz)*t;
-        var x=(vx*os+vy*oz-vz*oy)*t;
-        var y=(-vx*oz+vy*os+vz*ox)*t;
-        var z=(vx*oy-vy*ox+vz*os)*t;
-        os+=s;
-        ox+=x;
-        oy+=y;
-        oz+=z;
-        s=1/Math.sqrt(os*os+ox*ox+oy*oy+oz*oz);
-        this.s=os*s;
-        this.x=ox*s;
-        this.y=oy*s;
-        this.z=oz*s;
+        var ns=(-x*qx - y*qy - z*qz)*t;
+        var nx=( x*qs + y*qz - z*qy)*t;
+        var ny=(-x*qz + y*qs + z*qx)*t;
+        var nz=( x*qy - y*qx + z*qs)*t;
+        qs += ns;
+        qx += nx;
+        qy += ny;
+        qz += nz;
+        var s=1/Math.sqrt(qs*qs+qx*qx+qy*qy+qz*qz);
+        this.s=qs*s;
+        this.x=qx*s;
+        this.y=qy*s;
+        this.z=qz*s;
         return this;
     },
     sub: function(q1,q2){
