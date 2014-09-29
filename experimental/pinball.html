@@ -113,10 +113,9 @@ function initPinballCollisionMesh()
     for(var key in pool.meshs){
         var name = key;
         if(name.substring(0, 11) == "pinball_c__"){
-            b=pool.getMesh(name);
+            b = pool.getMesh(name);
             b.geometry.applyMatrix(mtx);
             b.geometry.computeBoundingBox();
-            b.geometry.computeBoundingSphere();
             box = b.geometry.boundingBox;
             s = box.size();
             p = b.position.clone();
@@ -129,13 +128,12 @@ function initPinballCollisionMesh()
             obj.size = [s.x,s.y,s.z];
 
             nn = new OIMO.Body(obj);
-            if(debug)nnn = v3d.add(obj);
-
             q = b.quaternion.clone();
-
             nn.setQuaternion(q);
+
             if(debug){
-                nnn.quaternion.copy(q)
+                nnn = v3d.add(obj);
+                nnn.quaternion.copy(q);
                 nnn.position.copy(nn.getPosition())
             }
         }
@@ -164,9 +162,9 @@ function initPhysics()
     new OIMO.Body(obj);
 
     var config = [
-        20, // The density of the shape.
-        0.4, // The coefficient of friction of the shape.
-        0.2, // The coefficient of restitution of the shape.
+        1, // The density of the shape.
+        0.2, // The coefficient of friction of the shape.
+        0.4, // The coefficient of restitution of the shape.
         group1, // The bits of the collision groups to which the shape belongs.
         all // The bits of the collision groups with which the shape collides.
     ];
@@ -221,7 +219,7 @@ function initPaddles(n, pos)
 
     body2.add(padMeshs[n]);
     var config = [
-            100, // The density of the shape.
+            10, // The density of the shape.
             0.4, // The coefficient of friction of the shape.
             0.8, // The coefficient of restitution of the shape.
             group2, // The bits of the collision groups to which the shape belongs.
@@ -242,6 +240,7 @@ function initPaddles(n, pos)
     }*/
     padPhys[n] = new OIMO.Body(obj);
     padPhys[n+10] = new OIMO.Body(obj);
+    padPhys[n+20] = new OIMO.Body(obj);
 
     
 
@@ -281,33 +280,43 @@ function movePad(n){
 
 function tween(o, nr){
     var tween = new TWEEN.Tween( o.rotation )
-            .to( {y:nr}, 30 )
-            .easing( TWEEN.Easing.Linear.None )
+            .to( {y:nr}, 40 )
+            .easing( TWEEN.Easing.Quadratic.Out )//.easing( TWEEN.Easing.Linear.None )TWEEN.Easing.Quadratic.In
             .start();
 }
 
 
 function oimoLoop()
 {
-    world.step();
     
 
-    var m, p, q, m2;
+    var m, p, p1, p2, q, m2, m3, m4;
     var i = 3;
     while(i--){
-    //for(var i=0; i<2;i++){
         m = padMeshs[i].matrixWorld.clone();
         m0 = padMeshs[i].matrixWorld.clone();
+        m1 = padMeshs[i].matrixWorld.clone();
         m2 = new THREE.Matrix4();
         m3 = new THREE.Matrix4();
-        if(i==1 || i==2){ m2.makeTranslation(0,0,12); m3.makeTranslation(5,0,12);}//13.6);
-        else {m2.makeTranslation(0,0,-12); m3.makeTranslation(5,0,-12);}//-13.6);
+        m4 = new THREE.Matrix4();
+        if(i==1 || i==2){ 
+            m2.makeTranslation(0,0,12); 
+            m3.makeTranslation(2.5,0,12); 
+            m4.makeTranslation(5,0,12);
+        } else {
+            m2.makeTranslation(0,0,-12); 
+            m3.makeTranslation(2.5,0,-12); 
+            m4.makeTranslation(5,0,-12);
+        }
         m.multiply( m2 );
         m0.multiply( m3 );
+        m1.multiply( m4 );
 
-        p0 = new THREE.Vector3().setFromMatrixPosition( m0 );
+        
         p = new THREE.Vector3().setFromMatrixPosition( m );
         q = new THREE.Quaternion().setFromRotationMatrix( m );
+        p0 = new THREE.Vector3().setFromMatrixPosition( m0 );
+        p1 = new THREE.Vector3().setFromMatrixPosition( m1 );
 
 
 
@@ -318,6 +327,9 @@ function oimoLoop()
 
         padPhys[i+10].setPosition(p0);
         padPhys[i+10].setQuaternion(q);
+
+        padPhys[i+20].setPosition(p1);
+        padPhys[i+20].setQuaternion(q);
         //testMesh[i].position.copy(p);//padPhys[i].getPosition());
         //testMesh[i].quaternion.copy(q);//padPhys[i].getQuaternion());
 
@@ -328,10 +340,7 @@ function oimoLoop()
         }
     }
 
-    
-    
-    
-
+    world.step();
 
     var i = ball.length;
     while (i--){
