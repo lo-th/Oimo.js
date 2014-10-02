@@ -105,7 +105,7 @@ V3D.View.prototype = {
     render : function(){
     	this.renderer.render( this.scene, this.camera );
     },
-    add : function(obj, target){
+    add : function(obj){
     	var type = obj.type || 'box';
     	var size = obj.size || [10,10,10];
     	var pos = obj.pos || [0,0,0];
@@ -121,8 +121,7 @@ V3D.View.prototype = {
 			geo.vertices.push( new THREE.Vector3( obj.pos1[0], obj.pos1[1], obj.pos1[2] ) );
 			geo.vertices.push( new THREE.Vector3( obj.pos2[0], obj.pos2[1], obj.pos2[2] ) );
 			joint = new THREE.Line( geo, this.mats.joint, THREE.LinePieces );
-			if(target) target.add( mesh );
-			else this.scene.add( joint );
+			this.scene.add( joint );
 			return joint;
     	} else {//_____________ Object
     		var mesh;
@@ -136,8 +135,7 @@ V3D.View.prototype = {
 	    	mesh.scale.set( size[0], size[1], size[2] );
 	        mesh.position.set( pos[0], pos[1], pos[2] );
 	        mesh.rotation.set( rot[0]*V3D.ToRad, rot[1]*V3D.ToRad, rot[2]*V3D.ToRad );
-	        if(target)target.add( mesh );
-	        else this.scene.add( mesh );
+	        this.scene.add( mesh );
 	        return mesh;
     	}
     	
@@ -207,7 +205,7 @@ V3D.View.prototype = {
 V3D.Navigation = function(root){
 	this.parent = root;
 	this.camPos = { h: 90, v: 60, distance: 400, automove: false  };
-	this.mouse = { x:0, y:0, ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true, button:0 };
+	this.mouse = { ox:0, oy:0, h:0, v:0, mx:0, my:0, down:false, over:false, moving:true, button:0 };
 	this.vsize = { w:this.parent.w, h:this.parent.h};
 	this.center = { x:0, y:0, z:0 };
 	this.key = [0,0,0,0,0,0,0];
@@ -264,25 +262,25 @@ V3D.Navigation.prototype = {
 	    window.addEventListener( 'resize', function(e) {_this.onWindowResize(e)}, false );
 	},
 	onMouseRay : function(x,y){
-	    this.mouse.mx = ( this.mouse.x / this.vsize.w ) * 2 - 1;
-	    this.mouse.my = - ( this.mouse.y / this.vsize.h ) * 2 + 1;
+	    this.mouse.mx = ( x / this.vsize.w ) * 2 - 1;
+	    this.mouse.my = - ( y / this.vsize.h ) * 2 + 1;
 	    this.rayTest();
 	},
 	onMouseMove : function(e){
 	    e.preventDefault();
 	    var px, py;
 	    if(e.touches){
-	        this.mouse.x = e.clientX || e.touches[ 0 ].pageX;
-	        this.mouse.y = e.clientY || e.touches[ 0 ].pageY;
+	        px = e.clientX || e.touches[ 0 ].pageX;
+	        py = e.clientY || e.touches[ 0 ].pageY;
 	    } else {
-	        this.mouse.x = e.clientX;
-	        this.mouse.y = e.clientY;
+	        px = e.clientX;
+	        py = e.clientY;
 	    }
-	    if(this.rayTest !== null) this.onMouseRay();
+	    if(this.rayTest !== null) this.onMouseRay(px,py);
 	    if (this.mouse.down ) {
 	        document.body.style.cursor = 'move';
-	        this.camPos.h = ((this.mouse.x - this.mouse.ox) * 0.3) + this.mouse.h;
-	        this.camPos.v = (-(this.mouse.y - this.mouse.oy) * 0.3) + this.mouse.v;
+	        this.camPos.h = ((px - this.mouse.ox) * 0.3) + this.mouse.h;
+	        this.camPos.v = (-(py - this.mouse.oy) * 0.3) + this.mouse.v;
 	        this.moveCamera();
 	    }
 	},
