@@ -35,7 +35,6 @@ function init()
     v3d = new V3D.View(90,90,100);
     
     v3d.initLight();
-    //v3d.initKeyboard();
     createJoint();
     loop();
 }
@@ -47,109 +46,25 @@ function loop()
 };
 
 
-function createJoint(){
+function createJoint()
+{
 	var endEffectorName = "end";
-
-	var jointDescs = [{
-
-		rootName : "n0",
-		name : "one",
-		length : 30,
-		angle : Math.PI / 2,
-		joints : [{
-
-			length : 25,
-			angle : Math.PI / 6,
-			joints : [{
-
-				length : 15,
-				angle : Math.PI / 2,
-				joints : [{
-
-					lname : endEffectorName,
-					length : 15,
-					angle : Math.PI / 2,
-				}]
-			}]
-		}]
-	}, {
-
-		rootName : "n0",
-		name : "two",
-		length : 20,
-		angle : Math.PI / 3,
-		joints : [{
-
-			length : 15,
-			angle : -Math.PI / 3,
-			joints : [{
-
-				length : 18,
-				angle : -Math.PI / 3,
-				joints : [{
-
-					length : 18,
-					angle : Math.PI / 2,
-					joints : [{
-
-						lname : endEffectorName,
-						length : 18,
-						angle : Math.PI / 3
-					}]
-				}]
-			}]
-		}]
-	}, {
-
-		rootName : "n0",
-		name : "three",
-		length : 20,
-		angle : 0,
-		joints : [{
-
-			length : 15,
-			angle : -Math.PI / 3 * 2,
-			joints : [{
-
-				lname : endEffectorName,
-				length : 18,
-				angle : Math.PI / 3,
-			}]
-		}]
-	}, {
-
-		rootName : "n0",
-		name : "four",
-		length : 30,
-		angle : Math.PI / 4 * 3,
-		joints : [{
-
-			//lname : endEffectorName,
-			length : 25,
-			angle : -Math.PI / 6,
-			joints : [{
-
-				//lname : endEffectorName,
-				length : 18,
-				angle : Math.PI / 3,
-				joints : [{
-
-					lname : endEffectorName,
-					length : 18,
-					angle : Math.PI / 3,
-				}]
-			}]
-		}]
-	}];
 
 	var rootPositions = [[-100, -10,0], [-20, 40,0], [0, -40,0], [100, 20,0]];
 	var goalCenterPositions = [[-65, -10,0], [-30, -10,0], [20, -10,0], [60, -10,0]];
 	var goalPositions = [[-65, -10,0], [-30, -10,0], [20, -10,0], [60, -10,0]];
 
 	// Parse the joint descriptions and store the joint hierarchies.
+	var chaines = [
+	    IK.Chaine({name:'one', n:4, lengths:[40,30,20,15]}),
+	    IK.Chaine({name:'two', n:5}),
+	    IK.Chaine({name:'three', n:5}),
+	    IK.Chaine({name:'four', n:10})
+	];
+
 	var jointSets = [];
-	for (var i = 0; i < jointDescs.length; ++i) {
-		jointSets.push(IK.jointHierFromJs(jointDescs[i]));
+	for (var i = 0; i < chaines.length; ++i) {
+		jointSets.push(chaines[i]);
 	}
 
 	// Store references to the end effectors.
@@ -158,7 +73,6 @@ function createJoint(){
 		var jointSet = jointSets[i];
 		endEffectors.push(jointSet.unode.bfsFindNode(endEffectorName));
 	}
-
 
 
 	// Time step for solving IK.
@@ -175,13 +89,14 @@ function createJoint(){
 		else if(name == 'four')j = 3;
 		else j = 0;
 
-    	var rtrans2 = node.getRootTrans();
-		var pos2 = IK.mtranspose(IK.mmult(rtrans2, IK.mtranspose([[0, 0, 1]])))[0].splice(0, 2);
-		var ppos2 = [pos2[0],pos2[1],0];
+		var pp = node.getRootCoordPos();
+    	//var rtrans2 = node.getRootTrans();
+		//var pos2 = IK.mtranspose(IK.mmult(rtrans2, IK.mtranspose([[0, 0, 1]])))[0].splice(0, 2);
+		var pos = [pp[0],pp[1],0];
 		
 		var pjoint = node.pjoint;
 		if (pjoint !== null){
-			var obj = {type:'sphere', pos:ppos2, size:[2,2,2], rot:[0,0,0], move:true}
+			var obj = {type:'sphere', pos:pos, size:[2,2,2], rot:[0,0,0], move:true}
 		    n_meshs[name+n] = v3d.add(obj);
 		    //n_meshs[name+n].rotation.z = node.pjoint.angle;
 		    var obj = {type:'box', pos:[-node.pjoint.length*0.25,0,0], size:[node.pjoint.length*0.5,2,2], rot:[0,0,0], move:true}
@@ -199,20 +114,16 @@ function createJoint(){
 		while(i--){
 			var jSet = jointSets[i];
 		    var rootPos = rootPositions[i];
-		    //console.log(jSet)
+
 		    var obj = {type:'sphere', pos:rootPos, size:[3,3,3], rot:[0,0,0]}
 		    j_meshs[i] = v3d.add(obj);
 		    var obj = {type:'sphere', pos:rootPos, size:[4,4,4], rot:[0,0,0], move:true}
 		    e_meshs[i] = v3d.add(obj);
-
 		    var obj = {type:'joint'}
 		    e_lines[i] = v3d.add(obj);
-		    //j_meshs[i].rotation.z = jSet.angle;
-		    //var obj = {type:'box', pos:[jSet.length*0.5,0,0], size:[jSet.length,1,1], rot:[0,0,0]}
-		    //v3d.add(obj, j_meshs[i]);
-		    var name = jSet.name;
-		    //console.log(name, i);
-		    jSet.unode.bfs(newNode, name);
+
+		    // all all parent node
+		    jSet.unode.bfs(newNode,  jSet.name);
 		}
 	}
 	initJoints();
@@ -225,8 +136,6 @@ function createJoint(){
 		else if(name == 'three')rootPos = rootPositions[2];
 		else if(name == 'four')rootPos = rootPositions[3];
 		else rootPos = rootPositions[0];
-		//var rtrans2 = node.getRootTrans();
-		//var pp = IK.mtranspose(IK.mmult(rtrans2, IK.mtranspose([[0, 0, 1]])))[0].splice(0, 2);
 		
 		if(n==1)pAngle=0// first node
 		var pjoint = node.pjoint;
@@ -312,7 +221,6 @@ function createJoint(){
 	function update(){
 		updateJoints();
 		updateGoals();
-		//flipbook.step();
 	} 
 }
 

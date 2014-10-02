@@ -326,12 +326,79 @@ IK.Joint = function(name, lname, length, angle, max, min) {
 };
 
 
+IK.Chaine = function(obj){
+	var nBones = obj.n || 3;
+	var name = obj.name || "basic";
+	var lengths = obj.lengths || [];
+	var angles = obj.angles || [];
+
+	var nObj = [];
+	var newObj;
+	for(var i=0; i<nBones; i++){
+		//nObj[i] = {};
+		newObj = {};
+		if(i==0){
+			newObj.rootName = name;
+			newObj.name = name;
+		}
+		if(i==nBones-1){
+			newObj.lname ='end';
+		}
+		
+		newObj.length = lengths[i] || 10;
+		newObj.angle = angles[i] || 0;
+
+		nObj[i] = newObj;
+		if(i>0)nObj[i-1].joints = [newObj];
+
+	}
+
+	/*for(var i=0; i<nBones; i++){
+		if(i>0)nObj[i-1].joints = [nObj[i]];
+	}*/
+
+
+	//return nObj[0]
+	return IK.jointHierFromJs(nObj[0]);
+	//console.log(nObj[0])
+
+	/*var newObj = {};
+	newObj.rootName = name;
+	newObj.name = name;
+	newObj.length = lengths[0] || 20;
+	newObj.angle = angles[0] || 0;
+	newObj.joints = [];*/
+
+
+
+}
+
+IK.js2joint = function(js) {
+	var rootName = js.rootName;
+	var name = js.name;
+	var lname = js.lname;
+	var length = js.length;
+	var angle = js.angle;
+
+	var joint = new IK.Joint(name, lname, length, angle);
+
+	if (rootName != undefined) {
+
+		// Also interconnect the joint to the root node if the name of the
+		// latter is specified.
+		var rootNode = new IK.Node(rootName);
+		joint.unode = rootNode;
+		rootNode.joints.push(joint);
+	}
+
+	return joint;
+};
 
 IK.jointHierFromJs = function(js) {
 
 	// A helper function converting a JavaScript object describing a joint's
 	// configuration and associated node(s) into a joint.
-	var js2joint = function(js) {
+	/*var js2joint = function(js) {
 
 		var rootName = js.rootName;
 		var name = js.name;
@@ -351,10 +418,10 @@ IK.jointHierFromJs = function(js) {
 		}
 
 		return joint;
-	};
+	};*/
 
 	// Root joint.
-	var rootJoint = js2joint(js);
+	var rootJoint = new IK.js2joint(js);
 
 	// Open list for unprocessed description objects and joints. These two
 	// lists always match each other.
@@ -380,7 +447,7 @@ IK.jointHierFromJs = function(js) {
 		var i = jointsJs.length;
 		while(i--){
 			var jointJs = jointsJs[i];
-			var joint = js2joint(jointJs);
+			var joint = new IK.js2joint(jointJs);
 
 			// Interconnect a descendant joint with the lower node of the
 			// current joint.
