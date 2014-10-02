@@ -155,6 +155,7 @@ function createJoint(){
 	// Time step for solving IK.
 	var dt = 1 / 60;
 	var j_meshs = [];
+	var e_meshs = [];
 	var n_meshs = {};
 
     var newNode = function(node, name, n) {
@@ -191,7 +192,9 @@ function createJoint(){
 		    //console.log(jSet)
 		    var obj = {type:'sphere', pos:rootPos, size:[3,3,3], rot:[0,0,0]}
 		    j_meshs[i] = v3d.add(obj);
-		    j_meshs[i].rotation.z = jSet.angle;
+		    var obj = {type:'sphere', pos:rootPos, size:[4,4,4], rot:[0,0,0], move:true}
+		    e_meshs[i] = v3d.add(obj);
+		    //j_meshs[i].rotation.z = jSet.angle;
 		    //var obj = {type:'box', pos:[jSet.length*0.5,0,0], size:[jSet.length,1,1], rot:[0,0,0]}
 		    //v3d.add(obj, j_meshs[i]);
 		    var name = jSet.name;
@@ -221,9 +224,9 @@ function createJoint(){
 			n_meshs[name+n].position.set(rootPos[0]+pp[0], rootPos[1]+pp[1], 0);
 		}
 
-		//if (node.armShape != null) {
-		//		node.armShape.transforms = [[rtrans2[0][0], rtrans2[1][0], rtrans2[0][1], rtrans2[1][1], rtrans2[0][2], rtrans2[1][2]]];
-		//	}
+		if (node.armShape != null) {
+			node.armShape.transforms = [[rtrans2[0][0], rtrans2[1][0], rtrans2[0][1], rtrans2[1][1], rtrans2[0][2], rtrans2[1][2]]];
+		}
 	}
 
 
@@ -241,7 +244,7 @@ function createJoint(){
 
 			// Stop stepping the IK if the goal position is close enough.
 			var eps = 1e-6;
-			//if(IK.vmag2(IK.vsub(relGoalPos, curEndPos)) < eps) continue;
+			if(IK.vmag2(IK.vsub(relGoalPos, curEndPos)) < eps) continue;
 
 			endEffector.stepIk(relGoalPos, dt);
 
@@ -251,6 +254,7 @@ function createJoint(){
 			// Update the position of the characters in the text so that they
 			// follow the end effectors.
 			//textShapes[i].pos = [endEffectorPos[0] + rootPos[0] + charOffsets[i][0], endEffectorPos[1] + rootPos[1], +charOffsets[i][1]];
+			e_meshs[i].position.set(endEffectorPos[0] + rootPos[0],endEffectorPos[1] + rootPos[1], 0 );
 			var name = jSet.name;
 
 			// Traverse the joint hierarchy to update all display elements.
