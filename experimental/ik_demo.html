@@ -62,9 +62,14 @@ function createJoint(){
 			angle : Math.PI / 6,
 			joints : [{
 
-				lname : endEffectorName,
 				length : 15,
 				angle : Math.PI / 2,
+				joints : [{
+
+					lname : endEffectorName,
+					length : 15,
+					angle : Math.PI / 2,
+				}]
 			}]
 		}]
 	}, {
@@ -138,25 +143,30 @@ function createJoint(){
 	}];
 
 	var rootPositions = [[-100, -10,0], [-20, 40,0], [0, -40,0], [100, 20,0]];
-	var goalCenterPositions = [[-65, -10], [-30, -10], [20, -10], [60, -10]];
-	var goalPositions = [[-65, -10], [-30, -10], [20, -10], [60, -10]];
+	var goalCenterPositions = [[-65, -10,0], [-30, -10,0], [20, -10,0], [60, -10,0]];
+	var goalPositions = [[-65, -10,0], [-30, -10,0], [20, -10,0], [60, -10,0]];
 
 	// Parse the joint descriptions and store the joint hierarchies.
 	var jointSets = [];
 	for (var i = 0; i < jointDescs.length; ++i) {
 		jointSets.push(IK.jointHierFromJs(jointDescs[i]));
 	}
+
 	// Store references to the end effectors.
 	var endEffectors = [];
 	for (var i = 0; i < jointSets.length; ++i) {
 		var jointSet = jointSets[i];
 		endEffectors.push(jointSet.unode.bfsFindNode(endEffectorName));
 	}
+
+
+
 	// Time step for solving IK.
 	var dt = 1 / 60;
 	var j_meshs = [];
 	var e_meshs = [];
 	var n_meshs = {};
+	var e_lines = [];
 
     var newNode = function(node, name, n) {
     	var j;
@@ -194,6 +204,9 @@ function createJoint(){
 		    j_meshs[i] = v3d.add(obj);
 		    var obj = {type:'sphere', pos:rootPos, size:[4,4,4], rot:[0,0,0], move:true}
 		    e_meshs[i] = v3d.add(obj);
+
+		    var obj = {type:'joint'}
+		    e_lines[i] = v3d.add(obj);
 		    //j_meshs[i].rotation.z = jSet.angle;
 		    //var obj = {type:'box', pos:[jSet.length*0.5,0,0], size:[jSet.length,1,1], rot:[0,0,0]}
 		    //v3d.add(obj, j_meshs[i]);
@@ -255,7 +268,13 @@ function createJoint(){
 			// follow the end effectors.
 			//textShapes[i].pos = [endEffectorPos[0] + rootPos[0] + charOffsets[i][0], endEffectorPos[1] + rootPos[1], +charOffsets[i][1]];
 			e_meshs[i].position.set(endEffectorPos[0] + rootPos[0],endEffectorPos[1] + rootPos[1], 0 );
+
+			var p1 = new THREE.Vector3(rootPos[0], rootPos[1], rootPos[2]);
+			var p2 = new THREE.Vector3(endEffectorPos[0] + rootPos[0], endEffectorPos[1] + rootPos[1], 0 );
+			v3d.moveLink( e_lines[i] , p1, p2);
+			
 			var name = jSet.name;
+
 
 			// Traverse the joint hierarchy to update all display elements.
 			jSet.unode.bfs(updateNodes, name);
