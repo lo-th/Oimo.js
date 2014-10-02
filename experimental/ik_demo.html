@@ -34,7 +34,7 @@ function init()
 {
     v3d = new V3D.View(90,90,100);
     
-    v3d.initLightShadow();
+    v3d.initLight();
     //v3d.initKeyboard();
     createJoint();
     loop();
@@ -170,11 +170,13 @@ function createJoint(){
 		
 		var pjoint = node.pjoint;
 		if (pjoint !== null){
-			var obj = {type:'sphere', pos:ppos2, size:[1,1,1], rot:[0,0,0]}
+			var obj = {type:'sphere', pos:ppos2, size:[2,2,2], rot:[0,0,0], move:true}
 		    n_meshs[name+n] = v3d.add(obj);
 		    //n_meshs[name+n].rotation.z = node.pjoint.angle;
-		    var obj = {type:'box', pos:[-node.pjoint.length*0.5,0,0], size:[node.pjoint.length,1,1], rot:[0,0,0], move:true}
-		    v3d.add(obj, n_meshs[name+n]);
+		    var obj = {type:'box', pos:[-node.pjoint.length*0.25,0,0], size:[node.pjoint.length*0.5,2,2], rot:[0,0,0], move:true}
+		    var g = v3d.add(obj, n_meshs[name+n]);
+		    g.material.transparent = true;
+            g.material.opacity = 0.5;//0.4
 		}
 		if (node.armShape != null) {
 				node.armShape.transforms = [[rtrans2[0][0], rtrans2[1][0], rtrans2[0][1], rtrans2[1][1], rtrans2[0][2], rtrans2[1][2]]];
@@ -282,7 +284,7 @@ function createJoint(){
 	    }
 	};
 
-	setInterval(update, 3);
+	setInterval(update, 1);
 
 	function update(){
 		updateJoints();
