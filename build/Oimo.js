@@ -9726,9 +9726,11 @@ OIMO.World.prototype.add = function(obj){
             // The coefficient of restitution of the shape.
             sc.restitution = obj.config[2] === undefined ? 0.2 : obj.config[2];
             // The bits of the collision groups to which the shape belongs.
-            sc.belongsTo = obj.config[3] === undefined ? 1 : obj.config[3];
+            sc.belongsTo = obj.config[3] || 1;
+            //sc.belongsTo = obj.config[3] === undefined ? 1 : obj.config[3];
             // The bits of the collision groups with which the shape collides.
-            sc.collidesWith = obj.config[4] === undefined ? 0xffffffff : obj.config[4];
+            sc.collidesWith = obj.config[4] || 0xffffffff;
+            //sc.collidesWith = obj.config[4] === undefined ? 0xffffffff : obj.config[4];
         }
 
         if(obj.massPos){

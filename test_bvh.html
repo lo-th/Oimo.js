@@ -442,7 +442,7 @@ function populate() {
     bodys = [];
     meshs = [];
 
-    var config = [0,0.4,0.2, collisionGroupes.group3, collisionGroupes.all & ~ collisionGroupes.group1];
+    var config = [0,0.4,0.2, collisionGroupes.group3, collisionGroupes.all ];
 
     //add ground
     var ground = new OIMO.Body({size:[200, 40, 200], pos:[0,-15,0], world:world, config:config});
