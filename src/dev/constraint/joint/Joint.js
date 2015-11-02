@@ -145,6 +145,9 @@ OIMO.Joint.prototype.solve = function () {
 OIMO.Joint.prototype.postSolve = function () {
 }
 
+OIMO.Joint.prototype.dispose = function(){
+    this.parent.removeJoint(this);
+}
 
 /**
 * Three js add

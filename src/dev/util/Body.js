@@ -10,6 +10,15 @@ OIMO.Body = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
 
+    if(obj.type === undefined) obj.type = "box";
+    this.name = obj.name || '';
+
+    // obsolete use world.add(obj)
+
+    this.body = obj.world.add(obj);
+
+
+/*
     // the world where i am
     this.parent = obj.world;
 
@@ -102,7 +111,7 @@ OIMO.Body = function(Obj){
     this.sleeping = this.body.sleeping;
 
     // finaly add to physics world
-    this.parent.addRigidBody(this.body);
+    this.parent.addRigidBody(this.body);*/
 }
 
 OIMO.Body.prototype = {
@@ -146,10 +155,12 @@ OIMO.Body.prototype = {
     },
     // remove rigidbody
     remove:function(){
-        this.parent.removeRigidBody(this.body);
+        this.body.dispose();
+        //this.parent.removeRigidBody(this.body);
     },
     // test if this object hit another
     checkContact:function(name){
-        this.parent.checkContact(this.name, name);
+        this.body.checkContact(name);
+        //this.parent.checkContact(this.name, name);
     }
 }

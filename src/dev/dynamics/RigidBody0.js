@@ -164,7 +164,7 @@ OIMO.RigidBody.prototype = {
     checkContact:function(name){
         this.parent.checkContact(this.name, name);
     },
-
+    
     /**
     * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
     * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
@@ -475,20 +475,20 @@ OIMO.RigidBody.prototype = {
     //---------------------------------------------
 
     rotationVectToQuad: function(rot){
-        var r = OIMO.EulerToAxis( rot.x * OIMO.degtorad, rot.y * OIMO.degtorad, rot.z * OIMO.degtorad );
+        var r = OIMO.EulerToAxis( rot.x * OIMO.TO_RAD, rot.y * OIMO.TO_RAD, rot.z * OIMO.TO_RAD );
         return this.rotationAxisToQuad(r[0], r[1], r[2], r[3]);
     },
 
     rotationAxisToQuad: function(rad, ax, ay, az){ // in radian
         var len=ax*ax+ay*ay+az*az; 
         if(len>0){
-            len=1/OIMO.sqrt(len);
+            len=1/Math.sqrt(len);
             ax*=len;
             ay*=len;
             az*=len;
         }
-        var sin=OIMO.sin(rad*0.5);
-        var cos=OIMO.cos(rad*0.5);
+        var sin=Math.sin(rad*0.5);
+        var cos=Math.cos(rad*0.5);
         return new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
     },
 

@@ -58,5 +58,6 @@
 	"src/dev/collision/broadphase/dbvt/DBVT.js",
 	"src/dev/collision/broadphase/dbvt/DBVTBroadPhase.js",
 	"src/dev/collision/broadphase/dbvt/DBVTNode.js",
-	"src/dev/collision/broadphase/dbvt/DBVTProxy.js"
+	"src/dev/collision/broadphase/dbvt/DBVTProxy.js",
+	"src/dev/dynamics/WorldAdd.js"
 ]

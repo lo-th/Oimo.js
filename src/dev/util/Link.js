@@ -9,8 +9,15 @@ OIMO.Link = function(Obj){
     var obj = Obj || {};
     if(!obj.world) return;
 
+    if(obj.type === undefined) obj.type = "jointHinge";
+    this.name = obj.name || '';
+
+    // obsolete use world.add(obj)
+
+    this.joint = obj.world.add(obj);
+
     // the world where i am
-    this.parent = obj.world;
+    /*this.parent = obj.world;
 
     this.name = obj.name || '';
     var type = obj.type || "jointHinge";
@@ -74,7 +81,7 @@ OIMO.Link = function(Obj){
     this.joint.name = this.name;
     
     // finaly add to physics world
-    this.parent.addJoint(this.joint);
+    this.parent.addJoint(this.joint);*/
 }
 
 OIMO.Link.prototype = {
@@ -88,7 +95,8 @@ OIMO.Link.prototype = {
     },
     // remove joint
     remove:function(){
-        this.parent.removeJoint(this.joint);
+        this.joint.dispose();
+        //this.parent.removeJoint(this.joint);
     },
     // force wakeup linked body
     awake:function(){

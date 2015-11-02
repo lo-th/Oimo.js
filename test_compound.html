@@ -185,8 +185,10 @@
         var b;
 
         if(type===1){// DEMO 1
-            var ground = new OIMO.Body({size:[100, 40, 390], pos:[0,-20,0], world:world});
-            var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-60,0], world:world});
+            var ground = world.add({size:[100, 40, 390], pos:[0,-20,0], world:world});
+            var ground2 = world.add({size:[400, 40, 400], pos:[0,-60,0], world:world});
+            //var ground = new OIMO.Body({size:[100, 40, 390], pos:[0,-20,0], world:world});
+            //var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-60,0], world:world});
 
             addStaticBox([100, 40, 390], [0,-20,0], [0,0,0]);
             addStaticBox([400, 40, 400], [0,-60,0], [0,0,0]);
@@ -199,7 +201,8 @@
                 positions[0] = 0;
                 positions[2] = 0;
 
-                b = new OIMO.Body({
+                //b = new OIMO.Body({
+                bodys[i] = world.add({
                     type:types,
                     size:sizes,
                     pos:positions,
@@ -209,7 +212,7 @@
                     config:[0.2, 0.4,0.1]
                 });
 
-                bodys[i] = b.body;
+                //bodys[i] = b.body;
 
                 j = Math.round(Math.random()*2);
 
@@ -239,7 +242,8 @@
                 l++;
                 if(l>16){k++; l=0}
 
-                b = new OIMO.Body({
+                //b = new OIMO.Body({
+                bodys[i] = world.add({
                     type:types,
                     size:sizes,
                     pos:positions,
@@ -249,7 +253,7 @@
                     config:[0.2,0.4,0.1]
                 });
 
-                bodys[i] = b.body;
+                //bodys[i] = b.body;
 
                 j = Math.round(Math.random()*2);
 
@@ -262,8 +266,9 @@
                 scene.add(meshs[i]);
             }
 
-            b = new OIMO.Body({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
-            bodys[max] = b.body;
+            //b = new OIMO.Body({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
+            //bodys[max] = b.body;
+            bodys[max] = world.add({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
             meshs[max] = new THREE.Mesh( buffgeoSphere, matSphere );
             meshs[max].scale.set( 80, 80, 80 );
             scene.add(meshs[max]);
