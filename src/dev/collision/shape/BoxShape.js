@@ -21,17 +21,20 @@ OIMO.BoxShape = function(config,Width,Height,Depth){
     this.dimentions = new OIMO_ARRAY_TYPE(18);
     this.elements = new OIMO_ARRAY_TYPE(24);
     this.type = OIMO.SHAPE_BOX;
-}
+};
+
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
+
 OIMO.BoxShape.prototype.calculateMassInfo = function(out){
-    var mass=this.width*this.height*this.depth*this.density;
-    out.mass=mass;
+    var mass = this.width*this.height*this.depth*this.density;
+    out.mass = mass;
     out.inertia.init(
         mass*(this.height*this.height+this.depth*this.depth)/12,0,0,
         0,mass*(this.width*this.width+this.depth*this.depth)/12,0,
         0,0,mass*(this.width*this.width+this.height*this.height)/12
     );
-}
+};
+
 OIMO.BoxShape.prototype.updateProxy = function(){
     var te = this.rotation.elements;
     var di = this.dimentions;
@@ -119,13 +122,13 @@ OIMO.BoxShape.prototype.updateProxy = function(){
     w = (di[15]<0) ? w-di[15] : w+di[15]; 
     h = (di[16]<0) ? h-di[16] : h+di[16];
     d = (di[17]<0) ? d-di[17] : d+di[17];
+
+    var p = OIMO.AABB_PROX;
     
     this.aabb.init(
-        this.position.x-w-0.005,this.position.x+w+0.005,
-        this.position.y-h-0.005,this.position.y+h+0.005,
-        this.position.z-d-0.005,this.position.z+d+0.005
+        this.position.x-w-p,this.position.x+w+p,
+        this.position.y-h-p,this.position.y+h+p,
+        this.position.z-d-p,this.position.z+d+p
     );
-    if(this.proxy!==null){
-        this.proxy.update();
-    }
-}
+    if(this.proxy!==null) this.proxy.update();
+};

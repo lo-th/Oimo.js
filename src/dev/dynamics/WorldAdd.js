@@ -132,15 +132,16 @@ OIMO.World.prototype.add = function(obj){
             n = i*3;
             n2 = i*4;
             switch(type[i]){
-                case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n+0]); break;
-                case "cylinder": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break; // fake cylinder
-                case "box": shapes[i] = new OIMO.BoxShape(sc, s[n+0], s[n+1], s[n+2]); break;
+                case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n]); break;
+                case "cylinder": shapes[i] = new OIMO.BoxShape(sc, s[n], s[n+1], s[n]); break; // fake cylinder
+                case "cylinderTrue": shapes[i] = new OIMO.CylinderShape(sc, s[n], s[n+1]); break; // true cylinder
+                case "box": shapes[i] = new OIMO.BoxShape(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape(shapes[i]);
             if(i>0){
                 //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
-                shapes[i].relativePosition = new OIMO.Vec3( p[n+0], p[n+1], p[n+2] );
-                if(r[n2+0]) shapes[i].relativeRotation = [ r[n2+0], r[n2+1], r[n2+2], r[n2+3] ];
+                shapes[i].relativePosition = new OIMO.Vec3( p[n], p[n+1], p[n+2] );
+                if(r[n2+0]) shapes[i].relativeRotation = [ r[n2], r[n2+1], r[n2+2], r[n2+3] ];
             }
         } 
         

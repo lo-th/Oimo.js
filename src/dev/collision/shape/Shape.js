@@ -21,7 +21,7 @@ OIMO.Shape = function(config){
     // The linked list of the contacts with the shape.
     this.contactLink = null;
     // The number of the contacts with the shape.
-    this.numContacts=0;
+    this.numContacts = 0;
 
     // The center of gravity of the shape in world coordinate system.
     this.position = new OIMO.Vec3();

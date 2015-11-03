@@ -4,7 +4,7 @@
  */
 OIMO.SphereBoxCollisionDetector = function(flip){
     OIMO.CollisionDetector.call( this );
-    this.flip=flip;
+    this.flip = flip;
 }
 OIMO.SphereBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
 OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
@@ -154,7 +154,7 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         dz=cz-ps.z;
         len=dx*dx+dy*dy+dz*dz;
         if(len>0&&len<rad*rad){
-            len=Math.sqrt(len);
+            len=OIMO.sqrt(len);
             invLen=1/len;
             dx*=invLen;
             dy*=invLen;

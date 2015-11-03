@@ -11,4 +11,6 @@
 
 .crayon-font-consolas * {
     font-family: Consolas, 'ConsolasRegular', 'Courier New', monospace !important;
+    font-smooth: never;
+    -webkit-font-smoothing : none;
 }

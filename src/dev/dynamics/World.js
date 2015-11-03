@@ -48,7 +48,7 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
     this.performance = null;
     if(!this.isNoStat) this.performance = new OIMO.Performance(this);
 
-    var numShapeTypes=3;
+    var numShapeTypes = 4;//3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
     var i=numShapeTypes;
@@ -60,17 +60,27 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_BOX]=new OIMO.SphereBoxCollisionDetector(false);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_SPHERE]=new OIMO.SphereBoxCollisionDetector(true);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_BOX]=new OIMO.BoxBoxCollisionDetector();
+
+    // cylinder add
+    this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_CYLINDER] = new OIMO.CylinderCylinderCollisionDetector();
+
+    this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_BOX] = new OIMO.BoxCylinderCollisionDetector(true);
+    this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_CYLINDER] = new OIMO.BoxCylinderCollisionDetector(false);
+
+    this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_SPHERE] = new OIMO.SphereCylinderCollisionDetector(true);
+    this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_CYLINDER] = new OIMO.SphereCylinderCollisionDetector(false);
+
  
-    this.randX=65535;
-    this.randA=98765;
-    this.randB=123456789;
-    this.maxIslandRigidBodies=64;
-    this.islandRigidBodies=[];
+    this.randX = 65535;
+    this.randA = 98765;
+    this.randB = 123456789;
+    this.maxIslandRigidBodies = 64;
+    this.islandRigidBodies = [];
     this.islandRigidBodies.length = this.maxIslandRigidBodies;
-    this.islandStack=[];
+    this.islandStack = [];
     this.islandStack.length = this.maxIslandRigidBodies;
-    this.maxIslandConstraints=128;
-    this.islandConstraints=[];
+    this.maxIslandConstraints = 128;
+    this.islandConstraints = [];
     this.islandConstraints.length = this.maxIslandConstraints;
 
 };
@@ -559,9 +569,9 @@ OIMO.World.prototype = {
             newContact = new OIMO.Contact();
         }
         newContact.attach(s1,s2);
-        newContact.detector=this.detectors[s1.type][s2.type];
-        if(this.contacts)(this.contacts.prev=newContact).next=this.contacts;
-        this.contacts=newContact;
+        newContact.detector = this.detectors[s1.type][s2.type];
+        if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
+        this.contacts = newContact;
         this.numContacts++;
     },
     removeContact:function(contact){
@@ -569,7 +579,7 @@ OIMO.World.prototype = {
         var next=contact.next;
         if(next)next.prev=prev;
         if(prev)prev.next=next;
-        if(this.contacts==contact)this.contacts=next;
+        if(this.contacts==contact) this.contacts=next;
         contact.prev=null;
         contact.next=null;
         contact.detach();
