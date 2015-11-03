@@ -40,7 +40,7 @@ OIMO.Quat.prototype = {
         qx += nx;
         qy += ny;
         qz += nz;
-        var s=1/Math.sqrt(qs*qs+qx*qx+qy*qy+qz*qz);
+        var s=1/OIMO.sqrt(qs*qs+qx*qx+qy*qy+qz*qz);
         this.s=qs*s;
         this.x=qx*s;
         this.y=qy*s;
@@ -82,7 +82,7 @@ OIMO.Quat.prototype = {
         x2=y1*x1-z1*z1;
         y2=-z1*y1-x1*x1;
         z2=x1*z1+y1*y1;
-        d=1/Math.sqrt(x2*x2+y2*y2+z2*z2);
+        d=1/OIMO.sqrt(x2*x2+y2*y2+z2*z2);
         this.s=0;
         this.x=x2*d;
         this.y=y2*d;
@@ -92,7 +92,7 @@ OIMO.Quat.prototype = {
         var cx=y1*z2-z1*y2;
         var cy=z1*x2-x1*z2;
         var cz=x1*y2-y1*x2;
-        this.s=Math.sqrt((1+d)*0.5);
+        this.s=OIMO.sqrt((1+d)*0.5);
         d=0.5/this.s;
         this.x=cx*d;
         this.y=cy*d;
@@ -100,7 +100,7 @@ OIMO.Quat.prototype = {
         return this;
     },
     normalize: function(q){
-        var len=Math.sqrt(q.s*q.s+q.x*q.x+q.y*q.y+q.z*q.z);
+        var len=OIMO.sqrt(q.s*q.s+q.x*q.x+q.y*q.y+q.z*q.z);
         if(len>0){len=1/len;}
         this.s=q.s*len;
         this.x=q.x*len;
@@ -116,7 +116,7 @@ OIMO.Quat.prototype = {
         return this;
     },
     length: function(){
-        return Math.sqrt(this.s*this.s+this.x*this.x+this.y*this.y+this.z*this.z);
+        return OIMO.sqrt(this.s*this.s+this.x*this.x+this.y*this.y+this.z*this.z);
     },
     
     copy: function(q){
@@ -167,7 +167,7 @@ OIMO.Quaternion.prototype = {
 
         if ( trace > 0 ) {
 
-            s = 0.5 / Math.sqrt( trace + 1.0 );
+            s = 0.5 / OIMO.sqrt( trace + 1.0 );
 
             this.w = 0.25 / s;
             this.x = ( m32 - m23 ) * s;
@@ -176,7 +176,7 @@ OIMO.Quaternion.prototype = {
 
         } else if ( m11 > m22 && m11 > m33 ) {
 
-            s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+            s = 2.0 * OIMO.sqrt( 1.0 + m11 - m22 - m33 );
 
             this.w = ( m32 - m23 ) / s;
             this.x = 0.25 * s;
@@ -185,7 +185,7 @@ OIMO.Quaternion.prototype = {
 
         } else if ( m22 > m33 ) {
 
-            s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+            s = 2.0 * OIMO.sqrt( 1.0 + m22 - m11 - m33 );
 
             this.w = ( m13 - m31 ) / s;
             this.x = ( m12 + m21 ) / s;
@@ -194,7 +194,7 @@ OIMO.Quaternion.prototype = {
 
         } else {
 
-            s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+            s = 2.0 * OIMO.sqrt( 1.0 + m33 - m11 - m22 );
 
             this.w = ( m21 - m12 ) / s;
             this.x = ( m13 + m31 ) / s;

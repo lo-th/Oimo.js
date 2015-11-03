@@ -231,7 +231,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     if(overlap6>0)return;
     len=a7x*a7x+a7y*a7y+a7z*a7z;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     a7x*=len;
     a7y*=len;
     a7z*=len;
@@ -257,7 +257,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=a8x*a8x+a8y*a8y+a8z*a8z;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     a8x*=len;
     a8y*=len;
     a8z*=len;
@@ -283,7 +283,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=a9x*a9x+a9y*a9y+a9z*a9z;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     a9x*=len;
     a9y*=len;
     a9z*=len;
@@ -309,7 +309,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=aax*aax+aay*aay+aaz*aaz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     aax*=len;
     aay*=len;
     aaz*=len;
@@ -335,7 +335,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=abx*abx+aby*aby+abz*abz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     abx*=len;
     aby*=len;
     abz*=len;
@@ -361,7 +361,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=acx*acx+acy*acy+acz*acz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     acx*=len;
     acy*=len;
     acz*=len;
@@ -387,7 +387,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=adx*adx+ady*ady+adz*adz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     adx*=len;
     ady*=len;
     adz*=len;
@@ -413,7 +413,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=aex*aex+aey*aey+aez*aez;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     aex*=len;
     aey*=len;
     aez*=len;
@@ -439,7 +439,7 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
     }
     len=afx*afx+afy*afy+afz*afz;
     if(len>1e-5){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     afx*=len;
     afy*=len;
     afz*=len;

@@ -19,7 +19,7 @@ OIMO.DistanceJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var nx=this.anchorPoint2.x-this.anchorPoint1.x;
     var ny=this.anchorPoint2.y-this.anchorPoint1.y;
     var nz=this.anchorPoint2.z-this.anchorPoint1.z;
-    var len=Math.sqrt(nx*nx+ny*ny+nz*nz);
+    var len=OIMO.sqrt(nx*nx+ny*ny+nz*nz);
     if(len>0)len=1/len;
     this.normal.init(nx*len,ny*len,nz*len);
     this.t.preSolve(timeStep,invTimeStep);

@@ -146,12 +146,12 @@ OIMO.ContactConstraint.prototype.preSolve = function(timeStep,invTimeStep){
     var tanZ=rvZ-rvn*norZ;
     var len=tanX*tanX+tanY*tanY+tanZ*tanZ;
     if(len>0.04){
-    len=1/Math.sqrt(len);
+    len=1/OIMO.sqrt(len);
     }else{
     tanX=norY*norX-norZ*norZ;
     tanY=-norZ*norY-norX*norX;
     tanZ=norX*norZ+norY*norY;
-    len=1/Math.sqrt(tanX*tanX+tanY*tanY+tanZ*tanZ);
+    len=1/OIMO.sqrt(tanX*tanX+tanY*tanY+tanZ*tanZ);
     }
     tanX*=len;
     tanY*=len;
@@ -381,7 +381,7 @@ OIMO.ContactConstraint.prototype.solve = function(){
         // cone friction clamp
         var len=tanImp*tanImp+binImp*binImp;
         if(len>max*max){
-            len=max/Math.sqrt(len);
+            len=max/OIMO.sqrt(len);
             tanImp*=len;
             binImp*=len;
         }

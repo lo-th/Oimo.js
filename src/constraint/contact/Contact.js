@@ -45,10 +45,10 @@ OIMO.Contact.prototype = {
     constructor: OIMO.Contact,
 
     mixRestitution:function(restitution1,restitution2){
-        return Math.sqrt(restitution1*restitution2);
+        return OIMO.sqrt(restitution1*restitution2);
     },
     mixFriction:function(friction1,friction2){
-        return Math.sqrt(friction1*friction2);
+        return OIMO.sqrt(friction1*friction2);
     },
     /**
     * Update the contact manifold.

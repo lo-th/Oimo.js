@@ -19,7 +19,7 @@ OIMO.HingeJoint = function(config,lowerAngleLimit,upperAngleLimit){
     this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
     this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
 
-    len=1/Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+    len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
     this.localAngAxis1X*=len;
     this.localAngAxis1Y*=len;
     this.localAngAxis1Z*=len;
@@ -72,7 +72,7 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var nx=axis1X*this.body2.inverseMass+axis2X*this.body1.inverseMass;
     var ny=axis1Y*this.body2.inverseMass+axis2Y*this.body1.inverseMass;
     var nz=axis1Z*this.body2.inverseMass+axis2Z*this.body1.inverseMass;
-    tmp1X=Math.sqrt(nx*nx+ny*ny+nz*nz);
+    tmp1X=OIMO.sqrt(nx*nx+ny*ny+nz*nz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     nx*=tmp1X;
     ny*=tmp1X;
@@ -80,7 +80,7 @@ OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var tx=ny*nx-nz*nz;
     var ty=-nz*ny-nx*nx;
     var tz=nx*nz+ny*ny;
-    tmp1X=1/Math.sqrt(tx*tx+ty*ty+tz*tz);
+    tmp1X=1/OIMO.sqrt(tx*tx+ty*ty+tz*tz);
     tx*=tmp1X;
     ty*=tmp1X;
     tz*=tmp1X;
@@ -125,6 +125,6 @@ OIMO.HingeJoint.prototype.postSolve = function () {
 }
 OIMO.HingeJoint.prototype.acosClamp = function(cos){
     if(cos>1)return 0;
-    else if(cos<-1)return Math.PI;
-    else return Math.acos(cos);
+    else if(cos<-1)return OIMO.PI;
+    else return OIMO.acos(cos);
 }

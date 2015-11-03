@@ -100,7 +100,7 @@ OIMO.Vec3.prototype = {
         var x = v.x, y = v.y, z = v.z;
         var l = x*x + y*y + z*z;
         if (l > 0) {
-            l = 1 / Math.sqrt(l);
+            l = 1 / OIMO.sqrt(l);
             this.x = x*l;
             this.y = y*l;
             this.z = z*l;
@@ -115,7 +115,7 @@ OIMO.Vec3.prototype = {
     },
     length: function(){
         var x = this.x, y = this.y, z = this.z;
-        return Math.sqrt(x*x + y*y + z*z);
+        return OIMO.sqrt(x*x + y*y + z*z);
     },
     len: function(){
         var x = this.x, y = this.y, z = this.z;

@@ -96,8 +96,8 @@ OIMO.Mat33.prototype = {
     },
     mulRotate: function(m,rad,ax,ay,az,Prepend){
         var prepend = Prepend || false;
-        var s=Math.sin(rad);
-        var c=Math.cos(rad);
+        var s=OIMO.sin(rad);
+        var c=OIMO.cos(rad);
         var c1=1-c;
         var r00=ax*ax*c1+c;
         var r01=ax*ay*c1-az*s;
@@ -196,7 +196,7 @@ OIMO.Mat33.prototype = {
     },
     toEuler: function(){ // not work !!
         function clamp( x ) {
-            return Math.min( Math.max( x, -1 ), 1 );
+            return OIMO.min( OIMO.max( x, -1 ), 1 );
         }
         var te = this.elements;
         var m11 = te[0], m12 = te[3], m13 = te[6];
@@ -207,13 +207,13 @@ OIMO.Mat33.prototype = {
         var d = new OIMO.Quat();
         var s;
 
-        p.y = Math.asin( clamp( m13 ) );
+        p.y = OIMO.asin( clamp( m13 ) );
 
-        if ( Math.abs( m13 ) < 0.99999 ) {
-            p.x = Math.atan2( - m23, m33 );
-            p.z = Math.atan2( - m12, m11 );
+        if ( OIMO.abs( m13 ) < 0.99999 ) {
+            p.x = OIMO.atan2( - m23, m33 );
+            p.z = OIMO.atan2( - m12, m11 );
         } else {
-            p.x = Math.atan2( m32, m22 );
+            p.x = OIMO.atan2( m32, m22 );
             p.z = 0;
         }
         

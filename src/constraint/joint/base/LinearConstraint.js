@@ -199,7 +199,7 @@ OIMO.LinearConstraint.prototype = {
         this.velx=this.p2.x-this.p1.x;
         this.vely=this.p2.y-this.p1.y;
         this.velz=this.p2.z-this.p1.z;
-        var len=Math.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
+        var len=OIMO.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
         if(len>0.005){
             len=(0.005-len)/len*invTimeStep*0.05;
             this.velx*=len;

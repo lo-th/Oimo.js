@@ -107,7 +107,7 @@ OIMO.AngularConstraint.prototype = {
         this.velx=this.relativeOrientation.x*inv;
         this.vely=this.relativeOrientation.y*inv;
         this.velz=this.relativeOrientation.z*inv;
-        var len=Math.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
+        var len=OIMO.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
         if(len>0.02){
             len=(0.02-len)/len*invTimeStep*0.05;
             this.velx*=len;

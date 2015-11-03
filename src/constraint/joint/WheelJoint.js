@@ -26,11 +26,11 @@ OIMO.WheelJoint = function(config){
         this.localAngAxis2X=this.localAxis1X-dot*this.localAxis2X;
         this.localAngAxis2Y=this.localAxis1Y-dot*this.localAxis2Y;
         this.localAngAxis2Z=this.localAxis1Z-dot*this.localAxis2Z;
-        len=1/Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+        len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
         this.localAngAxis1X*=len;
         this.localAngAxis1Y*=len;
         this.localAngAxis1Z*=len;
-        len=1/Math.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
+        len=1/OIMO.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
         this.localAngAxis2X*=len;
         this.localAngAxis2Y*=len;
         this.localAngAxis2Z*=len;
@@ -38,7 +38,7 @@ OIMO.WheelJoint = function(config){
         this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
         this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
         this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
-        len=1/Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+        len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
         this.localAngAxis1X*=len;
         this.localAngAxis1Y*=len;
         this.localAngAxis1Z*=len;
@@ -104,7 +104,7 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var ny=z2*x1-x2*z1;
     var nz=x2*y1-y2*x1;
 
-    tmp1X=Math.sqrt(nx*nx+ny*ny+nz*nz);
+    tmp1X=OIMO.sqrt(nx*nx+ny*ny+nz*nz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     nx*=tmp1X;
     ny*=tmp1X;
@@ -114,7 +114,7 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var ty=nz*x2-nx*z2;
     var tz=nx*y2-ny*x2;
 
-    tmp1X=Math.sqrt(tx*tx+ty*ty+tz*tz);
+    tmp1X=OIMO.sqrt(tx*tx+ty*ty+tz*tz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     tx*=tmp1X;
     ty*=tmp1X;
@@ -124,7 +124,7 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var by=z1*nx-x1*nz;
     var bz=x1*ny-y1*nx;
 
-    tmp1X=Math.sqrt(bx*bx+by*by+bz*bz);
+    tmp1X=OIMO.sqrt(bx*bx+by*by+bz*bz);
     if(tmp1X>0)tmp1X=1/tmp1X;
     bx*=tmp1X;
     by*=tmp1X;
@@ -145,6 +145,6 @@ OIMO.WheelJoint.prototype.postSolve = function () {
 }
 OIMO.WheelJoint.prototype.acosClamp = function(cos){
     if(cos>1)return 0;
-    else if(cos<-1)return Math.PI;
-    else return Math.acos(cos);
+    else if(cos<-1)return OIMO.PI;
+    else return OIMO.acos(cos);
 }
