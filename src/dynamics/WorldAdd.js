@@ -6,6 +6,8 @@ OIMO.World.prototype.add = function(obj){
 
     if(type[0].substring(0,5) == 'joint'){ // is joint
 
+        if(type[0] === 'joint')type[0] = 'jointHinge';
+
         var axe1 = obj.axe1 || [1,0,0];
         var axe2 = obj.axe2 || [1,0,0];
         var pos1 = obj.pos1 || [0,0,0];

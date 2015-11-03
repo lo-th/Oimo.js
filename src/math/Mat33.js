@@ -19,6 +19,13 @@ OIMO.Mat33.prototype = {
         te[6] = e20; te[7] = e21; te[8] = e22;
         return this;
     },
+    multiply: function(s){
+        var te = this.elements;
+        te[0] *= s; te[1] *= s; te[2] *= s;
+        te[3] *= s; te[4] *= s; te[5] *= s;
+        te[6] *= s; te[7] *= s; te[8] *= s;
+        return this;
+    },
     add: function(m1,m2){
         var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
         te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
