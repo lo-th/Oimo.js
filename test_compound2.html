@@ -49,7 +49,7 @@
     var world = null;
     var bodys = null;
     var infos;
-    var type=1;
+    var type = 1;
 
     init();
     loop();
@@ -117,6 +117,7 @@
     function loop() {
         requestAnimationFrame( loop );
         renderer.clear();
+        updateOimoPhysics();
         renderer.render( scene, camera );
         //displayInfo();
     }
@@ -133,8 +134,10 @@
     }
 
     function initCapsuleGeometry (radius, height, SRadius, SHeight) {
-        types = [ 'sphere', 'sphere','sphere'];
-        sizes = [ radius,radius,radius, radius,radius,radius, radius,radius,radius ];
+        //types = [ 'sphere', 'sphere','sphere'];
+        types = [ 'sphere', 'cylinder','sphere'];
+        sizes = [ radius,radius,radius, radius,height,radius, radius,radius,radius ];
+        //sizes = [ radius,radius,radius, radius,radius,radius, radius,radius,radius ];
         positions = [0,0,0,   0,height*0.5,0, 0,height,0];
         var sRadius = SRadius || 20;
         var sHeight = SHeight || 10;
@@ -172,7 +175,7 @@
         //initChairGeometry();
         initCapsuleGeometry(10,22,20,10);
         populate(1);
-        setInterval( updateOimoPhysics, 1000/60 );
+        //setInterval( updateOimoPhysics, 1000/60 );
     }
 
     function populate(n) {
@@ -191,8 +194,8 @@
         var b;
 
         if(type===1){// DEMO 1
-            var ground = new OIMO.Body({size:[100, 40, 390], pos:[0,-20,0], world:world});
-            var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-60,0], world:world});
+            var ground = world.add({size:[100, 40, 390], pos:[0,-20,0], world:world});
+            var ground2 = world.add({size:[400, 40, 400], pos:[0,-60,0], world:world});
 
             addStaticBox([100, 40, 390], [0,-20,0], [0,0,0]);
             addStaticBox([400, 40, 400], [0,-60,0], [0,0,0]);
@@ -205,7 +208,7 @@
                 positions[0] = 10+Math.random()*20;
                 positions[2] = 10+Math.random()*20;
 
-                b = new OIMO.Body({
+                bodys[i] = world.add({
                     type:types,
                     size:sizes,
                     pos:positions,
@@ -214,8 +217,6 @@
                     name:'box'+i, 
                     config:[0.2, 0.4,0.1]
                 });
-
-                bodys[i] = b.body;
 
                 j = Math.round(Math.random()*2);
 
@@ -228,9 +229,9 @@
                 scene.add(meshs[i]);
             }
         } else if(type===2){// DEMO 2
-            var ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
+            var ground = world.add({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
             addStaticBox([1000, 40, 1000], [0,-20,0], [0,0,0]);
-            var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,130,-600], rot:[45,0,0], world:world});
+            var ground2 = world.add({size:[400, 40, 400], pos:[0,130,-600], rot:[45,0,0], world:world});
             addStaticBox([400, 40, 400], [0,130,-600], [45,0,0]);
 
             var i = max;
@@ -245,7 +246,7 @@
                 l++;
                 if(l>16){k++; l=0}
 
-                b = new OIMO.Body({
+                bodys[i] = world.add({
                     type:types,
                     size:sizes,
                     pos:positions,
@@ -254,8 +255,6 @@
                     name:'box'+i, 
                     config:[0.2,0.4,0.1]
                 });
-
-                bodys[i] = b.body;
 
                 j = Math.round(Math.random()*2);
 
@@ -268,8 +267,7 @@
                 scene.add(meshs[i]);
             }
 
-            b = new OIMO.Body({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
-            bodys[max] = b.body;
+            bodys[max] = world.add({type:'sphere', size:[80], pos:[0,1000,-600], move:true, world:world});
             meshs[max] = new THREE.Mesh( buffgeoSphere, matSphere );
             meshs[max].scale.set( 80, 80, 80 );
             scene.add(meshs[max]);
@@ -281,6 +279,8 @@
     }
 
     function updateOimoPhysics() {
+
+        if(world==null) return;
 
         // update world
         world.step();

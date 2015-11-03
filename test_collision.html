@@ -113,6 +113,7 @@
     function loop() {
         requestAnimationFrame( loop );
         renderer.clear();
+        updateOimoPhysics();
         renderer.render( scene, camera );
         //displayInfo();
     }
@@ -147,7 +148,7 @@
         
         world = new OIMO.World(1/60, 2);
         populate(1);
-        setInterval(updateOimoPhysics, 1000/60);
+        //setInterval(updateOimoPhysics, 1000/60);
 
     }
 
@@ -178,15 +179,15 @@
         ];
 
         //add ground
-        var ground = new OIMO.Body({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
+        var ground = world.add({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
         addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
 
-        var ground2 = new OIMO.Body({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
+        var ground2 = world.add({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
         addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
 
         config[3] = group1;
         config[4] = all & ~group2; // all exepte groupe2
-        var ground3 = new OIMO.Body({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
+        var ground3 = world.add({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
         addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);
 
         // now add object
@@ -207,12 +208,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
@@ -228,6 +229,8 @@
 
     function updateOimoPhysics() {
 
+        if(world == null) return;
+
         world.step();
 
         var p, r, m, x, y, z;
@@ -237,7 +240,7 @@
         var body;
 
         while (i--){
-            body = bodys[i].body;
+            body = bodys[i];
             mesh = meshs[i];
 
             if(!body.sleeping){
