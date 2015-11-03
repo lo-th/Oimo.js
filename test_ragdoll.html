@@ -133,7 +133,9 @@
 
     function loop() {
         requestAnimationFrame( loop );
+
         renderer.clear();
+        updateOimoPhysics();
         renderer.render( scene, camera );
         //displayInfo();
     }
@@ -192,7 +194,7 @@
         world = new OIMO.World();
         gravity();
         populate(1);
-        setInterval(updateOimoPhysics, 1000/60);
+        //setInterval(updateOimoPhysics, 1000/60);
     }
 
     function switchCollision() {
@@ -216,10 +218,10 @@
         var ground;
         
         if(type===1){
-            ground = new OIMO.Body({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
+            ground = world.add({size:[1000, 40, 1000], pos:[0,-20,0], world:world});
             addStaticBox([1000, 40, 1000], [0,-20,0], [0,0,0]);
         }else{
-            ground = new OIMO.Body({size:[300, 40, 300], pos:[0,-20,0], world:world});
+            ground = world.add({size:[300, 40, 300], pos:[0,-20,0], world:world});
             addStaticBox([300, 40, 300], [0,-20,0], [0,0,0]);
         }
 
@@ -246,61 +248,61 @@
                 pz = 0;
             }
 
-            bodys[j+0] = new OIMO.Body({type:"box", size:[20,10,15], pos:[px,py-20,pz], move:true, world:world, name:'pelvis'+j });
+            bodys[j+0] = world.add({type:"box", size:[20,10,15], pos:[px,py-20,pz], move:true, world:world, name:'pelvis'+j });
             meshs[j+0] = addThreeMesh([20,10,15], null, null, 0, 'cylinder');
        
-            bodys[j+1] = new OIMO.Body({type:"box", size:[20,10,15], pos:[px,py-10,pz], move:true, world:world, name:'spine1_'+j });
+            bodys[j+1] = world.add({type:"box", size:[20,10,15], pos:[px,py-10,pz], move:true, world:world, name:'spine1_'+j });
             meshs[j+1] = addThreeMesh([20,10,15], null, null, 0, 'cylinder');
        
-            bodys[j+2] = new OIMO.Body({type:"box", size:[20,10,15], pos:[px,py,pz], move:true, world:world, name:'spine2_'+j });
+            bodys[j+2] = world.add({type:"box", size:[20,10,15], pos:[px,py,pz], move:true, world:world, name:'spine2_'+j });
             meshs[j+2] = addThreeMesh([20,10,15], null, null, 0, 'cylinder');
        
-            bodys[j+3] = new OIMO.Body({type:"box", size:[20,10,15], pos:[px,py+10,pz], move:true, world:world, name:'spine3_'+j });
+            bodys[j+3] = world.add({type:"box", size:[20,10,15], pos:[px,py+10,pz], move:true, world:world, name:'spine3_'+j });
             meshs[j+3] = addThreeMesh([20,10,15], null, null, 0, 'cylinder');
        
-            bodys[j+4] = new OIMO.Body({type:"sphere", size:[10,10,10], pos:[px,py+30,pz], move:true, world:world, name:'head'+j });
+            bodys[j+4] = world.add({type:"sphere", size:[10,10,10], pos:[px,py+30,pz], move:true, world:world, name:'head'+j });
             meshs[j+4] = addThreeMesh([10,10,10], null, null, 1, 'sphere');
        
-            joints[k+0] = new OIMO.Link({body1:'pelvis'+j, body2:'spine1_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, world:world, spring:spring });
-            joints[k+1] = new OIMO.Link({body1:'spine1_'+j, body2:'spine2_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, world:world, spring:spring});
-            joints[k+2] = new OIMO.Link({body1:'spine2_'+j, body2:'spine3_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, world:world, spring:spring});
-            joints[k+3] = new OIMO.Link({body1:'spine3_'+j, body2:'head'+j,   pos1:[0,5,0], pos2:[0,-10,0], min:2, max:20, collision:collision, world:world, spring:spring});
+            joints[k+0] = world.add({type:"joint", body1:'pelvis'+j, body2:'spine1_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, world:world, spring:spring });
+            joints[k+1] = world.add({type:"joint", body1:'spine1_'+j, body2:'spine2_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, world:world, spring:spring});
+            joints[k+2] = world.add({type:"joint", body1:'spine2_'+j, body2:'spine3_'+j, pos1:[0,5,0], pos2:[0,-5,0], min:2, max:20, collision:collision, world:world, spring:spring});
+            joints[k+3] = world.add({type:"joint", body1:'spine3_'+j, body2:'head'+j,   pos1:[0,5,0], pos2:[0,-10,0], min:2, max:20, collision:collision, world:world, spring:spring});
       
             //arm
        
-            bodys[j+5] = new OIMO.Body({type:"box", size:[20,10,10], pos:[px-20,py+8,pz], rot:[0,0,20], move:true, world:world, name:'L_arm'+j });
+            bodys[j+5] = world.add({type:"box", size:[20,10,10], pos:[px-20,py+8,pz], rot:[0,0,20], move:true, world:world, name:'L_arm'+j });
             meshs[j+5] = addThreeMesh([20,10,10], null, null, 3, 'cylinder2');
-            bodys[j+6] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px-40,py,pz], rot:[0,0,20], move:true, world:world, name:'LF_arm'+j });
+            bodys[j+6] = world.add({type:"box", size:[20,8,8], pos:[px-40,py,pz], rot:[0,0,20], move:true, world:world, name:'LF_arm'+j });
             meshs[j+6] = addThreeMesh([20,8,8], null, null, 3, 'cylinder2');
 
-            bodys[j+7] = new OIMO.Body({type:"box", size:[20,10,10], pos:[px+20,py+8,pz], rot:[0,0,-20], move:true, world:world, name:'R_arm'+j });
+            bodys[j+7] = world.add({type:"box", size:[20,10,10], pos:[px+20,py+8,pz], rot:[0,0,-20], move:true, world:world, name:'R_arm'+j });
             meshs[j+7] = addThreeMesh([20,10,10], null, null, 3, 'cylinder2');
-            bodys[j+8] = new OIMO.Body({type:"box", size:[20,8,8], pos:[px+40,py,pz], rot:[0,0,-20], move:true, world:world, name:'RF_arm'+j });
+            bodys[j+8] = world.add({type:"box", size:[20,8,8], pos:[px+40,py,pz], rot:[0,0,-20], move:true, world:world, name:'RF_arm'+j });
             meshs[j+8] = addThreeMesh([20,8,8], null, null, 3, 'cylinder2');
 
-            joints[k+4] = new OIMO.Link({body1:'spine3_'+j, body2:'L_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
-            joints[k+5] = new OIMO.Link({body1:'spine3_'+j, body2:'R_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
+            joints[k+4] = world.add({type:"joint", body1:'spine3_'+j, body2:'L_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
+            joints[k+5] = world.add({type:"joint", body1:'spine3_'+j, body2:'R_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,1], axe2:[0,1,1], collision:collision, world:world});
 
-            joints[k+6] = new OIMO.Link({body1:'L_arm'+j, body2:'LF_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision, world:world});
-            joints[k+7] = new OIMO.Link({body1:'R_arm'+j, body2:'RF_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision, world:world});
+            joints[k+6] = world.add({type:"joint", body1:'L_arm'+j, body2:'LF_arm'+j, pos1:[-10,0,0], pos2:[10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision, world:world});
+            joints[k+7] = world.add({type:"joint", body1:'R_arm'+j, body2:'RF_arm'+j, pos1:[10,0,0], pos2:[-10,0,0], axe1:[0,1,0], axe2:[0,1,0], collision:collision, world:world});
 
             // leg
 
-            bodys[j+9] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px-6,py-40,pz], rot:[0,0,-20], move:true, world:world, name:'L_leg'+j });
+            bodys[j+9] = world.add({type:"box", size:[10,20,10], pos:[px-6,py-40,pz], rot:[0,0,-20], move:true, world:world, name:'L_leg'+j });
             meshs[j+9] = addThreeMesh([10,20,10], null, null, 0, 'cylinder');
-            bodys[j+10] = new OIMO.Body({type:"box", size:[8,20,8], pos:[px-15,py-70,pz], rot:[0,0,-20], move:true, world:world, name:'LF_leg'+j });
+            bodys[j+10] = world.add({type:"box", size:[8,20,8], pos:[px-15,py-70,pz], rot:[0,0,-20], move:true, world:world, name:'LF_leg'+j });
             meshs[j+10] = addThreeMesh([8,20,8], null, null, 0, 'cylinder');
 
-            bodys[j+11] = new OIMO.Body({type:"box", size:[10,20,10], pos:[px+6,py-40,pz], rot:[0,0,20], move:true, world:world, name:'R_leg'+j });
+            bodys[j+11] = world.add({type:"box", size:[10,20,10], pos:[px+6,py-40,pz], rot:[0,0,20], move:true, world:world, name:'R_leg'+j });
             meshs[j+11] = addThreeMesh([10,20,10], null, null, 0, 'cylinder');
-            bodys[j+12] = new OIMO.Body({type:"box", size:[8,20,8], pos:[px+15,py-70,pz], rot:[0,0,20], move:true, world:world, name:'RF_leg'+j });
+            bodys[j+12] = world.add({type:"box", size:[8,20,8], pos:[px+15,py-70,pz], rot:[0,0,20], move:true, world:world, name:'RF_leg'+j });
             meshs[j+12] = addThreeMesh([8,20,8], null, null, 0, 'cylinder');
 
-            joints[k+8] = new OIMO.Link({body1:'pelvis'+j, body2:'L_leg'+j, pos1:[-6,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
-            joints[k+9] = new OIMO.Link({body1:'pelvis'+j, body2:'R_leg'+j, pos1:[6,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
+            joints[k+8] = world.add({type:"joint", body1:'pelvis'+j, body2:'L_leg'+j, pos1:[-6,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
+            joints[k+9] = world.add({type:"joint", body1:'pelvis'+j, body2:'R_leg'+j, pos1:[6,-5,0], pos2:[0,10,0], min:2, max:60, collision:collision, world:world});
 
-            joints[k+10] = new OIMO.Link({body1:'L_leg'+j, body2:'LF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], axe1:[1,0,0], axe2:[1,0,0], min:2, max:60, collision:collision, world:world});
-            joints[k+11] = new OIMO.Link({body1:'R_leg'+j, body2:'RF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], axe1:[1,0,0], axe2:[1,0,0], min:2, max:60, collision:collision, world:world});
+            joints[k+10] = world.add({type:"joint", body1:'L_leg'+j, body2:'LF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], axe1:[1,0,0], axe2:[1,0,0], min:2, max:60, collision:collision, world:world});
+            joints[k+11] = world.add({type:"joint", body1:'R_leg'+j, body2:'RF_leg'+j, pos1:[0,-10,0], pos2:[0,10,0], axe1:[1,0,0], axe2:[1,0,0], min:2, max:60, collision:collision, world:world});
        
 
             j+=13;
@@ -309,6 +311,9 @@
     }
 
     function updateOimoPhysics() {
+
+        if(world == null) return;
+
         world.step();
 
         var p, r, m, x, y, z;
@@ -317,7 +322,7 @@
         var body;
 
         while (i--){
-            body = bodys[i].body;
+            body = bodys[i];
             mesh = meshs[i];
 
             if(!body.sleeping){
@@ -337,37 +342,37 @@
                     z = -100 + Math.random()*200;
                     y = 500 + Math.random()*200;
                     // chest
-                    bodys[i+0].body.resetPosition(x,y-20,z);
-                    bodys[i+1].body.resetPosition(x,y-10,z);
-                    bodys[i+2].body.resetPosition(x,y,z);
-                    bodys[i+3].body.resetPosition(x,y+10,z);
-                    bodys[i+4].body.resetPosition(x,y+30,z);
+                    bodys[i+0].resetPosition(x,y-20,z);
+                    bodys[i+1].resetPosition(x,y-10,z);
+                    bodys[i+2].resetPosition(x,y,z);
+                    bodys[i+3].resetPosition(x,y+10,z);
+                    bodys[i+4].resetPosition(x,y+30,z);
                     // arm
-                    bodys[i+5].body.resetPosition(x-20,y+8,z);
-                    bodys[i+6].body.resetPosition(x-40,y,z);
-                    bodys[i+7].body.resetPosition(x+20,y+8,z);
-                    bodys[i+8].body.resetPosition(x+40,y,z);
+                    bodys[i+5].resetPosition(x-20,y+8,z);
+                    bodys[i+6].resetPosition(x-40,y,z);
+                    bodys[i+7].resetPosition(x+20,y+8,z);
+                    bodys[i+8].resetPosition(x+40,y,z);
                     // leg
-                    bodys[i+9].body.resetPosition(x-6,y-40,z);
-                    bodys[i+10].body.resetPosition(x-15,y-70,z);
-                    bodys[i+11].body.resetPosition(x+6,y-40,z);
-                    bodys[i+12].body.resetPosition(x+15,y-70,z);
+                    bodys[i+9].resetPosition(x-6,y-40,z);
+                    bodys[i+10].resetPosition(x-15,y-70,z);
+                    bodys[i+11].resetPosition(x+6,y-40,z);
+                    bodys[i+12].resetPosition(x+15,y-70,z);
 
-                    bodys[i+0].body.resetRotation(0,0,0);
-                    bodys[i+1].body.resetRotation(0,0,0);
-                    bodys[i+2].body.resetRotation(0,0,0);
-                    bodys[i+3].body.resetRotation(0,0,0);
-                    bodys[i+4].body.resetRotation(0,0,0);
+                    bodys[i+0].resetRotation(0,0,0);
+                    bodys[i+1].resetRotation(0,0,0);
+                    bodys[i+2].resetRotation(0,0,0);
+                    bodys[i+3].resetRotation(0,0,0);
+                    bodys[i+4].resetRotation(0,0,0);
 
-                    bodys[i+5].body.resetRotation(0,0,20);
-                    bodys[i+6].body.resetRotation(0,0,20);
-                    bodys[i+7].body.resetRotation(0,0,-20);
-                    bodys[i+8].body.resetRotation(0,0,-20);
+                    bodys[i+5].resetRotation(0,0,20);
+                    bodys[i+6].resetRotation(0,0,20);
+                    bodys[i+7].resetRotation(0,0,-20);
+                    bodys[i+8].resetRotation(0,0,-20);
 
-                    bodys[i+9].body.resetRotation(0,0,-20);
-                    bodys[i+10].body.resetRotation(0,0,-20);
-                    bodys[i+11].body.resetRotation(0,0,20);
-                    bodys[i+12].body.resetRotation(0,0,20);
+                    bodys[i+9].resetRotation(0,0,-20);
+                    bodys[i+10].resetRotation(0,0,-20);
+                    bodys[i+11].resetRotation(0,0,20);
+                    bodys[i+12].resetRotation(0,0,20);
                 }
             } else {
                 if(mesh.material.name === 'box') mesh.material = matBoxSleep;
