@@ -19,7 +19,8 @@
 <div id='interface'>
     <input type="button" value="sphere" onClick=populate(1)>
     <input type="button" value="boxe" onClick=populate(2)>
-    <input type="button" value="mix" onClick=populate(3)>
+    <input type="button" value="cylinder" onClick=populate(3)>
+    <input type="button" value="mix" onClick=populate(4)>
     <input type="number" name="quantity" min="10" max="2000" value="400"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
@@ -85,7 +86,7 @@
             light.shadowCameraFar = 1600;
             light.shadowCameraFov = 70;
             light.shadowBias = 0.0001;
-            light.shadowDarkness = 0.7;
+            light.shadowDarkness = 0.4;
             //light.shadowCameraVisible = true;
             light.shadowMapWidth = light.shadowMapHeight = 1024;
             scene.add( light );
@@ -102,23 +103,26 @@
         scene.add( back );
 
         // geometrys
-        geos['sphere'] = new THREE.BufferGeometry();
-        geos['sphere'].fromGeometry( new THREE.SphereGeometry(1,16,10));
-        geos['box'] = new THREE.BufferGeometry();
-        geos['box'].fromGeometry( new THREE.BoxGeometry(1,1,1));
+        geos['sphere'] = new THREE.BufferGeometry().fromGeometry( new THREE.SphereGeometry(1,16,10));
+        geos['box'] = new THREE.BufferGeometry().fromGeometry( new THREE.BoxGeometry(1,1,1));
+        geos['cylinder'] = new THREE.BufferGeometry().fromGeometry(new THREE.CylinderGeometry(1,1,1));
 
         // materials
         if(!isMobile){
             mats['sph'] = new THREE.MeshPhongMaterial( { map: basicTexture(0), name:'sph' } );
             mats['box'] = new THREE.MeshPhongMaterial( { map: basicTexture(2), name:'box' } );
+            mats['cyl'] = new THREE.MeshPhongMaterial( { map: basicTexture(4), name:'cyl' } );
             mats['ssph'] = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
             mats['sbox'] = new THREE.MeshLambertMaterial( { map: basicTexture(3), name:'sbox' } );
+            mats['scyl'] = new THREE.MeshLambertMaterial( { map: basicTexture(5), name:'scyl' } );
             mats['ground'] = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
         } else {
             mats['sph'] = new THREE.MeshBasicMaterial( { map: basicTexture(0), name:'sph' } );
             mats['box'] = new THREE.MeshBasicMaterial( { map: basicTexture(2), name:'box' } );
+            mats['cyl'] = new THREE.MeshBasicMaterial( { map: basicTexture(4), name:'cyl' } );
             mats['ssph'] = new THREE.MeshBasicMaterial( { map: basicTexture(1), name:'ssph' } );
             mats['sbox'] = new THREE.MeshBasicMaterial( { map: basicTexture(3), name:'sbox' } );
+            mats['scyl'] = new THREE.MeshBasicMaterial( { map: basicTexture(5), name:'scyl' } );
             mats['ground'] = new THREE.MeshBasicMaterial( { color: 0x3D4143 } );
             document.getElementById("MaxNumber").value = 200;
         }
@@ -132,6 +136,7 @@
 
     function loop() {
         requestAnimationFrame( loop );
+        updateOimoPhysics();
         renderer.render( scene, camera );
     }
 
@@ -169,7 +174,7 @@
 
         world = new OIMO.World(1/60, 2, 8);
         populate(1);
-        setInterval(updateOimoPhysics, 1000/60);
+        //setInterval(updateOimoPhysics, 1000/60);
 
     }
 
@@ -180,6 +185,7 @@
         if(n===1) type = 1
         else if(n===2) type = 2;
         else if(n===3) type = 3;
+        else if(n===4) type = 4;
 
         // reset old
         clearMesh();
@@ -187,8 +193,8 @@
         bodys=[];
 
         //add ground
-        var ground = new OIMO.Body({size:[100, 40, 390], pos:[0,-20,0], world:world});
-        var ground2 = new OIMO.Body({size:[400, 40, 400], pos:[0,-60,0], world:world});
+        var ground = world.add({size:[100, 40, 390], pos:[0,-20,0], world:world});
+        var ground2 = world.add({size:[400, 40, 400], pos:[0,-60,0], world:world});
 
         addStaticBox([100, 40, 390], [0,-20,0], [0,0,0]);
         addStaticBox([400, 40, 400], [0,-60,0], [0,0,0]);
@@ -198,7 +204,7 @@
         var i = max;
 
         while (i--){
-            if(type===3) t = Math.floor(Math.random()*2)+1;
+            if(type===4) t = Math.floor(Math.random()*3)+1;
             else t = type;
             x = -100 + Math.random()*200;
             z = -100 + Math.random()*200;
@@ -208,13 +214,17 @@
             d = 10 + Math.random()*10;
 
             if(t===1){
-                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world});
                 meshs[i] = new THREE.Mesh( geos.sphere, mats.sph );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
-                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world});
                 meshs[i] = new THREE.Mesh( geos.box, mats.box );
                 meshs[i].scale.set( w, h, d );
+            } else if(t===3){
+                bodys[i] = world.add({type:'cylinder', size:[w*0.5,h], pos:[x,y,z], move:true, world:world});
+                meshs[i] = new THREE.Mesh( geos.cylinder, mats.cyl );
+                meshs[i].scale.set( w*0.5, h, w*0.5 );
             }
 
             meshs[i].castShadow = true;
@@ -225,6 +235,8 @@
     }
 
     function updateOimoPhysics() {
+        if(world==null) return;
+
         world.step();
 
         var x, y, z;
@@ -233,7 +245,7 @@
         var body; 
 
         while (i--){
-            body = bodys[i].body;
+            body = bodys[i];
             mesh = meshs[i];
 
             if(!body.sleeping){
@@ -243,7 +255,8 @@
 
                 // change material
                 if(mesh.material.name === 'sbox') mesh.material = mats.box;
-                if(mesh.material.name === 'ssph') mesh.material = mats.sph; 
+                if(mesh.material.name === 'ssph') mesh.material = mats.sph;
+                if(mesh.material.name === 'scyl') mesh.material = mats.cyl; 
 
                 // reset position
                 if(mesh.position.y<-100){
@@ -255,6 +268,7 @@
             } else {
                 if(mesh.material.name === 'box') mesh.material = mats.sbox;
                 if(mesh.material.name === 'sph') mesh.material = mats.ssph;
+                if(mesh.material.name === 'cyl') mesh.material = mats.scyl;
             }
         }
 
@@ -293,11 +307,14 @@
         if(n===1) color = "#61686B";// sphere sleep
         if(n===2) color = "#AA6538";// box
         if(n===3) color = "#61686B";// box sleep
+        if(n===4) color = "#AAAA38";// cyl
+        if(n===5) color = "#686830";// cyl sleep
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, 64, 64);
-        ctx.fillStyle = "rgba(0,0,0,0.2);";//colors[1];
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
         ctx.fillRect(0, 0, 32, 32);
         ctx.fillRect(32, 32, 32, 32);
+
         var tx = new THREE.Texture(canvas);
         tx.needsUpdate = true;
         return tx;
