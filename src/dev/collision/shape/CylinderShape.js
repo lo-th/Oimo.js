@@ -62,7 +62,7 @@ OIMO.CylinderShape.prototype.updateProxy = function(){
 
     w = (wx<0) ? w-wx : w+wx;
     h = (hy<0) ? h-hy : h+hy;
-    w = (dz<0) ? d-dz : d+dz;
+    d = (dz<0) ? d-dz : d+dz;
 
     var p = OIMO.AABB_PROX;
 
