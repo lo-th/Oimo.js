@@ -1,12 +1,12 @@
 /**
- * OimoPhysics DEV 1.1.0a
+ * from OimoPhysics DEV 1.1.0a
  * @author Saharan / http://el-ement.com/
  * 
- * Oimo.js 2014
+ * to Oimo.js 2015
  * @author LoTh / http://3dflashlo.wordpress.com/
  */
  
-var OIMO = { REVISION: 'DEV.1.1.2b' };
+var OIMO = { REVISION: '1.2' };
 
 OIMO.SHAPE_SPHERE = 0x1;
 OIMO.SHAPE_BOX = 0x2;

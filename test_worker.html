@@ -122,7 +122,7 @@
     var worker = new Worker(window.URL.createObjectURL(blob));
     worker.postMessage = worker.webkitPostMessage || worker.postMessage;
 
-    worker.postMessage({  N:N, dt:dt, oimoUrl:document.location.href.replace(/\/[^/]*$/,"/") + "build/Oimo.min.js", minfo : minfo },[minfo.buffer]);
+    worker.postMessage({  N:N, dt:dt, oimoUrl:document.location.href.replace(/\/[^/]*$/,"/") + "build/oimo.min.js", minfo : minfo },[minfo.buffer]);
 
     var sendTime; // Time when we sent last message
     worker.onmessage = function(e) {
