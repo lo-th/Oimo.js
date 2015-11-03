@@ -45,20 +45,20 @@ OIMO.CylinderShape.prototype.updateProxy = function(){
     this.halfDirection.z=dirZ*this.halfHeight;
     wx=1-dirX*dirX;
     len=OIMO.sqrt(wx*wx+xx*yy+xx*zz);
-    if(len>0)len=this.radius/len;
+    if(len>0) len=this.radius/len;
     wx*=len;
     hy=1-dirY*dirY;
     len=OIMO.sqrt(yy*xx+hy*hy+yy*zz);
-    if(len>0)len=this.radius/len;
+    if(len>0) len=this.radius/len;
     hy*=len;
     dz=1-dirZ*dirZ;
     len=OIMO.sqrt(zz*xx+zz*yy+dz*dz);
-    if(len>0)len=this.radius/len;
+    if(len>0) len=this.radius/len;
     dz*=len;
 
     var w = (this.halfDirection.x<0) ? -this.halfDirection.x : this.halfDirection.x;
-    var h = (this.halfDirection.x<0) ? -this.halfDirection.y : this.halfDirection.y;
-    var d = (this.halfDirection.x<0) ? -this.halfDirection.z : this.halfDirection.z;
+    var h = (this.halfDirection.y<0) ? -this.halfDirection.y : this.halfDirection.y;
+    var d = (this.halfDirection.z<0) ? -this.halfDirection.z : this.halfDirection.z;
 
     w = (wx<0) ? w-wx : w+wx;
     h = (hy<0) ? h-hy : h+hy;

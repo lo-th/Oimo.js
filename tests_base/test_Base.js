@@ -9,7 +9,7 @@ function TestBase() {
         z = OIMO.rand(-3,3);
         //add({ type:'sphere', size:[0.2], pos:[x,i*0.2,z], move:true});
         //add({ type:'box', size:[0.5,0.5,0.5], pos:[x,i*0.5,z], move:true});
-        add({ type:'cylinderTrue', size:[0.5,2], pos:[x,i*0.5,z], move:true});
+        add({ type:'cylinderTrue', size:[1,2], pos:[x,i*0.5,z], move:true});
     }
 }
 
