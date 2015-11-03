@@ -11739,8 +11739,7 @@ OIMO.World.prototype.add = function(obj){
             n2 = i*4;
             switch(type[i]){
                 case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n]); break;
-                case "cylinder": shapes[i] = new OIMO.BoxShape(sc, s[n], s[n+1], s[n]); break; // fake cylinder
-                case "cylinderTrue": shapes[i] = new OIMO.CylinderShape(sc, s[n], s[n+1]); break; // true cylinder
+                case "cylinder": shapes[i] = new OIMO.CylinderShape(sc, s[n], s[n+1]); break; // true cylinder
                 case "box": shapes[i] = new OIMO.BoxShape(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape(shapes[i]);

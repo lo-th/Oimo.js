@@ -141,7 +141,6 @@ function init() {
     geo['box'] = new THREE.BoxGeometry(1,1,1);//new THREE.BufferGeometry().fromDirectGeometry(new THREE.BoxGeometry(1,1,1));
     geo['sphere'] = new THREE.SphereBufferGeometry(1);
     geo['cylinder'] = new THREE.CylinderGeometry(1,1,1);//new THREE.BufferGeometry().fromDirectGeometry(new THREE.CylinderGeometry(1,1,1));
-    geo['cylinderTrue'] = new THREE.CylinderGeometry(1,1,1);
 
     scene = new THREE.Scene();
 
@@ -344,7 +343,7 @@ var add = function(obj){
     var mesh = new THREE.Mesh(geo[obj.type]);
     var size = obj.size || [1,1,1];
     if(obj.type === 'sphere') mesh.scale.set(size[0], size[0], size[0]);
-    else if(obj.type === 'cylinder' || obj.type === 'cylinderTrue') mesh.scale.set(size[0], size[1], size[0]);
+    else if(obj.type === 'cylinder') mesh.scale.set(size[0], size[1], size[0]);
     else mesh.scale.set(size[0], size[1], size[2]);
 
     scene.add(mesh);
