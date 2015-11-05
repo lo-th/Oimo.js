@@ -3,29 +3,37 @@
 * This always checks for all possible pairs.
 */
 OIMO.BruteForceBroadPhase = function(){
+
     OIMO.BroadPhase.call(this);
     this.types = 0x1;
     this.numProxies = 0;
     this.proxies = [];
+
 };
 
 OIMO.BruteForceBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
 
 OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
+
     return new OIMO.BasicProxy(shape);
+
 };
 
 OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
+
     this.proxies.push(proxy);
     this.numProxies++;
+
 };
 
 OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
+
     var n = this.proxies.indexOf(proxy);
     if(n > -1){
         this.proxies.splice(n,1);
         this.numProxies--;
     }
+    
 };
 
 OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {

@@ -3,11 +3,11 @@
 * @author saharan
 */
 OIMO.SAPAxis = function(){
-    this.numElements=0;
+    this.numElements = 0;
     //this.bufferSize=256;
-    this.elements=[];
+    this.elements = [];
     //this.elements.length = this.bufferSize;
-    this.stack=new OIMO_ARRAY_TYPE(64);
+    this.stack = new OIMO_ARRAY_TYPE(64);
 };
 
 OIMO.SAPAxis.prototype = {
@@ -27,12 +27,16 @@ OIMO.SAPAxis.prototype = {
         }*/
         this.elements.push(min);
         this.elements.push(max);
-        this.numElements+=2;
+        this.numElements += 2;
         //this.elements[this.numElements++]=min;
         //this.elements[this.numElements++]=max;
     },
     removeElements:function(min,max){
-        this.elements.slice(min,max);
+        var ni = this.elements.indexOf(min);
+        var na = this.elements.indexOf(max);
+        if(ni > -1) this.elements.splice(ni,1);
+        if(na > -1) this.elements.splice(na,1);
+        this.numElements -= 2
         /*var minIndex=-1;
         var maxIndex=-1;
         for(var i=0, l=this.numElements; i<l; i++){

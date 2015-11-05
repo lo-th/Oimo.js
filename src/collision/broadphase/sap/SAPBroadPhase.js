@@ -3,7 +3,7 @@
 * @author saharan
 */
 OIMO.SAPBroadPhase = function(){
-    OIMO.BroadPhase.call( this);
+    OIMO.BroadPhase.call(this);
     this.types = 0x2;
 
     this.numElementsD = 0;
@@ -32,7 +32,7 @@ OIMO.SAPBroadPhase.prototype.createProxy = function (shape) {
 }
 
 OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
-    var p=(proxy);
+    var p = proxy;
     if(p.isDynamic()){
         this.axesD[0].addElements(p.min[0],p.max[0]);
         this.axesD[1].addElements(p.min[1],p.max[1]);
@@ -49,7 +49,7 @@ OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
 }
 
 OIMO.SAPBroadPhase.prototype.removeProxy = function (proxy) {
-    var p=(proxy);
+    var p = proxy;
     if(p.belongsTo==0)return;
     switch(p.belongsTo){
         case 1:
@@ -161,8 +161,9 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                     break;
                 }
                 e1=e2;
-            }while(e1!==null);
+            }while(e1!=null);
         }
     }
-    this.index2=(this.index1|this.index2)^3;
+    //this.index2=(this.index1|this.index2)^3;
+    this.index2 = OIMO.pow( (this.index1|this.index2), 3);
 }

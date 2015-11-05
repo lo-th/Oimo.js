@@ -40,8 +40,8 @@ OIMO.World.prototype.add = function(obj){
         jc.localAxis2.init(axe2[0], axe2[1], axe2[2]);
         jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
         jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
-        if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = obj.world.getByName(obj.body1);
-        if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = obj.world.getByName(obj.body2);
+        if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = this.getByName(obj.body1);
+        if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = this.getByName(obj.body2);
         jc.body1 = obj.body1;
         jc.body2 = obj.body2;
 

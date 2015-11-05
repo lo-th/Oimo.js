@@ -10328,25 +10328,24 @@ OIMO.SphereCylinderCollisionDetector.prototype.detectCollision = function(shape1
 * @author saharan
 */
 OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
-    this.minX=minX || 0;
-    this.maxX=maxX || 0;
-    this.minY=minY || 0;
-    this.maxY=maxY || 0;
-    this.minZ=minZ || 0;
-    this.maxZ=maxZ || 0;
-}
+
+    this.init(minX,maxX,minY,maxY,minZ,maxZ);
+
+};
 
 OIMO.AABB.prototype = {
 
     constructor: OIMO.AABB,
 
     init:function(minX,maxX,minY,maxY,minZ,maxZ){
-        this.minX=minX;
-        this.maxX=maxX;
-        this.minY=minY;
-        this.maxY=maxY;
-        this.minZ=minZ;
-        this.maxZ=maxZ;
+
+        this.minX = minX || 0;
+        this.maxX = maxX || 0;
+        this.minY = minY || 0;
+        this.maxY = maxY || 0;
+        this.minZ = minZ || 0;
+        this.maxZ = maxZ || 0;
+
     },
     /**
     * Set this AABB to the combined AABB of aabb1 and aabb2.
@@ -10354,30 +10353,25 @@ OIMO.AABB.prototype = {
     * @param   aabb2
     */
     combine:function(aabb1,aabb2){
+
         this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
         this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
         this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
         this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
         this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
         this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
-        /*
-        var margin=0;
-        this.minX-=margin;
-        this.minY-=margin;
-        this.minZ-=margin;
-        this.maxX+=margin;
-        this.maxY+=margin;
-        this.maxZ+=margin;
-        */
+
     },
     /**
     * Get the surface area.
     * @return
     */
     surfaceArea:function(){
-        var h=this.maxY-this.minY;
-        var d=this.maxZ-this.minZ;
-        return 2*((this.maxX-this.minX)*(h+d)+h*d);
+
+        var h = this.maxY-this.minY;
+        var d = this.maxZ-this.minZ;
+        return 2 * ((this.maxX-this.minX)*(h+d)+h*d);
+
     },
     /**
     * Get whether the AABB intersects with the point or not.
@@ -10387,17 +10381,19 @@ OIMO.AABB.prototype = {
     * @return
     */
     intersectsWithPoint:function(x,y,z){
-        return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
+
+        return x>=this.minX && x<=this.maxX && y>=this.minY && y<=this.maxY && z>=this.minZ && z<=this.maxZ;
+        
     }
-}
+};
 /**
 * A proxy is used for broad-phase collecting pairs that can be colliding.
 */
 OIMO.Proxy = function(shape){
 	// The parent shape.
-    this.shape=shape;
+    this.shape = shape;
     // The axis-aligned bounding box.
-    this.aabb=shape.aabb;
+    this.aabb = shape.aabb;
 };
 
 OIMO.Proxy.prototype = {
@@ -10410,27 +10406,34 @@ OIMO.Proxy.prototype = {
     update:function(){
         throw new Error("Inheritance error.");
     }
-}
+};
 /**
 * A basic implementation of proxies.
 * @author saharan
 */
 OIMO.BasicProxy = function(shape){
+
     OIMO.Proxy.call( this, shape );
-}
+
+};
+
 OIMO.BasicProxy.prototype = Object.create( OIMO.Proxy.prototype );
+
 OIMO.BasicProxy.prototype.update = function () {
-}
+
+};
 /**
 * The broad-phase is used for collecting all possible pairs for collision.
 */
 
 OIMO.BroadPhase = function(){
+    
     this.types = 0x0;
     this.numPairChecks = 0;
     this.numPairs = 0;
     this.pairs = [];
-}
+
+};
 
 OIMO.BroadPhase.prototype = {
 
@@ -10467,14 +10470,14 @@ OIMO.BroadPhase.prototype = {
         var b1 = s1.parent;
         var b2 = s2.parent;
         if( b1==b2 || // same parents 
-            (!b1.isDynamic&&!b2.isDynamic) || // static or kinematic object
+            (!b1.isDynamic && !b2.isDynamic) || // static or kinematic object
             (s1.belongsTo&s2.collidesWith)==0 ||
             (s2.belongsTo&s1.collidesWith)==0 // collision filtering
         ){ return false; }
         var js;
         if(b1.numJoints<b2.numJoints) js = b1.jointLink;
         else js = b2.jointLink;
-        while(js!=null){
+        while(js!==null){
            var joint = js.joint;
            if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
            js = js.next;
@@ -10487,7 +10490,9 @@ OIMO.BroadPhase.prototype = {
         this.pairs = [];
         this.numPairs = 0;
         this.numPairChecks = 0;
+
         this.collectPairs();
+        
     },
     collectPairs:function(){
         throw new Error("Inheritance error.");
@@ -10497,35 +10502,43 @@ OIMO.BroadPhase.prototype = {
         this.pairs.push(pair);
         this.numPairs++;
     }
-}
+};
 /**
 * A broad-phase algorithm with brute-force search.
 * This always checks for all possible pairs.
 */
 OIMO.BruteForceBroadPhase = function(){
+
     OIMO.BroadPhase.call(this);
     this.types = 0x1;
     this.numProxies = 0;
     this.proxies = [];
+
 };
 
 OIMO.BruteForceBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
 
 OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
+
     return new OIMO.BasicProxy(shape);
+
 };
 
 OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
+
     this.proxies.push(proxy);
     this.numProxies++;
+
 };
 
 OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
+
     var n = this.proxies.indexOf(proxy);
     if(n > -1){
         this.proxies.splice(n,1);
         this.numProxies--;
     }
+    
 };
 
 OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
@@ -10718,7 +10731,7 @@ OIMO.SAPAxis.prototype = {
 * @author saharan
 */
 OIMO.SAPBroadPhase = function(){
-    OIMO.BroadPhase.call( this);
+    OIMO.BroadPhase.call(this);
     this.types = 0x2;
 
     this.numElementsD = 0;
@@ -10747,7 +10760,7 @@ OIMO.SAPBroadPhase.prototype.createProxy = function (shape) {
 }
 
 OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
-    var p=(proxy);
+    var p = proxy;
     if(p.isDynamic()){
         this.axesD[0].addElements(p.min[0],p.max[0]);
         this.axesD[1].addElements(p.min[1],p.max[1]);
@@ -10764,7 +10777,7 @@ OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
 }
 
 OIMO.SAPBroadPhase.prototype.removeProxy = function (proxy) {
-    var p=(proxy);
+    var p = proxy;
     if(p.belongsTo==0)return;
     switch(p.belongsTo){
         case 1:
@@ -10876,10 +10889,11 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                     break;
                 }
                 e1=e2;
-            }while(e1!==null);
+            }while(e1!=null);
         }
     }
-    this.index2=(this.index1|this.index2)^3;
+    //this.index2=(this.index1|this.index2)^3;
+    this.index2 = OIMO.pow( (this.index1|this.index2), 3);
 }
 /**
 * An element of proxies.
@@ -11515,8 +11529,8 @@ OIMO.World.prototype.add = function(obj){
         jc.localAxis2.init(axe2[0], axe2[1], axe2[2]);
         jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
         jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
-        if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = obj.world.getByName(obj.body1);
-        if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = obj.world.getByName(obj.body2);
+        if (typeof obj.body1 == 'string' || obj.body1 instanceof String) obj.body1 = this.getByName(obj.body1);
+        if (typeof obj.body2 == 'string' || obj.body2 instanceof String) obj.body2 = this.getByName(obj.body2);
         jc.body1 = obj.body1;
         jc.body2 = obj.body2;
 
