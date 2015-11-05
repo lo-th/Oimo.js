@@ -123,8 +123,11 @@
     }
 
     function loop() {
-        requestAnimationFrame( loop );
+        
+        updateOimoPhysics();
         renderer.render( scene, camera );
+        requestAnimationFrame( loop );
+
     }
 
     function addStaticBox(size, position, rotation, spec) {
@@ -164,7 +167,7 @@
         world = new OIMO.World(1/60, 2);
         
         populate(1);
-        setInterval(updateOimoPhysics, 1000/60);
+        //setInterval(updateOimoPhysics, 1000/60);
 
     }
     function initTerrain(w, h) {
@@ -199,7 +202,7 @@
 
             vertices[ j + 1 ] = (data[ i ] * 10)-100;
 
-            b = new OIMO.Body({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]],world:world})
+            b = world.add({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]] })
 
         }
 
@@ -264,12 +267,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = new OIMO.Body({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config});
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = new OIMO.Body({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config});
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
@@ -282,7 +285,7 @@
 
         config[3] = 1;
         config[4] = all;
-        bodys[max] = new OIMO.Body({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, world:world, config:config});
+        bodys[max] = world.add({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, config:config});
         meshs[max] = new THREE.Mesh( buffgeoBox, matBox );
         meshs[max].scale.set( 20, 40, 20 );
         scene.add( meshs[max] );
@@ -292,6 +295,7 @@
     
 
     function updateOimoPhysics() {
+        if(world == null) return;
 
         // apply new position on last rigidbody
         bodys[bodys.length-1].setPosition(paddel.position);
@@ -305,7 +309,7 @@
         var body;
 
         while (i--){
-            body = bodys[i].body;
+            body = bodys[i];
             mesh = meshs[i];
 
             if(!body.sleeping){
