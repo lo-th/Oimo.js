@@ -1,77 +1,79 @@
 /**
- * from OimoPhysics DEV 1.1.0a
+ * from OimoPhysics DEV 1.1.0a AS3
  * @author Saharan / http://el-ement.com/
  * 
- * to Oimo.js 2015
- * @author LoTh / http://3dflashlo.wordpress.com/
+ * to Oimo.js 2015 JAVASCRIPT
+ * @author LoTh / http://lo-th.github.io/labs/
  */
  
-var OIMO = { REVISION: '1.2' };
+var OIMO = { 
+    REVISION: '1.2',
 
+    // Global identification of next shape.
+    // This will be incremented every time a shape is created.
+    nextID : 0, 
 
-// body type
-OIMO.SHAPE_NULL     = 0;
-OIMO.SHAPE_SPHERE   = 1;
-OIMO.SHAPE_BOX      = 2;
-OIMO.SHAPE_CYLINDER = 3;
+    // body type
+    SHAPE_NULL     : 0,
+    SHAPE_SPHERE   : 1,
+    SHAPE_BOX      : 2,
+    SHAPE_CYLINDER : 3,
 
-// joint type
-OIMO.JOINT_NULL            = 0;
-OIMO.JOINT_DISTANCE        = 1;
-OIMO.JOINT_BALL_AND_SOCKET = 2;
-OIMO.JOINT_HINGE           = 3;
-OIMO.JOINT_WHEEL           = 4;
-OIMO.JOINT_SLIDER          = 5;
-OIMO.JOINT_PRISMATIC       = 6;
+    // joint type
+    JOINT_NULL            : 0,
+    JOINT_DISTANCE        : 1,
+    JOINT_BALL_AND_SOCKET : 2,
+    JOINT_HINGE           : 3,
+    JOINT_WHEEL           : 4,
+    JOINT_SLIDER          : 5,
+    JOINT_PRISMATIC       : 6,
 
+    // this world scale defaut is 0.1 to 10 meters max for dynamique body
+    // scale all by 100 so object is between 10 to 10000 three unit.
+    WORLD_SCALE : 100,
+    INV_SCALE : 0.01,
 
-OIMO.WORLD_SCALE = 100;
-OIMO.INV_SCALE = 0.01;
+    // AABB aproximation
+    AABB_PROX : 0.005,
 
-OIMO.TO_RAD = 0.0174532925199432957;
+    // Math function
+    sqrt   : Math.sqrt,
+    abs    : Math.abs,
+    floor  : Math.floor,
+    cos    : Math.cos,
+    sin    : Math.sin,
+    acos   : Math.acos,
+    asin   : Math.asin,
+    atan2  : Math.atan2,
+    round  : Math.round,
+    pow    : Math.pow,
+    max    : Math.max,
+    min    : Math.min,
+    random : Math.random,
 
-OIMO.AABB_PROX = 0.005;
+    lerp : function (a, b, percent) { return a + (b - a) * percent; },
+    rand : function (a, b) { return OIMO.lerp(a, b, OIMO.random()); },
+    randInt : function (a, b, n) { return OIMO.lerp(a, b, OIMO.random()).toFixed(n || 0)*1;},
 
-OIMO.sqrt = Math.sqrt;
-OIMO.abs = Math.abs;
-OIMO.floor = Math.floor;
-OIMO.cos = Math.cos;
-OIMO.sin = Math.sin;
-OIMO.acos = Math.acos;
-OIMO.asin = Math.asin;
-OIMO.atan2 = Math.atan2;
-OIMO.round = Math.round;
-OIMO.pow = Math.pow;
-OIMO.max = Math.max;
-OIMO.min = Math.min;
-OIMO.random = Math.random;
+    int : function(x) { return ~~x; },
+    fix : function(x, n) { n = n || 3; return x.toFixed(n)*1; },
 
-OIMO.lerp = function (a, b, percent) { return a + (b - a) * percent; }
-OIMO.rand = function (a, b) { return OIMO.lerp(a, b, OIMO.random()); }
-OIMO.randInt = function (a, b, n) { return OIMO.lerp(a, b, OIMO.random()).toFixed(n || 0)*1;}
+    clamp : function ( value, min, max ) { return OIMO.max( min, OIMO.min( max, value ) ); },
 
-//OIMO.int = function(x) { return parseInt(x, 10); };
-OIMO.int = function(x) { return ~~x; };
-OIMO.fix = function(x, n) { n = n || 3; return x.toFixed(n)*1; };
+    degtorad : 0.0174532925199432957,
+    radtodeg : 57.295779513082320876,
+    PI     : 3.141592653589793,
+    TwoPI  : 6.283185307179586,
+    PI90   : 1.570796326794896,
+    PI270  : 4.712388980384689,
 
-OIMO.CustomError = null;
-OIMO.Error = function(Class, Msg){
-    if(OIMO.CustomError == null) console.error(Class, Msg);
-    else OIMO.CustomError.innerHTML += Class + " - " + Msg + '<br>';
+    CustomError : null,
 
+    Error : function(Class, Msg){ 
+        if(OIMO.CustomError == null) console.error(Class, Msg);
+        else OIMO.CustomError.innerHTML += Class + " - " + Msg + '<br>';
+    }
 };
-
-OIMO.degtorad = 0.0174532925199432957;
-OIMO.radtodeg = 57.295779513082320876;
-
-OIMO.PI     = 3.141592653589793;
-OIMO.TwoPI  = 6.283185307179586;
-OIMO.PI90   = 1.570796326794896;
-OIMO.PI270  = 4.712388980384689;
-
-// Global identification of next shape.
-// This will be incremented every time a shape is created.
-OIMO.nextID = 0;
 
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }
@@ -2242,6 +2244,7 @@ OIMO.Vec3.prototype = {
         this.z = v.z;
         return this;
     },
+
     applyQuaternion: function ( q ) {
 
         var x = this.x;
@@ -2269,18 +2272,29 @@ OIMO.Vec3.prototype = {
         return this;
 
     },
-    testZero: function(){
+    testZero: function () {
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;
     },
     testDiff: function(v){
-        if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
-        else return false;
+
+        return ( ( v.x !== this.x ) || ( v.y !== this.y ) || ( v.z !== this.z ) );
+        //if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
+        //else return false;
     },
-    clone: function(){
+
+    equals: function ( v ) {
+
+        return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) );
+
+    },
+
+    clone: function () {
+
         return new this.constructor( this.x, this.y, this.z );
-        //return new OIMO.Vec3(this.x,this.y,this.z);
+
     },
+
     toString: function(){
         return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
     },
@@ -2306,7 +2320,7 @@ OIMO.Vec3.prototype = {
         return this.multiplyScalar( 1 / scalar );
 
     },
-
+    // TODO rename to normalize
     norm: function () {
 
         return this.divideScalar( this.length() );
@@ -2799,7 +2813,7 @@ OIMO.Constraint.prototype = {
  * @author lo-th
  */
 
-OIMO.Joint = function(config){
+OIMO.Joint = function( config ){
 
     OIMO.Constraint.call( this );
 
@@ -2856,6 +2870,7 @@ OIMO.Joint.prototype.updateAnchorPoints = function () {
 // Attach the joint from the bodies.
 
 OIMO.Joint.prototype.attach = function () {
+
     this.b1Link.body = this.body2;
     this.b2Link.body = this.body1;
     if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
@@ -2866,11 +2881,13 @@ OIMO.Joint.prototype.attach = function () {
     else this.b2Link.next = null;
     this.body2.jointLink = this.b2Link;
     this.body2.numJoints++;
+    
 };
 
 // Detach the joint from the bodies.
 
 OIMO.Joint.prototype.detach = function () {
+
     var prev = this.b1Link.prev;
     var next = this.b1Link.next;
     if(prev != null) prev.next = next;
@@ -2893,14 +2910,17 @@ OIMO.Joint.prototype.detach = function () {
 
     this.b1Link.body = null;
     this.b2Link.body = null;
+
 };
 
 
 // Awake the bodies.
 
 OIMO.Joint.prototype.awake = function () {
+
     this.body1.awake();
     this.body2.awake();
+
 };
 
 // calculation function
@@ -2916,24 +2936,31 @@ OIMO.Joint.prototype.postSolve = function () {
 
 // Delete process
 
-OIMO.Joint.prototype.remove = function(){
+OIMO.Joint.prototype.remove = function () {
+
     this.dispose();
+
 };
 
-OIMO.Joint.prototype.dispose = function(){
+OIMO.Joint.prototype.dispose = function () {
+
     this.parent.removeJoint(this);
+
 };
 
 
 // Three js add
 
 OIMO.Joint.prototype.getPosition = function () {
+
     var p1 = new OIMO.Vec3().scale(this.anchorPoint1, OIMO.WORLD_SCALE);
     var p2 = new OIMO.Vec3().scale(this.anchorPoint2, OIMO.WORLD_SCALE);
     return [p1, p2];
+
 };
 
 OIMO.Joint.prototype.getMatrix = function () {
+
     var m = this.matrix.elements;
     var p1 = this.anchorPoint1;
     var p2 = this.anchorPoint2;
@@ -2948,6 +2975,7 @@ OIMO.Joint.prototype.getMatrix = function () {
     m[7] = 0;
 
     return m;
+
 };
 /**
 * A joint configuration holds all configuration data for constructing a joint.
@@ -2960,18 +2988,19 @@ OIMO.JointConfig = function(){
     // The second rigid body of the joint.
     this.body2 = null;
     // The anchor point on the first rigid body in local coordinate system.
-    this.localAnchorPoint1=new OIMO.Vec3();
+    this.localAnchorPoint1 = new OIMO.Vec3();
     //  The anchor point on the second rigid body in local coordinate system.
-    this.localAnchorPoint2=new OIMO.Vec3();
+    this.localAnchorPoint2 = new OIMO.Vec3();
     // The axis in the first body's coordinate system.
 	// his property is available in some joints.
-    this.localAxis1=new OIMO.Vec3();
+    this.localAxis1 = new OIMO.Vec3();
     // The axis in the second body's coordinate system.
 	// This property is available in some joints.
-    this.localAxis2=new OIMO.Vec3();
+    this.localAxis2 = new OIMO.Vec3();
     //  Whether allow collision between connected rigid bodies or not.
-    this.allowCollision=false;
-}
+    this.allowCollision = false;
+
+};
 /**
 * A link list of joints.
 * @author saharan
@@ -2985,30 +3014,36 @@ OIMO.JointLink = function(joint){
     this.body = null;
     // The joint of the link.
     this.joint = joint;
-}
+
+};
 /**
 * An information of limit and motor.
 * @author saharan
 */
-OIMO.LimitMotor = function(axis,fixed){
+OIMO.LimitMotor = function ( axis, fixed ) {
+
+    fixed = fixed || false;
     // The axis of the constraint.
-    this.axis=axis;
+    this.axis = axis;
     // The current angle for rotational constraints.
     this.angle=0;
-    // The lower limit. Set lower > upper to disable.
-    if(fixed)this.lowerLimit=0;
-    else this.lowerLimit=1;
+    // The lower limit. Set lower > upper to disable
+    this.lowerLimit = fixed ? 0 : 1;
+
+    //if(fixed)this.lowerLimit = 0;
+    //else this.lowerLimit = 1;
     //  The upper limit. Set lower > upper to disable.
-    this.upperLimit=0;
+    this.upperLimit = 0;
     // The target motor speed.
-    this.motorSpeed=0;
+    this.motorSpeed = 0;
     // The maximum motor force or torque. Set 0 to disable.
-    this.maxMotorForce=0;
+    this.maxMotorForce = 0;
     // The frequency of the spring. Set 0 to disable.
-    this.frequency=0;
+    this.frequency = 0;
     // The damping ratio of the spring. Set 0 for no damping, 1 for critical damping.
-    this.dampingRatio=0;
-}
+    this.dampingRatio = 0;
+
+};
 
 OIMO.LimitMotor.prototype = {
     constructor: OIMO.LimitMotor,
@@ -3017,29 +3052,35 @@ OIMO.LimitMotor.prototype = {
     * @param   lowerLimit
     * @param   upperLimit
     */
-    setLimit:function(lowerLimit,upperLimit){
-        this.lowerLimit=lowerLimit;
-        this.upperLimit=upperLimit;
+    setLimit:function ( lowerLimit, upperLimit ) {
+
+        this.lowerLimit = lowerLimit;
+        this.upperLimit = upperLimit;
+
     },
     /**
     * Set motor data into this constraint.
     * @param   motorSpeed
     * @param   maxMotorForce
     */
-    setMotor:function(motorSpeed,maxMotorForce){
-        this.motorSpeed=motorSpeed;
-        this.maxMotorForce=maxMotorForce;
+    setMotor:function ( motorSpeed, maxMotorForce ) {
+        
+        this.motorSpeed = motorSpeed;
+        this.maxMotorForce = maxMotorForce;
+
     },
     /**
     * Set spring data into this constraint.
     * @param   frequency
     * @param   dampingRatio
     */
-    setSpring:function(frequency,dampingRatio){
-        this.frequency=frequency;
-        this.dampingRatio=dampingRatio;
+    setSpring:function ( frequency, dampingRatio ) {
+        
+        this.frequency = frequency;
+        this.dampingRatio = dampingRatio;
+        
     }
-}
+};
 /**
  * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
  * @author saharan
@@ -3132,7 +3173,7 @@ OIMO.DistanceJoint.prototype.postSolve = function () {
  * @author lo-th
  */
 
-OIMO.HingeJoint = function(config,lowerAngleLimit,upperAngleLimit){
+OIMO.HingeJoint = function ( config, lowerAngleLimit, upperAngleLimit ) {
 
     OIMO.Joint.call( this, config);
 
@@ -3660,100 +3701,91 @@ OIMO.WheelJoint.prototype.acosClamp = function(cos){
 * An angular constraint for all axes for various joints.
 * @author saharan
 */
-OIMO.AngularConstraint = function(joint, targetOrientation){
+
+OIMO.AngularConstraint = function ( joint, targetOrientation ) {
+
+    this.joint = joint;
+
+    this.targetOrientation = new OIMO.Quat().invert(targetOrientation);
+
+    this.relativeOrientation = new OIMO.Quat();
 
     this.ii1 = null;
     this.ii2 = null;
     this.dd = null;
 
-    this.ax = NaN;
-    this.ay = NaN;
-    this.az = NaN;
-    this.velx = NaN;
-    this.vely = NaN;
-    this.velz = NaN;
+    this.vel = new OIMO.Vec3();
+    this.imp = new OIMO.Vec3();
 
-    this.joint = joint;
-    this.targetOrientation = new OIMO.Quat().invert(targetOrientation);
-    this.relativeOrientation = new OIMO.Quat();
+    this.rn0 = new OIMO.Vec3();
+    this.rn1 = new OIMO.Vec3();
+    this.rn2 = new OIMO.Vec3();
+
     this.b1 = joint.body1;
     this.b2 = joint.body2;
     this.a1 = this.b1.angularVelocity;
     this.a2 = this.b2.angularVelocity;
     this.i1 = this.b1.inverseInertia;
     this.i2 = this.b2.inverseInertia;
-    this.impx = 0;
-    this.impy = 0;
-    this.impz = 0;
-}
+
+};
+
 OIMO.AngularConstraint.prototype = {
+
     constructor: OIMO.AngularConstraint,
 
-    preSolve:function(timeStep,invTimeStep){
+    preSolve: function ( timeStep, invTimeStep ) {
+
+        var inv, len, v, vv;
 
         this.ii1 = this.i1.clone();
         this.ii2 = this.i2.clone();
 
-        var vv = new OIMO.Mat33().add(this.ii1, this.ii2);
-
-        var v = vv.elements;
-        var inv = 1/( v[0]*(v[4]*v[8]-v[7]*v[5])  +  v[3]*(v[7]*v[2]-v[1]*v[8])  +  v[6]*(v[1]*v[5]-v[4]*v[2]) );
+        v = new OIMO.Mat33().add(this.ii1, this.ii2).elements;
+        inv = 1/( v[0]*(v[4]*v[8]-v[7]*v[5])  +  v[3]*(v[7]*v[2]-v[1]*v[8])  +  v[6]*(v[1]*v[5]-v[4]*v[2]) );
         this.dd = new OIMO.Mat33(
             v[4]*v[8]-v[5]*v[7], v[2]*v[7]-v[1]*v[8], v[1]*v[5]-v[2]*v[4],
             v[5]*v[6]-v[3]*v[8], v[0]*v[8]-v[2]*v[6], v[2]*v[3]-v[0]*v[5],
             v[3]*v[7]-v[4]*v[6], v[1]*v[6]-v[0]*v[7], v[0]*v[4]-v[1]*v[3]
         ).multiply(inv);
         
-        this.relativeOrientation.invert(this.b1.orientation);// error = b2 - b1 - target
+        this.relativeOrientation.invert(this.b1.orientation);
         this.relativeOrientation.mul(this.targetOrientation,this.relativeOrientation);
         this.relativeOrientation.mul(this.b2.orientation,this.relativeOrientation);
         inv = this.relativeOrientation.s*2;
-        this.velx = this.relativeOrientation.x*inv;
-        this.vely = this.relativeOrientation.y*inv;
-        this.velz = this.relativeOrientation.z*inv;
-        var len = OIMO.sqrt(this.velx*this.velx+this.vely*this.vely+this.velz*this.velz);
-        if(len>0.02){
+
+        this.vel.scale( this.relativeOrientation, inv );
+
+        len = this.vel.length();
+
+        if( len>0.02 ) {
             len = (0.02-len)/len*invTimeStep*0.05;
-            this.velx *= len;
-            this.vely *= len;
-            this.velz *= len;
+            this.vel.scaleEqual(len);
         }else{
-            this.velx = 0;
-            this.vely = 0;
-            this.velz = 0;
+            this.vel.init();
         }
 
-        var ii1 = this.ii1.elements;
-        var ii2 = this.ii2.elements;
+        this.rn1.mulMat(this.ii1, this.imp);
+        this.rn2.mulMat(this.ii2, this.imp);
 
-        this.a1.x += this.impx*ii1[0]+this.impy*ii1[1]+this.impz*ii1[2];
-        this.a1.y += this.impx*ii1[3]+this.impy*ii1[4]+this.impz*ii1[5];
-        this.a1.z += this.impx*ii1[6]+this.impy*ii1[7]+this.impz*ii1[8];
-        this.a2.x -= this.impx*ii2[0]+this.impy*ii2[1]+this.impz*ii2[2];
-        this.a2.y -= this.impx*ii2[3]+this.impy*ii2[4]+this.impz*ii2[5];
-        this.a2.z -= this.impx*ii2[6]+this.impy*ii2[7]+this.impz*ii2[8];
+        this.a1.addEqual(this.rn1);
+        this.a2.subEqual(this.rn2);
+
     },
-    solve:function(){
-        var d = this.dd.elements;
-        var ii1 = this.ii1.elements;
-        var ii2 = this.ii2.elements;
-        var rvx = this.a2.x-this.a1.x-this.velx;
-        var rvy = this.a2.y-this.a1.y-this.vely;
-        var rvz = this.a2.z-this.a1.z-this.velz;
-        var nimpx = rvx*d[0]+rvy*d[1]+rvz*d[2];
-        var nimpy = rvx*d[3]+rvy*d[4]+rvz*d[5];
-        var nimpz = rvx*d[6]+rvy*d[7]+rvz*d[8];
-        this.impx += nimpx;
-        this.impy += nimpy;
-        this.impz += nimpz;
-        this.a1.x += nimpx*ii1[0]+nimpy*ii1[1]+nimpz*ii1[2];
-        this.a1.y += nimpx*ii1[3]+nimpy*ii1[4]+nimpz*ii1[5];
-        this.a1.z += nimpx*ii1[6]+nimpy*ii1[7]+nimpz*ii1[8];
-        this.a2.x -= nimpx*ii2[0]+nimpy*ii2[1]+nimpz*ii2[2];
-        this.a2.y -= nimpx*ii2[3]+nimpy*ii2[4]+nimpz*ii2[5];
-        this.a2.z -= nimpx*ii2[6]+nimpy*ii2[7]+nimpz*ii2[8];
+
+    solve: function () {
+
+        var r = this.a2.clone().subEqual(this.a1).subEqual(this.vel);
+        this.rn0.mulMat(this.dd, r);
+        this.rn1.mulMat(this.ii1, this.rn0);
+        this.rn2.mulMat(this.ii2, this.rn0);
+        this.imp.addEqual(this.rn0);
+        this.a1.addEqual(this.rn1);
+        this.a2.subEqual(this.rn2);
+
     }
-}
+
+};
 /**
 * A linear constraint for all axes for various joints.
 * @author saharan
@@ -10492,25 +10524,24 @@ OIMO.SphereCylinderCollisionDetector.prototype.detectCollision = function(shape1
 * @author saharan
 */
 OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
-    this.minX=minX || 0;
-    this.maxX=maxX || 0;
-    this.minY=minY || 0;
-    this.maxY=maxY || 0;
-    this.minZ=minZ || 0;
-    this.maxZ=maxZ || 0;
-}
+
+    this.init(minX,maxX,minY,maxY,minZ,maxZ);
+
+};
 
 OIMO.AABB.prototype = {
 
     constructor: OIMO.AABB,
 
     init:function(minX,maxX,minY,maxY,minZ,maxZ){
-        this.minX=minX;
-        this.maxX=maxX;
-        this.minY=minY;
-        this.maxY=maxY;
-        this.minZ=minZ;
-        this.maxZ=maxZ;
+
+        this.minX = minX || 0;
+        this.maxX = maxX || 0;
+        this.minY = minY || 0;
+        this.maxY = maxY || 0;
+        this.minZ = minZ || 0;
+        this.maxZ = maxZ || 0;
+
     },
     /**
     * Set this AABB to the combined AABB of aabb1 and aabb2.
@@ -10518,30 +10549,25 @@ OIMO.AABB.prototype = {
     * @param   aabb2
     */
     combine:function(aabb1,aabb2){
+
         this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
         this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
         this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
         this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
         this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
         this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
-        /*
-        var margin=0;
-        this.minX-=margin;
-        this.minY-=margin;
-        this.minZ-=margin;
-        this.maxX+=margin;
-        this.maxY+=margin;
-        this.maxZ+=margin;
-        */
+
     },
     /**
     * Get the surface area.
     * @return
     */
     surfaceArea:function(){
-        var h=this.maxY-this.minY;
-        var d=this.maxZ-this.minZ;
-        return 2*((this.maxX-this.minX)*(h+d)+h*d);
+
+        var h = this.maxY-this.minY;
+        var d = this.maxZ-this.minZ;
+        return 2 * ((this.maxX-this.minX)*(h+d)+h*d);
+
     },
     /**
     * Get whether the AABB intersects with the point or not.
@@ -10551,17 +10577,19 @@ OIMO.AABB.prototype = {
     * @return
     */
     intersectsWithPoint:function(x,y,z){
-        return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
+
+        return x>=this.minX && x<=this.maxX && y>=this.minY && y<=this.maxY && z>=this.minZ && z<=this.maxZ;
+        
     }
-}
+};
 /**
 * A proxy is used for broad-phase collecting pairs that can be colliding.
 */
 OIMO.Proxy = function(shape){
 	// The parent shape.
-    this.shape=shape;
+    this.shape = shape;
     // The axis-aligned bounding box.
-    this.aabb=shape.aabb;
+    this.aabb = shape.aabb;
 };
 
 OIMO.Proxy.prototype = {
@@ -10572,36 +10600,37 @@ OIMO.Proxy.prototype = {
 	* Update the proxy.
 	*/
     update:function(){
-        throw new Error("Inheritance error.");
+        console.error("Inheritance error.");
+        //throw new Error("Inheritance error.");
     }
-}
+};
 /**
 * A basic implementation of proxies.
 * @author saharan
 */
 OIMO.BasicProxy = function(shape){
+
     OIMO.Proxy.call( this, shape );
-}
+
+};
+
 OIMO.BasicProxy.prototype = Object.create( OIMO.Proxy.prototype );
+
 OIMO.BasicProxy.prototype.update = function () {
-}
+
+};
 /**
 * The broad-phase is used for collecting all possible pairs for collision.
 */
 
 OIMO.BroadPhase = function(){
-    this.types = 0x0;
-    this.numPairChecks=0;
-    this.numPairs=0;
     
-    this.bufferSize=256;
-    this.pairs=[];// vector
-    this.pairs.length = this.bufferSize;
-    var i = this.bufferSize;
-    while(i--){
-        this.pairs[i] = new OIMO.Pair();
-    }
-}
+    this.types = 0x0;
+    this.numPairChecks = 0;
+    this.numPairs = 0;
+    this.pairs = [];
+
+};
 
 OIMO.BroadPhase.prototype = {
 
@@ -10635,137 +10664,117 @@ OIMO.BroadPhase.prototype = {
     * @return
     */
     isAvailablePair:function(s1,s2){
-        var b1=s1.parent;
-        var b2=s2.parent;
+        var b1 = s1.parent;
+        var b2 = s2.parent;
         if( b1==b2 || // same parents 
-            (!b1.isDynamic&&!b2.isDynamic) || // static or kinematic object
+            (!b1.isDynamic && !b2.isDynamic) || // static or kinematic object
             (s1.belongsTo&s2.collidesWith)==0 ||
-             (s2.belongsTo&s1.collidesWith)==0 // collision filtering
+            (s2.belongsTo&s1.collidesWith)==0 // collision filtering
         ){ return false; }
         var js;
-        if(b1.numJoints<b2.numJoints) js=b1.jointLink;
-        else js=b2.jointLink;
-        while(js!=null){
-           var joint=js.joint;
-           if( !joint.allowCollision && (joint.body1==b1&&joint.body2==b2 || joint.body1==b2&&joint.body2==b1) ){ return false; }
-           js=js.next;
+        if(b1.numJoints<b2.numJoints) js = b1.jointLink;
+        else js = b2.jointLink;
+        while(js!==null){
+           var joint = js.joint;
+           if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
+           js = js.next;
         }
         return true;
     },
     // Detect overlapping pairs.
     detectPairs:function(){
-        while(this.numPairs>0){
-            var pair=this.pairs[--this.numPairs];
-            pair.shape1=null;
-            pair.shape2=null;
-        }
-        this.numPairChecks=0;
+        // clear old
+        this.pairs = [];
+        this.numPairs = 0;
+        this.numPairChecks = 0;
+
         this.collectPairs();
+        
     },
     collectPairs:function(){
         throw new Error("Inheritance error.");
     },
     addPair:function(s1,s2){
-        if(this.numPairs==this.bufferSize){ // expand pair buffer
-            var newBufferSize=this.bufferSize<<1;
-            //var newBufferSize=this.bufferSize*2;
-            var newPairs=[];// vector
-            newPairs.length = this.bufferSize;
-            //var i = this.bufferSize;
-            //var j;
-            //while(i--){
-            for(var i=0, j=this.bufferSize;i<j;i++){
-                newPairs[i]=this.pairs[i];
-            }
-            i = this.newBufferSize;
-            //j = this.bufferSize;
-            //while(i-- >= j){
-            for(i=this.bufferSize, j=newBufferSize;i<j;i++){
-                newPairs[i]=new OIMO.Pair();
-            }
-            this.pairs=newPairs;
-            this.bufferSize=newBufferSize;
-        }
-        var pair=this.pairs[this.numPairs++];
-        pair.shape1=s1;
-        pair.shape2=s2;
+        var pair = new OIMO.Pair(s1,s2);
+        this.pairs.push(pair);
+        this.numPairs++;
     }
-}
+};
 /**
 * A broad-phase algorithm with brute-force search.
 * This always checks for all possible pairs.
 */
 OIMO.BruteForceBroadPhase = function(){
-    OIMO.BroadPhase.call( this);
+
+    OIMO.BroadPhase.call(this);
     this.types = 0x1;
-    this.numProxies=0;
-    this.maxProxies = 256;
-    this.proxies = [];// Vector !
-    this.proxies.length = 256;
-}
+    this.numProxies = 0;
+    this.proxies = [];
+
+};
 
 OIMO.BruteForceBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
 
 OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
+
     return new OIMO.BasicProxy(shape);
-}
+
+};
+
 OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
-    if(this.numProxies==this.maxProxies){
-        //this.maxProxies<<=1;
-        this.maxProxies*=2;
-        var newProxies=[];
-        newProxies.length = this.maxProxies;
-        var i = this.numProxies;
-        while(i--){
-        //for(var i=0, l=this.numProxies;i<l;i++){
-            newProxies[i] = this.proxies[i];
-        }
-        this.proxies = newProxies;
-    }
-    this.proxies[this.numProxies++] = proxy;
-}
+
+    this.proxies.push(proxy);
+    this.numProxies++;
+
+};
+
 OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
-    var i = this.numProxies;
+
+    var n = this.proxies.indexOf(proxy);
+    if(n > -1){
+        this.proxies.splice(n,1);
+        this.numProxies--;
+    }
+    
+};
+
+OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
+
+    var i, j, p1, p2;//, b1, s1,  b2, s2; 
+
+    this.numPairChecks = OIMO.int(this.numProxies*(this.numProxies-1)*0.5);
+    i = this.numProxies;
     while(i--){
-    //for(var i=0, l=this.numProxies;i<l;i++){
-        if(this.proxies[i]==proxy){
-            this.proxies[i]=this.proxies[--this.numProxies];
-            this.proxies[this.numProxies]=null;
-            return;
+        p1 = this.proxies[i];
+        //b1 = p1.aabb;
+        //s1 = p1.shape;
+        j = this.numProxies;
+        while(j!==i){ 
+            j--;
+            p2 = this.proxies[j];
+            //b2 = p2.aabb;
+            //s2 = p2.shape;
+            if(
+                p1.aabb.maxX < p2.aabb.minX || p1.aabb.minX > p2.aabb.maxX || 
+                p1.aabb.maxY < p2.aabb.minY || p1.aabb.minY > p2.aabb.maxY || 
+                p1.aabb.maxZ < p2.aabb.minZ || p1.aabb.minZ > p2.aabb.maxZ || 
+                !this.isAvailablePair(p1.shape,p2.shape) ) continue;
+            //if(b1.maxX<b2.minX || b1.minX>b2.maxX || b1.maxY<b2.minY || b1.minY>b2.maxY || b1.maxZ<b2.minZ || b1.minZ>b2.maxZ || !this.isAvailablePair(s1,s2) ) continue;
+            //addPair(s1, s2);
+            this.addPair(p1.shape,p2.shape);
         }
     }
-}
-OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
-    this.numPairChecks=this.numProxies*(this.numProxies-1)>>1;
-    //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
-        var i = this.numProxies;
-        while(i--){
-        //for(var i=0, l=this.numProxies;i<l;i++){
-            var p1=this.proxies[i];
-            var b1=p1.aabb;
-            var s1=p1.shape;
-            var j = this.numProxies;
-            while(j--){ if(j!==i){
-            //for(var j=i+1, m=this.numProxies;j<m;j++){
-                var p2=this.proxies[j];
-                var b2=p2.aabb;
-                var s2=p2.shape;
-                if(b1.maxX<b2.minX||b1.minX>b2.maxX|| b1.maxY<b2.minY||b1.minY>b2.maxY|| b1.maxZ<b2.minZ||b1.minZ>b2.maxZ|| !this.isAvailablePair(s1,s2) ){
-                    continue;
-                }
-                    this.addPair(s1,s2);
-                }}
-        }
-}
+
+};
 /**
 * A pair of shapes that may collide.
 * @author saharan
 */
-OIMO.Pair = function(){
-	// The first shape.
-    this.shape1=null;
+OIMO.Pair = function(s1,s2){
+    // The first shape.
+    this.shape1 = s1 || null;
     // The second shape.
-    this.shape2=null;
+    this.shape2 = s2 || null;
 };
 /**
 * A projection axis for sweep and prune broad-phase.
@@ -10858,7 +10867,7 @@ OIMO.SAPAxis.prototype = {
             var diff=right-left;
             if(diff>16){  // quick sort
                 //var mid=left+(diff>>1);
-                var mid=left+(Math.floor(diff*0.5));
+                var mid=left+(OIMO.floor(diff*0.5));
                 tmp=elements[mid];
                 elements[mid]=elements[right];
                 elements[right]=tmp;
@@ -10937,12 +10946,12 @@ OIMO.SAPBroadPhase = function(){
     this.axesD.length = 3;
     this.axesS.length = 3;
 
-    this.axesD[0]=new OIMO.SAPAxis();
-    this.axesD[1]=new OIMO.SAPAxis();
-    this.axesD[2]=new OIMO.SAPAxis();
-    this.axesS[0]=new OIMO.SAPAxis();
-    this.axesS[1]=new OIMO.SAPAxis();
-    this.axesS[2]=new OIMO.SAPAxis();
+    this.axesD[0] = new OIMO.SAPAxis();
+    this.axesD[1] = new OIMO.SAPAxis();
+    this.axesD[2] = new OIMO.SAPAxis();
+    this.axesS[0] = new OIMO.SAPAxis();
+    this.axesS[1] = new OIMO.SAPAxis();
+    this.axesS[2] = new OIMO.SAPAxis();
     this.index1=0;
     this.index2=1;
 }
@@ -11060,7 +11069,7 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                 activeS=e1;
             }
         }else{
-            var min=e1.pair;
+            var min = e1.pair;
             if(dyn){
                 if(min==activeD){
                     activeD=activeD.pair;
@@ -11077,9 +11086,9 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                 }
             }
             do{
-                e2=e1.pair;
+                e2 = e1.pair;
                 if(e2===min){
-                    e1.pair=e2.pair;
+                    e1.pair = e2.pair;
                     break;
                 }
                 e1=e2;
@@ -11123,13 +11132,13 @@ OIMO.SAPProxy = function(sap,shape){
     // The minimum elements on each axis.
     this.min = [];
     
-    this.sap=sap;
-    this.min[0]=new OIMO.SAPElement(this,false);
-    this.max[0]=new OIMO.SAPElement(this,true);
-    this.min[1]=new OIMO.SAPElement(this,false);
-    this.max[1]=new OIMO.SAPElement(this,true);
-    this.min[2]=new OIMO.SAPElement(this,false);
-    this.max[2]=new OIMO.SAPElement(this,true);
+    this.sap = sap;
+    this.min[0] = new OIMO.SAPElement(this,false);
+    this.max[0] = new OIMO.SAPElement(this,true);
+    this.min[1] = new OIMO.SAPElement(this,false);
+    this.max[1] = new OIMO.SAPElement(this,true);
+    this.min[2] = new OIMO.SAPElement(this,false);
+    this.max[2] = new OIMO.SAPElement(this,true);
     this.max[0].pair=this.min[0];
     this.max[1].pair=this.min[1];
     this.max[2].pair=this.min[2];
@@ -11527,7 +11536,7 @@ OIMO.DBVTBroadPhase = function(){
 
     this.numLeaves = 0;
     this.maxLeaves = 0;
-    this.tree = new OIMO.DBVT();
+    this.tree=new OIMO.DBVT();
     this.maxStack=256;
 
     this.stack=[];// vector

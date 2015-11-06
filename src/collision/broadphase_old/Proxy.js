@@ -3,9 +3,9 @@
 */
 OIMO.Proxy = function(shape){
 	// The parent shape.
-    this.shape = shape;
+    this.shape=shape;
     // The axis-aligned bounding box.
-    this.aabb = shape.aabb;
+    this.aabb=shape.aabb;
 };
 
 OIMO.Proxy.prototype = {
@@ -16,7 +16,6 @@ OIMO.Proxy.prototype = {
 	* Update the proxy.
 	*/
     update:function(){
-        console.error("Inheritance error.");
-        //throw new Error("Inheritance error.");
+        throw new Error("Inheritance error.");
     }
-};
+}

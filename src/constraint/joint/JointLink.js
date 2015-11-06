@@ -11,4 +11,5 @@ OIMO.JointLink = function(joint){
     this.body = null;
     // The joint of the link.
     this.joint = joint;
-}
+
+};

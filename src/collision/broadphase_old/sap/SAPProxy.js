@@ -11,13 +11,13 @@ OIMO.SAPProxy = function(sap,shape){
     // The minimum elements on each axis.
     this.min = [];
     
-    this.sap = sap;
-    this.min[0] = new OIMO.SAPElement(this,false);
-    this.max[0] = new OIMO.SAPElement(this,true);
-    this.min[1] = new OIMO.SAPElement(this,false);
-    this.max[1] = new OIMO.SAPElement(this,true);
-    this.min[2] = new OIMO.SAPElement(this,false);
-    this.max[2] = new OIMO.SAPElement(this,true);
+    this.sap=sap;
+    this.min[0]=new OIMO.SAPElement(this,false);
+    this.max[0]=new OIMO.SAPElement(this,true);
+    this.min[1]=new OIMO.SAPElement(this,false);
+    this.max[1]=new OIMO.SAPElement(this,true);
+    this.min[2]=new OIMO.SAPElement(this,false);
+    this.max[2]=new OIMO.SAPElement(this,true);
     this.max[0].pair=this.min[0];
     this.max[1].pair=this.min[1];
     this.max[2].pair=this.min[2];

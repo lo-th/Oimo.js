@@ -4,7 +4,7 @@
  * @author lo-th
  */
 
-OIMO.HingeJoint = function(config,lowerAngleLimit,upperAngleLimit){
+OIMO.HingeJoint = function ( config, lowerAngleLimit, upperAngleLimit ) {
 
     OIMO.Joint.call( this, config);
 

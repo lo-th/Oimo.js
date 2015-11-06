@@ -4,7 +4,7 @@
  * @author lo-th
  */
 
-OIMO.Joint = function(config){
+OIMO.Joint = function( config ){
 
     OIMO.Constraint.call( this );
 
@@ -61,6 +61,7 @@ OIMO.Joint.prototype.updateAnchorPoints = function () {
 // Attach the joint from the bodies.
 
 OIMO.Joint.prototype.attach = function () {
+
     this.b1Link.body = this.body2;
     this.b2Link.body = this.body1;
     if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
@@ -71,11 +72,13 @@ OIMO.Joint.prototype.attach = function () {
     else this.b2Link.next = null;
     this.body2.jointLink = this.b2Link;
     this.body2.numJoints++;
+    
 };
 
 // Detach the joint from the bodies.
 
 OIMO.Joint.prototype.detach = function () {
+
     var prev = this.b1Link.prev;
     var next = this.b1Link.next;
     if(prev != null) prev.next = next;
@@ -98,14 +101,17 @@ OIMO.Joint.prototype.detach = function () {
 
     this.b1Link.body = null;
     this.b2Link.body = null;
+
 };
 
 
 // Awake the bodies.
 
 OIMO.Joint.prototype.awake = function () {
+
     this.body1.awake();
     this.body2.awake();
+
 };
 
 // calculation function
@@ -121,24 +127,31 @@ OIMO.Joint.prototype.postSolve = function () {
 
 // Delete process
 
-OIMO.Joint.prototype.remove = function(){
+OIMO.Joint.prototype.remove = function () {
+
     this.dispose();
+
 };
 
-OIMO.Joint.prototype.dispose = function(){
+OIMO.Joint.prototype.dispose = function () {
+
     this.parent.removeJoint(this);
+
 };
 
 
 // Three js add
 
 OIMO.Joint.prototype.getPosition = function () {
+
     var p1 = new OIMO.Vec3().scale(this.anchorPoint1, OIMO.WORLD_SCALE);
     var p2 = new OIMO.Vec3().scale(this.anchorPoint2, OIMO.WORLD_SCALE);
     return [p1, p2];
+
 };
 
 OIMO.Joint.prototype.getMatrix = function () {
+
     var m = this.matrix.elements;
     var p1 = this.anchorPoint1;
     var p2 = this.anchorPoint2;
@@ -153,4 +166,5 @@ OIMO.Joint.prototype.getMatrix = function () {
     m[7] = 0;
 
     return m;
+
 };

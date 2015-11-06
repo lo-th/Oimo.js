@@ -142,6 +142,7 @@ OIMO.Vec3.prototype = {
         this.z = v.z;
         return this;
     },
+
     applyQuaternion: function ( q ) {
 
         var x = this.x;
@@ -169,18 +170,29 @@ OIMO.Vec3.prototype = {
         return this;
 
     },
-    testZero: function(){
+    testZero: function () {
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;
     },
     testDiff: function(v){
-        if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
-        else return false;
+
+        return ( ( v.x !== this.x ) || ( v.y !== this.y ) || ( v.z !== this.z ) );
+        //if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
+        //else return false;
     },
-    clone: function(){
+
+    equals: function ( v ) {
+
+        return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) );
+
+    },
+
+    clone: function () {
+
         return new this.constructor( this.x, this.y, this.z );
-        //return new OIMO.Vec3(this.x,this.y,this.z);
+
     },
+
     toString: function(){
         return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
     },
@@ -206,7 +218,7 @@ OIMO.Vec3.prototype = {
         return this.multiplyScalar( 1 / scalar );
 
     },
-
+    // TODO rename to normalize
     norm: function () {
 
         return this.divideScalar( this.length() );

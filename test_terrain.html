@@ -267,12 +267,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config, name:'sphere'});
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config, name:'box'});
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
@@ -285,7 +285,7 @@
 
         config[3] = 1;
         config[4] = all;
-        bodys[max] = world.add({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, config:config});
+        bodys[max] = world.add({size:[20, 40, 20], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, config:config, name:'paddle'});
         meshs[max] = new THREE.Mesh( buffgeoBox, matBox );
         meshs[max].scale.set( 20, 40, 20 );
         scene.add( meshs[max] );
@@ -398,7 +398,7 @@
     //  RAY TEST
     //----------------------------------
 
-    /*var rayTest = function () {
+    var rayTest = function () {
         var vector = new THREE.Vector3( mouse.mx, mouse.my, 1 );
         projector.unprojectVector( vector, camera );
         raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
@@ -406,7 +406,7 @@
         if ( intersects.length) {
             paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
         }
-    }*/
+    }
 
 </script>
 </body>

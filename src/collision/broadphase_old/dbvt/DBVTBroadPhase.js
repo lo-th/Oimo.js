@@ -8,7 +8,7 @@ OIMO.DBVTBroadPhase = function(){
 
     this.numLeaves = 0;
     this.maxLeaves = 0;
-    this.tree=new OIMO.DBVT();
+    this.tree = new OIMO.DBVT();
     this.maxStack=256;
 
     this.stack=[];// vector
