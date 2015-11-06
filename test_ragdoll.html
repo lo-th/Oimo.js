@@ -46,7 +46,7 @@
     var grounds = [];
     var geoBox, geoSphere, geoSphere2, geoCylinder, geoCylinder2;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround,  matBoxSleep2, matBox2, matHead;
-    var ToRad = Math.PI / 180;
+    var ToRad = 0.0174532925199432957;
 
     //oimo var
     var world = null;
@@ -129,16 +129,16 @@
         geoCylinder2.applyMatrix( new THREE.Matrix4().makeRotationZ( Math.PI / 2 ) );
 
         // material
-        matSphere = new THREE[materialType] ( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.6, shininess:120, specular:0xffffff} );
-        matHead = new THREE[materialType] ( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
-        matBox = new THREE[materialType] ( {  map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
-        matBox2  = new THREE[materialType] ( {  map: basicTexture(2,1), name:'box2', shininess:100, specular:0xffffff  } );
-        matBox3  = new THREE[materialType]( {  map: basicTexture(2,0), name:'box3', shininess:100, specular:0xffffff  } );
+        matSphere      = new THREE[materialType]( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.6, shininess:120, specular:0xffffff} );
+        matHead        = new THREE[materialType]( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
+        matBox         = new THREE[materialType]( { map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
+        matBox2        = new THREE[materialType]( { map: basicTexture(2,1), name:'box2', shininess:100, specular:0xffffff  } );
+        matBox3        = new THREE[materialType]( { map: basicTexture(2,0), name:'box3', shininess:100, specular:0xffffff  } );
         matSphereSleep = new THREE[materialType]( { map: basicTexture(1), name:'ssph',transparent:true, opacity:0.8 } );
-        matBoxSleep = new THREE[materialType]( {  map: basicTexture(3), name:'sbox' } );
-        matBoxSleep2 = new THREE[materialType]( {  map: basicTexture(3,1), name:'sbox2' } );
-        matBoxSleep3 = new THREE[materialType]( {  map: basicTexture(3,0), name:'sbox3' } );
-        matGround = new THREE[materialType]( { color: 0x3D4143 } );
+        matBoxSleep    = new THREE[materialType]( { map: basicTexture(3), name:'sbox' } );
+        matBoxSleep2   = new THREE[materialType]( { map: basicTexture(3,1), name:'sbox2' } );
+        matBoxSleep3   = new THREE[materialType]( { map: basicTexture(3,0), name:'sbox3' } );
+        matGround      = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.5, shininess: 10 } );
 
         // events
 
@@ -343,10 +343,7 @@
 
         world.step();
 
-        var p, r, m, x, y, z;
-        var i = bodys.length;
-        var mesh;
-        var body;
+        var p, r, m, x, y, z, mesh, body, i = bodys.length;
 
         while (i--){
             body = bodys[i];
