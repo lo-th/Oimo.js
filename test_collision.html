@@ -97,7 +97,6 @@
 
         renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
         renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.autoClear = false;
         renderer.shadowMapEnabled = true;
         renderer.shadowMapType = THREE.PCFShadowMap;
         //renderer.gammaInput = true;
@@ -111,10 +110,10 @@
     }
 
     function loop() {
-        requestAnimationFrame( loop );
-        renderer.clear();
+
         updateOimoPhysics();
         renderer.render( scene, camera );
+        requestAnimationFrame( loop );
         //displayInfo();
     }
 
