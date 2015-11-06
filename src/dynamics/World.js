@@ -243,7 +243,7 @@ OIMO.World.prototype = {
     step:function(){
         var time0, time1, time2, time3;
 
-        if(!this.isNoStat) time0=Date.now();
+        if(!this.isNoStat) time0=OIMO.now();
 
         var body=this.rigidBodies;
 
@@ -273,7 +273,7 @@ OIMO.World.prototype = {
         //------------------------------------------------------
 
         // broad phase
-        if(!this.isNoStat) time1=Date.now();
+        if(!this.isNoStat) time1=OIMO.now();
 
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
@@ -314,7 +314,7 @@ OIMO.World.prototype = {
         }// while(i-- >0);
 
         if(!this.isNoStat){
-            time2=Date.now();
+            time2=OIMO.now();
             this.performance.broadPhaseTime=time2-time1;
         }
 
@@ -348,7 +348,7 @@ OIMO.World.prototype = {
         }
 
         if(!this.isNoStat){
-            time3=Date.now();
+            time3=OIMO.now();
             this.performance.narrowPhaseTime=time3-time2;
         }
 
@@ -381,7 +381,7 @@ OIMO.World.prototype = {
             this.islandConstraints=[];
             this.islandConstraints.length = this.maxIslandConstraints;
         }
-        time1=Date.now();
+        time1=OIMO.now();
         this.numIslands=0;
         // build and solve simulation islands
         for(var base=this.rigidBodies; base!==null; base=base.next){
@@ -550,19 +550,19 @@ OIMO.World.prototype = {
         }
 
         if(!this.isNoStat){
-            time2=Date.now();
-            this.performance.solvingTime=time2-time1;
+            time2 = OIMO.now();
+            this.performance.solvingTime = time2-time1;
 
             //------------------------------------------------------
             //   END SIMULATION
             //------------------------------------------------------
 
-            time2=Date.now();
+            time2 = OIMO.now();
             // fps update
             this.performance.upfps();
 
-            this.performance.totalTime=time2-time0;
-            this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+            this.performance.totalTime = time2 - time0;
+            //this.performance.updatingTime = this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
         }
     },
     addContact:function(s1,s2){

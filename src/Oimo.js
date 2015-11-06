@@ -11,7 +11,11 @@ var OIMO = {
 
     // Global identification of next shape.
     // This will be incremented every time a shape is created.
-    nextID : 0, 
+    nextID : 0,
+
+    BODY_STATIC  : 0,
+    BODY_DYNAMIC : 1,
+
 
     // body type
     SHAPE_NULL     : 0,
@@ -56,7 +60,7 @@ var OIMO = {
     randInt : function (a, b, n) { return OIMO.lerp(a, b, OIMO.random()).toFixed(n || 0)*1;},
 
     int : function(x) { return ~~x; },
-    fix : function(x, n) { n = n || 3; return x.toFixed(n)*1; },
+    fix : function(x, n) { return x.toFixed(n || 3, 10); },
 
     clamp : function ( value, min, max ) { return OIMO.max( min, OIMO.min( max, value ) ); },
 
@@ -77,3 +81,18 @@ var OIMO = {
 
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }
+
+(function(w){
+    var perfNow;
+    var perfNowNames = ['now', 'webkitNow', 'msNow', 'mozNow'];
+    if(!!w['performance']) for(var i = 0; i < perfNowNames.length; ++i){
+        var n = perfNowNames[i];
+        if(!!w['performance'][n]){
+            perfNow = function(){return w['performance'][n]()};
+            break;
+        }
+    }
+    if(!perfNow) perfNow = Date.now;
+    //w.perfNow = perfNow;
+    OIMO.now = perfNow;
+})(window);

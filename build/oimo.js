@@ -11,7 +11,11 @@ var OIMO = {
 
     // Global identification of next shape.
     // This will be incremented every time a shape is created.
-    nextID : 0, 
+    nextID : 0,
+
+    BODY_STATIC  : 0,
+    BODY_DYNAMIC : 1,
+
 
     // body type
     SHAPE_NULL     : 0,
@@ -56,7 +60,7 @@ var OIMO = {
     randInt : function (a, b, n) { return OIMO.lerp(a, b, OIMO.random()).toFixed(n || 0)*1;},
 
     int : function(x) { return ~~x; },
-    fix : function(x, n) { n = n || 3; return x.toFixed(n)*1; },
+    fix : function(x, n) { return x.toFixed(n || 3, 10); },
 
     clamp : function ( value, min, max ) { return OIMO.max( min, OIMO.min( max, value ) ); },
 
@@ -77,6 +81,21 @@ var OIMO = {
 
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }
+
+(function(w){
+    var perfNow;
+    var perfNowNames = ['now', 'webkitNow', 'msNow', 'mozNow'];
+    if(!!w['performance']) for(var i = 0; i < perfNowNames.length; ++i){
+        var n = perfNowNames[i];
+        if(!!w['performance'][n]){
+            perfNow = function(){return w['performance'][n]()};
+            break;
+        }
+    }
+    if(!perfNow) perfNow = Date.now;
+    //w.perfNow = perfNow;
+    OIMO.now = perfNow;
+})(window);
 /**
 * The class of physical computing world. 
 * You must be added to the world physical all computing objects
@@ -322,7 +341,7 @@ OIMO.World.prototype = {
     step:function(){
         var time0, time1, time2, time3;
 
-        if(!this.isNoStat) time0=Date.now();
+        if(!this.isNoStat) time0=OIMO.now();
 
         var body=this.rigidBodies;
 
@@ -352,7 +371,7 @@ OIMO.World.prototype = {
         //------------------------------------------------------
 
         // broad phase
-        if(!this.isNoStat) time1=Date.now();
+        if(!this.isNoStat) time1=OIMO.now();
 
         this.broadPhase.detectPairs();
         var pairs=this.broadPhase.pairs;
@@ -393,7 +412,7 @@ OIMO.World.prototype = {
         }// while(i-- >0);
 
         if(!this.isNoStat){
-            time2=Date.now();
+            time2=OIMO.now();
             this.performance.broadPhaseTime=time2-time1;
         }
 
@@ -427,7 +446,7 @@ OIMO.World.prototype = {
         }
 
         if(!this.isNoStat){
-            time3=Date.now();
+            time3=OIMO.now();
             this.performance.narrowPhaseTime=time3-time2;
         }
 
@@ -460,7 +479,7 @@ OIMO.World.prototype = {
             this.islandConstraints=[];
             this.islandConstraints.length = this.maxIslandConstraints;
         }
-        time1=Date.now();
+        time1=OIMO.now();
         this.numIslands=0;
         // build and solve simulation islands
         for(var base=this.rigidBodies; base!==null; base=base.next){
@@ -629,19 +648,19 @@ OIMO.World.prototype = {
         }
 
         if(!this.isNoStat){
-            time2=Date.now();
-            this.performance.solvingTime=time2-time1;
+            time2 = OIMO.now();
+            this.performance.solvingTime = time2-time1;
 
             //------------------------------------------------------
             //   END SIMULATION
             //------------------------------------------------------
 
-            time2=Date.now();
+            time2 = OIMO.now();
             // fps update
             this.performance.upfps();
 
-            this.performance.totalTime=time2-time0;
-            this.performance.updatingTime=this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
+            this.performance.totalTime = time2 - time0;
+            //this.performance.updatingTime = this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
         }
     },
     addContact:function(s1,s2){
@@ -714,7 +733,7 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     // It is a kind of rigid body that represents the static rigid body.
     this.BODY_STATIC = 0x2;
     // The maximum number of shapes that can be added to a one rigid.
-    this.MAX_SHAPES = 64;
+    this.MAX_SHAPES = 64;//64;
 
     this.prev = null;
     this.next = null;
@@ -1544,7 +1563,7 @@ OIMO.Performance = function(world){
     this.broadPhaseTime = 0;
     this.narrowPhaseTime = 0;
     this.solvingTime = 0;
-    this.updatingTime = 0;
+    //this.updatingTime = 0;
     this.totalTime = 0;
 };
 
@@ -1553,6 +1572,9 @@ OIMO.Performance.prototype = {
 		this.f[1] = Date.now();
         if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
 	},
+    updatingTime : function(){
+        return OIMO.fix( this.totalTime-(this.broadPhaseTime+this.narrowPhaseTime+this.solvingTime ));
+    },
 	show : function(){
 		var info =[
             "Oimo.js "+this.version+"<br>",
@@ -1563,12 +1585,12 @@ OIMO.Performance.prototype = {
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
             "contact &nbsp;&nbsp;"+this.parent.numContactPoints+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
-            "Time in ms <br>",
-            "broad-phase &nbsp;"+this.broadPhaseTime + "<br>",
-            "narrow-phase "+this.narrowPhaseTime + "<br>",
-            "solving &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+this.solvingTime + "<br>",
-            "updating &nbsp;&nbsp;&nbsp;&nbsp;"+this.updatingTime + "<br>",
-            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+this.totalTime
+            "Time in milliseconde<br><br>",
+            "broad-phase &nbsp;"+ OIMO.fix(this.broadPhaseTime) + "<br>",
+            "narrow-phase "+ OIMO.fix(this.narrowPhaseTime) + "<br>",
+            "solving &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ OIMO.fix(this.solvingTime) + "<br>",
+            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ OIMO.fix(this.totalTime)+ "<br>",
+            "updating &nbsp;&nbsp;&nbsp;&nbsp;"+ this.updatingTime() + "<br>"
         ].join("\n");
         return info;
 	},
@@ -1582,7 +1604,7 @@ OIMO.Performance.prototype = {
 	    this.infos[6] = this.broadPhaseTime;
 	    this.infos[7] = this.narrowPhaseTime;
 	    this.infos[8] = this.solvingTime;
-	    this.infos[9] = this.updatingTime;
+	    this.infos[9] = this.updatingTime();
 	    this.infos[10] = this.totalTime;
 	    this.infos[11] = this.fps;
 		return this.infos;

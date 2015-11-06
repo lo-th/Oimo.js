@@ -12,7 +12,7 @@ OIMO.Performance = function(world){
     this.broadPhaseTime = 0;
     this.narrowPhaseTime = 0;
     this.solvingTime = 0;
-    this.updatingTime = 0;
+    //this.updatingTime = 0;
     this.totalTime = 0;
 };
 
@@ -21,6 +21,9 @@ OIMO.Performance.prototype = {
 		this.f[1] = Date.now();
         if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
 	},
+    updatingTime : function(){
+        return OIMO.fix( this.totalTime-(this.broadPhaseTime+this.narrowPhaseTime+this.solvingTime ));
+    },
 	show : function(){
 		var info =[
             "Oimo.js "+this.version+"<br>",
@@ -31,12 +34,12 @@ OIMO.Performance.prototype = {
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
             "contact &nbsp;&nbsp;"+this.parent.numContactPoints+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
-            "Time in ms <br>",
-            "broad-phase &nbsp;"+this.broadPhaseTime + "<br>",
-            "narrow-phase "+this.narrowPhaseTime + "<br>",
-            "solving &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+this.solvingTime + "<br>",
-            "updating &nbsp;&nbsp;&nbsp;&nbsp;"+this.updatingTime + "<br>",
-            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+this.totalTime
+            "Time in milliseconde<br><br>",
+            "broad-phase &nbsp;"+ OIMO.fix(this.broadPhaseTime) + "<br>",
+            "narrow-phase "+ OIMO.fix(this.narrowPhaseTime) + "<br>",
+            "solving &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ OIMO.fix(this.solvingTime) + "<br>",
+            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ OIMO.fix(this.totalTime)+ "<br>",
+            "updating &nbsp;&nbsp;&nbsp;&nbsp;"+ this.updatingTime() + "<br>"
         ].join("\n");
         return info;
 	},
@@ -50,7 +53,7 @@ OIMO.Performance.prototype = {
 	    this.infos[6] = this.broadPhaseTime;
 	    this.infos[7] = this.narrowPhaseTime;
 	    this.infos[8] = this.solvingTime;
-	    this.infos[9] = this.updatingTime;
+	    this.infos[9] = this.updatingTime();
 	    this.infos[10] = this.totalTime;
 	    this.infos[11] = this.fps;
 		return this.infos;

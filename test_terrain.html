@@ -164,7 +164,7 @@
 
     function initOimoPhysics(){
 
-        world = new OIMO.World(1/60, 2);
+        world = new OIMO.World(1/60, 3, 8);
         
         populate(1);
         //setInterval(updateOimoPhysics, 1000/60);
@@ -197,7 +197,7 @@
         var n = 0;
         var vertices = g.attributes.position.array;
 
-       // for ( var i = 0, l = vertices.length; i < l; i ++ ) {
+
         for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
 
             vertices[ j + 1 ] = (data[ i ] * 10)-100;
@@ -205,6 +205,17 @@
             b = world.add({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]] })
 
         }
+
+        /*for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
+
+            vertices[ j + 1 ] = (data[ i ] * 10)-100;
+
+            types.push('sphere');
+            sizes.push([r,r,r]);
+            positions.push([vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]]);
+        }
+        var phyterrain = world.add({type:types, size:sizes, pos:positions, move:false })
+        */
 
         
         

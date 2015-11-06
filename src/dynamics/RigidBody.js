@@ -19,7 +19,7 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     // It is a kind of rigid body that represents the static rigid body.
     this.BODY_STATIC = 0x2;
     // The maximum number of shapes that can be added to a one rigid.
-    this.MAX_SHAPES = 64;
+    this.MAX_SHAPES = 64;//64;
 
     this.prev = null;
     this.next = null;
