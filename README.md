@@ -51,7 +51,7 @@ Interactive documentation
 
 New Lab in progress
 
-[DOCS](http://lo-th.github.io/Oimo.js/docs/index_lab.html)
+[LABS](http://lo-th.github.io/Oimo.js/docs/index_lab.html)
 
 =========
 Note :<br>
