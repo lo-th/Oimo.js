@@ -1,73 +1,83 @@
 /**
-* A wheel joint allows for relative rotation between two rigid bodies along two axes.
-* The wheel joint also allows for relative translation for the suspension.
-*/
+ * A wheel joint allows for relative rotation between two rigid bodies along two axes.
+ * The wheel joint also allows for relative translation for the suspension.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.WheelJoint = function(config){
+
     OIMO.Joint.call( this, config);
-    this.type=this.JOINT_WHEEL;
+
+    this.type = OIMO.JOINT_WHEEL;
 
     // The first axis in local coordinate system.
-    this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
     // The second axis in local coordinate system.
-    this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
 
     var len;
-    this.localAxis1X=this.localAxis1.x;
-    this.localAxis1Y=this.localAxis1.y;
-    this.localAxis1Z=this.localAxis1.z;
-    this.localAxis2X=this.localAxis2.x;
-    this.localAxis2Y=this.localAxis2.y;
-    this.localAxis2Z=this.localAxis2.z;
-    var dot=this.localAxis1X*this.localAxis2X+this.localAxis1Y*this.localAxis2Y+this.localAxis1Z*this.localAxis2Z;
+    this.localAxis1X = this.localAxis1.x;
+    this.localAxis1Y = this.localAxis1.y;
+    this.localAxis1Z = this.localAxis1.z;
+    this.localAxis2X = this.localAxis2.x;
+    this.localAxis2Y = this.localAxis2.y;
+    this.localAxis2Z = this.localAxis2.z;
+    var dot = this.localAxis1X*this.localAxis2X+this.localAxis1Y*this.localAxis2Y+this.localAxis1Z*this.localAxis2Z;
     if(dot>-1&&dot<1){
-        this.localAngAxis1X=this.localAxis2X-dot*this.localAxis1X;
-        this.localAngAxis1Y=this.localAxis2Y-dot*this.localAxis1Y;
-        this.localAngAxis1Z=this.localAxis2Z-dot*this.localAxis1Z;
-        this.localAngAxis2X=this.localAxis1X-dot*this.localAxis2X;
-        this.localAngAxis2Y=this.localAxis1Y-dot*this.localAxis2Y;
-        this.localAngAxis2Z=this.localAxis1Z-dot*this.localAxis2Z;
-        len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-        this.localAngAxis1X*=len;
-        this.localAngAxis1Y*=len;
-        this.localAngAxis1Z*=len;
-        len=1/OIMO.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
-        this.localAngAxis2X*=len;
-        this.localAngAxis2Y*=len;
-        this.localAngAxis2Z*=len;
+        this.localAngAxis1X = this.localAxis2X-dot*this.localAxis1X;
+        this.localAngAxis1Y = this.localAxis2Y-dot*this.localAxis1Y;
+        this.localAngAxis1Z = this.localAxis2Z-dot*this.localAxis1Z;
+        this.localAngAxis2X = this.localAxis1X-dot*this.localAxis2X;
+        this.localAngAxis2Y = this.localAxis1Y-dot*this.localAxis2Y;
+        this.localAngAxis2Z = this.localAxis1Z-dot*this.localAxis2Z;
+        len = 1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+        this.localAngAxis1X *= len;
+        this.localAngAxis1Y *= len;
+        this.localAngAxis1Z *= len;
+        len = 1/OIMO.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
+        this.localAngAxis2X *= len;
+        this.localAngAxis2Y *= len;
+        this.localAngAxis2Z *= len;
     }else{
-        this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-        this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-        this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
-        len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+        this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
+        this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
+        this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+        len = 1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
         this.localAngAxis1X*=len;
         this.localAngAxis1Y*=len;
         this.localAngAxis1Z*=len;
-        var arc=new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+        var arc = new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
         var tarc = arc.elements;
-        this.localAngAxis2X=this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-        this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-        this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+        this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
+        this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
+        this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
     }
 
-    this.nor=new OIMO.Vec3();
-    this.tan=new OIMO.Vec3();
-    this.bin=new OIMO.Vec3();
+    this.nor = new OIMO.Vec3();
+    this.tan = new OIMO.Vec3();
+    this.bin = new OIMO.Vec3();
 
     // The translational limit and motor information of the joint.
-    this.translationalLimitMotor=new OIMO.LimitMotor(this.tan,true);
-    this.translationalLimitMotor.frequency=8;
-    this.translationalLimitMotor.dampingRatio=1;
+    this.translationalLimitMotor = new OIMO.LimitMotor(this.tan,true);
+    this.translationalLimitMotor.frequency = 8;
+    this.translationalLimitMotor.dampingRatio = 1;
     // The first rotational limit and motor information of the joint.
-    this.rotationalLimitMotor1=new OIMO.LimitMotor(this.tan,false);
+    this.rotationalLimitMotor1 = new OIMO.LimitMotor(this.tan,false);
     // The second rotational limit and motor information of the joint.
-    this.rotationalLimitMotor2=new OIMO.LimitMotor(this.bin,false);
+    this.rotationalLimitMotor2 = new OIMO.LimitMotor(this.bin,false);
 
-    this.t3=new OIMO.Translational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.translationalLimitMotor,new OIMO.LimitMotor(this.bin,true));
-    this.t3.weight=1;
-    this.r3=new OIMO.Rotational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
-}
+    this.t3 = new OIMO.Translational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.translationalLimitMotor,new OIMO.LimitMotor(this.bin,true));
+    this.t3.weight = 1;
+    this.r3 = new OIMO.Rotational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
+
+};
+
 OIMO.WheelJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.WheelJoint.prototype.constructor = OIMO.WheelJoint;
+
 OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     var tmpM;
     var tmp1X;
     var tmp1Y;
@@ -136,15 +146,23 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
-}
+
+};
+
 OIMO.WheelJoint.prototype.solve = function () {
+
     this.r3.solve();
     this.t3.solve();
-}
+
+};
+
 OIMO.WheelJoint.prototype.postSolve = function () {
-}
+};
+
 OIMO.WheelJoint.prototype.acosClamp = function(cos){
+
     if(cos>1)return 0;
     else if(cos<-1)return OIMO.PI;
     else return OIMO.acos(cos);
-}
+
+};

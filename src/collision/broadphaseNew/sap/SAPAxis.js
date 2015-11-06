@@ -89,7 +89,7 @@ OIMO.SAPAxis.prototype = {
             var diff=right-left;
             if(diff>16){  // quick sort
                 //var mid=left+(diff>>1);
-                var mid=left+(Math.floor(diff*0.5));
+                var mid=left+(OIMO.floor(diff*0.5));
                 tmp=elements[mid];
                 elements[mid]=elements[right];
                 elements[right]=tmp;

@@ -1,34 +1,43 @@
 /**
-* A prismatic joint allows only for relative translation of rigid bodies along the axis.
-* @author saharan
-*/
+ * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.PrismaticJoint = function(config,lowerTranslation,upperTranslation){
-    OIMO.Joint.call( this, config);
-    this.type=this.JOINT_PRISMATIC;
+
+    OIMO.Joint.call( this, config );
+
+    this.type = OIMO.JOINT_PRISMATIC;
 
     // The axis in the first body's coordinate system.
-    this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
     // The axis in the second body's coordinate system.
-    this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
-    this.localAxis1X=this.localAxis1.x;
-    this.localAxis1Y=this.localAxis1.y;
-    this.localAxis1Z=this.localAxis1.z;
-    this.localAxis2X=this.localAxis2.x;
-    this.localAxis2Y=this.localAxis2.y;
-    this.localAxis2Z=this.localAxis2.z;
+    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
+    this.localAxis1X = this.localAxis1.x;
+    this.localAxis1Y = this.localAxis1.y;
+    this.localAxis1Z = this.localAxis1.z;
+    this.localAxis2X = this.localAxis2.x;
+    this.localAxis2Y = this.localAxis2.y;
+    this.localAxis2Z = this.localAxis2.z;
     
-    this.nor=new OIMO.Vec3();
-    this.tan=new OIMO.Vec3();
-    this.bin=new OIMO.Vec3();
-    this.ac=new OIMO.AngularConstraint(this,new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+    this.nor = new OIMO.Vec3();
+    this.tan = new OIMO.Vec3();
+    this.bin = new OIMO.Vec3();
+    this.ac = new OIMO.AngularConstraint(this,new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
     // The translational limit and motor information of the joint.
-    this.limitMotor=new OIMO.LimitMotor(this.nor,true);
-    this.limitMotor.lowerLimit=lowerTranslation;
-    this.limitMotor.upperLimit=upperTranslation;
-    this.t3=new OIMO.Translational3Constraint(this,this.limitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
-}
+    this.limitMotor = new OIMO.LimitMotor(this.nor,true);
+    this.limitMotor.lowerLimit = lowerTranslation;
+    this.limitMotor.upperLimit = upperTranslation;
+    this.t3 = new OIMO.Translational3Constraint(this, this.limitMotor, new OIMO.LimitMotor(this.tan,true), new OIMO.LimitMotor(this.bin,true));
+
+};
+
 OIMO.PrismaticJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.PrismaticJoint.prototype.constructor = OIMO.PrismaticJoint;
+
 OIMO.PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     var tmpM;
     var tmp1X;
     var tmp1Y;
@@ -69,10 +78,15 @@ OIMO.PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     
     this.ac.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
-}
+
+};
+
 OIMO.PrismaticJoint.prototype.solve = function () {
+
     this.ac.solve();
     this.t3.solve();
-}
+    
+};
+
 OIMO.PrismaticJoint.prototype.postSolve = function () {
-}
+};

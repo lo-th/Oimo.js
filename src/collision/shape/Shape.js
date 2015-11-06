@@ -1,20 +1,22 @@
 /**
  * A shape is used to detect collisions of rigid bodies.
  * @author saharan
+ * @author lo-th
  */
+
 OIMO.Shape = function(config){
-    // The global identification of the shape.
-    // This value should be unique to the shape.
+
+    this.type = OIMO.SHAPE_NULL;
+
+    // The global identification of the shape should be unique to the shape.
     this.id = OIMO.nextID++;
+
     // The previous shape in parent rigid body.
     this.prev = null;
     // The next shape in parent rigid body.
     this.next = null;
-    // The type of the shape.
-    this.type = 0;
 
-    // The proxy of the shape.
-    // This is used for broad-phase collision detection.
+    // The proxy of the shape used for broad-phase collision detection.
     this.proxy = null;
     // The parent rigid body of the shape.
     this.parent = null;
@@ -46,9 +48,10 @@ OIMO.Shape = function(config){
     this.belongsTo = config.belongsTo;
     // The bits of the collision groups with which the shape collides.
     this.collidesWith = config.collidesWith;
-}
+};
 
 OIMO.Shape.prototype = {
+
     constructor: OIMO.Shape,
 
     /**
@@ -56,13 +59,13 @@ OIMO.Shape.prototype = {
     * @param   out
     */
     calculateMassInfo:function(out){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Shape", "Inheritance error.");
     },
 
     /**
     * Update the proxy of the shape.
     */
     updateProxy:function(){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Shape", "Inheritance error.");
     }
-}
+};

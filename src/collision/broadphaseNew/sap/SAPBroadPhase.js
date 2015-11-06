@@ -15,12 +15,12 @@ OIMO.SAPBroadPhase = function(){
     this.axesD.length = 3;
     this.axesS.length = 3;
 
-    this.axesD[0]=new OIMO.SAPAxis();
-    this.axesD[1]=new OIMO.SAPAxis();
-    this.axesD[2]=new OIMO.SAPAxis();
-    this.axesS[0]=new OIMO.SAPAxis();
-    this.axesS[1]=new OIMO.SAPAxis();
-    this.axesS[2]=new OIMO.SAPAxis();
+    this.axesD[0] = new OIMO.SAPAxis();
+    this.axesD[1] = new OIMO.SAPAxis();
+    this.axesD[2] = new OIMO.SAPAxis();
+    this.axesS[0] = new OIMO.SAPAxis();
+    this.axesS[1] = new OIMO.SAPAxis();
+    this.axesS[2] = new OIMO.SAPAxis();
     this.index1=0;
     this.index2=1;
 }
@@ -138,7 +138,7 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                 activeS=e1;
             }
         }else{
-            var min=e1.pair;
+            var min = e1.pair;
             if(dyn){
                 if(min==activeD){
                     activeD=activeD.pair;
@@ -155,9 +155,9 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                 }
             }
             do{
-                e2=e1.pair;
+                e2 = e1.pair;
                 if(e2===min){
-                    e1.pair=e2.pair;
+                    e1.pair = e2.pair;
                     break;
                 }
                 e1=e2;

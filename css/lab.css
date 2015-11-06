@@ -10,7 +10,7 @@
 	box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;
 }
 html, body {
-	font-family: "Open Sans", sans-serif;
+	font-family: monospace;
 	font-size: 10px;
     height:100%;
     background:#25292e;
@@ -46,6 +46,24 @@ canvas { position: absolute; top:0; left:50%; pointer-events:auto; width:50%; he
     bottom:10px;
     width:300px;
     height:20px;
+}
+
+.info{
+pointer-events:none; position:absolute;
+    left:10px;
+    top:40px;
+    width:200px;
+    height:200px;
+}
+
+.error{
+    pointer-events:none; position:absolute;
+    right:10px;
+    bottom:30px;
+    width:300px;
+    height:200px;
+    color:#FF6600;
+    text-align:right;
 }
 
 #ribbon{

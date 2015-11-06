@@ -4,13 +4,13 @@
 */
 OIMO.Constraint = function(){
     // The parent world of the constraint.
-    this.parent=null;
+    this.parent = null;
     // The first body of the constraint.
-    this.body1=null;
+    this.body1 = null;
     // The second body of the constraint.
-    this.body2=null;
+    this.body2 = null;
     // Internal
-    this.addedToIsland=false;
+    this.addedToIsland = false;
 }
 
 OIMO.Constraint.prototype = {
@@ -21,19 +21,19 @@ OIMO.Constraint.prototype = {
     * @param   invTimeStep
     */
     preSolve:function(timeStep,invTimeStep){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Constraint", "Inheritance error.");
     },
     /**
     * Solve the constraint.
     * This is usually called iteratively.
     */
     solve:function(){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Constraint", "Inheritance error.");
     },
     /**
     * Do the post-processing.
     */
     postSolve:function(){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Constraint", "Inheritance error.");
     }
 }

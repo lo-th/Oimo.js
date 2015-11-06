@@ -1,55 +1,64 @@
 /**
-* A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
-* @author saharan
-*/
+ * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.SliderJoint = function(config,lowerTranslation,upperTranslation){
-    OIMO.Joint.call( this, config);
-    this.type=this.JOINT_SLIDER;
+
+    OIMO.Joint.call( this, config );
+
+    this.type = OIMO.JOINT_SLIDER;
 
     // The first axis in local coordinate system.
-    this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
     // The second axis in local coordinate system.
-    this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
 
     var len;
-    this.localAxis1X=this.localAxis1.x;
-    this.localAxis1Y=this.localAxis1.y;
-    this.localAxis1Z=this.localAxis1.z;
+    this.localAxis1X = this.localAxis1.x;
+    this.localAxis1Y = this.localAxis1.y;
+    this.localAxis1Z = this.localAxis1.z;
 
-    this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-    this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-    this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+    this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
+    this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
+    this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
 
-    len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-    this.localAngAxis1X*=len;
-    this.localAngAxis1Y*=len;
-    this.localAngAxis1Z*=len;
+    len = 1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+    this.localAngAxis1X *= len;
+    this.localAngAxis1Y *= len;
+    this.localAngAxis1Z *= len;
 
-    this.localAxis2X=this.localAxis2.x;
-    this.localAxis2Y=this.localAxis2.y;
-    this.localAxis2Z=this.localAxis2.z;
+    this.localAxis2X = this.localAxis2.x;
+    this.localAxis2Y = this.localAxis2.y;
+    this.localAxis2Z = this.localAxis2.z;
 
     // make angle axis 2
-    var arc=new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+    var arc = new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
     var tarc = arc.elements;
-    this.localAngAxis2X=this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-    this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-    this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+    this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
+    this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
+    this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
     
-    this.nor=new OIMO.Vec3();
-    this.tan=new OIMO.Vec3();
-    this.bin=new OIMO.Vec3();
+    this.nor = new OIMO.Vec3();
+    this.tan = new OIMO.Vec3();
+    this.bin = new OIMO.Vec3();
     // The limit and motor for the rotation
-    this.rotationalLimitMotor=new OIMO.LimitMotor(this.nor,false);
-    this.r3=new OIMO.Rotational3Constraint(this,this.rotationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
+    this.rotationalLimitMotor = new OIMO.LimitMotor(this.nor,false);
+    this.r3 = new OIMO.Rotational3Constraint(this,this.rotationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
     // The limit and motor for the translation.
-    this.translationalLimitMotor=new OIMO.LimitMotor(this.nor,true);
-    this.translationalLimitMotor.lowerLimit=lowerTranslation;
-    this.translationalLimitMotor.upperLimit=upperTranslation;
-    this.t3=new OIMO.Translational3Constraint(this,this.translationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
-}
+    this.translationalLimitMotor = new OIMO.LimitMotor(this.nor,true);
+    this.translationalLimitMotor.lowerLimit = lowerTranslation;
+    this.translationalLimitMotor.upperLimit = upperTranslation;
+    this.t3 = new OIMO.Translational3Constraint(this,this.translationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
+
+};
+
 OIMO.SliderJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.SliderJoint.prototype.constructor = OIMO.SliderJoint;
+
 OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     var tmpM;
     var tmp1X;
     var tmp1Y;
@@ -97,7 +106,6 @@ OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     //            calculate hinge angle
     // ----------------------------------------------
 
-            
     if(
         nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
         ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
@@ -118,15 +126,22 @@ OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
-}
+};
+
 OIMO.SliderJoint.prototype.solve = function () {
+
     this.r3.solve();
     this.t3.solve();
-}
+
+};
+
 OIMO.SliderJoint.prototype.postSolve = function () {
-}
+};
+
 OIMO.SliderJoint.prototype.acosClamp = function(cos){
+
     if(cos>1)return 0;
     else if(cos<-1)return OIMO.PI;
     else return OIMO.acos(cos);
-}
+
+};

@@ -37,6 +37,8 @@
 
 </head><body>
 <canvas id="canvas"></canvas>
+<div id="info"></div>
+<div id="error"></div>
 <img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png"></a>
 <a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>
 <script>
@@ -59,6 +61,15 @@ menu.appendChild( title );
 var subtitle = document.createElement( 'div' );
 subtitle.className = 'subtitle';
 menu.appendChild( subtitle );
+
+var info = document.createElement( 'div' );
+info.className = 'info';
+menu.appendChild( info );
+
+var errorTxt = document.createElement( 'div' );
+errorTxt.className = 'error';
+menu.appendChild( errorTxt );
+
 
 
 // code editor
@@ -108,7 +119,7 @@ function printErrorMsg(msg) {
 };
 
 function init() {
-    var w = window.innerWidth/2;
+    var w = ~~window.innerWidth*0.5;
 
     gamepad = new Gamepad();
 
@@ -173,9 +184,11 @@ function init() {
     // 2 : Sweep and prune , the default 
     // 3 : dynamic bounding volume tree
 
-    world = new OIMO.World( TimeStep, 2, Iterations, true);
+    world = new OIMO.World( TimeStep, 2, Iterations);
     world.worldscale(1);
     world.gravity = new OIMO.Vec3(0, -10, 0);
+
+    OIMO.CustomError = errorTxt;
 
     
 
@@ -406,6 +419,8 @@ var Step = function() {
            // if(mesh.material.name === 'sph') mesh.material = mats.ssph;
         }
     }
+
+    info.innerHTML = world.performance.show();
 
 };
 

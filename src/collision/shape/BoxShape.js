@@ -1,10 +1,15 @@
 /**
-* A box shape.
-* @author saharan
-* @author loth
-*/
+ * A box shape.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.BoxShape = function(config,Width,Height,Depth){
+
     OIMO.Shape.call( this, config );
+
+    this.type = OIMO.SHAPE_BOX;
+
     // The width of the box.
     this.width = Width;
     // The height of the box.
@@ -12,30 +17,35 @@ OIMO.BoxShape = function(config,Width,Height,Depth){
     // The depth of the box.
     this.depth = Depth;
     // The half-width of the box.
-    this.halfWidth = Width*0.5;
+    this.halfWidth = Width * 0.5;
     // The half-height of the box.
-    this.halfHeight = Height*0.5;
+    this.halfHeight = Height * 0.5;
     // The half-depth of the box.
-    this.halfDepth = Depth*0.5;
+    this.halfDepth = Depth * 0.5;
 
     this.dimentions = new OIMO_ARRAY_TYPE(18);
     this.elements = new OIMO_ARRAY_TYPE(24);
-    this.type = OIMO.SHAPE_BOX;
+    
 };
 
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
+OIMO.BoxShape.prototype.constructor = OIMO.BoxShape;
 
 OIMO.BoxShape.prototype.calculateMassInfo = function(out){
-    var mass = this.width*this.height*this.depth*this.density;
+
+    var mass = this.width * this.height * this.depth * this.density;
+    var divid = 1/12;
     out.mass = mass;
     out.inertia.init(
-        mass*(this.height*this.height+this.depth*this.depth)/12,0,0,
-        0,mass*(this.width*this.width+this.depth*this.depth)/12,0,
-        0,0,mass*(this.width*this.width+this.height*this.height)/12
+        mass*(this.height*this.height+this.depth*this.depth)*divid,0,0,
+        0,mass*(this.width*this.width+this.depth*this.depth)*divid,0,
+        0,0,mass*(this.width*this.width+this.height*this.height)*divid
     );
+    
 };
 
 OIMO.BoxShape.prototype.updateProxy = function(){
+
     var te = this.rotation.elements;
     var di = this.dimentions;
     // Width
@@ -130,5 +140,7 @@ OIMO.BoxShape.prototype.updateProxy = function(){
         this.position.y-h-p,this.position.y+h+p,
         this.position.z-d-p,this.position.z+d+p
     );
+
     if(this.proxy!==null) this.proxy.update();
+
 };

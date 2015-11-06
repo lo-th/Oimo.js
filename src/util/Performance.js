@@ -3,21 +3,28 @@ OIMO.Performance = function(world){
 	this.infos = new OIMO_ARRAY_TYPE(13);
 	this.f = [0,0,0];
 
-    this.fps=0;
-    this.broadPhaseTime=0;
-    this.narrowPhaseTime=0;
-    this.solvingTime=0;
-    this.updatingTime=0;
-    this.totalTime=0;
-}
+    this.types = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
+    this.broadPhase = this.types[this.parent.broadPhase.types];
+
+    this.version = OIMO.REVISION;
+
+    this.fps = 0;
+    this.broadPhaseTime = 0;
+    this.narrowPhaseTime = 0;
+    this.solvingTime = 0;
+    this.updatingTime = 0;
+    this.totalTime = 0;
+};
+
 OIMO.Performance.prototype = {
 	upfps : function(){
 		this.f[1] = Date.now();
-        if (this.f[1]-1000>this.f[0]){ this.f[0]=this.f[1]; this.fps=this.f[2]; this.f[2]=0; } this.f[2]++;
+        if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
 	},
 	show : function(){
 		var info =[
-            "Oimo.js DEV.1.1.2a<br><br>",
+            "Oimo.js "+this.version+"<br>",
+            this.broadPhase + "<br><br>",
             "FPS: " + this.fps +" fps<br><br>",
             "rigidbody "+this.parent.numRigidBodies+"<br>",
             "contact &nbsp;&nbsp;"+this.parent.numContacts+"<br>",
@@ -48,4 +55,4 @@ OIMO.Performance.prototype = {
 	    this.infos[11] = this.fps;
 		return this.infos;
 	}
-}
+};

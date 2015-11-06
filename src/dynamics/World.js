@@ -5,21 +5,28 @@
 */
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
 
+    
+
     // The time between each step
-    this.timeStep= TimeStep || 1/60;
+    this.timeStep = TimeStep || 1/60;
     // The number of iterations for constraint solvers.
     this.numIterations = Iterations || 8;
      // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
-    var broadPhaseType = BroadPhaseType || 2;
-    switch(broadPhaseType){
-        case 1: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
-        case 2: default: this.broadPhase=new OIMO.SAPBroadPhase(); break;
-        case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
+    switch(BroadPhaseType || 2){
+        case 1: this.broadPhase = new OIMO.BruteForceBroadPhase(); break;
+        case 2: default: this.broadPhase = new OIMO.SAPBroadPhase(); break;
+        case 3: this.broadPhase = new OIMO.DBVTBroadPhase(); break;
     }
+
+    // This is the detailed information of the performance. 
+    this.performance = null;
+    this.isNoStat = NoStat || false;
+    if(!this.isNoStat) this.performance = new OIMO.Performance(this);
+
     // Whether the constraints randomizer is enabled or not.
     this.enableRandomizer = true;
 
-    this.isNoStat = NoStat || false;
+    
 
 
     // The rigid body list
@@ -42,11 +49,9 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
     
    
     // The gravity in the world.
-    this.gravity=new OIMO.Vec3(0,-9.80665,0);
+    this.gravity = new OIMO.Vec3(0,-9.80665,0);
 
-    // This is the detailed information of the performance. 
-    this.performance = null;
-    if(!this.isNoStat) this.performance = new OIMO.Performance(this);
+    
 
     var numShapeTypes = 4;//3;
     this.detectors=[];
@@ -110,7 +115,7 @@ OIMO.World.prototype = {
     */
     addRigidBody:function(rigidBody){
         if(rigidBody.parent){
-            throw new Error("It is not possible to be added to more than one world one of the rigid body");
+            OIMO.Error("World", "It is not possible to be added to more than one world one of the rigid body");
         }
         rigidBody.parent=this;
         rigidBody.awake();
@@ -172,7 +177,7 @@ OIMO.World.prototype = {
     */
     addShape:function(shape){
         if(!shape.parent || !shape.parent.parent){
-            throw new Error("It is not possible to be added alone to shape world");
+            OIMO.Error("World", "It is not possible to be added alone to shape world");
         }
         shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
@@ -197,7 +202,7 @@ OIMO.World.prototype = {
     */
     addJoint:function(joint){
         if(joint.parent){
-            throw new Error("It is not possible to be added to more than one world one of the joint");
+            OIMO.Error("World", "It is not possible to be added to more than one world one of the joint");
         }
         if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
         this.joints=joint;

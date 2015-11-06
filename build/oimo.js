@@ -8,9 +8,22 @@
  
 var OIMO = { REVISION: '1.2' };
 
-OIMO.SHAPE_SPHERE = 0x1;
-OIMO.SHAPE_BOX = 0x2;
-OIMO.SHAPE_CYLINDER = 0x3;
+
+// body type
+OIMO.SHAPE_NULL     = 0;
+OIMO.SHAPE_SPHERE   = 1;
+OIMO.SHAPE_BOX      = 2;
+OIMO.SHAPE_CYLINDER = 3;
+
+// joint type
+OIMO.JOINT_NULL            = 0;
+OIMO.JOINT_DISTANCE        = 1;
+OIMO.JOINT_BALL_AND_SOCKET = 2;
+OIMO.JOINT_HINGE           = 3;
+OIMO.JOINT_WHEEL           = 4;
+OIMO.JOINT_SLIDER          = 5;
+OIMO.JOINT_PRISMATIC       = 6;
+
 
 OIMO.WORLD_SCALE = 100;
 OIMO.INV_SCALE = 0.01;
@@ -37,6 +50,17 @@ OIMO.lerp = function (a, b, percent) { return a + (b - a) * percent; }
 OIMO.rand = function (a, b) { return OIMO.lerp(a, b, OIMO.random()); }
 OIMO.randInt = function (a, b, n) { return OIMO.lerp(a, b, OIMO.random()).toFixed(n || 0)*1;}
 
+//OIMO.int = function(x) { return parseInt(x, 10); };
+OIMO.int = function(x) { return ~~x; };
+OIMO.fix = function(x, n) { n = n || 3; return x.toFixed(n)*1; };
+
+OIMO.CustomError = null;
+OIMO.Error = function(Class, Msg){
+    if(OIMO.CustomError == null) console.error(Class, Msg);
+    else OIMO.CustomError.innerHTML += Class + " - " + Msg + '<br>';
+
+};
+
 OIMO.degtorad = 0.0174532925199432957;
 OIMO.radtodeg = 57.295779513082320876;
 
@@ -58,21 +82,28 @@ if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? F
 */
 OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
 
+    
+
     // The time between each step
-    this.timeStep= TimeStep || 1/60;
+    this.timeStep = TimeStep || 1/60;
     // The number of iterations for constraint solvers.
     this.numIterations = Iterations || 8;
      // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
-    var broadPhaseType = BroadPhaseType || 2;
-    switch(broadPhaseType){
-        case 1: this.broadPhase=new OIMO.BruteForceBroadPhase(); break;
-        case 2: default: this.broadPhase=new OIMO.SAPBroadPhase(); break;
-        case 3: this.broadPhase=new OIMO.DBVTBroadPhase(); break;
+    switch(BroadPhaseType || 2){
+        case 1: this.broadPhase = new OIMO.BruteForceBroadPhase(); break;
+        case 2: default: this.broadPhase = new OIMO.SAPBroadPhase(); break;
+        case 3: this.broadPhase = new OIMO.DBVTBroadPhase(); break;
     }
+
+    // This is the detailed information of the performance. 
+    this.performance = null;
+    this.isNoStat = NoStat || false;
+    if(!this.isNoStat) this.performance = new OIMO.Performance(this);
+
     // Whether the constraints randomizer is enabled or not.
     this.enableRandomizer = true;
 
-    this.isNoStat = NoStat || false;
+    
 
 
     // The rigid body list
@@ -95,11 +126,9 @@ OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
     
    
     // The gravity in the world.
-    this.gravity=new OIMO.Vec3(0,-9.80665,0);
+    this.gravity = new OIMO.Vec3(0,-9.80665,0);
 
-    // This is the detailed information of the performance. 
-    this.performance = null;
-    if(!this.isNoStat) this.performance = new OIMO.Performance(this);
+    
 
     var numShapeTypes = 4;//3;
     this.detectors=[];
@@ -163,7 +192,7 @@ OIMO.World.prototype = {
     */
     addRigidBody:function(rigidBody){
         if(rigidBody.parent){
-            throw new Error("It is not possible to be added to more than one world one of the rigid body");
+            OIMO.Error("World", "It is not possible to be added to more than one world one of the rigid body");
         }
         rigidBody.parent=this;
         rigidBody.awake();
@@ -225,7 +254,7 @@ OIMO.World.prototype = {
     */
     addShape:function(shape){
         if(!shape.parent || !shape.parent.parent){
-            throw new Error("It is not possible to be added alone to shape world");
+            OIMO.Error("World", "It is not possible to be added alone to shape world");
         }
         shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
@@ -250,7 +279,7 @@ OIMO.World.prototype = {
     */
     addJoint:function(joint){
         if(joint.parent){
-            throw new Error("It is not possible to be added to more than one world one of the joint");
+            OIMO.Error("World", "It is not possible to be added to more than one world one of the joint");
         }
         if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
         this.joints=joint;
@@ -1504,21 +1533,28 @@ OIMO.Performance = function(world){
 	this.infos = new OIMO_ARRAY_TYPE(13);
 	this.f = [0,0,0];
 
-    this.fps=0;
-    this.broadPhaseTime=0;
-    this.narrowPhaseTime=0;
-    this.solvingTime=0;
-    this.updatingTime=0;
-    this.totalTime=0;
-}
+    this.types = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
+    this.broadPhase = this.types[this.parent.broadPhase.types];
+
+    this.version = OIMO.REVISION;
+
+    this.fps = 0;
+    this.broadPhaseTime = 0;
+    this.narrowPhaseTime = 0;
+    this.solvingTime = 0;
+    this.updatingTime = 0;
+    this.totalTime = 0;
+};
+
 OIMO.Performance.prototype = {
 	upfps : function(){
 		this.f[1] = Date.now();
-        if (this.f[1]-1000>this.f[0]){ this.f[0]=this.f[1]; this.fps=this.f[2]; this.f[2]=0; } this.f[2]++;
+        if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
 	},
 	show : function(){
 		var info =[
-            "Oimo.js DEV.1.1.2a<br><br>",
+            "Oimo.js "+this.version+"<br>",
+            this.broadPhase + "<br><br>",
             "FPS: " + this.fps +" fps<br><br>",
             "rigidbody "+this.parent.numRigidBodies+"<br>",
             "contact &nbsp;&nbsp;"+this.parent.numContacts+"<br>",
@@ -1549,7 +1585,8 @@ OIMO.Performance.prototype = {
 	    this.infos[11] = this.fps;
 		return this.infos;
 	}
-}
+};
+
 OIMO.Mat44 = function(n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44){
     this.elements = new OIMO_ARRAY_TYPE(16);
     var te = this.elements;
@@ -2062,9 +2099,9 @@ OIMO.Quaternion.prototype = {
     }
 }
 OIMO.Vec3 = function(x,y,z){
-    this.x=x || 0;
-    this.y=y || 0;
-    this.z=z || 0;
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
 };
 
 OIMO.Vec3.prototype = {
@@ -2072,21 +2109,21 @@ OIMO.Vec3.prototype = {
     constructor: OIMO.Vec3,
 
     init: function(x,y,z){
-        this.x=x || 0;
-        this.y=y || 0;
-        this.z=z || 0;
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
         return this;
     },
     set: function(x,y,z){
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
         return this;
     },
     add: function(v1,v2){
-        this.x=v1.x+v2.x;
-        this.y=v1.y+v2.y;
-        this.z=v1.z+v2.z;
+        this.x = v1.x + v2.x;
+        this.y = v1.y + v2.y;
+        this.z = v1.z + v2.z;
         return this;
     },
     addEqual: function(v){
@@ -2151,12 +2188,9 @@ OIMO.Vec3.prototype = {
     },
     mulMat: function(m,v){
         var te = m.elements;
-        var x=te[0]*v.x+te[1]*v.y+te[2]*v.z;
-        var y=te[3]*v.x+te[4]*v.y+te[5]*v.z;
-        var z=te[6]*v.x+te[7]*v.y+te[8]*v.z;
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        this.x = te[0]*v.x + te[1]*v.y + te[2]*v.z;
+        this.y = te[3]*v.x + te[4]*v.y + te[5]*v.z;
+        this.z = te[6]*v.x + te[7]*v.y + te[8]*v.z;
         return this;
     },
     normalize: function(v){
@@ -2170,24 +2204,42 @@ OIMO.Vec3.prototype = {
         }
         return this;
     },
+    /*norm: function(){
+        var x = this.x, y = this.y, z = this.z;
+        var l = x*x + y*y + z*z;
+        if (l > 0) {
+            l = 1 / OIMO.sqrt(l);
+            this.x = x*l;
+            this.y = y*l;
+            this.z = z*l;
+        }
+        return this;
+    },*/
     invert: function(v){
         this.x=-v.x;
         this.y=-v.y;
         this.z=-v.z;
         return this;
     },
-    length: function(){
+    /*length: function(){
         var x = this.x, y = this.y, z = this.z;
         return OIMO.sqrt(x*x + y*y + z*z);
+    },*/
+
+    length: function () {
+
+        return OIMO.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+
     },
+
     len: function(){
         var x = this.x, y = this.y, z = this.z;
         return x*x + y*y + z*z;
     },
     copy: function(v){
-        this.x=v.x;
-        this.y=v.y;
-        this.z=v.z;
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
         return this;
     },
     applyQuaternion: function ( q ) {
@@ -2226,11 +2278,42 @@ OIMO.Vec3.prototype = {
         else return false;
     },
     clone: function(){
-        return new OIMO.Vec3(this.x,this.y,this.z);
+        return new this.constructor( this.x, this.y, this.z );
+        //return new OIMO.Vec3(this.x,this.y,this.z);
     },
     toString: function(){
         return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
-    }
+    },
+
+    multiplyScalar: function ( scalar ) {
+
+        if ( isFinite( scalar ) ) {
+            this.x *= scalar;
+            this.y *= scalar;
+            this.z *= scalar;
+        } else {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+        }
+
+        return this;
+
+    },
+
+    divideScalar: function ( scalar ) {
+
+        return this.multiplyScalar( 1 / scalar );
+
+    },
+
+    norm: function () {
+
+        return this.divideScalar( this.length() );
+
+    },
+
+
 }
 OIMO.Euler = function ( x, y, z, order ) {
 
@@ -2677,13 +2760,13 @@ OIMO.Distance3d = function(p1, p2){
 */
 OIMO.Constraint = function(){
     // The parent world of the constraint.
-    this.parent=null;
+    this.parent = null;
     // The first body of the constraint.
-    this.body1=null;
+    this.body1 = null;
     // The second body of the constraint.
-    this.body2=null;
+    this.body2 = null;
     // Internal
-    this.addedToIsland=false;
+    this.addedToIsland = false;
 }
 
 OIMO.Constraint.prototype = {
@@ -2694,181 +2777,161 @@ OIMO.Constraint.prototype = {
     * @param   invTimeStep
     */
     preSolve:function(timeStep,invTimeStep){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Constraint", "Inheritance error.");
     },
     /**
     * Solve the constraint.
     * This is usually called iteratively.
     */
     solve:function(){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Constraint", "Inheritance error.");
     },
     /**
     * Do the post-processing.
     */
     postSolve:function(){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Constraint", "Inheritance error.");
     }
 }
 /**
-* Joints are used to constrain the motion between two rigid bodies.
-* @author saharan
-*/
+ * Joints are used to constrain the motion between two rigid bodies.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.Joint = function(config){
+
     OIMO.Constraint.call( this );
 
+    // joint name
     this.name = "";
-    // Distance joint
-    this.JOINT_DISTANCE=0x1;
-    // Ball-and-socket joint
-    this.JOINT_BALL_AND_SOCKET=0x2;
-    //  Hinge joint
-    this.JOINT_HINGE=0x3;
-    //  Wheel joint
-    this.JOINT_WHEEL=0x4;
-    //  Slider joint
-    this.JOINT_SLIDER=0x5;
-    //  Prismatic joint
-    this.JOINT_PRISMATIC=0x6;
 
     // The type of the joint.
-    this.type=0;
+    this.type = OIMO.JOINT_NULL;
     //  The previous joint in the world.
-    this.prev=null;
+    this.prev = null;
     // The next joint in the world.
-    this.next=null;
+    this.next = null;
 
-    this.body1=config.body1;
-    this.body2=config.body2;
+    this.body1 = config.body1;
+    this.body2 = config.body2;
 
     // The anchor point on the first rigid body in local coordinate system.
-    this.localAnchorPoint1=new OIMO.Vec3().copy(config.localAnchorPoint1);
+    this.localAnchorPoint1 = new OIMO.Vec3().copy(config.localAnchorPoint1);
     // The anchor point on the second rigid body in local coordinate system.
-    this.localAnchorPoint2=new OIMO.Vec3().copy(config.localAnchorPoint2);
+    this.localAnchorPoint2 = new OIMO.Vec3().copy(config.localAnchorPoint2);
     // The anchor point on the first rigid body in world coordinate system relative to the body's origin.
-    this.relativeAnchorPoint1=new OIMO.Vec3();
+    this.relativeAnchorPoint1 = new OIMO.Vec3();
     // The anchor point on the second rigid body in world coordinate system relative to the body's origin.
-    this.relativeAnchorPoint2=new OIMO.Vec3();
+    this.relativeAnchorPoint2 = new OIMO.Vec3();
     //  The anchor point on the first rigid body in world coordinate system.
-    this.anchorPoint1=new OIMO.Vec3();
+    this.anchorPoint1 = new OIMO.Vec3();
     // The anchor point on the second rigid body in world coordinate system.
-    this.anchorPoint2=new OIMO.Vec3();
+    this.anchorPoint2 = new OIMO.Vec3();
     //  Whether allow collision between connected rigid bodies or not.
-    this.allowCollision=config.allowCollision;
+    this.allowCollision = config.allowCollision;
 
-    this.b1Link=new OIMO.JointLink(this);
-    this.b2Link=new OIMO.JointLink(this);
+    this.b1Link = new OIMO.JointLink(this);
+    this.b2Link = new OIMO.JointLink(this);
 
     this.matrix = new OIMO.Mat44();
-}
+
+};
+
 OIMO.Joint.prototype = Object.create( OIMO.Constraint.prototype );
-/**
-* Update all the anchor points.
-*/
+OIMO.Joint.prototype.constructor = OIMO.Joint;
+
+// Update all the anchor points.
+
 OIMO.Joint.prototype.updateAnchorPoints = function () {
-    var p1=this.body1.position;
-    var p2=this.body2.position;
 
-    var tr1 = this.body1.rotation.elements;
-    var tr2 = this.body2.rotation.elements;
+    this.relativeAnchorPoint1.mulMat(this.body1.rotation, this.localAnchorPoint1);
+    this.relativeAnchorPoint2.mulMat(this.body2.rotation, this.localAnchorPoint2);
 
-    var l1x=this.localAnchorPoint1.x;
-    var l1y=this.localAnchorPoint1.y;
-    var l1z=this.localAnchorPoint1.z;
-    var l2x=this.localAnchorPoint2.x;
-    var l2y=this.localAnchorPoint2.y;
-    var l2z=this.localAnchorPoint2.z;
+    this.anchorPoint1.add(this.relativeAnchorPoint1, this.body1.position);
+    this.anchorPoint2.add(this.relativeAnchorPoint2, this.body2.position);
 
-    var r1x=l1x*tr1[0]+l1y*tr1[1]+l1z*tr1[2];
-    var r1y=l1x*tr1[3]+l1y*tr1[4]+l1z*tr1[5];
-    var r1z=l1x*tr1[6]+l1y*tr1[7]+l1z*tr1[8];
-    var r2x=l2x*tr2[0]+l2y*tr2[1]+l2z*tr2[2];
-    var r2y=l2x*tr2[3]+l2y*tr2[4]+l2z*tr2[5];
-    var r2z=l2x*tr2[6]+l2y*tr2[7]+l2z*tr2[8];
-    this.relativeAnchorPoint1.x=r1x;
-    this.relativeAnchorPoint1.y=r1y;
-    this.relativeAnchorPoint1.z=r1z;
-    this.relativeAnchorPoint2.x=r2x;
-    this.relativeAnchorPoint2.y=r2y;
-    this.relativeAnchorPoint2.z=r2z;
-    var p1x=r1x+p1.x;
-    var p1y=r1y+p1.y;
-    var p1z=r1z+p1.z;
-    var p2x=r2x+p2.x;
-    var p2y=r2y+p2.y;
-    var p2z=r2z+p2.z;
-    this.anchorPoint1.x=p1x;
-    this.anchorPoint1.y=p1y;
-    this.anchorPoint1.z=p1z;
-    this.anchorPoint2.x=p2x;
-    this.anchorPoint2.y=p2y;
-    this.anchorPoint2.z=p2z;
-}
-/**
-* Attach the joint from the bodies.
-*/
+};
+
+// Attach the joint from the bodies.
+
 OIMO.Joint.prototype.attach = function () {
-    this.b1Link.body=this.body2;
-    this.b2Link.body=this.body1;
-    if(this.body1.jointLink!=null)(this.b1Link.next=this.body1.jointLink).prev=this.b1Link;
-    else this.b1Link.next=null;
-    this.body1.jointLink=this.b1Link;
+    this.b1Link.body = this.body2;
+    this.b2Link.body = this.body1;
+    if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
+    else this.b1Link.next = null;
+    this.body1.jointLink = this.b1Link;
     this.body1.numJoints++;
-    if(this.body2.jointLink!=null)(this.b2Link.next=this.body2.jointLink).prev=this.b2Link;
-    else this.b2Link.next=null;
-    this.body2.jointLink=this.b2Link;
+    if(this.body2.jointLink != null) (this.b2Link.next=this.body2.jointLink).prev = this.b2Link;
+    else this.b2Link.next = null;
+    this.body2.jointLink = this.b2Link;
     this.body2.numJoints++;
-}
+};
+
+// Detach the joint from the bodies.
+
 OIMO.Joint.prototype.detach = function () {
-    var prev=this.b1Link.prev;
-    var next=this.b1Link.next;
-    if(prev!=null)prev.next=next;
-    if(next!=null)next.prev=prev;
-    if(this.body1.jointLink==this.b1Link)this.body1.jointLink=next;
-    this.b1Link.prev=null;
-    this.b1Link.next=null;
-    this.b1Link.body=null;
+    var prev = this.b1Link.prev;
+    var next = this.b1Link.next;
+    if(prev != null) prev.next = next;
+    if(next != null) next.prev = prev;
+    if(this.body1.jointLink == this.b1Link) this.body1.jointLink = next;
+    this.b1Link.prev = null;
+    this.b1Link.next = null;
+    this.b1Link.body = null;
     this.body1.numJoints--;
 
-    prev=this.b2Link.prev;
-    next=this.b2Link.next;
-    if(prev!=null)prev.next=next;
-    if(next!=null)next.prev=prev;
-    if(this.body2.jointLink==this.b2Link)this.body2.jointLink=next;
-    this.b2Link.prev=null;
-    this.b2Link.next=null;
-    this.b2Link.body=null;
+    prev = this.b2Link.prev;
+    next = this.b2Link.next;
+    if(prev != null) prev.next = next;
+    if(next != null) next.prev = prev;
+    if(this.body2.jointLink==this.b2Link) this.body2.jointLink = next;
+    this.b2Link.prev = null;
+    this.b2Link.next = null;
+    this.b2Link.body = null;
     this.body2.numJoints--;
 
-    this.b1Link.body=null;
-    this.b2Link.body=null;
-}
-/**
-* Awake the bodies.
-*/
+    this.b1Link.body = null;
+    this.b2Link.body = null;
+};
+
+
+// Awake the bodies.
+
 OIMO.Joint.prototype.awake = function () {
     this.body1.awake();
     this.body2.awake();
-}
+};
+
+// calculation function
+
 OIMO.Joint.prototype.preSolve = function (timeStep,invTimeStep) {
-}
+};
+
 OIMO.Joint.prototype.solve = function () {
-}
+};
+
 OIMO.Joint.prototype.postSolve = function () {
-}
+};
+
+// Delete process
+
+OIMO.Joint.prototype.remove = function(){
+    this.dispose();
+};
 
 OIMO.Joint.prototype.dispose = function(){
     this.parent.removeJoint(this);
-}
+};
 
-/**
-* Three js add
-*/
+
+// Three js add
+
 OIMO.Joint.prototype.getPosition = function () {
     var p1 = new OIMO.Vec3().scale(this.anchorPoint1, OIMO.WORLD_SCALE);
     var p2 = new OIMO.Vec3().scale(this.anchorPoint2, OIMO.WORLD_SCALE);
     return [p1, p2];
-}
+};
 
 OIMO.Joint.prototype.getMatrix = function () {
     var m = this.matrix.elements;
@@ -2885,7 +2948,7 @@ OIMO.Joint.prototype.getMatrix = function () {
     m[7] = 0;
 
     return m;
-}
+};
 /**
 * A joint configuration holds all configuration data for constructing a joint.
 * Joint configurations can be reused safely.
@@ -2978,96 +3041,128 @@ OIMO.LimitMotor.prototype = {
     }
 }
 /**
-* A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
-* @author saharan
-*/
+ * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.BallAndSocketJoint = function(config){
-    OIMO.Joint.call( this, config);
-    this.type=this.JOINT_BALL_AND_SOCKET;
+
+    OIMO.Joint.call( this, config );
+
+    this.type = OIMO.JOINT_BALL_AND_SOCKET;
     
-    this.lc=new OIMO.LinearConstraint(this);
-}
+    this.lc = new OIMO.LinearConstraint(this);
+
+};
+
 OIMO.BallAndSocketJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.BallAndSocketJoint.prototype.constructor = OIMO.BallAndSocketJoint;
+
 OIMO.BallAndSocketJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     this.updateAnchorPoints();
     this.lc.preSolve(timeStep,invTimeStep);
-}
+
+};
+
 OIMO.BallAndSocketJoint.prototype.solve = function () {
+
     this.lc.solve();
-}
+
+};
+
 OIMO.BallAndSocketJoint.prototype.postSolve = function () {
-}
+};
 /**
-* A distance joint limits the distance between two anchor points on rigid bodies.
-* @author saharan
-*/
+ * A distance joint limits the distance between two anchor points on rigid bodies.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.DistanceJoint = function(config,minDistance,maxDistance){
-    OIMO.Joint.call( this, config);
-    this.type=this.JOINT_DISTANCE;
+
+    OIMO.Joint.call( this, config );
+
+    this.type = OIMO.JOINT_DISTANCE;
     
-    this.normal=new OIMO.Vec3();
+    this.normal = new OIMO.Vec3();
+    this.nr = new OIMO.Vec3(); 
+
     // The limit and motor information of the joint.
-    this.limitMotor=new OIMO.LimitMotor(this.normal,true);
-    this.limitMotor.lowerLimit=minDistance;
-    this.limitMotor.upperLimit=maxDistance;
-    this.t=new OIMO.TranslationalConstraint(this,this.limitMotor);
-}
+    this.limitMotor = new OIMO.LimitMotor(this.normal,true);
+    this.limitMotor.lowerLimit = minDistance;
+    this.limitMotor.upperLimit = maxDistance;
+    this.t = new OIMO.TranslationalConstraint(this,this.limitMotor);
+
+};
+
 OIMO.DistanceJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.DistanceJoint.prototype.constructor = OIMO.DistanceJoint;
+
+
 OIMO.DistanceJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     this.updateAnchorPoints();
-    var nx=this.anchorPoint2.x-this.anchorPoint1.x;
-    var ny=this.anchorPoint2.y-this.anchorPoint1.y;
-    var nz=this.anchorPoint2.z-this.anchorPoint1.z;
-    var len=OIMO.sqrt(nx*nx+ny*ny+nz*nz);
-    if(len>0)len=1/len;
-    this.normal.init(nx*len,ny*len,nz*len);
-    this.t.preSolve(timeStep,invTimeStep);
-}
+
+    //var nr = this.nr;
+
+    this.nr.sub(this.anchorPoint2, this.anchorPoint1);
+    //var len = OIMO.sqrt( nr.x*nr.x + nr.y*nr.y + nr.z*nr.z );
+    //if(len>0) len = 1/len;
+    //this.normal.scale( nr, len );
+
+    this.normal.normalize(this.nr);
+
+    this.t.preSolve( timeStep, invTimeStep );
+
+};
+
 OIMO.DistanceJoint.prototype.solve = function () {
+
     this.t.solve();
-}
+
+};
+
 OIMO.DistanceJoint.prototype.postSolve = function () {
-}
+};
 /**
-* A hinge joint allows only for relative rotation of rigid bodies along the axis.
-* @author saharan
-*/
+ * A hinge joint allows only for relative rotation of rigid bodies along the axis.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.HingeJoint = function(config,lowerAngleLimit,upperAngleLimit){
+
     OIMO.Joint.call( this, config);
-    this.type = this.JOINT_HINGE;
+
+    this.type = OIMO.JOINT_HINGE;
 
     // The axis in the first body's coordinate system.
-    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = config.localAxis1.clone().norm();
     // The axis in the second body's coordinate system.
-    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
-    var len;
-    this.localAxis1X = this.localAxis1.x;
-    this.localAxis1Y = this.localAxis1.y;
-    this.localAxis1Z = this.localAxis1.z;
+    this.localAxis2 = config.localAxis2.clone().norm();
 
-    this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-    this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-    this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
-
-    len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-    this.localAngAxis1X *= len;
-    this.localAngAxis1Y *= len;
-    this.localAngAxis1Z *= len;
-
-    this.localAxis2X = this.localAxis2.x;
-    this.localAxis2Y = this.localAxis2.y;
-    this.localAxis2Z = this.localAxis2.z;
+    // make angle axis 1
+    this.localAngle1 = new OIMO.Vec3(
+        this.localAxis1.y*this.localAxis1.x - this.localAxis1.z*this.localAxis1.z,
+        -this.localAxis1.z*this.localAxis1.y - this.localAxis1.x*this.localAxis1.x,
+        this.localAxis1.x*this.localAxis1.z + this.localAxis1.y*this.localAxis1.y
+    ).norm();
 
     // make angle axis 2
     var arc = new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
-    var tarc = arc.elements;
-    this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-    this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-    this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+    this.localAngle2 = new OIMO.Vec3().mulMat(arc, this.localAngle1);
 
     this.nor = new OIMO.Vec3();
     this.tan = new OIMO.Vec3();
     this.bin = new OIMO.Vec3();
+
+    this.ax1 = new OIMO.Vec3();
+    this.ax2 = new OIMO.Vec3();
+    this.an1 = new OIMO.Vec3();
+    this.an2 = new OIMO.Vec3();
+
     // The rotational limit and motor information of the joint.
     this.limitMotor = new OIMO.LimitMotor(this.nor,false);
     this.limitMotor.lowerLimit = lowerAngleLimit;
@@ -3075,120 +3170,125 @@ OIMO.HingeJoint = function(config,lowerAngleLimit,upperAngleLimit){
 
     this.lc = new OIMO.LinearConstraint(this);
     this.r3 = new OIMO.Rotational3Constraint(this,this.limitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
-}
+};
+
 OIMO.HingeJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.HingeJoint.prototype.constructor = OIMO.HingeJoint;
+
+
 OIMO.HingeJoint.prototype.preSolve = function (timeStep,invTimeStep) {
-    var tmpM;
-    var tmp1X;
-    var tmp1Y;
-    var tmp1Z;
+
+    var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
 
     this.updateAnchorPoints();
 
-    tmpM = this.body1.rotation.elements;
-    var axis1X = this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
-    var axis1Y = this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
-    var axis1Z = this.localAxis1X*tmpM[6]+this.localAxis1Y*tmpM[7]+this.localAxis1Z*tmpM[8];
-    var angAxis1X = this.localAngAxis1X*tmpM[0]+this.localAngAxis1Y*tmpM[1]+this.localAngAxis1Z*tmpM[2];
-    var angAxis1Y = this.localAngAxis1X*tmpM[3]+this.localAngAxis1Y*tmpM[4]+this.localAngAxis1Z*tmpM[5];
-    var angAxis1Z = this.localAngAxis1X*tmpM[6]+this.localAngAxis1Y*tmpM[7]+this.localAngAxis1Z*tmpM[8];
-    tmpM=this.body2.rotation.elements;
-    var axis2X = this.localAxis2X*tmpM[0]+this.localAxis2Y*tmpM[1]+this.localAxis2Z*tmpM[2];
-    var axis2Y = this.localAxis2X*tmpM[3]+this.localAxis2Y*tmpM[4]+this.localAxis2Z*tmpM[5];
-    var axis2Z = this.localAxis2X*tmpM[6]+this.localAxis2Y*tmpM[7]+this.localAxis2Z*tmpM[8];
-    var angAxis2X = this.localAngAxis2X*tmpM[0]+this.localAngAxis2Y*tmpM[1]+this.localAngAxis2Z*tmpM[2];
-    var angAxis2Y = this.localAngAxis2X*tmpM[3]+this.localAngAxis2Y*tmpM[4]+this.localAngAxis2Z*tmpM[5];
-    var angAxis2Z = this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
-    var nx = axis1X*this.body2.inverseMass+axis2X*this.body1.inverseMass;
-    var ny = axis1Y*this.body2.inverseMass+axis2Y*this.body1.inverseMass;
-    var nz = axis1Z*this.body2.inverseMass+axis2Z*this.body1.inverseMass;
-    tmp1X = OIMO.sqrt(nx*nx+ny*ny+nz*nz);
-    if(tmp1X>0) tmp1X=1/tmp1X;
-    nx *= tmp1X;
-    ny *= tmp1X;
-    nz *= tmp1X;
-    var tx = ny*nx-nz*nz;
-    var ty = -nz*ny-nx*nx;
-    var tz = nx*nz+ny*ny;
-    tmp1X = 1/OIMO.sqrt(tx*tx+ty*ty+tz*tz);
-    tx *= tmp1X;
-    ty *= tmp1X;
-    tz *= tmp1X;
-    var bx = ny*tz-nz*ty;
-    var by = nz*tx-nx*tz;
-    var bz = nx*ty-ny*tx;
+    this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+    this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
 
-    this.nor.init(nx,ny,nz);
-    this.tan.init(tx,ty,tz);
-    this.bin.init(bx,by,bz);
+    this.an1.mulMat( this.body1.rotation, this.localAngle1 );
+    this.an2.mulMat( this.body2.rotation, this.localAngle2 );
 
-    // ----------------------------------------------
-    //            calculate hinge angle
-    // ----------------------------------------------
-            
+    this.nor.set(
+        this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
+        this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
+        this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
+    ).norm();
+
+    this.tan.set(
+        this.nor.y*this.nor.x - this.nor.z*this.nor.z,
+        -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
+        this.nor.x*this.nor.z + this.nor.y*this.nor.y
+    ).norm();
+
+    this.bin.set(
+        this.nor.y*this.tan.z - this.nor.z*this.tan.y,
+        this.nor.z*this.tan.x - this.nor.x*this.tan.z,
+        this.nor.x*this.tan.y - this.nor.y*this.tan.x
+    );
+
+    // calculate hinge angle
+
+    limite = this.acosClamp(this.an1.x*this.an2.x + this.an1.y*this.an2.y + this.an1.z*this.an2.z)
+
     if(
-        nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
-        ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
-        nz*(angAxis1X*angAxis2Y-angAxis1Y*angAxis2X)<0
+        this.nor.x*(this.an1.y*this.an2.z - this.an1.z*this.an2.y)+
+        this.nor.y*(this.an1.z*this.an2.x - this.an1.x*this.an2.z)+
+        this.nor.z*(this.an1.x*this.an2.y - this.an1.y*this.an2.x)<0
     ){
-        this.limitMotor.angle = -this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        this.limitMotor.angle = -limite;
     }else{
-        this.limitMotor.angle = this.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        this.limitMotor.angle = limite;
     }
 
-    // angular error
-    tmp1X = axis1Y*axis2Z-axis1Z*axis2Y;
-    tmp1Y = axis1Z*axis2X-axis1X*axis2Z;
-    tmp1Z = axis1X*axis2Y-axis1Y*axis2X;
+    tmp1X = this.ax1.y*this.ax2.z - this.ax1.z*this.ax2.y;
+    tmp1Y = this.ax1.z*this.ax2.x - this.ax1.x*this.ax2.z;
+    tmp1Z = this.ax1.x*this.ax2.y - this.ax1.y*this.ax2.x;
 
-    this.r3.limitMotor2.angle = tx*tmp1X+ty*tmp1Y+tz*tmp1Z;
-    this.r3.limitMotor3.angle = bx*tmp1X+by*tmp1Y+bz*tmp1Z;
+    this.r3.limitMotor2.angle = this.tan.x*tmp1X + this.tan.y*tmp1Y + this.tan.z*tmp1Z;
+    this.r3.limitMotor3.angle = this.bin.x*tmp1X + this.bin.y*tmp1Y + this.bin.z*tmp1Z;
     
     this.r3.preSolve(timeStep,invTimeStep);
     this.lc.preSolve(timeStep,invTimeStep);
-}
+
+};
+
 OIMO.HingeJoint.prototype.solve = function () {
+
     this.r3.solve();
     this.lc.solve();
-}
+
+};
+
 OIMO.HingeJoint.prototype.postSolve = function () {
-}
+};
+
 OIMO.HingeJoint.prototype.acosClamp = function(cos){
+
     if(cos>1) return 0;
     else if(cos<-1) return OIMO.PI;
     else return OIMO.acos(cos);
-}
+
+};
 /**
-* A prismatic joint allows only for relative translation of rigid bodies along the axis.
-* @author saharan
-*/
+ * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.PrismaticJoint = function(config,lowerTranslation,upperTranslation){
-    OIMO.Joint.call( this, config);
-    this.type=this.JOINT_PRISMATIC;
+
+    OIMO.Joint.call( this, config );
+
+    this.type = OIMO.JOINT_PRISMATIC;
 
     // The axis in the first body's coordinate system.
-    this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
     // The axis in the second body's coordinate system.
-    this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
-    this.localAxis1X=this.localAxis1.x;
-    this.localAxis1Y=this.localAxis1.y;
-    this.localAxis1Z=this.localAxis1.z;
-    this.localAxis2X=this.localAxis2.x;
-    this.localAxis2Y=this.localAxis2.y;
-    this.localAxis2Z=this.localAxis2.z;
+    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
+    this.localAxis1X = this.localAxis1.x;
+    this.localAxis1Y = this.localAxis1.y;
+    this.localAxis1Z = this.localAxis1.z;
+    this.localAxis2X = this.localAxis2.x;
+    this.localAxis2Y = this.localAxis2.y;
+    this.localAxis2Z = this.localAxis2.z;
     
-    this.nor=new OIMO.Vec3();
-    this.tan=new OIMO.Vec3();
-    this.bin=new OIMO.Vec3();
-    this.ac=new OIMO.AngularConstraint(this,new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+    this.nor = new OIMO.Vec3();
+    this.tan = new OIMO.Vec3();
+    this.bin = new OIMO.Vec3();
+    this.ac = new OIMO.AngularConstraint(this,new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
     // The translational limit and motor information of the joint.
-    this.limitMotor=new OIMO.LimitMotor(this.nor,true);
-    this.limitMotor.lowerLimit=lowerTranslation;
-    this.limitMotor.upperLimit=upperTranslation;
-    this.t3=new OIMO.Translational3Constraint(this,this.limitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
-}
+    this.limitMotor = new OIMO.LimitMotor(this.nor,true);
+    this.limitMotor.lowerLimit = lowerTranslation;
+    this.limitMotor.upperLimit = upperTranslation;
+    this.t3 = new OIMO.Translational3Constraint(this, this.limitMotor, new OIMO.LimitMotor(this.tan,true), new OIMO.LimitMotor(this.bin,true));
+
+};
+
 OIMO.PrismaticJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.PrismaticJoint.prototype.constructor = OIMO.PrismaticJoint;
+
 OIMO.PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     var tmpM;
     var tmp1X;
     var tmp1Y;
@@ -3229,65 +3329,79 @@ OIMO.PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     
     this.ac.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
-}
+
+};
+
 OIMO.PrismaticJoint.prototype.solve = function () {
+
     this.ac.solve();
     this.t3.solve();
-}
+    
+};
+
 OIMO.PrismaticJoint.prototype.postSolve = function () {
-}
+};
 /**
-* A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
-* @author saharan
-*/
+ * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.SliderJoint = function(config,lowerTranslation,upperTranslation){
-    OIMO.Joint.call( this, config);
-    this.type=this.JOINT_SLIDER;
+
+    OIMO.Joint.call( this, config );
+
+    this.type = OIMO.JOINT_SLIDER;
 
     // The first axis in local coordinate system.
-    this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
     // The second axis in local coordinate system.
-    this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
 
     var len;
-    this.localAxis1X=this.localAxis1.x;
-    this.localAxis1Y=this.localAxis1.y;
-    this.localAxis1Z=this.localAxis1.z;
+    this.localAxis1X = this.localAxis1.x;
+    this.localAxis1Y = this.localAxis1.y;
+    this.localAxis1Z = this.localAxis1.z;
 
-    this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-    this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-    this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+    this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
+    this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
+    this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
 
-    len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-    this.localAngAxis1X*=len;
-    this.localAngAxis1Y*=len;
-    this.localAngAxis1Z*=len;
+    len = 1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+    this.localAngAxis1X *= len;
+    this.localAngAxis1Y *= len;
+    this.localAngAxis1Z *= len;
 
-    this.localAxis2X=this.localAxis2.x;
-    this.localAxis2Y=this.localAxis2.y;
-    this.localAxis2Z=this.localAxis2.z;
+    this.localAxis2X = this.localAxis2.x;
+    this.localAxis2Y = this.localAxis2.y;
+    this.localAxis2Z = this.localAxis2.z;
 
     // make angle axis 2
-    var arc=new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+    var arc = new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
     var tarc = arc.elements;
-    this.localAngAxis2X=this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-    this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-    this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+    this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
+    this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
+    this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
     
-    this.nor=new OIMO.Vec3();
-    this.tan=new OIMO.Vec3();
-    this.bin=new OIMO.Vec3();
+    this.nor = new OIMO.Vec3();
+    this.tan = new OIMO.Vec3();
+    this.bin = new OIMO.Vec3();
     // The limit and motor for the rotation
-    this.rotationalLimitMotor=new OIMO.LimitMotor(this.nor,false);
-    this.r3=new OIMO.Rotational3Constraint(this,this.rotationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
+    this.rotationalLimitMotor = new OIMO.LimitMotor(this.nor,false);
+    this.r3 = new OIMO.Rotational3Constraint(this,this.rotationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
     // The limit and motor for the translation.
-    this.translationalLimitMotor=new OIMO.LimitMotor(this.nor,true);
-    this.translationalLimitMotor.lowerLimit=lowerTranslation;
-    this.translationalLimitMotor.upperLimit=upperTranslation;
-    this.t3=new OIMO.Translational3Constraint(this,this.translationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
-}
+    this.translationalLimitMotor = new OIMO.LimitMotor(this.nor,true);
+    this.translationalLimitMotor.lowerLimit = lowerTranslation;
+    this.translationalLimitMotor.upperLimit = upperTranslation;
+    this.t3 = new OIMO.Translational3Constraint(this,this.translationalLimitMotor,new OIMO.LimitMotor(this.tan,true),new OIMO.LimitMotor(this.bin,true));
+
+};
+
 OIMO.SliderJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.SliderJoint.prototype.constructor = OIMO.SliderJoint;
+
 OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     var tmpM;
     var tmp1X;
     var tmp1Y;
@@ -3335,7 +3449,6 @@ OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     //            calculate hinge angle
     // ----------------------------------------------
 
-            
     if(
         nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
         ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
@@ -3356,88 +3469,105 @@ OIMO.SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
-}
+};
+
 OIMO.SliderJoint.prototype.solve = function () {
+
     this.r3.solve();
     this.t3.solve();
-}
+
+};
+
 OIMO.SliderJoint.prototype.postSolve = function () {
-}
+};
+
 OIMO.SliderJoint.prototype.acosClamp = function(cos){
+
     if(cos>1)return 0;
     else if(cos<-1)return OIMO.PI;
     else return OIMO.acos(cos);
-}
+
+};
 /**
-* A wheel joint allows for relative rotation between two rigid bodies along two axes.
-* The wheel joint also allows for relative translation for the suspension.
-*/
+ * A wheel joint allows for relative rotation between two rigid bodies along two axes.
+ * The wheel joint also allows for relative translation for the suspension.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.WheelJoint = function(config){
+
     OIMO.Joint.call( this, config);
-    this.type=this.JOINT_WHEEL;
+
+    this.type = OIMO.JOINT_WHEEL;
 
     // The first axis in local coordinate system.
-    this.localAxis1=new OIMO.Vec3().normalize(config.localAxis1);
+    this.localAxis1 = new OIMO.Vec3().normalize(config.localAxis1);
     // The second axis in local coordinate system.
-    this.localAxis2=new OIMO.Vec3().normalize(config.localAxis2);
+    this.localAxis2 = new OIMO.Vec3().normalize(config.localAxis2);
 
     var len;
-    this.localAxis1X=this.localAxis1.x;
-    this.localAxis1Y=this.localAxis1.y;
-    this.localAxis1Z=this.localAxis1.z;
-    this.localAxis2X=this.localAxis2.x;
-    this.localAxis2Y=this.localAxis2.y;
-    this.localAxis2Z=this.localAxis2.z;
-    var dot=this.localAxis1X*this.localAxis2X+this.localAxis1Y*this.localAxis2Y+this.localAxis1Z*this.localAxis2Z;
+    this.localAxis1X = this.localAxis1.x;
+    this.localAxis1Y = this.localAxis1.y;
+    this.localAxis1Z = this.localAxis1.z;
+    this.localAxis2X = this.localAxis2.x;
+    this.localAxis2Y = this.localAxis2.y;
+    this.localAxis2Z = this.localAxis2.z;
+    var dot = this.localAxis1X*this.localAxis2X+this.localAxis1Y*this.localAxis2Y+this.localAxis1Z*this.localAxis2Z;
     if(dot>-1&&dot<1){
-        this.localAngAxis1X=this.localAxis2X-dot*this.localAxis1X;
-        this.localAngAxis1Y=this.localAxis2Y-dot*this.localAxis1Y;
-        this.localAngAxis1Z=this.localAxis2Z-dot*this.localAxis1Z;
-        this.localAngAxis2X=this.localAxis1X-dot*this.localAxis2X;
-        this.localAngAxis2Y=this.localAxis1Y-dot*this.localAxis2Y;
-        this.localAngAxis2Z=this.localAxis1Z-dot*this.localAxis2Z;
-        len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-        this.localAngAxis1X*=len;
-        this.localAngAxis1Y*=len;
-        this.localAngAxis1Z*=len;
-        len=1/OIMO.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
-        this.localAngAxis2X*=len;
-        this.localAngAxis2Y*=len;
-        this.localAngAxis2Z*=len;
+        this.localAngAxis1X = this.localAxis2X-dot*this.localAxis1X;
+        this.localAngAxis1Y = this.localAxis2Y-dot*this.localAxis1Y;
+        this.localAngAxis1Z = this.localAxis2Z-dot*this.localAxis1Z;
+        this.localAngAxis2X = this.localAxis1X-dot*this.localAxis2X;
+        this.localAngAxis2Y = this.localAxis1Y-dot*this.localAxis2Y;
+        this.localAngAxis2Z = this.localAxis1Z-dot*this.localAxis2Z;
+        len = 1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+        this.localAngAxis1X *= len;
+        this.localAngAxis1Y *= len;
+        this.localAngAxis1Z *= len;
+        len = 1/OIMO.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
+        this.localAngAxis2X *= len;
+        this.localAngAxis2Y *= len;
+        this.localAngAxis2Z *= len;
     }else{
-        this.localAngAxis1X=this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-        this.localAngAxis1Y=-this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-        this.localAngAxis1Z=this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
-        len=1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
+        this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
+        this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
+        this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+        len = 1/OIMO.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
         this.localAngAxis1X*=len;
         this.localAngAxis1Y*=len;
         this.localAngAxis1Z*=len;
-        var arc=new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
+        var arc = new OIMO.Mat33().setQuat(new OIMO.Quat().arc(this.localAxis1,this.localAxis2));
         var tarc = arc.elements;
-        this.localAngAxis2X=this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-        this.localAngAxis2Y=this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-        this.localAngAxis2Z=this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+        this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
+        this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
+        this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
     }
 
-    this.nor=new OIMO.Vec3();
-    this.tan=new OIMO.Vec3();
-    this.bin=new OIMO.Vec3();
+    this.nor = new OIMO.Vec3();
+    this.tan = new OIMO.Vec3();
+    this.bin = new OIMO.Vec3();
 
     // The translational limit and motor information of the joint.
-    this.translationalLimitMotor=new OIMO.LimitMotor(this.tan,true);
-    this.translationalLimitMotor.frequency=8;
-    this.translationalLimitMotor.dampingRatio=1;
+    this.translationalLimitMotor = new OIMO.LimitMotor(this.tan,true);
+    this.translationalLimitMotor.frequency = 8;
+    this.translationalLimitMotor.dampingRatio = 1;
     // The first rotational limit and motor information of the joint.
-    this.rotationalLimitMotor1=new OIMO.LimitMotor(this.tan,false);
+    this.rotationalLimitMotor1 = new OIMO.LimitMotor(this.tan,false);
     // The second rotational limit and motor information of the joint.
-    this.rotationalLimitMotor2=new OIMO.LimitMotor(this.bin,false);
+    this.rotationalLimitMotor2 = new OIMO.LimitMotor(this.bin,false);
 
-    this.t3=new OIMO.Translational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.translationalLimitMotor,new OIMO.LimitMotor(this.bin,true));
-    this.t3.weight=1;
-    this.r3=new OIMO.Rotational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
-}
+    this.t3 = new OIMO.Translational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.translationalLimitMotor,new OIMO.LimitMotor(this.bin,true));
+    this.t3.weight = 1;
+    this.r3 = new OIMO.Rotational3Constraint(this,new OIMO.LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
+
+};
+
 OIMO.WheelJoint.prototype = Object.create( OIMO.Joint.prototype );
+OIMO.WheelJoint.prototype.constructor = OIMO.WheelJoint;
+
 OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+
     var tmpM;
     var tmp1X;
     var tmp1Y;
@@ -3506,18 +3636,26 @@ OIMO.WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
-}
+
+};
+
 OIMO.WheelJoint.prototype.solve = function () {
+
     this.r3.solve();
     this.t3.solve();
-}
+
+};
+
 OIMO.WheelJoint.prototype.postSolve = function () {
-}
+};
+
 OIMO.WheelJoint.prototype.acosClamp = function(cos){
+
     if(cos>1)return 0;
     else if(cos<-1)return OIMO.PI;
     else return OIMO.acos(cos);
-}
+
+};
 /**
 * An angular constraint for all axes for various joints.
 * @author saharan
@@ -6513,20 +6651,22 @@ OIMO.MassInfo = function(){
 /**
  * A shape is used to detect collisions of rigid bodies.
  * @author saharan
+ * @author lo-th
  */
+
 OIMO.Shape = function(config){
-    // The global identification of the shape.
-    // This value should be unique to the shape.
+
+    this.type = OIMO.SHAPE_NULL;
+
+    // The global identification of the shape should be unique to the shape.
     this.id = OIMO.nextID++;
+
     // The previous shape in parent rigid body.
     this.prev = null;
     // The next shape in parent rigid body.
     this.next = null;
-    // The type of the shape.
-    this.type = 0;
 
-    // The proxy of the shape.
-    // This is used for broad-phase collision detection.
+    // The proxy of the shape used for broad-phase collision detection.
     this.proxy = null;
     // The parent rigid body of the shape.
     this.parent = null;
@@ -6558,9 +6698,10 @@ OIMO.Shape = function(config){
     this.belongsTo = config.belongsTo;
     // The bits of the collision groups with which the shape collides.
     this.collidesWith = config.collidesWith;
-}
+};
 
 OIMO.Shape.prototype = {
+
     constructor: OIMO.Shape,
 
     /**
@@ -6568,16 +6709,16 @@ OIMO.Shape.prototype = {
     * @param   out
     */
     calculateMassInfo:function(out){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Shape", "Inheritance error.");
     },
 
     /**
     * Update the proxy of the shape.
     */
     updateProxy:function(){
-        throw new Error("Inheritance error.");
+        OIMO.Error("Shape", "Inheritance error.");
     }
-}
+};
 /**
  * A shape configuration holds common configuration data for constructing a shape.
  * Shape configurations can be reused safely.
@@ -6601,12 +6742,17 @@ OIMO.ShapeConfig = function(){
     this.collidesWith = 0xffffffff;
 }
 /**
-* A box shape.
-* @author saharan
-* @author loth
-*/
+ * A box shape.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.BoxShape = function(config,Width,Height,Depth){
+
     OIMO.Shape.call( this, config );
+
+    this.type = OIMO.SHAPE_BOX;
+
     // The width of the box.
     this.width = Width;
     // The height of the box.
@@ -6614,30 +6760,35 @@ OIMO.BoxShape = function(config,Width,Height,Depth){
     // The depth of the box.
     this.depth = Depth;
     // The half-width of the box.
-    this.halfWidth = Width*0.5;
+    this.halfWidth = Width * 0.5;
     // The half-height of the box.
-    this.halfHeight = Height*0.5;
+    this.halfHeight = Height * 0.5;
     // The half-depth of the box.
-    this.halfDepth = Depth*0.5;
+    this.halfDepth = Depth * 0.5;
 
     this.dimentions = new OIMO_ARRAY_TYPE(18);
     this.elements = new OIMO_ARRAY_TYPE(24);
-    this.type = OIMO.SHAPE_BOX;
+    
 };
 
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
+OIMO.BoxShape.prototype.constructor = OIMO.BoxShape;
 
 OIMO.BoxShape.prototype.calculateMassInfo = function(out){
-    var mass = this.width*this.height*this.depth*this.density;
+
+    var mass = this.width * this.height * this.depth * this.density;
+    var divid = 1/12;
     out.mass = mass;
     out.inertia.init(
-        mass*(this.height*this.height+this.depth*this.depth)/12,0,0,
-        0,mass*(this.width*this.width+this.depth*this.depth)/12,0,
-        0,0,mass*(this.width*this.width+this.height*this.height)/12
+        mass*(this.height*this.height+this.depth*this.depth)*divid,0,0,
+        0,mass*(this.width*this.width+this.depth*this.depth)*divid,0,
+        0,0,mass*(this.width*this.width+this.height*this.height)*divid
     );
+    
 };
 
 OIMO.BoxShape.prototype.updateProxy = function(){
+
     var te = this.rotation.elements;
     var di = this.dimentions;
     // Width
@@ -6732,29 +6883,40 @@ OIMO.BoxShape.prototype.updateProxy = function(){
         this.position.y-h-p,this.position.y+h+p,
         this.position.z-d-p,this.position.z+d+p
     );
+
     if(this.proxy!==null) this.proxy.update();
+
 };
 /**
  * A sphere shape.
  * @author saharan
+ * @author lo-th
  */
+
 OIMO.SphereShape = function(config,radius){
-    OIMO.Shape.call( this, config);
+
+    OIMO.Shape.call( this, config );
+
+    this.type = OIMO.SHAPE_SPHERE;
+
     // The radius of the shape.
     this.radius = radius;
-    this.type = OIMO.SHAPE_SPHERE;
 };
 
 OIMO.SphereShape.prototype = Object.create( OIMO.Shape.prototype );
+OIMO.SphereShape.prototype.constructor = OIMO.SphereShape;
 
 OIMO.SphereShape.prototype.calculateMassInfo = function(out){
-    var mass = 4/3*OIMO.PI*this.radius*this.radius*this.radius*this.density;
+
+    var mass = 1.333*OIMO.PI*this.radius*this.radius*this.radius*this.density;
     out.mass = mass;
-    var inertia = mass*this.radius*this.radius*2/5;
+    var inertia = mass*this.radius*this.radius*0.4;
     out.inertia.init( inertia,0,0,0,inertia,0,0,0,inertia );
+
 };
 
 OIMO.SphereShape.prototype.updateProxy = function(){
+
     var p = OIMO.AABB_PROX;
 
     this.aabb.init(
@@ -6767,72 +6929,73 @@ OIMO.SphereShape.prototype.updateProxy = function(){
 
 };
 /**
-* A cylinder shape.
-* @author saharan
-* @author loth
-*/
+ * A cylinder shap.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.CylinderShape = function(config,radius,height){
+
     OIMO.Shape.call( this, config );
+
+    this.type = OIMO.SHAPE_CYLINDER;
 
     this.radius = radius;
     this.height = height;
-    this.halfHeight = height*0.5;
+    this.halfHeight = height * 0.5;
     
     this.normalDirection = new OIMO.Vec3();
     this.halfDirection = new OIMO.Vec3();
-    this.type = OIMO.SHAPE_CYLINDER;
+    
 };
 
 OIMO.CylinderShape.prototype = Object.create( OIMO.Shape.prototype );
+OIMO.CylinderShape.prototype.constructor = OIMO.CylinderShape;
 
 OIMO.CylinderShape.prototype.calculateMassInfo = function(out){
+
     var mass = OIMO.PI*this.radius*this.radius*this.height*this.density;
-    var inertiaXZ = (1/4*this.radius*this.radius+1/12*this.height*this.height)*mass;
-    var inertiaY = 1/2*this.radius*this.radius;
+    var inertiaXZ = ( (0.25*this.radius*this.radius) + (0.0833*this.height*this.height) ) * mass;
+    var inertiaY = 0.5*this.radius*this.radius;
     out.mass = mass;
     out.inertia.init( inertiaXZ,0,0,  0,inertiaY,0,  0,0,inertiaXZ );
+
 };
 
 OIMO.CylinderShape.prototype.updateProxy = function(){
-    var te = this.rotation.elements;
-    var len;
-    var wx;
-    var hy;
-    var dz;
-    var dirX=te[1];
-    var dirY=te[4];
-    var dirZ=te[7];
-    var xx=dirX*dirX;
-    var yy=dirY*dirY;
-    var zz=dirZ*dirZ;
-    this.normalDirection.x=dirX;
-    this.normalDirection.y=dirY;
-    this.normalDirection.z=dirZ;
-    this.halfDirection.x=dirX*this.halfHeight;
-    this.halfDirection.y=dirY*this.halfHeight;
-    this.halfDirection.z=dirZ*this.halfHeight;
-    wx=1-dirX*dirX;
-    len=OIMO.sqrt(wx*wx+xx*yy+xx*zz);
-    if(len>0) len=this.radius/len;
-    wx*=len;
-    hy=1-dirY*dirY;
-    len=OIMO.sqrt(yy*xx+hy*hy+yy*zz);
-    if(len>0) len=this.radius/len;
-    hy*=len;
-    dz=1-dirZ*dirZ;
-    len=OIMO.sqrt(zz*xx+zz*yy+dz*dz);
-    if(len>0) len=this.radius/len;
-    dz*=len;
 
-    var w = (this.halfDirection.x<0) ? -this.halfDirection.x : this.halfDirection.x;
-    var h = (this.halfDirection.y<0) ? -this.halfDirection.y : this.halfDirection.y;
-    var d = (this.halfDirection.z<0) ? -this.halfDirection.z : this.halfDirection.z;
+    var te = this.rotation.elements;
+    var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
+
+    xx = te[1]*te[1];
+    yy = te[4]*te[4];
+    zz = te[7]*te[7];
+
+    this.normalDirection.set( te[1], te[4], te[7] );
+    this.halfDirection.scale( this.normalDirection, this.halfHeight );
+
+    wx = 1 - xx;
+    len = OIMO.sqrt(wx*wx + xx*yy + xx*zz);
+    if(len>0) len = this.radius/len;
+    wx *= len;
+    hy = 1 - yy;
+    len = OIMO.sqrt(yy*xx + hy*hy + yy*zz);
+    if(len>0) len = this.radius/len;
+    hy *= len;
+    dz = 1 - zz;
+    len = OIMO.sqrt(zz*xx + zz*yy + dz*dz);
+    if(len>0) len = this.radius/len;
+    dz *= len;
+
+    w = (this.halfDirection.x<0) ? -this.halfDirection.x : this.halfDirection.x;
+    h = (this.halfDirection.y<0) ? -this.halfDirection.y : this.halfDirection.y;
+    d = (this.halfDirection.z<0) ? -this.halfDirection.z : this.halfDirection.z;
 
     w = (wx<0) ? w-wx : w+wx;
     h = (hy<0) ? h-hy : h+hy;
     d = (dz<0) ? d-dz : d+dz;
 
-    var p = OIMO.AABB_PROX;
+    p = OIMO.AABB_PROX;
 
     this.aabb.init(
         this.position.x-w-p,this.position.x+w+p,
@@ -6841,6 +7004,7 @@ OIMO.CylinderShape.prototype.updateProxy = function(){
     );
 
     if(this.proxy!==null) this.proxy.update();
+
 };
 OIMO.CollisionDetector = function(){
     this.flip = false;
@@ -10328,24 +10492,25 @@ OIMO.SphereCylinderCollisionDetector.prototype.detectCollision = function(shape1
 * @author saharan
 */
 OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
-
-    this.init(minX,maxX,minY,maxY,minZ,maxZ);
-
-};
+    this.minX=minX || 0;
+    this.maxX=maxX || 0;
+    this.minY=minY || 0;
+    this.maxY=maxY || 0;
+    this.minZ=minZ || 0;
+    this.maxZ=maxZ || 0;
+}
 
 OIMO.AABB.prototype = {
 
     constructor: OIMO.AABB,
 
     init:function(minX,maxX,minY,maxY,minZ,maxZ){
-
-        this.minX = minX || 0;
-        this.maxX = maxX || 0;
-        this.minY = minY || 0;
-        this.maxY = maxY || 0;
-        this.minZ = minZ || 0;
-        this.maxZ = maxZ || 0;
-
+        this.minX=minX;
+        this.maxX=maxX;
+        this.minY=minY;
+        this.maxY=maxY;
+        this.minZ=minZ;
+        this.maxZ=maxZ;
     },
     /**
     * Set this AABB to the combined AABB of aabb1 and aabb2.
@@ -10353,25 +10518,30 @@ OIMO.AABB.prototype = {
     * @param   aabb2
     */
     combine:function(aabb1,aabb2){
-
         this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
         this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
         this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
         this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
         this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
         this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
-
+        /*
+        var margin=0;
+        this.minX-=margin;
+        this.minY-=margin;
+        this.minZ-=margin;
+        this.maxX+=margin;
+        this.maxY+=margin;
+        this.maxZ+=margin;
+        */
     },
     /**
     * Get the surface area.
     * @return
     */
     surfaceArea:function(){
-
-        var h = this.maxY-this.minY;
-        var d = this.maxZ-this.minZ;
-        return 2 * ((this.maxX-this.minX)*(h+d)+h*d);
-
+        var h=this.maxY-this.minY;
+        var d=this.maxZ-this.minZ;
+        return 2*((this.maxX-this.minX)*(h+d)+h*d);
     },
     /**
     * Get whether the AABB intersects with the point or not.
@@ -10381,19 +10551,17 @@ OIMO.AABB.prototype = {
     * @return
     */
     intersectsWithPoint:function(x,y,z){
-
-        return x>=this.minX && x<=this.maxX && y>=this.minY && y<=this.maxY && z>=this.minZ && z<=this.maxZ;
-        
+        return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
     }
-};
+}
 /**
 * A proxy is used for broad-phase collecting pairs that can be colliding.
 */
 OIMO.Proxy = function(shape){
 	// The parent shape.
-    this.shape = shape;
+    this.shape=shape;
     // The axis-aligned bounding box.
-    this.aabb = shape.aabb;
+    this.aabb=shape.aabb;
 };
 
 OIMO.Proxy.prototype = {
@@ -10406,34 +10574,34 @@ OIMO.Proxy.prototype = {
     update:function(){
         throw new Error("Inheritance error.");
     }
-};
+}
 /**
 * A basic implementation of proxies.
 * @author saharan
 */
 OIMO.BasicProxy = function(shape){
-
     OIMO.Proxy.call( this, shape );
-
-};
-
+}
 OIMO.BasicProxy.prototype = Object.create( OIMO.Proxy.prototype );
-
 OIMO.BasicProxy.prototype.update = function () {
-
-};
+}
 /**
 * The broad-phase is used for collecting all possible pairs for collision.
 */
 
 OIMO.BroadPhase = function(){
-    
     this.types = 0x0;
-    this.numPairChecks = 0;
-    this.numPairs = 0;
-    this.pairs = [];
-
-};
+    this.numPairChecks=0;
+    this.numPairs=0;
+    
+    this.bufferSize=256;
+    this.pairs=[];// vector
+    this.pairs.length = this.bufferSize;
+    var i = this.bufferSize;
+    while(i--){
+        this.pairs[i] = new OIMO.Pair();
+    }
+}
 
 OIMO.BroadPhase.prototype = {
 
@@ -10467,111 +10635,137 @@ OIMO.BroadPhase.prototype = {
     * @return
     */
     isAvailablePair:function(s1,s2){
-        var b1 = s1.parent;
-        var b2 = s2.parent;
+        var b1=s1.parent;
+        var b2=s2.parent;
         if( b1==b2 || // same parents 
-            (!b1.isDynamic && !b2.isDynamic) || // static or kinematic object
+            (!b1.isDynamic&&!b2.isDynamic) || // static or kinematic object
             (s1.belongsTo&s2.collidesWith)==0 ||
-            (s2.belongsTo&s1.collidesWith)==0 // collision filtering
+             (s2.belongsTo&s1.collidesWith)==0 // collision filtering
         ){ return false; }
         var js;
-        if(b1.numJoints<b2.numJoints) js = b1.jointLink;
-        else js = b2.jointLink;
-        while(js!==null){
-           var joint = js.joint;
-           if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
-           js = js.next;
+        if(b1.numJoints<b2.numJoints) js=b1.jointLink;
+        else js=b2.jointLink;
+        while(js!=null){
+           var joint=js.joint;
+           if( !joint.allowCollision && (joint.body1==b1&&joint.body2==b2 || joint.body1==b2&&joint.body2==b1) ){ return false; }
+           js=js.next;
         }
         return true;
     },
     // Detect overlapping pairs.
     detectPairs:function(){
-        // clear old
-        this.pairs = [];
-        this.numPairs = 0;
-        this.numPairChecks = 0;
-
+        while(this.numPairs>0){
+            var pair=this.pairs[--this.numPairs];
+            pair.shape1=null;
+            pair.shape2=null;
+        }
+        this.numPairChecks=0;
         this.collectPairs();
-        
     },
     collectPairs:function(){
         throw new Error("Inheritance error.");
     },
     addPair:function(s1,s2){
-        var pair = new OIMO.Pair(s1,s2);
-        this.pairs.push(pair);
-        this.numPairs++;
+        if(this.numPairs==this.bufferSize){ // expand pair buffer
+            var newBufferSize=this.bufferSize<<1;
+            //var newBufferSize=this.bufferSize*2;
+            var newPairs=[];// vector
+            newPairs.length = this.bufferSize;
+            //var i = this.bufferSize;
+            //var j;
+            //while(i--){
+            for(var i=0, j=this.bufferSize;i<j;i++){
+                newPairs[i]=this.pairs[i];
+            }
+            i = this.newBufferSize;
+            //j = this.bufferSize;
+            //while(i-- >= j){
+            for(i=this.bufferSize, j=newBufferSize;i<j;i++){
+                newPairs[i]=new OIMO.Pair();
+            }
+            this.pairs=newPairs;
+            this.bufferSize=newBufferSize;
+        }
+        var pair=this.pairs[this.numPairs++];
+        pair.shape1=s1;
+        pair.shape2=s2;
     }
-};
+}
 /**
 * A broad-phase algorithm with brute-force search.
 * This always checks for all possible pairs.
 */
 OIMO.BruteForceBroadPhase = function(){
-
-    OIMO.BroadPhase.call(this);
+    OIMO.BroadPhase.call( this);
     this.types = 0x1;
-    this.numProxies = 0;
-    this.proxies = [];
-
-};
+    this.numProxies=0;
+    this.maxProxies = 256;
+    this.proxies = [];// Vector !
+    this.proxies.length = 256;
+}
 
 OIMO.BruteForceBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
 
 OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
-
     return new OIMO.BasicProxy(shape);
-
-};
-
+}
 OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
-
-    this.proxies.push(proxy);
-    this.numProxies++;
-
-};
-
-OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
-
-    var n = this.proxies.indexOf(proxy);
-    if(n > -1){
-        this.proxies.splice(n,1);
-        this.numProxies--;
+    if(this.numProxies==this.maxProxies){
+        //this.maxProxies<<=1;
+        this.maxProxies*=2;
+        var newProxies=[];
+        newProxies.length = this.maxProxies;
+        var i = this.numProxies;
+        while(i--){
+        //for(var i=0, l=this.numProxies;i<l;i++){
+            newProxies[i] = this.proxies[i];
+        }
+        this.proxies = newProxies;
     }
-    
-};
-
-OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
-
-    var i, j, p1, b1, s1, p2, b2, s2; 
-
-    this.numPairChecks = this.numProxies*(this.numProxies-1)*0.5;
-    i = this.numProxies;
+    this.proxies[this.numProxies++] = proxy;
+}
+OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
+    var i = this.numProxies;
     while(i--){
-        p1 = this.proxies[i];
-        b1 = p1.aabb;
-        s1 = p1.shape;
-        j = this.numProxies;
-        while(j!==i){ 
-            j--;
-            p2 = this.proxies[j];
-            b2 = p2.aabb;
-            s2 = p2.shape;
-            if(b1.maxX<b2.minX || b1.minX>b2.maxX || b1.maxY<b2.minY || b1.minY>b2.maxY || b1.maxZ<b2.minZ || b1.minZ>b2.maxZ || !this.isAvailablePair(s1,s2) ) continue;
-            this.addPair(s1,s2);
+    //for(var i=0, l=this.numProxies;i<l;i++){
+        if(this.proxies[i]==proxy){
+            this.proxies[i]=this.proxies[--this.numProxies];
+            this.proxies[this.numProxies]=null;
+            return;
         }
     }
-
-};
+}
+OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
+    this.numPairChecks=this.numProxies*(this.numProxies-1)>>1;
+    //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
+        var i = this.numProxies;
+        while(i--){
+        //for(var i=0, l=this.numProxies;i<l;i++){
+            var p1=this.proxies[i];
+            var b1=p1.aabb;
+            var s1=p1.shape;
+            var j = this.numProxies;
+            while(j--){ if(j!==i){
+            //for(var j=i+1, m=this.numProxies;j<m;j++){
+                var p2=this.proxies[j];
+                var b2=p2.aabb;
+                var s2=p2.shape;
+                if(b1.maxX<b2.minX||b1.minX>b2.maxX|| b1.maxY<b2.minY||b1.minY>b2.maxY|| b1.maxZ<b2.minZ||b1.minZ>b2.maxZ|| !this.isAvailablePair(s1,s2) ){
+                    continue;
+                }
+                    this.addPair(s1,s2);
+                }}
+        }
+}
 /**
 * A pair of shapes that may collide.
 * @author saharan
 */
-OIMO.Pair = function(s1,s2){
-    // The first shape.
-    this.shape1 = s1 || null;
+OIMO.Pair = function(){
+	// The first shape.
+    this.shape1=null;
     // The second shape.
-    this.shape2 = s2 || null;
+    this.shape2=null;
 };
 /**
 * A projection axis for sweep and prune broad-phase.
@@ -10664,7 +10858,7 @@ OIMO.SAPAxis.prototype = {
             var diff=right-left;
             if(diff>16){  // quick sort
                 //var mid=left+(diff>>1);
-                var mid=left+(OIMO.floor(diff*0.5));
+                var mid=left+(Math.floor(diff*0.5));
                 tmp=elements[mid];
                 elements[mid]=elements[right];
                 elements[right]=tmp;
@@ -10731,7 +10925,7 @@ OIMO.SAPAxis.prototype = {
 * @author saharan
 */
 OIMO.SAPBroadPhase = function(){
-    OIMO.BroadPhase.call(this);
+    OIMO.BroadPhase.call( this);
     this.types = 0x2;
 
     this.numElementsD = 0;
@@ -10743,12 +10937,12 @@ OIMO.SAPBroadPhase = function(){
     this.axesD.length = 3;
     this.axesS.length = 3;
 
-    this.axesD[0] = new OIMO.SAPAxis();
-    this.axesD[1] = new OIMO.SAPAxis();
-    this.axesD[2] = new OIMO.SAPAxis();
-    this.axesS[0] = new OIMO.SAPAxis();
-    this.axesS[1] = new OIMO.SAPAxis();
-    this.axesS[2] = new OIMO.SAPAxis();
+    this.axesD[0]=new OIMO.SAPAxis();
+    this.axesD[1]=new OIMO.SAPAxis();
+    this.axesD[2]=new OIMO.SAPAxis();
+    this.axesS[0]=new OIMO.SAPAxis();
+    this.axesS[1]=new OIMO.SAPAxis();
+    this.axesS[2]=new OIMO.SAPAxis();
     this.index1=0;
     this.index2=1;
 }
@@ -10760,7 +10954,7 @@ OIMO.SAPBroadPhase.prototype.createProxy = function (shape) {
 }
 
 OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
-    var p = proxy;
+    var p=(proxy);
     if(p.isDynamic()){
         this.axesD[0].addElements(p.min[0],p.max[0]);
         this.axesD[1].addElements(p.min[1],p.max[1]);
@@ -10777,7 +10971,7 @@ OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
 }
 
 OIMO.SAPBroadPhase.prototype.removeProxy = function (proxy) {
-    var p = proxy;
+    var p=(proxy);
     if(p.belongsTo==0)return;
     switch(p.belongsTo){
         case 1:
@@ -10866,7 +11060,7 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                 activeS=e1;
             }
         }else{
-            var min = e1.pair;
+            var min=e1.pair;
             if(dyn){
                 if(min==activeD){
                     activeD=activeD.pair;
@@ -10883,17 +11077,16 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                 }
             }
             do{
-                e2 = e1.pair;
+                e2=e1.pair;
                 if(e2===min){
-                    e1.pair = e2.pair;
+                    e1.pair=e2.pair;
                     break;
                 }
                 e1=e2;
-            }while(e1!=null);
+            }while(e1!==null);
         }
     }
-    //this.index2=(this.index1|this.index2)^3;
-    this.index2 = OIMO.pow( (this.index1|this.index2), 3);
+    this.index2=(this.index1|this.index2)^3;
 }
 /**
 * An element of proxies.
@@ -10930,13 +11123,13 @@ OIMO.SAPProxy = function(sap,shape){
     // The minimum elements on each axis.
     this.min = [];
     
-    this.sap = sap;
-    this.min[0] = new OIMO.SAPElement(this,false);
-    this.max[0] = new OIMO.SAPElement(this,true);
-    this.min[1] = new OIMO.SAPElement(this,false);
-    this.max[1] = new OIMO.SAPElement(this,true);
-    this.min[2] = new OIMO.SAPElement(this,false);
-    this.max[2] = new OIMO.SAPElement(this,true);
+    this.sap=sap;
+    this.min[0]=new OIMO.SAPElement(this,false);
+    this.max[0]=new OIMO.SAPElement(this,true);
+    this.min[1]=new OIMO.SAPElement(this,false);
+    this.max[1]=new OIMO.SAPElement(this,true);
+    this.min[2]=new OIMO.SAPElement(this,false);
+    this.max[2]=new OIMO.SAPElement(this,true);
     this.max[0].pair=this.min[0];
     this.max[1].pair=this.min[1];
     this.max[2].pair=this.min[2];
@@ -11334,7 +11527,7 @@ OIMO.DBVTBroadPhase = function(){
 
     this.numLeaves = 0;
     this.maxLeaves = 0;
-    this.tree=new OIMO.DBVT();
+    this.tree = new OIMO.DBVT();
     this.maxStack=256;
 
     this.stack=[];// vector

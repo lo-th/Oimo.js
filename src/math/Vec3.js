@@ -1,7 +1,7 @@
 OIMO.Vec3 = function(x,y,z){
-    this.x=x || 0;
-    this.y=y || 0;
-    this.z=z || 0;
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
 };
 
 OIMO.Vec3.prototype = {
@@ -9,21 +9,21 @@ OIMO.Vec3.prototype = {
     constructor: OIMO.Vec3,
 
     init: function(x,y,z){
-        this.x=x || 0;
-        this.y=y || 0;
-        this.z=z || 0;
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
         return this;
     },
     set: function(x,y,z){
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
         return this;
     },
     add: function(v1,v2){
-        this.x=v1.x+v2.x;
-        this.y=v1.y+v2.y;
-        this.z=v1.z+v2.z;
+        this.x = v1.x + v2.x;
+        this.y = v1.y + v2.y;
+        this.z = v1.z + v2.z;
         return this;
     },
     addEqual: function(v){
@@ -88,12 +88,9 @@ OIMO.Vec3.prototype = {
     },
     mulMat: function(m,v){
         var te = m.elements;
-        var x=te[0]*v.x+te[1]*v.y+te[2]*v.z;
-        var y=te[3]*v.x+te[4]*v.y+te[5]*v.z;
-        var z=te[6]*v.x+te[7]*v.y+te[8]*v.z;
-        this.x=x;
-        this.y=y;
-        this.z=z;
+        this.x = te[0]*v.x + te[1]*v.y + te[2]*v.z;
+        this.y = te[3]*v.x + te[4]*v.y + te[5]*v.z;
+        this.z = te[6]*v.x + te[7]*v.y + te[8]*v.z;
         return this;
     },
     normalize: function(v){
@@ -107,24 +104,42 @@ OIMO.Vec3.prototype = {
         }
         return this;
     },
+    /*norm: function(){
+        var x = this.x, y = this.y, z = this.z;
+        var l = x*x + y*y + z*z;
+        if (l > 0) {
+            l = 1 / OIMO.sqrt(l);
+            this.x = x*l;
+            this.y = y*l;
+            this.z = z*l;
+        }
+        return this;
+    },*/
     invert: function(v){
         this.x=-v.x;
         this.y=-v.y;
         this.z=-v.z;
         return this;
     },
-    length: function(){
+    /*length: function(){
         var x = this.x, y = this.y, z = this.z;
         return OIMO.sqrt(x*x + y*y + z*z);
+    },*/
+
+    length: function () {
+
+        return OIMO.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+
     },
+
     len: function(){
         var x = this.x, y = this.y, z = this.z;
         return x*x + y*y + z*z;
     },
     copy: function(v){
-        this.x=v.x;
-        this.y=v.y;
-        this.z=v.z;
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
         return this;
     },
     applyQuaternion: function ( q ) {
@@ -163,9 +178,40 @@ OIMO.Vec3.prototype = {
         else return false;
     },
     clone: function(){
-        return new OIMO.Vec3(this.x,this.y,this.z);
+        return new this.constructor( this.x, this.y, this.z );
+        //return new OIMO.Vec3(this.x,this.y,this.z);
     },
     toString: function(){
         return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
-    }
+    },
+
+    multiplyScalar: function ( scalar ) {
+
+        if ( isFinite( scalar ) ) {
+            this.x *= scalar;
+            this.y *= scalar;
+            this.z *= scalar;
+        } else {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+        }
+
+        return this;
+
+    },
+
+    divideScalar: function ( scalar ) {
+
+        return this.multiplyScalar( 1 / scalar );
+
+    },
+
+    norm: function () {
+
+        return this.divideScalar( this.length() );
+
+    },
+
+
 }
