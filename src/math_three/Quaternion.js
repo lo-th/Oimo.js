@@ -5,7 +5,7 @@
  * @author bhouston / http://clara.io
  */
 
-THREE.Quaternion = function ( x, y, z, w ) {
+OIMO.Quaternion = function ( x, y, z, w ) {
 
 	this._x = x || 0;
 	this._y = y || 0;
@@ -14,9 +14,9 @@ THREE.Quaternion = function ( x, y, z, w ) {
 
 };
 
-THREE.Quaternion.prototype = {
+OIMO.Quaternion.prototype = {
 
-	constructor: THREE.Quaternion,
+	constructor: OIMO.Quaternion,
 
 	get x () {
 
@@ -104,9 +104,9 @@ THREE.Quaternion.prototype = {
 
 	setFromEuler: function ( euler, update ) {
 
-		if ( euler instanceof THREE.Euler === false ) {
+		if ( euler instanceof OIMO.Euler === false ) {
 
-			throw new Error( 'THREE.Quaternion: .setFromEuler() now expects a Euler rotation rather than a Vector3 and order.' );
+			throw new Error( 'OIMO.Quaternion: .setFromEuler() now expects a Euler rotation rather than a Vector3 and order.' );
 
 		}
 
@@ -114,12 +114,12 @@ THREE.Quaternion.prototype = {
 		// 	20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
 		//	content/SpinCalc.m
 
-		var c1 = Math.cos( euler._x / 2 );
-		var c2 = Math.cos( euler._y / 2 );
-		var c3 = Math.cos( euler._z / 2 );
-		var s1 = Math.sin( euler._x / 2 );
-		var s2 = Math.sin( euler._y / 2 );
-		var s3 = Math.sin( euler._z / 2 );
+		var c1 = OIMO.cos( euler._x / 2 );
+		var c2 = OIMO.cos( euler._y / 2 );
+		var c3 = OIMO.cos( euler._z / 2 );
+		var s1 = OIMO.sin( euler._x / 2 );
+		var s2 = OIMO.sin( euler._y / 2 );
+		var s3 = OIMO.sin( euler._z / 2 );
 
 		var order = euler.order;
 
@@ -179,12 +179,12 @@ THREE.Quaternion.prototype = {
 
 		// assumes axis is normalized
 
-		var halfAngle = angle / 2, s = Math.sin( halfAngle );
+		var halfAngle = angle / 2, s = OIMO.sin( halfAngle );
 
 		this._x = axis.x * s;
 		this._y = axis.y * s;
 		this._z = axis.z * s;
-		this._w = Math.cos( halfAngle );
+		this._w = OIMO.cos( halfAngle );
 
 		this.onChangeCallback();
 
@@ -209,7 +209,7 @@ THREE.Quaternion.prototype = {
 
 		if ( trace > 0 ) {
 
-			s = 0.5 / Math.sqrt( trace + 1.0 );
+			s = 0.5 / OIMO.sqrt( trace + 1.0 );
 
 			this._w = 0.25 / s;
 			this._x = ( m32 - m23 ) * s;
@@ -218,7 +218,7 @@ THREE.Quaternion.prototype = {
 
 		} else if ( m11 > m22 && m11 > m33 ) {
 
-			s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+			s = 2.0 * OIMO.sqrt( 1.0 + m11 - m22 - m33 );
 
 			this._w = ( m32 - m23 ) / s;
 			this._x = 0.25 * s;
@@ -227,7 +227,7 @@ THREE.Quaternion.prototype = {
 
 		} else if ( m22 > m33 ) {
 
-			s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+			s = 2.0 * OIMO.sqrt( 1.0 + m22 - m11 - m33 );
 
 			this._w = ( m13 - m31 ) / s;
 			this._x = ( m12 + m21 ) / s;
@@ -236,7 +236,7 @@ THREE.Quaternion.prototype = {
 
 		} else {
 
-			s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+			s = 2.0 * OIMO.sqrt( 1.0 + m33 - m11 - m22 );
 
 			this._w = ( m21 - m12 ) / s;
 			this._x = ( m13 + m31 ) / s;
@@ -263,7 +263,7 @@ THREE.Quaternion.prototype = {
 
 		return function ( vFrom, vTo ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 
 			r = vFrom.dot( vTo ) + 1;
 
@@ -271,7 +271,7 @@ THREE.Quaternion.prototype = {
 
 				r = 0;
 
-				if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+				if ( OIMO.abs( vFrom.x ) > OIMO.abs( vFrom.z ) ) {
 
 					v1.set( - vFrom.y, vFrom.x, 0 );
 
@@ -334,7 +334,7 @@ THREE.Quaternion.prototype = {
 
 	length: function () {
 
-		return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
+		return OIMO.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
 
 	},
 
@@ -370,7 +370,7 @@ THREE.Quaternion.prototype = {
 
 		if ( p !== undefined ) {
 
-			console.warn( 'THREE.Quaternion: .multiply() now only accepts one argument. Use .multiplyQuaternions( a, b ) instead.' );
+			console.warn( 'OIMO.Quaternion: .multiply() now only accepts one argument. Use .multiplyQuaternions( a, b ) instead.' );
 			return this.multiplyQuaternions( q, p );
 
 		}
@@ -434,9 +434,9 @@ THREE.Quaternion.prototype = {
 
 		}
 
-		var sinHalfTheta = Math.sqrt( 1.0 - cosHalfTheta * cosHalfTheta );
+		var sinHalfTheta = OIMO.sqrt( 1.0 - cosHalfTheta * cosHalfTheta );
 
-		if ( Math.abs( sinHalfTheta ) < 0.001 ) {
+		if ( OIMO.abs( sinHalfTheta ) < 0.001 ) {
 
 			this._w = 0.5 * ( w + this._w );
 			this._x = 0.5 * ( x + this._x );
@@ -447,9 +447,9 @@ THREE.Quaternion.prototype = {
 
 		}
 
-		var halfTheta = Math.atan2( sinHalfTheta, cosHalfTheta );
-		var ratioA = Math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
-		ratioB = Math.sin( t * halfTheta ) / sinHalfTheta;
+		var halfTheta = OIMO.atan2( sinHalfTheta, cosHalfTheta );
+		var ratioA = OIMO.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
+		ratioB = OIMO.sin( t * halfTheta ) / sinHalfTheta;
 
 		this._w = ( w * ratioA + this._w * ratioB );
 		this._x = ( x * ratioA + this._x * ratioB );
@@ -509,7 +509,7 @@ THREE.Quaternion.prototype = {
 
 };
 
-Object.assign( THREE.Quaternion, {
+Object.assign( OIMO.Quaternion, {
 
 	slerp: function( qa, qb, qm, t ) {
 
@@ -544,11 +544,11 @@ Object.assign( THREE.Quaternion, {
 			// Skip the Slerp for tiny steps to avoid numeric problems:
 			if ( sqrSin > Number.EPSILON ) {
 
-				var sin = Math.sqrt( sqrSin ),
-					len = Math.atan2( sin, cos * dir );
+				var sin = OIMO.sqrt( sqrSin ),
+					len = OIMO.atan2( sin, cos * dir );
 
-				s = Math.sin( s * len ) / sin;
-				t = Math.sin( t * len ) / sin;
+				s = OIMO.sin( s * len ) / sin;
+				t = OIMO.sin( t * len ) / sin;
 
 			}
 
@@ -562,7 +562,7 @@ Object.assign( THREE.Quaternion, {
 			// Normalize in case we just did a lerp:
 			if ( s === 1 - t ) {
 
-				var f = 1 / Math.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 );
+				var f = 1 / OIMO.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 );
 
 				x0 *= f;
 				y0 *= f;

@@ -4,7 +4,7 @@
  * @author bhouston / http://clara.io
  */
 
-THREE.Matrix3 = function () {
+OIMO.Matrix3 = function () {
 
 	this.elements = new Float32Array( [
 
@@ -16,15 +16,15 @@ THREE.Matrix3 = function () {
 
 	if ( arguments.length > 0 ) {
 
-		console.error( 'THREE.Matrix3: the constructor no longer reads arguments. use .set() instead.' );
+		console.error( 'OIMO.Matrix3: the constructor no longer reads arguments. use .set() instead.' );
 
 	}
 
 };
 
-THREE.Matrix3.prototype = {
+OIMO.Matrix3.prototype = {
 
-	constructor: THREE.Matrix3,
+	constructor: OIMO.Matrix3,
 
 	set: function ( n11, n12, n13, n21, n22, n23, n31, n32, n33 ) {
 
@@ -80,7 +80,7 @@ THREE.Matrix3.prototype = {
 
 		return function ( array, offset, length ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 			if ( offset === undefined ) offset = 0;
 			if ( length === undefined ) length = array.length;
 
@@ -104,7 +104,7 @@ THREE.Matrix3.prototype = {
 
 		return function applyToBuffer( buffer, offset, length ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 			if ( offset === undefined ) offset = 0;
 			if ( length === undefined ) length = buffer.length / buffer.itemSize;
 
@@ -152,7 +152,7 @@ THREE.Matrix3.prototype = {
 
 	getInverse: function ( matrix, throwOnInvertible ) {
 
-		// input: THREE.Matrix4
+		// input: OIMO.Matrix4
 		// ( based on http://code.google.com/p/webgl-mjs/ )
 
 		var me = matrix.elements;
@@ -174,7 +174,7 @@ THREE.Matrix3.prototype = {
 
 		if ( det === 0 ) {
 
-			var msg = "THREE.Matrix3.getInverse(): can't invert matrix, determinant is 0";
+			var msg = "OIMO.Matrix3.getInverse(): can't invert matrix, determinant is 0";
 
 			if ( throwOnInvertible || false ) {
 
@@ -232,7 +232,7 @@ THREE.Matrix3.prototype = {
 
 	getNormalMatrix: function ( m ) {
 
-		// input: THREE.Matrix4
+		// input: OIMO.Matrix4
 
 		this.getInverse( m ).transpose();
 

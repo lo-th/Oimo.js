@@ -7,7 +7,7 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 
-THREE.Vector3 = function ( x, y, z ) {
+OIMO.Vector3 = function ( x, y, z ) {
 
 	this.x = x || 0;
 	this.y = y || 0;
@@ -15,9 +15,9 @@ THREE.Vector3 = function ( x, y, z ) {
 
 };
 
-THREE.Vector3.prototype = {
+OIMO.Vector3.prototype = {
 
-	constructor: THREE.Vector3,
+	constructor: OIMO.Vector3,
 
 	set: function ( x, y, z ) {
 
@@ -99,7 +99,7 @@ THREE.Vector3.prototype = {
 
 		if ( w !== undefined ) {
 
-			console.warn( 'THREE.Vector3: .add() now only accepts one argument. Use .addVectors( a, b ) instead.' );
+			console.warn( 'OIMO.Vector3: .add() now only accepts one argument. Use .addVectors( a, b ) instead.' );
 			return this.addVectors( v, w );
 
 		}
@@ -146,7 +146,7 @@ THREE.Vector3.prototype = {
 
 		if ( w !== undefined ) {
 
-			console.warn( 'THREE.Vector3: .sub() now only accepts one argument. Use .subVectors( a, b ) instead.' );
+			console.warn( 'OIMO.Vector3: .sub() now only accepts one argument. Use .subVectors( a, b ) instead.' );
 			return this.subVectors( v, w );
 
 		}
@@ -183,7 +183,7 @@ THREE.Vector3.prototype = {
 
 		if ( w !== undefined ) {
 
-			console.warn( 'THREE.Vector3: .multiply() now only accepts one argument. Use .multiplyVectors( a, b ) instead.' );
+			console.warn( 'OIMO.Vector3: .multiply() now only accepts one argument. Use .multiplyVectors( a, b ) instead.' );
 			return this.multiplyVectors( v, w );
 
 		}
@@ -228,13 +228,13 @@ THREE.Vector3.prototype = {
 
 		return function applyEuler( euler ) {
 
-			if ( euler instanceof THREE.Euler === false ) {
+			if ( euler instanceof OIMO.Euler === false ) {
 
-				console.error( 'THREE.Vector3: .applyEuler() now expects a Euler rotation rather than a Vector3 and order.' );
+				console.error( 'OIMO.Vector3: .applyEuler() now expects a Euler rotation rather than a Vector3 and order.' );
 
 			}
 
-			if ( quaternion === undefined ) quaternion = new THREE.Quaternion();
+			if ( quaternion === undefined ) quaternion = new OIMO.Quaternion();
 
 			this.applyQuaternion( quaternion.setFromEuler( euler ) );
 
@@ -250,7 +250,7 @@ THREE.Vector3.prototype = {
 
 		return function applyAxisAngle( axis, angle ) {
 
-			if ( quaternion === undefined ) quaternion = new THREE.Quaternion();
+			if ( quaternion === undefined ) quaternion = new OIMO.Quaternion();
 
 			this.applyQuaternion( quaternion.setFromAxisAngle( axis, angle ) );
 
@@ -278,7 +278,7 @@ THREE.Vector3.prototype = {
 
 	applyMatrix4: function ( m ) {
 
-		// input: THREE.Matrix4 affine matrix
+		// input: OIMO.Matrix4 affine matrix
 
 		var x = this.x, y = this.y, z = this.z;
 
@@ -294,7 +294,7 @@ THREE.Vector3.prototype = {
 
 	applyProjection: function ( m ) {
 
-		// input: THREE.Matrix4 projection matrix
+		// input: OIMO.Matrix4 projection matrix
 
 		var x = this.x, y = this.y, z = this.z;
 
@@ -343,7 +343,7 @@ THREE.Vector3.prototype = {
 
 		return function project( camera ) {
 
-			if ( matrix === undefined ) matrix = new THREE.Matrix4();
+			if ( matrix === undefined ) matrix = new OIMO.Matrix4();
 
 			matrix.multiplyMatrices( camera.projectionMatrix, matrix.getInverse( camera.matrixWorld ) );
 			return this.applyProjection( matrix );
@@ -358,7 +358,7 @@ THREE.Vector3.prototype = {
 
 		return function unproject( camera ) {
 
-			if ( matrix === undefined ) matrix = new THREE.Matrix4();
+			if ( matrix === undefined ) matrix = new OIMO.Matrix4();
 
 			matrix.multiplyMatrices( camera.matrixWorld, matrix.getInverse( camera.projectionMatrix ) );
 			return this.applyProjection( matrix );
@@ -369,7 +369,7 @@ THREE.Vector3.prototype = {
 
 	transformDirection: function ( m ) {
 
-		// input: THREE.Matrix4 affine matrix
+		// input: OIMO.Matrix4 affine matrix
 		// vector interpreted as a direction
 
 		var x = this.x, y = this.y, z = this.z;
@@ -404,9 +404,9 @@ THREE.Vector3.prototype = {
 
 	min: function ( v ) {
 
-		this.x = Math.min( this.x, v.x );
-		this.y = Math.min( this.y, v.y );
-		this.z = Math.min( this.z, v.z );
+		this.x = OIMO.min( this.x, v.x );
+		this.y = OIMO.min( this.y, v.y );
+		this.z = OIMO.min( this.z, v.z );
 
 		return this;
 
@@ -414,9 +414,9 @@ THREE.Vector3.prototype = {
 
 	max: function ( v ) {
 
-		this.x = Math.max( this.x, v.x );
-		this.y = Math.max( this.y, v.y );
-		this.z = Math.max( this.z, v.z );
+		this.x = OIMO.max( this.x, v.x );
+		this.y = OIMO.max( this.y, v.y );
+		this.z = OIMO.max( this.z, v.z );
 
 		return this;
 
@@ -426,9 +426,9 @@ THREE.Vector3.prototype = {
 
 		// This function assumes min < max, if this assumption isn't true it will not operate correctly
 
-		this.x = Math.max( min.x, Math.min( max.x, this.x ) );
-		this.y = Math.max( min.y, Math.min( max.y, this.y ) );
-		this.z = Math.max( min.z, Math.min( max.z, this.z ) );
+		this.x = OIMO.max( min.x, OIMO.min( max.x, this.x ) );
+		this.y = OIMO.max( min.y, OIMO.min( max.y, this.y ) );
+		this.z = OIMO.max( min.z, OIMO.min( max.z, this.z ) );
 
 		return this;
 
@@ -442,8 +442,8 @@ THREE.Vector3.prototype = {
 
 			if ( min === undefined ) {
 
-				min = new THREE.Vector3();
-				max = new THREE.Vector3();
+				min = new OIMO.Vector3();
+				max = new OIMO.Vector3();
 
 			}
 
@@ -460,7 +460,7 @@ THREE.Vector3.prototype = {
 
 		var length = this.length();
 
-		this.multiplyScalar( Math.max( min, Math.min( max, length ) ) / length );
+		this.multiplyScalar( OIMO.max( min, OIMO.min( max, length ) ) / length );
 
 		return this;
 
@@ -468,9 +468,9 @@ THREE.Vector3.prototype = {
 
 	floor: function () {
 
-		this.x = Math.floor( this.x );
-		this.y = Math.floor( this.y );
-		this.z = Math.floor( this.z );
+		this.x = OIMO.floor( this.x );
+		this.y = OIMO.floor( this.y );
+		this.z = OIMO.floor( this.z );
 
 		return this;
 
@@ -478,9 +478,9 @@ THREE.Vector3.prototype = {
 
 	ceil: function () {
 
-		this.x = Math.ceil( this.x );
-		this.y = Math.ceil( this.y );
-		this.z = Math.ceil( this.z );
+		this.x = OIMO.ceil( this.x );
+		this.y = OIMO.ceil( this.y );
+		this.z = OIMO.ceil( this.z );
 
 		return this;
 
@@ -488,9 +488,9 @@ THREE.Vector3.prototype = {
 
 	round: function () {
 
-		this.x = Math.round( this.x );
-		this.y = Math.round( this.y );
-		this.z = Math.round( this.z );
+		this.x = OIMO.round( this.x );
+		this.y = OIMO.round( this.y );
+		this.z = OIMO.round( this.z );
 
 		return this;
 
@@ -498,9 +498,9 @@ THREE.Vector3.prototype = {
 
 	roundToZero: function () {
 
-		this.x = ( this.x < 0 ) ? Math.ceil( this.x ) : Math.floor( this.x );
-		this.y = ( this.y < 0 ) ? Math.ceil( this.y ) : Math.floor( this.y );
-		this.z = ( this.z < 0 ) ? Math.ceil( this.z ) : Math.floor( this.z );
+		this.x = ( this.x < 0 ) ? OIMO.ceil( this.x ) : OIMO.floor( this.x );
+		this.y = ( this.y < 0 ) ? OIMO.ceil( this.y ) : OIMO.floor( this.y );
+		this.z = ( this.z < 0 ) ? OIMO.ceil( this.z ) : OIMO.floor( this.z );
 
 		return this;
 
@@ -530,13 +530,13 @@ THREE.Vector3.prototype = {
 
 	length: function () {
 
-		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+		return OIMO.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
 
 	},
 
 	lengthManhattan: function () {
 
-		return Math.abs( this.x ) + Math.abs( this.y ) + Math.abs( this.z );
+		return OIMO.abs( this.x ) + OIMO.abs( this.y ) + OIMO.abs( this.z );
 
 	},
 
@@ -574,7 +574,7 @@ THREE.Vector3.prototype = {
 
 		if ( w !== undefined ) {
 
-			console.warn( 'THREE.Vector3: .cross() now only accepts one argument. Use .crossVectors( a, b ) instead.' );
+			console.warn( 'OIMO.Vector3: .cross() now only accepts one argument. Use .crossVectors( a, b ) instead.' );
 			return this.crossVectors( v, w );
 
 		}
@@ -608,7 +608,7 @@ THREE.Vector3.prototype = {
 
 		return function projectOnVector( vector ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 
 			v1.copy( vector ).normalize();
 
@@ -626,7 +626,7 @@ THREE.Vector3.prototype = {
 
 		return function projectOnPlane( planeNormal ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 
 			v1.copy( this ).projectOnVector( planeNormal );
 
@@ -645,7 +645,7 @@ THREE.Vector3.prototype = {
 
 		return function reflect( normal ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 
 			return this.sub( v1.copy( normal ).multiplyScalar( 2 * this.dot( normal ) ) );
 
@@ -655,17 +655,17 @@ THREE.Vector3.prototype = {
 
 	angleTo: function ( v ) {
 
-		var theta = this.dot( v ) / ( Math.sqrt( this.lengthSq() * v.lengthSq() ) );
+		var theta = this.dot( v ) / ( OIMO.sqrt( this.lengthSq() * v.lengthSq() ) );
 
 		// clamp, to handle numerical problems
 
-		return Math.acos( THREE.Math.clamp( theta, - 1, 1 ) );
+		return OIMO.acos( OIMO.OIMO.clamp( theta, - 1, 1 ) );
 
 	},
 
 	distanceTo: function ( v ) {
 
-		return Math.sqrt( this.distanceToSquared( v ) );
+		return OIMO.sqrt( this.distanceToSquared( v ) );
 
 	},
 

@@ -11,7 +11,7 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 
-THREE.Matrix4 = function () {
+OIMO.Matrix4 = function () {
 
 	this.elements = new Float32Array( [
 
@@ -24,15 +24,15 @@ THREE.Matrix4 = function () {
 
 	if ( arguments.length > 0 ) {
 
-		console.error( 'THREE.Matrix4: the constructor no longer reads arguments. use .set() instead.' );
+		console.error( 'OIMO.Matrix4: the constructor no longer reads arguments. use .set() instead.' );
 
 	}
 
 };
 
-THREE.Matrix4.prototype = {
+OIMO.Matrix4.prototype = {
 
-	constructor: THREE.Matrix4,
+	constructor: OIMO.Matrix4,
 
 	set: function ( n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44 ) {
 
@@ -64,7 +64,7 @@ THREE.Matrix4.prototype = {
 
 	clone: function () {
 
-		return new THREE.Matrix4().fromArray( this.elements );
+		return new OIMO.Matrix4().fromArray( this.elements );
 
 	},
 
@@ -120,7 +120,7 @@ THREE.Matrix4.prototype = {
 
 		return function ( m ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 
 			var te = this.elements;
 			var me = m.elements;
@@ -149,18 +149,18 @@ THREE.Matrix4.prototype = {
 
 	makeRotationFromEuler: function ( euler ) {
 
-		if ( euler instanceof THREE.Euler === false ) {
+		if ( euler instanceof OIMO.Euler === false ) {
 
-			console.error( 'THREE.Matrix: .makeRotationFromEuler() now expects a Euler rotation rather than a Vector3 and order.' );
+			console.error( 'OIMO.Matrix: .makeRotationFromEuler() now expects a Euler rotation rather than a Vector3 and order.' );
 
 		}
 
 		var te = this.elements;
 
 		var x = euler.x, y = euler.y, z = euler.z;
-		var a = Math.cos( x ), b = Math.sin( x );
-		var c = Math.cos( y ), d = Math.sin( y );
-		var e = Math.cos( z ), f = Math.sin( z );
+		var a = OIMO.cos( x ), b = OIMO.sin( x );
+		var c = OIMO.cos( y ), d = OIMO.sin( y );
+		var e = OIMO.cos( z ), f = OIMO.sin( z );
 
 		if ( euler.order === 'XYZ' ) {
 
@@ -318,9 +318,9 @@ THREE.Matrix4.prototype = {
 
 		return function ( eye, target, up ) {
 
-			if ( x === undefined ) x = new THREE.Vector3();
-			if ( y === undefined ) y = new THREE.Vector3();
-			if ( z === undefined ) z = new THREE.Vector3();
+			if ( x === undefined ) x = new OIMO.Vector3();
+			if ( y === undefined ) y = new OIMO.Vector3();
+			if ( z === undefined ) z = new OIMO.Vector3();
 
 			var te = this.elements;
 
@@ -358,7 +358,7 @@ THREE.Matrix4.prototype = {
 
 		if ( n !== undefined ) {
 
-			console.warn( 'THREE.Matrix4: .multiply() now only accepts one argument. Use .multiplyMatrices( a, b ) instead.' );
+			console.warn( 'OIMO.Matrix4: .multiply() now only accepts one argument. Use .multiplyMatrices( a, b ) instead.' );
 			return this.multiplyMatrices( m, n );
 
 		}
@@ -441,7 +441,7 @@ THREE.Matrix4.prototype = {
 
 		return function ( array, offset, length ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 			if ( offset === undefined ) offset = 0;
 			if ( length === undefined ) length = array.length;
 
@@ -465,7 +465,7 @@ THREE.Matrix4.prototype = {
 
 		return function applyToBuffer( buffer, offset, length ) {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
 			if ( offset === undefined ) offset = 0;
 			if ( length === undefined ) length = buffer.length / buffer.itemSize;
 
@@ -588,8 +588,8 @@ THREE.Matrix4.prototype = {
 
 		return function () {
 
-			if ( v1 === undefined ) v1 = new THREE.Vector3();
-			console.warn( 'THREE.Matrix4: .getPosition() has been removed. Use Vector3.setFromMatrixPosition( matrix ) instead.' );
+			if ( v1 === undefined ) v1 = new OIMO.Vector3();
+			console.warn( 'OIMO.Matrix4: .getPosition() has been removed. Use Vector3.setFromMatrixPosition( matrix ) instead.' );
 
 			var te = this.elements;
 			return v1.set( te[ 12 ], te[ 13 ], te[ 14 ] );
@@ -642,7 +642,7 @@ THREE.Matrix4.prototype = {
 
 		if ( det === 0 ) {
 
-			var msg = "THREE.Matrix4.getInverse(): can't invert matrix, determinant is 0";
+			var msg = "OIMO.Matrix4.getInverse(): can't invert matrix, determinant is 0";
 
 			if ( throwOnInvertible || false ) {
 
@@ -688,7 +688,7 @@ THREE.Matrix4.prototype = {
 		var scaleYSq = te[ 4 ] * te[ 4 ] + te[ 5 ] * te[ 5 ] + te[ 6 ] * te[ 6 ];
 		var scaleZSq = te[ 8 ] * te[ 8 ] + te[ 9 ] * te[ 9 ] + te[ 10 ] * te[ 10 ];
 
-		return Math.sqrt( Math.max( scaleXSq, scaleYSq, scaleZSq ) );
+		return OIMO.sqrt( OIMO.max( scaleXSq, scaleYSq, scaleZSq ) );
 
 	},
 
@@ -709,7 +709,7 @@ THREE.Matrix4.prototype = {
 
 	makeRotationX: function ( theta ) {
 
-		var c = Math.cos( theta ), s = Math.sin( theta );
+		var c = OIMO.cos( theta ), s = OIMO.sin( theta );
 
 		this.set(
 
@@ -726,7 +726,7 @@ THREE.Matrix4.prototype = {
 
 	makeRotationY: function ( theta ) {
 
-		var c = Math.cos( theta ), s = Math.sin( theta );
+		var c = OIMO.cos( theta ), s = OIMO.sin( theta );
 
 		this.set(
 
@@ -743,7 +743,7 @@ THREE.Matrix4.prototype = {
 
 	makeRotationZ: function ( theta ) {
 
-		var c = Math.cos( theta ), s = Math.sin( theta );
+		var c = OIMO.cos( theta ), s = OIMO.sin( theta );
 
 		this.set(
 
@@ -762,8 +762,8 @@ THREE.Matrix4.prototype = {
 
 		// Based on http://www.gamedev.net/reference/articles/article1199.asp
 
-		var c = Math.cos( angle );
-		var s = Math.sin( angle );
+		var c = OIMO.cos( angle );
+		var s = OIMO.sin( angle );
 		var t = 1 - c;
 		var x = axis.x, y = axis.y, z = axis.z;
 		var tx = t * x, ty = t * y;
@@ -812,8 +812,8 @@ THREE.Matrix4.prototype = {
 
 		return function ( position, quaternion, scale ) {
 
-			if ( vector === undefined ) vector = new THREE.Vector3();
-			if ( matrix === undefined ) matrix = new THREE.Matrix4();
+			if ( vector === undefined ) vector = new OIMO.Vector3();
+			if ( matrix === undefined ) matrix = new OIMO.Matrix4();
 
 			var te = this.elements;
 
@@ -887,7 +887,7 @@ THREE.Matrix4.prototype = {
 
 	makePerspective: function ( fov, aspect, near, far ) {
 
-		var ymax = near * Math.tan( THREE.Math.degToRad( fov * 0.5 ) );
+		var ymax = near * OIMO.tan( OIMO.OIMO.degToRad( fov * 0.5 ) );
 		var ymin = - ymax;
 		var xmin = ymin * aspect;
 		var xmax = ymax * aspect;
