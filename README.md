@@ -49,6 +49,10 @@ Interactive documentation
 
 [DOCS](http://lo-th.github.io/Oimo.js/docs/index.html)
 
+New Lab in progress
+
+[DOCS](http://lo-th.github.io/Oimo.js/docs/index_lab.html)
+
 =========
 Note :<br>
 Oimo Physics use international system units 0.1 to 10 meters max for dynamique body.<br>
