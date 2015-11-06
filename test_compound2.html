@@ -6,20 +6,19 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="stylesheet" href="css/consolas.css">
 <link rel="stylesheet" href="css/demo.css">
 
-<script src="js/three.min.js"></script>
-<script src="js/navigation.js"></script>
+<script src="js_new/three.min.js"></script>
+<script src="js_new/OrbitControls.js"></script>
 <script src="build/oimo.min.js"></script>
 
 </head>
 <body>
-<div id='container'></div>
+<canvas id="canvas"></canvas>
 <div id='interface'>
     <input type="button" value="demo 1" onClick=populate(1)>
     <input type="button" value="demo 2" onClick=populate(2)>
-    <input type="number" name="quantity" min="10" max="2000" value="200"  id='MaxNumber'>
+    <input type="number" name="quantity" min="10" max="2000" value="400"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
 </div>
@@ -33,17 +32,20 @@
     <a href="test_moving.html">Moving</a>
     <a href="test_terrain.html">Terrain</a>
 </div>
-<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png"></a>
+<a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>      
 <script>
+    var isMobile = false;
+    var antialias = true;
 
     // three var
-    var camera, scene, light, renderer, container;
+    var camera, scene, light, renderer, canvas, controls;
     var meshs = [];
     var grounds = [];
     var geoBox, geoCyl, buffgeoSphere, buffgeoBox;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround;
     var types, sizes, positions, chairGeometry, capsuleGeometry;
-    var ToRad = Math.PI / 180;
+    var ToRad = 0.0174532925199432957;
 
     //oimo var
     var world = null;
@@ -55,32 +57,53 @@
     loop();
 
     function init() {
+        var n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; }
+
         infos = document.getElementById("info");
-        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        initCamera(90,60,400);
+
+        canvas = document.getElementById("canvas");
+
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 5000 );
+        camera.position.set( 0, 160, 400 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.target.set(0, 20, 0);
+        controls.update();;
 
         scene = new THREE.Scene();
 
-        scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
 
-        light = new THREE.DirectionalLight( 0xffffff , 1);
-        light.position.set( 300, 1000, 500 );
-        light.target.position.set( 0, 0, 0 );
-        light.castShadow = true;
-        light.shadowCameraNear = 500;
-        light.shadowCameraFar = 1600;
-        light.shadowCameraFov = 70;
-        light.shadowBias = 0.0001;
-        light.shadowDarkness = 0.7;
-        //light.shadowCameraVisible = true;
-        light.shadowMapWidth = light.shadowMapHeight = 1024;
-        scene.add( light );
+        var materialType = 'MeshBasicMaterial';
+
+        if(!isMobile){
+            scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+            light = new THREE.DirectionalLight( 0xffffff , 1);
+            light.position.set( 300, 1000, 500 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            light.shadowCameraNear = 500;
+            light.shadowCameraFar = 1600;
+            light.shadowCameraFov = 70;
+            light.shadowBias = 0.0001;
+            light.shadowDarkness = 0.7;
+            //light.shadowCameraVisible = true;
+            light.shadowMapWidth = light.shadowMapHeight = 1024;
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
+        }
 
         // background
         var buffgeoBack = new THREE.BufferGeometry();
-        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
-        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
-        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(3000,2) );
+        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[0.75,0.6,0.4,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false, fog:false }  ));
+        //back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
         scene.add( back );
 
         geoBox = new THREE.BoxGeometry( 1, 1, 1 );
@@ -92,34 +115,36 @@
         buffgeoBox = new THREE.BufferGeometry();
         buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
 
-        matSphere = new THREE.MeshPhongMaterial( { color: 0x99999A, name:'sph' ,specular: 0xFFFFFF, shininess: 120, transparent: true, opacity: 0.9 } );
-        matBox = new THREE.MeshLambertMaterial( {  color: 0xAA8058, name:'box' } );
-        matSphereSleep = new THREE.MeshPhongMaterial( { color:  0x666667, name:'ssph', specular: 0xFFFFFF, shininess: 120 , transparent: true, opacity: 0.7} );
-        matBoxSleep = new THREE.MeshLambertMaterial( {  color: 0x383838, name:'sbox' } );
-        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
+        matSphere = new THREE[materialType]( { color: 0x99999A, name:'sph' ,specular: 0xFFFFFF, shininess: 120, transparent: true, opacity: 0.9 } );
+        matBox = new THREE[materialType]( {  color: 0xAA8058, name:'box' } );
+        matSphereSleep = new THREE[materialType]( { color:  0x666667, name:'ssph', specular: 0xFFFFFF, shininess: 120 , transparent: true, opacity: 0.7} );
+        matBoxSleep = new THREE[materialType]( {  color: 0x383838, name:'sbox' } );
+        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143, transparent:true, opacity:0.5 } );
 
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.autoClear = false;
-        renderer.shadowMapEnabled = true;
-        renderer.shadowMapType = THREE.PCFShadowMap;
-        //renderer.shadowMapCullFace = THREE.CullFaceBack;
-        //renderer.gammaInput = true;
-        //renderer.gammaOutput = true;
+        // events
 
-        container = document.getElementById("container");
-        container.appendChild( renderer.domElement );
+        window.addEventListener( 'resize', onWindowResize, false );
 
-        initEvents();
+        // physics
+
         initOimoPhysics();
+
     }
 
     function loop() {
-        requestAnimationFrame( loop );
-        renderer.clear();
+       
         updateOimoPhysics();
         renderer.render( scene, camera );
-        //displayInfo();
+        requestAnimationFrame( loop );
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
     }
 
     function addStaticBox(size, position, rotation) {
@@ -134,10 +159,10 @@
     }
 
     function initCapsuleGeometry (radius, height, SRadius, SHeight) {
-        //types = [ 'sphere', 'sphere','sphere'];
-        types = [ 'sphere', 'cylinder','sphere'];
-        sizes = [ radius,radius,radius, radius,height,radius, radius,radius,radius ];
-        //sizes = [ radius,radius,radius, radius,radius,radius, radius,radius,radius ];
+        types = [ 'sphere', 'sphere','sphere'];
+        //types = [ 'sphere', 'cylinder','sphere'];
+        //sizes = [ radius,radius,radius, radius,height,radius, radius,radius,radius ];
+        sizes = [ radius,radius,radius, radius,radius,radius, radius,radius,radius ];
         positions = [0,0,0,   0,height*0.5,0, 0,height,0];
         var sRadius = SRadius || 20;
         var sHeight = SHeight || 10;
@@ -171,6 +196,7 @@
     //----------------------------------
 
     function initOimoPhysics(){
+
         world = new OIMO.World();
         //initChairGeometry();
         initCapsuleGeometry(10,22,20,10);
@@ -194,19 +220,22 @@
         var b;
 
         if(type===1){// DEMO 1
-            var ground = world.add({size:[100, 40, 390], pos:[0,-20,0], world:world});
-            var ground2 = world.add({size:[400, 40, 400], pos:[0,-60,0], world:world});
+            //add ground
+        var ground0 = world.add({size:[40, 40, 390], pos:[-180,20,0], world:world});
+        var ground1 = world.add({size:[40, 40, 390], pos:[180,20,0], world:world});
+        var ground2 = world.add({size:[400, 80, 400], pos:[0,-40,0], world:world});
 
-            addStaticBox([100, 40, 390], [0,-20,0], [0,0,0]);
-            addStaticBox([400, 40, 400], [0,-60,0], [0,0,0]);
+        addStaticBox([40, 40, 390], [-180,20,0], [0,0,0]);
+        addStaticBox([40, 40, 390], [180,20,0], [0,0,0]);
+        addStaticBox([400, 80, 400], [0,-40,0], [0,0,0]);
 
             var i = max;
             var j;
 
             while (i--){
-                positions[1] = 300+(i*160);
-                positions[0] = 10+Math.random()*20;
-                positions[2] = 10+Math.random()*20;
+                positions[1] = 100 + Math.random()*1000;
+                positions[0] = -100 + Math.random()*200;
+                positions[2] = -100 + Math.random()*200;
 
                 bodys[i] = world.add({
                     type:types,

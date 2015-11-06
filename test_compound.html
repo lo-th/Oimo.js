@@ -6,16 +6,15 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="stylesheet" href="css/consolas.css">
 <link rel="stylesheet" href="css/demo.css">
 
-<script src="js/three.min.js"></script>
-<script src="js/navigation.js"></script>
+<script src="js_new/three.min.js"></script>
+<script src="js_new/OrbitControls.js"></script>
 <script src="build/oimo.min.js"></script>
 
 </head>
 <body>
-<div id='container'></div>
+<canvas id="canvas"></canvas>
 <div id='interface'>
     <input type="button" value="demo 1" onClick=populate(1)>
     <input type="button" value="demo 2" onClick=populate(2)>
@@ -33,11 +32,15 @@
     <a href="test_moving.html">Moving</a>
     <a href="test_terrain.html">Terrain</a>
 </div>
-<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png"></a>
+<a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>   
 <script>
 
+    var isMobile = false;
+    var antialias = true;
+
     // three var
-    var camera, scene, light, renderer, container;
+    var camera, scene, light, renderer, canvas, controls;
     var meshs = [];
     var grounds = [];
     var geoBox, geoCyl, buffgeoSphere, buffgeoBox;
@@ -55,27 +58,49 @@
     loop();
 
     function init() {
+
+        var n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; }
+
         infos = document.getElementById("info");
 
+        canvas = document.getElementById("canvas");
+
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        initCamera(90,60,400);
+        camera.position.set( 0, 160, 400 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.target.set(0, 20, 0);
+        controls.update();
 
         scene = new THREE.Scene();
 
-        scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
 
-        light = new THREE.DirectionalLight( 0xffffff , 1);
-        light.position.set( 300, 1000, 500 );
-        light.target.position.set( 0, 0, 0 );
-        light.castShadow = true;
-        light.shadowCameraNear = 500;
-        light.shadowCameraFar = 1600;
-        light.shadowCameraFov = 70;
-        light.shadowBias = 0.0001;
-        light.shadowDarkness = 0.7;
-        //light.shadowCameraVisible = true;
-        light.shadowMapWidth = light.shadowMapHeight = 1024;
-        scene.add( light );
+        var materialType = 'MeshBasicMaterial';
+        
+        if(!isMobile){
+
+            scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+            light = new THREE.DirectionalLight( 0xffffff , 1);
+            light.position.set( 300, 1000, 500 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            light.shadowCameraNear = 500;
+            light.shadowCameraFar = 1600;
+            light.shadowCameraFov = 70;
+            light.shadowBias = 0.0001;
+            light.shadowDarkness = 0.7;
+            //light.shadowCameraVisible = true;
+            light.shadowMapWidth = light.shadowMapHeight = 1024;
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
+        }
 
         // background
         var buffgeoBack = new THREE.BufferGeometry();
@@ -93,30 +118,36 @@
         buffgeoBox = new THREE.BufferGeometry();
         buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
 
-        matSphere = new THREE.MeshPhongMaterial( { map: basicTexture(0), name:'sph' ,specular: 0xFFFFFF, shininess: 120, transparent: true, opacity: 0.9 } );
-        matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
-        matSphereSleep = new THREE.MeshPhongMaterial( { map: basicTexture(1), name:'ssph', specular: 0xFFFFFF, shininess: 120 , transparent: true, opacity: 0.7} );
-        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
-        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
+        matSphere = new THREE[materialType]( { map: basicTexture(0), name:'sph' ,specular: 0xFFFFFF, shininess: 120, transparent: true, opacity: 0.9 } );
+        matBox = new THREE[materialType]( {  map: basicTexture(2), name:'box' } );
+        matSphereSleep = new THREE[materialType]( { map: basicTexture(1), name:'ssph', specular: 0xFFFFFF, shininess: 120 , transparent: true, opacity: 0.7} );
+        matBoxSleep = new THREE[materialType]( {  map: basicTexture(3), name:'sbox' } );
+        matGround = new THREE[materialType]( { shininess: 10, color:0x3D4143, transparent:true, opacity:0.5 } );
 
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false});
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.shadowMapEnabled = true;
-        renderer.shadowMapType = THREE.PCFShadowMap;
+        // events
 
-        container = document.getElementById("container");
-        container.appendChild( renderer.domElement );
+        window.addEventListener( 'resize', onWindowResize, false );
 
-        initEvents();
+        // physics
+
         initOimoPhysics();
+
     }
 
     function loop() {
-        requestAnimationFrame( loop );
-        renderer.clear();
+        
         updateOimoPhysics();
         renderer.render( scene, camera );
-        //displayInfo();
+        requestAnimationFrame( loop );
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
     }
 
     function addStaticBox(size, position, rotation) {
@@ -163,6 +194,7 @@
     //----------------------------------
 
     function initOimoPhysics(){
+
         world = new OIMO.World();
         initChairGeometry();
         populate(1);
@@ -286,10 +318,8 @@
         // update world
         world.step();
 
-        var x, y, z;
-        var mesh, body;
-
-        var i = bodys.length;
+        var x, y, z, mesh, body, i = bodys.length;
+        
         while (i--){
             body = bodys[i];
             mesh = meshs[i];
