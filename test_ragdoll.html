@@ -6,23 +6,22 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="stylesheet" href="css/consolas.css">
 <link rel="stylesheet" href="css/demo.css">
 
-<script src="js/three.min.js"></script>
-<script src="js/navigation.js"></script>
+<script src="js_new/three.min.js"></script>
+<script src="js_new/OrbitControls.js"></script>
 <script src="build/oimo.min.js"></script>
 
 </head>
 <body>
-<div id='container'></div>
+<canvas id="canvas"></canvas>
 <div id='interface'>
     <input type="button" value="demo 1" onClick=populate(1)>
     <input type="button" value="demo 2" onClick=populate(2)>
     <input type="number" name="quantity" min="10" max="2000" value="32"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
-    <input type="button" value="collision off" onClick=switchCollision() id="col">
-    <input type="number" name="gravity" min="-20" max="20" value="-1" id='gravity' onChange=gravity() >
+    <input type="button" value="collision on" onClick=switchCollision() id="col">
+    <input type="number" name="gravity" min="-20" max="20" value="-4" id='gravity' onChange=gravity() >
 </div>
 <div id='info'></div>
 <div id='link'>
@@ -34,11 +33,15 @@
     <a href="test_moving.html">Moving</a>
     <a href="test_terrain.html">Terrain</a>
 </div>
-<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png"></a>
+<a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>  
 <script>
 
+    var isMobile = false;
+    var antialias = true;
+
     // three var
-    var camera, scene, light, renderer, container;
+    var camera, scene, light, renderer, canvas, controls;
     var meshs = [];
     var grounds = [];
     var geoBox, geoSphere, geoSphere2, geoCylinder, geoCylinder2;
@@ -50,41 +53,63 @@
     var bodys = null;
     var joints = null;
     var infos;
-    var type = 1;
-    var collision = false;
+    var type = 2;
+    var collision = true;
     var bgColor = 0x252627;
 
     init();
     loop();
 
     function init() {
+
+        var n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; }
+
         infos = document.getElementById("info");
 
+        canvas = document.getElementById("canvas");
+
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        center.y = 50;
-        initCamera(90,75,400);
+        camera.position.set( 0, 160, 300 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.target.set(0, 40, 0);
+        controls.update();
         
         scene = new THREE.Scene();
 
         scene.add( new THREE.AmbientLight( 0x3D4143 ) );
 
-        light = new THREE.DirectionalLight( 0xffffff , 1);
-        light.position.set( 300, 1000, 500 );
-        light.target.position.set( 0, 0, 0 );
-        light.castShadow = true;
-        light.shadowCameraNear = 500;
-        light.shadowCameraFar = 1600;
-        light.shadowCameraFov = 70;
-        light.shadowBias = 0.0001;
-        light.shadowDarkness = 0.7;
-        //light.shadowCameraVisible = true;
-        light.shadowMapWidth = light.shadowMapHeight = 1024;
-        scene.add( light );
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        
+
+        var materialType = 'MeshBasicMaterial';
+
+        if(!isMobile){
+            light = new THREE.DirectionalLight( 0xffffff , 1);
+            light.position.set( 300, 1000, 500 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            light.shadowCameraNear = 500;
+            light.shadowCameraFar = 1600;
+            light.shadowCameraFov = 70;
+            light.shadowBias = 0.0001;
+            light.shadowDarkness = 0.4;
+            //light.shadowCameraVisible = true;
+            light.shadowMapWidth = light.shadowMapHeight = 1024;
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;
+        }
 
         // background
         var buffgeoBack = new THREE.BufferGeometry();
-        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
-        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(3000,2) );
+        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[0.75,0.6,0.4,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false, fog:false }  ));
         back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
         scene.add( back );
 
@@ -104,40 +129,41 @@
         geoCylinder2.applyMatrix( new THREE.Matrix4().makeRotationZ( Math.PI / 2 ) );
 
         // material
-        matSphere = new THREE.MeshPhongMaterial( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.6, shininess:120, specular:0xffffff} );
-        matHead = new THREE.MeshLambertMaterial( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
-        matBox = new THREE.MeshPhongMaterial( {  map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
-        matBox2  = new THREE.MeshPhongMaterial( {  map: basicTexture(2,1), name:'box2', shininess:100, specular:0xffffff  } );
-        matBox3  = new THREE.MeshPhongMaterial( {  map: basicTexture(2,0), name:'box3', shininess:100, specular:0xffffff  } );
-        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph',transparent:true, opacity:0.8 } );
-        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
-        matBoxSleep2 = new THREE.MeshLambertMaterial( {  map: basicTexture(3,1), name:'sbox2' } );
-        matBoxSleep3 = new THREE.MeshLambertMaterial( {  map: basicTexture(3,0), name:'sbox3' } );
-        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
+        matSphere = new THREE[materialType] ( { map: basicTexture(0), name:'sph',transparent:true, opacity:0.6, shininess:120, specular:0xffffff} );
+        matHead = new THREE[materialType] ( { color: 0xe8b36d, name:'sphHH', shininess:60, specular:0xffffff  } );
+        matBox = new THREE[materialType] ( {  map: basicTexture(2), name:'box', shininess:100, specular:0xffffff  } );
+        matBox2  = new THREE[materialType] ( {  map: basicTexture(2,1), name:'box2', shininess:100, specular:0xffffff  } );
+        matBox3  = new THREE[materialType]( {  map: basicTexture(2,0), name:'box3', shininess:100, specular:0xffffff  } );
+        matSphereSleep = new THREE[materialType]( { map: basicTexture(1), name:'ssph',transparent:true, opacity:0.8 } );
+        matBoxSleep = new THREE[materialType]( {  map: basicTexture(3), name:'sbox' } );
+        matBoxSleep2 = new THREE[materialType]( {  map: basicTexture(3,1), name:'sbox2' } );
+        matBoxSleep3 = new THREE[materialType]( {  map: basicTexture(3,0), name:'sbox3' } );
+        matGround = new THREE[materialType]( { color: 0x3D4143 } );
 
+        // events
 
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.autoClear = false;
-        renderer.shadowMapEnabled = true;
-        renderer.shadowMapType = THREE.PCFShadowMap;
-        //renderer.gammaInput = true;
-        //renderer.gammaOutput = true;
-        
-        container = document.getElementById("container");
-        container.appendChild( renderer.domElement );
+        window.addEventListener( 'resize', onWindowResize, false );
 
-        initEvents();
+        // physics
+
         initOimoPhysics();
+
     }
 
     function loop() {
-        requestAnimationFrame( loop );
-
-        renderer.clear();
+        
         updateOimoPhysics();
         renderer.render( scene, camera );
-        //displayInfo();
+        requestAnimationFrame( loop );
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
     }
 
     function addStaticBox(size, position, rotation) {
@@ -191,9 +217,10 @@
     //----------------------------------
 
     function initOimoPhysics(){
+
         world = new OIMO.World();
         gravity();
-        populate(1);
+        populate(type);
         //setInterval(updateOimoPhysics, 1000/60);
     }
 
@@ -254,7 +281,7 @@
             bodys[j+1] = world.add({type:"box", size:[20,10,15], pos:[px,py-10,pz], move:true,  name:'spine1_'+j });
             meshs[j+1] = addThreeMesh([20,10,15], null, null, 0, 'cylinder');
        
-            bodys[j+2] = world.add({type:"box", size:[20,10,15], pos:[px,py,pz], move:true,  name:'spine2_'+j });
+            bodys[j+2] = world.add({type:"box", size:[20,10,15], pos:[px,py,pz], move:true, name:'spine2_'+j, noSleep:true });
             meshs[j+2] = addThreeMesh([20,10,15], null, null, 0, 'cylinder');
        
             bodys[j+3] = world.add({type:"box", size:[20,10,15], pos:[px,py+10,pz], move:true,  name:'spine3_'+j });
@@ -386,7 +413,7 @@
     }
 
     function gravity(){
-        nG = document.getElementById("gravity").value
+        nG = document.getElementById("gravity").value;
         world.gravity = new OIMO.Vec3(0, nG, 0);
         if(bodys){
             var i = bodys.length;
@@ -401,12 +428,13 @@
     function gradTexture(color) {
         var c = document.createElement("canvas");
         var ct = c.getContext("2d");
-        c.width = 16; c.height = 256;
-        var gradient = ct.createLinearGradient(0,0,0,256);
+        var size = 1024;
+        c.width = 16; c.height = size;
+        var gradient = ct.createLinearGradient(0,0,0,size);
         var i = color[0].length;
         while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
         ct.fillStyle = gradient;
-        ct.fillRect(0,0,16,256);
+        ct.fillRect(0,0,16,size);
         var texture = new THREE.Texture(c);
         texture.needsUpdate = true;
         return texture;

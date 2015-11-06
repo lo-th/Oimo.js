@@ -65,7 +65,7 @@
     function init() {
 
         var n = navigator.userAgent;
-        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; }
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; document.getElementById("MaxNumber").value = 200; }
 
         infos = document.getElementById("info");
 
@@ -83,6 +83,7 @@
         renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
         renderer.setSize( window.innerWidth, window.innerHeight );
 
+        var materialType = 'MeshBasicMaterial';
         
         if(!isMobile){
             scene.add( new THREE.AmbientLight( 0x3D4143 ) );
@@ -99,10 +100,9 @@
             light.shadowMapWidth = light.shadowMapHeight = 1024;
             scene.add( light );
 
+            materialType = 'MeshPhongMaterial';
+
             renderer.shadowMap.enabled = true;
-            //renderer.gammaInput = true;
-            //renderer.gammaOutput = true;
-            //renderer.gammaFactor = 2.2;
             renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
         }
 
@@ -119,24 +119,13 @@
         geos['cylinder'] = new THREE.BufferGeometry().fromGeometry(new THREE.CylinderGeometry(1,1,1));
 
         // materials
-        if(!isMobile){
-            mats['sph'] = new THREE.MeshPhongMaterial( {shininess: 10, map: basicTexture(0), name:'sph' } );
-            mats['box'] = new THREE.MeshPhongMaterial( {shininess: 10, map: basicTexture(2), name:'box' } );
-            mats['cyl'] = new THREE.MeshPhongMaterial( {shininess: 10, map: basicTexture(4), name:'cyl' } );
-            mats['ssph'] = new THREE.MeshPhongMaterial( {shininess: 10, map: basicTexture(1), name:'ssph' } );
-            mats['sbox'] = new THREE.MeshPhongMaterial( {shininess: 10, map: basicTexture(3), name:'sbox' } );
-            mats['scyl'] = new THREE.MeshPhongMaterial( {shininess: 10, map: basicTexture(5), name:'scyl' } );
-            mats['ground'] = new THREE.MeshPhongMaterial( {shininess: 10, color:0x3D4143, transparent:true, opacity:0.5 } );
-        } else {
-            mats['sph'] = new THREE.MeshBasicMaterial( { map: basicTexture(0), name:'sph' } );
-            mats['box'] = new THREE.MeshBasicMaterial( { map: basicTexture(2), name:'box' } );
-            mats['cyl'] = new THREE.MeshBasicMaterial( { map: basicTexture(4), name:'cyl' } );
-            mats['ssph'] = new THREE.MeshBasicMaterial( { map: basicTexture(1), name:'ssph' } );
-            mats['sbox'] = new THREE.MeshBasicMaterial( { map: basicTexture(3), name:'sbox' } );
-            mats['scyl'] = new THREE.MeshBasicMaterial( { map: basicTexture(5), name:'scyl' } );
-            mats['ground'] = new THREE.MeshBasicMaterial( { color: 0x3D4143 } );
-            document.getElementById("MaxNumber").value = 200;
-        }
+        mats['sph']    = new THREE[materialType]( {shininess: 10, map: basicTexture(0), name:'sph' } );
+        mats['box']    = new THREE[materialType]( {shininess: 10, map: basicTexture(2), name:'box' } );
+        mats['cyl']    = new THREE[materialType]( {shininess: 10, map: basicTexture(4), name:'cyl' } );
+        mats['ssph']   = new THREE[materialType]( {shininess: 10, map: basicTexture(1), name:'ssph' } );
+        mats['sbox']   = new THREE[materialType]( {shininess: 10, map: basicTexture(3), name:'sbox' } );
+        mats['scyl']   = new THREE[materialType]( {shininess: 10, map: basicTexture(5), name:'scyl' } );
+        mats['ground'] = new THREE[materialType]( {shininess: 10, color:0x3D4143, transparent:true, opacity:0.5 } );
 
         // events
 
