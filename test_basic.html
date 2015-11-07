@@ -139,9 +139,9 @@
 
     function loop() {
 
-        requestAnimationFrame( loop );
         updateOimoPhysics();
         renderer.render( scene, camera );
+        requestAnimationFrame( loop );
 
     }
 

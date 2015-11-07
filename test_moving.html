@@ -6,16 +6,15 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="stylesheet" href="css/consolas.css">
 <link rel="stylesheet" href="css/demo.css">
 
-<script src="js/three.min.js"></script>
-<script src="js/navigation.js"></script>
+<script src="js_new/three.min.js"></script>
+<script src="js_new/OrbitControls.js"></script>
 <script src="build/oimo.min.js"></script>
 
 </head>
 <body>
-<div id='container'></div>
+<canvas id="canvas"></canvas>
 <div id='interface'>
     <input type="button" value="demo" onClick=populate(1)>
     <input type="number" name="quantity" min="10" max="2000" value="60"  id='MaxNumber'>
@@ -32,17 +31,20 @@
     <a href="test_moving.html">Moving</a>
     <a href="test_terrain.html">Terrain</a>
 </div>
-<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png"></a>
+<a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>     
 <script>
+    var isMobile = false;
+    var antialias = true;
 
     // three var
-    var camera, scene, light, renderer, container, content;
+    var camera, scene, light, renderer, canvas, controls, content;
     var meshs = [];
     var grounds = [];
     var paddel;
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
     var buffgeoSphere, buffgeoBox;
-    var raycaster, projector;
+    var ray, mouse;
     var ToRad = Math.PI / 180;
     var ToDeg = 180 / Math.PI;
     var rotTest;
@@ -51,42 +53,64 @@
     var world = null;
     var bodys = null;
     var infos;
-    var type=1;
-
+    var type = 1;
+ 
     init();
     loop();
 
     function init() {
+        var n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; document.getElementById("MaxNumber").value = 200; }
+
         infos = document.getElementById("info");
 
-        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        initCamera(180,60,400);
+        canvas = document.getElementById("canvas");
 
-        raycaster = new THREE.Raycaster();
-        projector = new THREE.Projector();
+        camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 5000 );
+        camera.position.set( -400, 160, 0 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.target.set(0, 20, 0);
+        controls.update();
+
+        ray = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
 
         scene = new THREE.Scene();
+
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
 
         content = new THREE.Object3D();
         scene.add(content);
 
-        scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+        var materialType = 'MeshBasicMaterial';
+        
+        if(!isMobile){
 
-        light = new THREE.DirectionalLight( 0xffffff , 1);
-        light.position.set( 300, 1000, 500 );
-        light.target.position.set( 0, 0, 0 );
-        light.castShadow = true;
-        light.shadowCameraNear = 500;
-        light.shadowCameraFar = 1600;
-        light.shadowCameraFov = 70;
-        light.shadowBias = 0.0001;
-        light.shadowDarkness = 0.7;
-        light.shadowMapWidth = light.shadowMapHeight = 1024;
-        scene.add( light );
+            scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+
+            light = new THREE.DirectionalLight( 0xffffff , 1);
+            light.position.set( 300, 1000, 500 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            light.shadowCameraNear = 500;
+            light.shadowCameraFar = 1600;
+            light.shadowCameraFov = 70;
+            light.shadowBias = 0.0001;
+            light.shadowDarkness = 0.7;
+            light.shadowMapWidth = light.shadowMapHeight = 1024;
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
+        }
 
         // background
         var buffgeoBack = new THREE.BufferGeometry();
-        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(8000,1) );
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(3000,1) );
         var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
         back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
         scene.add( back );
@@ -97,31 +121,25 @@
         buffgeoBox = new THREE.BufferGeometry();
         buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
 
-        matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
-        matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
-        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
-        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
-        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
-        matGroundTrans = new THREE.MeshLambertMaterial( { color: 0x3D4143, transparent:true, opacity:0.6 } );
-
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.shadowMapEnabled = true;
-        renderer.shadowMapType = THREE.PCFShadowMap;
-        //renderer.gammaInput = true;
-        //renderer.gammaOutput = true;
+        matSphere = new THREE[materialType]( { map: basicTexture(0), name:'sph' } );
+        matBox = new THREE[materialType]( {  map: basicTexture(2), name:'box' } );
+        matSphereSleep = new THREE[materialType]( { map: basicTexture(1), name:'ssph' } );
+        matBoxSleep = new THREE[materialType]( {  map: basicTexture(3), name:'sbox' } );
+        matGround = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.5 } );
+        matGroundTrans = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.6 } );
 
         paddel = new THREE.Object3D();
-        /*paddel = new THREE.Mesh( buffgeoBox, matGroundTrans );
-        paddel.scale.set( 20, 40, 60 );
-        scene.add( paddel );*/
 
         rotTest = new THREE.Vector3();
 
-        container = document.getElementById("container");
-        container.appendChild( renderer.domElement );
+        // events
 
-        initEvents();
+        window.addEventListener( 'resize', onWindowResize, false );
+        canvas.addEventListener( 'mousemove', rayTest, false);
+        //canvas.onmousemove = rayTest;
+
+        // physics
+
         initOimoPhysics();
     }
 
@@ -131,6 +149,14 @@
         renderer.render( scene, camera );
         requestAnimationFrame( loop );
         
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
     }
 
     function addStaticBox(size, position, rotation, spec) {
@@ -148,7 +174,7 @@
     }
 
     function clearMesh(){
-        var i=meshs.length;
+        var i = meshs.length;
         while (i--) scene.remove(meshs[ i ]);
         i = grounds.length;
         while (i--) scene.remove(grounds[ i ]);
@@ -196,10 +222,10 @@
         
 
         //add ground
-        var ground = world.add({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
+        var ground = world.add({size:[400, 40, 400], pos:[0,-20,0], config:config});
         addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
 
-        var ground2 = world.add({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
+        var ground2 = world.add({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], config:config});
         addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
 
         /*config[3] = group1;
@@ -227,12 +253,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config, name:'sphere'});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config, name:'sphere'});
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config, name:'box'});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config, name:'box'});
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
@@ -378,11 +404,12 @@
     //  RAY TEST
     //----------------------------------
 
-    var rayTest = function () {
-        var vector = new THREE.Vector3( mouse.mx, mouse.my, 1 );
-        projector.unprojectVector( vector, camera );
-        raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
-        var intersects = raycaster.intersectObjects( content.children, true );
+    function rayTest(e) {
+        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+        ray.setFromCamera( mouse, camera );
+        var intersects = ray.intersectObjects( content.children, true );
         if ( intersects.length) {
             paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
         }

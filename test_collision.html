@@ -6,16 +6,15 @@
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=11" />
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="stylesheet" href="css/consolas.css">
 <link rel="stylesheet" href="css/demo.css">
 
-<script src="js/three.min.js"></script>
-<script src="js/navigation.js"></script>
+<script src="js_new/three.min.js"></script>
+<script src="js_new/OrbitControls.js"></script>
 <script src="build/oimo.min.js"></script>
 
 </head>
 <body>
-<div id='container'></div>
+<canvas id="canvas"></canvas>
 <div id='interface'>
     <input type="button" value="demo" onClick=populate(1)>
     <input type="number" name="quantity" min="10" max="2000" value="40"  id='MaxNumber'>
@@ -32,16 +31,19 @@
     <a href="test_moving.html">Moving</a>
     <a href="test_terrain.html">Terrain</a>
 </div>
-<a href="https://github.com/lo-th/Oimo.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png" alt="Fork me on GitHub"></a>       
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="images/ribbon.png"></a>
+<a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>   
 <script>
+    var isMobile = false;
+    var antialias = true;
 
     // three var
-    var camera, scene, light, renderer, container;
+    var camera, scene, light, renderer, canvas;
     var meshs = [];
     var grounds = [];
     var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
     var buffgeoSphere, buffgeoBox;
-    var ToRad = Math.PI / 180;
+    var ToRad = 0.0174532925199432957;
 
     //oimo var
     var world = null;
@@ -54,26 +56,49 @@
     loop();
 
     function init() {
+
+        var n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; document.getElementById("MaxNumber").value = 200; }
+
         infos = document.getElementById("info");
+
+        canvas = document.getElementById("canvas");
         
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-        initCamera(105,60,400);
+        camera.position.set( 0, 160, 400 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.target.set(0, 20, 0);
+        controls.update();
 
         scene = new THREE.Scene();
 
-        scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
 
-        light = new THREE.DirectionalLight( 0xffffff , 1);
-        light.position.set( 300, 1000, 500 );
-        light.target.position.set( 0, 0, 0 );
-        light.castShadow = true;
-        light.shadowCameraNear = 500;
-        light.shadowCameraFar = 1600;
-        light.shadowCameraFov = 70;
-        light.shadowBias = 0.0001;
-        light.shadowDarkness = 0.7;
-        light.shadowMapWidth = light.shadowMapHeight = 1024;
-        scene.add( light );
+        var materialType = 'MeshBasicMaterial';
+        
+        if(!isMobile){
+
+            scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+
+            light = new THREE.DirectionalLight( 0xffffff , 1);
+            light.position.set( 300, 1000, 500 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            light.shadowCameraNear = 500;
+            light.shadowCameraFar = 1600;
+            light.shadowCameraFov = 70;
+            light.shadowBias = 0.0001;
+            light.shadowDarkness = 0.7;
+            light.shadowMapWidth = light.shadowMapHeight = 1024;
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
+        }
 
         // background
         var buffgeoBack = new THREE.BufferGeometry();
@@ -88,25 +113,21 @@
         buffgeoBox = new THREE.BufferGeometry();
         buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
 
-        matSphere = new THREE.MeshLambertMaterial( { map: basicTexture(0), name:'sph' } );
-        matBox = new THREE.MeshLambertMaterial( {  map: basicTexture(2), name:'box' } );
-        matSphereSleep = new THREE.MeshLambertMaterial( { map: basicTexture(1), name:'ssph' } );
-        matBoxSleep = new THREE.MeshLambertMaterial( {  map: basicTexture(3), name:'sbox' } );
-        matGround = new THREE.MeshLambertMaterial( { color: 0x3D4143 } );
-        matGroundTrans = new THREE.MeshLambertMaterial( { color: 0x3D4143, transparent:true, opacity:0.6 } );
+        matSphere = new THREE[materialType]( { map: basicTexture(0), name:'sph' } );
+        matBox = new THREE[materialType]( {  map: basicTexture(2), name:'box' } );
+        matSphereSleep = new THREE[materialType]( { map: basicTexture(1), name:'ssph' } );
+        matBoxSleep = new THREE[materialType]( {  map: basicTexture(3), name:'sbox' } );
+        matGround = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.5 } );
+        matGroundTrans = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.6 } );
 
-        renderer = new THREE.WebGLRenderer({precision: "mediump", antialias:false });
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.shadowMapEnabled = true;
-        renderer.shadowMapType = THREE.PCFShadowMap;
-        //renderer.gammaInput = true;
-        //renderer.gammaOutput = true;
+        // events
 
-        container = document.getElementById("container");
-        container.appendChild( renderer.domElement );
+        window.addEventListener( 'resize', onWindowResize, false );
 
-        initEvents();
+        // physics
+
         initOimoPhysics();
+
     }
 
     function loop() {
@@ -114,7 +135,15 @@
         updateOimoPhysics();
         renderer.render( scene, camera );
         requestAnimationFrame( loop );
-        //displayInfo();
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
     }
 
     function addStaticBox(size, position, rotation, spec) {
@@ -178,15 +207,15 @@
         ];
 
         //add ground
-        var ground = world.add({size:[400, 40, 400], pos:[0,-20,0], world:world, config:config});
+        var ground = world.add({size:[400, 40, 400], pos:[0,-20,0], config:config});
         addStaticBox([400, 40, 400], [0,-20,0], [0,0,0]);
 
-        var ground2 = world.add({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], world:world, config:config});
+        var ground2 = world.add({size:[200, 30, 390], pos:[130,40,0], rot:[0,0,32], config:config});
         addStaticBox([200, 30, 390], [130,40,0], [0,0,32]);
 
         config[3] = group1;
         config[4] = all & ~group2; // all exepte groupe2
-        var ground3 = world.add({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], world:world, config:config});
+        var ground3 = world.add({size:[5, 100, 390], pos:[0,40,0], rot:[0,0,0], config:config});
         addStaticBox([5, 100, 390], [0,40,0], [0,0,0], true);
 
         // now add object
@@ -207,12 +236,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config});
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, world:world, config:config});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config});
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
