@@ -13,8 +13,9 @@ var OIMO = {
     // This will be incremented every time a shape is created.
     nextID : 0,
 
-    BODY_STATIC  : 0,
+    
     BODY_DYNAMIC : 1,
+    BODY_STATIC  : 2,
 
 
     // body type

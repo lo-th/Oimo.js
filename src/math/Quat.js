@@ -9,6 +9,18 @@ OIMO.Quat.prototype = {
 
     constructor: OIMO.Quat,
 
+    set: function ( x, y, z, w ) {
+
+        
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.s = w;
+
+        return this;
+
+    },
+
     init: function(s,x,y,z){
         this.s=( s !== undefined ) ? s : 1;
         this.x=x || 0;

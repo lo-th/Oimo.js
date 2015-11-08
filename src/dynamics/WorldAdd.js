@@ -20,13 +20,13 @@ OIMO.World.prototype.add = function(obj){
         if(type[0]==="jointDistance"){
             min = obj.min || 0;
             max = obj.max || 10;
-            min = min*OIMO.INV_SCALE;
-            max = max*OIMO.INV_SCALE;
+            min = min * OIMO.INV_SCALE;
+            max = max * OIMO.INV_SCALE;
         }else{
             min = obj.min || 57.29578;
             max = obj.max || 0;
-            min = min*OIMO.degtorad;
-            max = max*OIMO.degtorad;
+            min = min * OIMO.degtorad;
+            max = max * OIMO.degtorad;
         }
 
         var limit = obj.limit || null;
@@ -96,7 +96,9 @@ OIMO.World.prototype.add = function(obj){
         }
 
         // My physics setting
-        var sc = obj.sc || new OIMO.ShapeConfig();
+        var sc = new OIMO.ShapeConfig();
+        if( obj.sc  !== undefined ) sc = obj.sc;
+
         if(obj.config){
             // The density of the shape.
             sc.density = obj.config[0] === undefined ? 1 : obj.config[0];
@@ -111,6 +113,16 @@ OIMO.World.prototype.add = function(obj){
             sc.collidesWith = obj.config[4] || 0xffffffff;
             //sc.collidesWith = obj.config[4] === undefined ? 0xffffffff : obj.config[4];
         }
+
+        // direct physics setting
+
+        if( obj.density  !== undefined ) sc.density = obj.density;
+        if( obj.friction  !== undefined ) sc.friction = obj.friction;
+        if( obj.restitution  !== undefined ) sc.restitution = obj.restitution;
+        if( obj.belongsTo  !== undefined ) sc.belongsTo = obj.belongsTo;
+        if( obj.collidesWith  !== undefined ) sc.collidesWith = obj.collidesWith;
+
+
 
         if(obj.massPos){
             obj.massPos = obj.massPos.map(function(x) { return x * OIMO.INV_SCALE; });
@@ -135,7 +147,7 @@ OIMO.World.prototype.add = function(obj){
             n2 = i*4;
             switch(type[i]){
                 case "sphere": shapes[i] = new OIMO.SphereShape(sc, s[n]); break;
-                case "cylinder": shapes[i] = new OIMO.CylinderShape(sc, s[n], s[n+1]); break; // true cylinder
+                case "cylinder": shapes[i] = new OIMO.CylinderShape(sc, s[n], s[n+1]); break;
                 case "box": shapes[i] = new OIMO.BoxShape(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape(shapes[i]);
@@ -156,7 +168,7 @@ OIMO.World.prototype.add = function(obj){
             body.setupMass(0x2);
         }
         
-        body.name = obj.name || '';
+        body.name = obj.name || ' ';
         // finaly add to physics world
         this.addRigidBody(body);
         return body;

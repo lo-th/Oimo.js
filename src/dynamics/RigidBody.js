@@ -4,20 +4,9 @@
 * I can set the parameters individually.
 * @author saharan
 */
-OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
-    var rad = Rad || 0;
-    var ax = Ax || 0;
-    var ay = Ay || 0;
-    var az = Az || 0; 
-    var x = X || 0;
-    var y = Y || 0;
-    var z = Z || 0;
-    
+OIMO.RigidBody = function ( x, y, z, rad, ax, ay, az ) {
+
     this.name = " ";
-    // It is a kind of rigid body that represents the dynamic rigid body.
-    this.BODY_DYNAMIC = 0x1;
-    // It is a kind of rigid body that represents the static rigid body.
-    this.BODY_STATIC = 0x2;
     // The maximum number of shapes that can be added to a one rigid.
     this.MAX_SHAPES = 64;//64;
 
@@ -33,7 +22,9 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     this.massInfo = new OIMO.MassInfo();
 
     // It is the world coordinate of the center of gravity.
-    this.position = new OIMO.Vec3(x,y,z); 
+    this.position = new OIMO.Vec3( x, y, z );
+
+    this.orientation = this.rotationAxisToQuad( rad || 0, ax || 0, ay || 0, az || 0 );
 
 
     this.newPosition = new OIMO.Vec3(0,0,0);
@@ -44,7 +35,7 @@ OIMO.RigidBody = function(X,Y,Z,Rad,Ax,Ay,Az){
     this.controlRot = false;
     this.controlRotInTime = false;
 
-    this.orientation = this.rotationAxisToQuad(rad,ax,ay,az);
+    
 
     // Is the translational velocity.
     this.linearVelocity = new OIMO.Vec3();
@@ -148,11 +139,22 @@ OIMO.RigidBody.prototype = {
         this.numShapes--;
     },
 
-    dispose:function(){
-        this.parent.removeRigidBody(this);
+    remove: function () {
+
+        this.dispose();
+
     },
-    checkContact:function(name){
-        this.parent.checkContact(this.name, name);
+
+    dispose: function () {
+
+        this.parent.removeRigidBody( this );
+
+    },
+
+    checkContact: function( name ) {
+
+        this.parent.checkContact( this.name, name );
+
     },
 
     /**
@@ -165,23 +167,23 @@ OIMO.RigidBody.prototype = {
     */
     setupMass:function(Type,AdjustPosition){
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
-        var type = Type || this.BODY_DYNAMIC;
+        var type = Type || OIMO.BODY_DYNAMIC;
         //var te = this.localInertia.elements;
-        this.type=type;
-        this.isDynamic=type==this.BODY_DYNAMIC;
-        this.isStatic=type==this.BODY_STATIC;
-        this.mass=0;
-        this.localInertia.init(0,0,0,0,0,0,0,0,0);
+        this.type = type;
+        this.isDynamic = type==OIMO.BODY_DYNAMIC;
+        this.isStatic = type==OIMO.BODY_STATIC;
+        this.mass = 0;
+        this.localInertia.set(0,0,0,0,0,0,0,0,0);
         var te = this.localInertia.elements;
         //
-        var tmpM=new OIMO.Mat33();
-        var tmpV=new OIMO.Vec3();
-        for(var shape=this.shapes;shape!=null;shape=shape.next){
+        var tmpM = new OIMO.Mat33();
+        var tmpV = new OIMO.Vec3();
+        for(var shape = this.shapes; shape != null; shape = shape.next ){
             shape.calculateMassInfo(this.massInfo);
-            var shapeMass=this.massInfo.mass;
-            var relX=shape.relativePosition.x;
-            var relY=shape.relativePosition.y;
-            var relZ=shape.relativePosition.z;
+            var shapeMass = this.massInfo.mass;
+            var relX = shape.relativePosition.x;
+            var relY = shape.relativePosition.y;
+            var relZ = shape.relativePosition.z;
             /*tmpV.x+=relX*shapeMass;
             tmpV.y+=relY*shapeMass;
             tmpV.z+=relZ*shapeMass;*/
@@ -229,10 +231,12 @@ OIMO.RigidBody.prototype = {
             te[5]+=zx;
             te[7]+=zx;
         }
+
         this.inverseLocalInertia.invert(this.localInertia);
-        if(type==this.BODY_STATIC){
+
+        if(type==OIMO.BODY_STATIC){
             this.inverseMass=0;
-            this.inverseLocalInertia.init(0,0,0,0,0,0,0,0,0);
+            this.inverseLocalInertia.set(0,0,0,0,0,0,0,0,0);
         }
         this.syncShapes();
         this.awake();
@@ -266,8 +270,8 @@ OIMO.RigidBody.prototype = {
     */
     sleep:function(){
         if(!this.allowSleep||this.sleeping)return;
-        this.linearVelocity.init();
-        this.angularVelocity.init();
+        this.linearVelocity.set(0,0,0);
+        this.angularVelocity.set(0,0,0);
         this.sleepPosition.copy(this.position);
         this.sleepOrientation.copy(this.orientation);
         /*this.linearVelocity.x=0;
@@ -295,7 +299,7 @@ OIMO.RigidBody.prototype = {
     * @return
     */
     isLonely:function(){
-        return this.numJoints==0&&this.numContacts==0;
+        return this.numJoints==0 && this.numContacts==0;
     },
 
     /** 
@@ -307,9 +311,10 @@ OIMO.RigidBody.prototype = {
 
     updatePosition:function(timeStep){
         switch(this.type){
-            case this.BODY_STATIC:
-                this.linearVelocity.init();
-                this.angularVelocity.init();
+            case OIMO.BODY_STATIC:
+                this.linearVelocity.set(0,0,0);
+                this.angularVelocity.set(0,0,0);
+
                 // ONLY FOR TEST
                 if(this.controlPos){
                     this.position.copy(this.newPosition);
@@ -326,18 +331,18 @@ OIMO.RigidBody.prototype = {
                 this.angularVelocity.y=0;
                 this.angularVelocity.z=0;*/
             break;
-            case this.BODY_DYNAMIC:
+            case OIMO.BODY_DYNAMIC:
 
                 if(this.controlPos){
-                    this.angularVelocity.init();
-                    this.linearVelocity.init();
+                    this.angularVelocity.set(0,0,0);
+                    this.linearVelocity.set(0,0,0);
                     this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                     this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
                     this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
                     this.controlPos = false;
                 }
                 if(this.controlRot){
-                    this.angularVelocity.init();
+                    this.angularVelocity.set(0,0,0);
                     this.orientation.copy(this.newOrientation);
 
                     //var t=timeStep//*0.5;
@@ -361,8 +366,7 @@ OIMO.RigidBody.prototype = {
                 this.orientation.addTime(this.angularVelocity, timeStep);
 
             break;
-            default:
-                throw new Error("Invalid type.");
+            default: OIMO.Error("RigidBody", "Invalid type.");
         }
         this.syncShapes();
     },
@@ -429,7 +433,7 @@ OIMO.RigidBody.prototype = {
         tr[8]=1-xx-yy;
 
         this.rotateInertia(this.rotation,this.inverseLocalInertia,this.inverseInertia);
-        for(var shape=this.shapes;shape!=null;shape=shape.next){
+        for(var shape = this.shapes; shape!=null; shape = shape.next){
             //var relPos=shape.relativePosition;
             //var relRot=shape.relativeRotation;
             //var rot=shape.rotation;
@@ -489,14 +493,15 @@ OIMO.RigidBody.prototype = {
     //---------------------------------------------
 
     setPosition:function(pos){
-        this.newPosition.init(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
+        this.newPosition.copy( pos ).multiplyScalar(OIMO.INV_SCALE);
+        //this.newPosition.set(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
         this.controlPos = true;
     },
 
     setQuaternion:function(q){ 
         //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
 
-        this.newOrientation.init(q.w,q.x,q.y,q.z); 
+        this.newOrientation.set( q.x, q.y, q.z, q.w ); 
         this.controlRot = true;
     },
 
@@ -510,19 +515,21 @@ OIMO.RigidBody.prototype = {
     //---------------------------------------------
 
     resetPosition:function(x,y,z){
-        this.linearVelocity.init();
-        this.angularVelocity.init();
-        this.position.init(x*OIMO.INV_SCALE,y*OIMO.INV_SCALE,z*OIMO.INV_SCALE);
+        this.linearVelocity.set( 0, 0, 0 );
+        this.angularVelocity.set( 0, 0, 0 );
+        this.position.set( x, y, z ).multiplyScalar(OIMO.INV_SCALE);
+        //this.position.set( x*OIMO.INV_SCALE, y*OIMO.INV_SCALE, z*OIMO.INV_SCALE );
         this.awake();
     },
     resetQuaternion:function(q){
-        this.angularVelocity.init();
+        this.angularVelocity.set(0,0,0);
         this.orientation = new OIMO.Quat(q.w,q.x,q.y,q.z);
         this.awake();
     },
+    
     resetRotation:function(x,y,z){
-        this.angularVelocity.init();
-        this.orientation = this.rotationVectToQuad(new OIMO.Vec3(x,y,z));
+        this.angularVelocity.set(0,0,0);
+        this.orientation = this.rotationVectToQuad( new OIMO.Vec3(x,y,z) );
         this.awake();
     },
 
@@ -530,15 +537,17 @@ OIMO.RigidBody.prototype = {
     // GET POSITION AND ROTATION
     //---------------------------------------------
 
-    getPosition:function(){
+    getPosition:function () {
         return new OIMO.Vec3().scale(this.position, OIMO.WORLD_SCALE);
     },
+
     getRotation:function(){
         return new OIMO.Euler().setFromRotationMatrix(this.rotation);
     },
     getQuaternion:function(){
         return new OIMO.Quaternion().setFromRotationMatrix(this.rotation);
     },
+
     getMatrix:function(){
         var m = this.matrix.elements;
         var r,p;

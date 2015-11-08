@@ -12,13 +12,16 @@ OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
 OIMO.Mat33.prototype = {
     constructor: OIMO.Mat33,
 
-    init: function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
+    init: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
         var te = this.elements;
         te[0] = e00; te[1] = e01; te[2] = e02;
         te[3] = e10; te[4] = e11; te[5] = e12;
         te[6] = e20; te[7] = e21; te[8] = e22;
         return this;
     },
+
+    
+
     multiply: function(s){
         var te = this.elements;
         te[0] *= s; te[1] *= s; te[2] *= s;
@@ -26,6 +29,8 @@ OIMO.Mat33.prototype = {
         te[6] *= s; te[7] *= s; te[8] *= s;
         return this;
     },
+
+    
     add: function(m1,m2){
         var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
         te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
@@ -194,13 +199,13 @@ OIMO.Mat33.prototype = {
         te[8] = dt*(a0*a4 - a1*a3);
         return this;
     },
-    copy: function(m){
+    /*copy: function(m){
         var te = this.elements, tem = m.elements;
         te[0] = tem[0]; te[1] = tem[1]; te[2] = tem[2];
         te[3] = tem[3]; te[4] = tem[4]; te[5] = tem[5];
         te[6] = tem[6]; te[7] = tem[7]; te[8] = tem[8];
         return this;
-    },
+    },*/
     toEuler: function(){ // not work !!
         function clamp( x ) {
             return OIMO.min( OIMO.max( x, -1 ), 1 );
@@ -226,7 +231,7 @@ OIMO.Mat33.prototype = {
         
         return p;
     },
-    clone: function(){
+    /*clone: function(){
         var te = this.elements;
 
         return new OIMO.Mat33(
@@ -234,7 +239,8 @@ OIMO.Mat33.prototype = {
             te[3], te[4], te[5],
             te[6], te[7], te[8]
         );
-    },
+    },*/
+
     toString: function(){
         var te = this.elements;
         var text=
@@ -242,5 +248,84 @@ OIMO.Mat33.prototype = {
         "     |"+te[3].toFixed(4)+", "+te[4].toFixed(4)+", "+te[5].toFixed(4)+"|\n"+
         "     |"+te[6].toFixed(4)+", "+te[7].toFixed(4)+", "+te[8].toFixed(4)+"|" ;
         return text;
+    },
+
+    // OK 
+
+    multiplyScalar: function ( s ) {
+
+        var te = this.elements;
+
+        te[ 0 ] *= s; te[ 3 ] *= s; te[ 6 ] *= s;
+        te[ 1 ] *= s; te[ 4 ] *= s; te[ 7 ] *= s;
+        te[ 2 ] *= s; te[ 5 ] *= s; te[ 8 ] *= s;
+
+        return this;
+
+    },
+
+    set: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
+
+        var te = this.elements;
+
+        te[0] = e00; te[1] = e01; te[2] = e02;
+        te[3] = e10; te[4] = e11; te[5] = e12;
+        te[6] = e20; te[7] = e21; te[8] = e22;
+
+        return this;
+
+    },
+
+    identity: function () {
+
+        this.set( 1, 0, 0, 0, 1, 0, 0, 0, 1 );
+
+        return this;
+
+    },
+
+
+    clone: function () {
+
+        return new this.constructor().fromArray( this.elements );
+
+    },
+
+    copy: function ( m ) {
+
+        var me = m.elements;
+
+        this.set(
+
+            me[ 0 ], me[ 3 ], me[ 6 ],
+            me[ 1 ], me[ 4 ], me[ 7 ],
+            me[ 2 ], me[ 5 ], me[ 8 ]
+
+        );
+
+        return this;
+
+    },
+
+    fromArray: function ( array ) {
+
+        this.elements.set( array );
+
+        return this;
+
+    },
+
+    toArray: function () {
+
+        var te = this.elements;
+
+        return [
+            te[ 0 ], te[ 1 ], te[ 2 ],
+            te[ 3 ], te[ 4 ], te[ 5 ],
+            te[ 6 ], te[ 7 ], te[ 8 ]
+        ];
+
     }
+
+
 };

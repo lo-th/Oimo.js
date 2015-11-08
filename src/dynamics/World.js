@@ -276,8 +276,8 @@ OIMO.World.prototype = {
         if(!this.isNoStat) time1=OIMO.now();
 
         this.broadPhase.detectPairs();
-        var pairs=this.broadPhase.pairs;
-        var numPairs=this.broadPhase.numPairs;
+        var pairs = this.broadPhase.pairs;
+        var numPairs = this.broadPhase.numPairs;
         var i = numPairs;
         //do{
         while(i--){
@@ -286,11 +286,11 @@ OIMO.World.prototype = {
             var s1;
             var s2;
             if(pair.shape1.id<pair.shape2.id){
-                s1=pair.shape1;
-                s2=pair.shape2;
+                s1 = pair.shape1;
+                s2 = pair.shape2;
             }else{
-                s1=pair.shape2;
-                s2=pair.shape1;
+                s1 = pair.shape2;
+                s2 = pair.shape1;
             }
             var link;
             if(s1.numContacts<s2.numContacts){
@@ -314,8 +314,8 @@ OIMO.World.prototype = {
         }// while(i-- >0);
 
         if(!this.isNoStat){
-            time2=OIMO.now();
-            this.performance.broadPhaseTime=time2-time1;
+            time2 = OIMO.now();
+            this.performance.broadPhaseTime = time2-time1;
         }
 
         // update & narrow phase
@@ -565,7 +565,8 @@ OIMO.World.prototype = {
             //this.performance.updatingTime = this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
         }
     },
-    addContact:function(s1,s2){
+    addContact: function (s1,s2) {
+
         var newContact;
         if(this.unusedContacts!==null){
             newContact=this.unusedContacts;
@@ -578,21 +579,27 @@ OIMO.World.prototype = {
         if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
         this.contacts = newContact;
         this.numContacts++;
+
     },
-    removeContact:function(contact){
-        var prev=contact.prev;
-        var next=contact.next;
-        if(next)next.prev=prev;
-        if(prev)prev.next=next;
-        if(this.contacts==contact) this.contacts=next;
-        contact.prev=null;
-        contact.next=null;
+
+    removeContact: function ( contact ) {
+
+        var prev = contact.prev;
+        var next = contact.next;
+        if(next) next.prev = prev;
+        if(prev) prev.next = next;
+        if(this.contacts == contact) this.contacts = next;
+        contact.prev = null;
+        contact.next = null;
         contact.detach();
-        contact.next=this.unusedContacts;
-        this.unusedContacts=contact;
+        contact.next = this.unusedContacts;
+        this.unusedContacts = contact;
         this.numContacts--;
+
     },
-    checkContact:function(name1, name2){
+
+    checkContact: function ( name1, name2 ) {
+
         var n1, n2;
         var contact = this.contacts;
         while(contact!==null){
@@ -602,15 +609,16 @@ OIMO.World.prototype = {
             else contact = contact.next;
         }
         return false;
+
     },
-    calSleep:function(body){
-        if(!body.allowSleep)return false;
-        if(body.linearVelocity.len()>0.04)return false;
-        if(body.angularVelocity.len()>0.25)return false;
-        /*var v=body.linearVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.04){return false;}
-        v=body.angularVelocity;
-        if(v.x*v.x+v.y*v.y+v.z*v.z>0.25){return false;}*/
+
+    calSleep: function( body ) {
+
+        if( !body.allowSleep ) return false;
+        if( body.linearVelocity.lengthSq() > 0.04 ) return false;
+        if( body.angularVelocity.lengthSq() > 0.25 ) return false;
         return true;
+
     }
+
 }

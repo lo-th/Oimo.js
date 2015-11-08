@@ -68,9 +68,9 @@ OIMO.Vec3.prototype = {
         this.z*=s;
         return this;
     },
-    dot: function(v){
+    /*dot: function(v){
         return this.x*v.x+this.y*v.y+this.z*v.z;
-    },
+    },*/
     cross: function(v1,v2){
         var ax = v1.x, ay = v1.y, az = v1.z, 
         bx = v2.x, by = v2.y, bz = v2.z;
@@ -125,6 +125,28 @@ OIMO.Vec3.prototype = {
         var x = this.x, y = this.y, z = this.z;
         return OIMO.sqrt(x*x + y*y + z*z);
     },*/
+    
+    negate: function () {
+
+        this.x = - this.x;
+        this.y = - this.y;
+        this.z = - this.z;
+
+        return this;
+
+    },
+
+    dot: function ( v ) {
+
+        return this.x * v.x + this.y * v.y + this.z * v.z;
+
+    },
+
+    lengthSq: function () {
+
+        return this.x * this.x + this.y * this.y + this.z * this.z;
+
+    },
 
     length: function () {
 
@@ -132,10 +154,11 @@ OIMO.Vec3.prototype = {
 
     },
 
-    len: function(){
+    /*len: function(){
         var x = this.x, y = this.y, z = this.z;
         return x*x + y*y + z*z;
-    },
+    },*/
+
     copy: function(v){
         this.x = v.x;
         this.y = v.y;

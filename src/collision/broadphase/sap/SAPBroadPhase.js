@@ -161,7 +161,7 @@ OIMO.SAPBroadPhase.prototype.collectPairs = function () {
                     break;
                 }
                 e1=e2;
-            }while(e1!==null);
+            }while(e1!=null);
         }
     }
     this.index2=(this.index1|this.index2)^3;
