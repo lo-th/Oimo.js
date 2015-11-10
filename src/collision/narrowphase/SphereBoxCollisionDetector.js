@@ -2,12 +2,18 @@
  * A collision detector which detects collisions between sphere and box.
  * @author saharan
  */
-OIMO.SphereBoxCollisionDetector = function(flip){
+OIMO.SphereBoxCollisionDetector = function ( flip ) {
+    
     OIMO.CollisionDetector.call( this );
     this.flip = flip;
-}
+
+};
+
 OIMO.SphereBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+OIMO.SphereBoxCollisionDetector.prototype.constructor = OIMO.SphereBoxCollisionDetector;
+
+OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
+
     var s;
     var b;
     if(this.flip){
@@ -163,4 +169,4 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         }
     }
 
-}
+};

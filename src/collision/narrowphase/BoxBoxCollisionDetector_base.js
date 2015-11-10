@@ -7,6 +7,8 @@ OIMO.BoxBoxCollisionDetector = function(){
     this.INF = 1/0;
 }
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
+OIMO.BoxBoxCollisionDetector.prototype.constructor = OIMO.BoxBoxCollisionDetector;
+
 OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
     var b1;
     var b2;

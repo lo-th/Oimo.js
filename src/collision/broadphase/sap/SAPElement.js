@@ -1,10 +1,12 @@
 /**
-* An element of proxies.
-* @author saharan
-*/
-OIMO.SAPElement = function(proxy,max){
+ * An element of proxies.
+ * @author saharan
+ */
+
+OIMO.SAPElement = function ( proxy, max ) {
+
     // The parent proxy
-    this.proxy=proxy;
+    this.proxy = proxy;
 	// The pair element.
     this.pair = null;
     // The minimum element on other axis.
@@ -19,4 +21,5 @@ OIMO.SAPElement = function(proxy,max){
     this.max = max;
     // The value of the element.
     this.value = 0;
+
 };

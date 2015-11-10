@@ -13,12 +13,18 @@ var OIMO = {
     // This will be incremented every time a shape is created.
     nextID : 0,
 
-    
+    // BroadPhase
+    BR_NULL : 0,
+    BR_BRUTE_FORCE : 1,
+    BR_SWEEP_AND_PRUNE : 2,
+    BR_BOUNDING_VOLUME_TREE : 3,
+
+    // body type
+    BODY_NULL : 0,
     BODY_DYNAMIC : 1,
     BODY_STATIC  : 2,
 
-
-    // body type
+    // shape type
     SHAPE_NULL     : 0,
     SHAPE_SPHERE   : 1,
     SHAPE_BOX      : 2,

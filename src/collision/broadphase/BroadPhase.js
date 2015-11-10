@@ -4,7 +4,7 @@
 
 OIMO.BroadPhase = function(){
     
-    this.types = 0x0;
+    this.types = OIMO.BR_NULL;
     this.numPairChecks = 0;
     this.numPairs = 0;
     this.pairs = [];
@@ -19,33 +19,42 @@ OIMO.BroadPhase.prototype = {
     * @param   shape
     * @return
     */
-    createProxy:function(shape){
-        throw new Error("Inheritance error.");
+    createProxy: function ( shape ) {
+
+        OIMO.Error("BroadPhase","Inheritance error.");
+
     },
+
     /**
     * Add the proxy into the broad-phase.
     * @param   proxy
     */
-    addProxy:function(proxy){
-        throw new Error("Inheritance error.");
+    addProxy: function ( proxy ) {
+
+        OIMO.Error("BroadPhase","Inheritance error.");
     },
+
     /**
     * Remove the proxy from the broad-phase.
     * @param   proxy
     */
-    removeProxy:function(proxy){
-        throw new Error("Inheritance error.");
+    removeProxy: function ( proxy ) {
+
+        OIMO.Error("BroadPhase","Inheritance error.");
+
     },
+
     /**
     * Returns whether the pair is available or not.
     * @param   s1
     * @param   s2
     * @return
     */
-    isAvailablePair:function(s1,s2){
+    isAvailablePair: function ( s1, s2 ) {
+
         var b1 = s1.parent;
         var b2 = s2.parent;
-        if( b1==b2 || // same parents 
+        if( b1 == b2 || // same parents 
             (!b1.isDynamic && !b2.isDynamic) || // static or kinematic object
             (s1.belongsTo&s2.collidesWith)==0 ||
             (s2.belongsTo&s1.collidesWith)==0 // collision filtering
@@ -59,9 +68,12 @@ OIMO.BroadPhase.prototype = {
            js = js.next;
         }
         return true;
+
     },
+
     // Detect overlapping pairs.
-    detectPairs:function(){
+    detectPairs: function () {
+
         // clear old
         this.pairs = [];
         this.numPairs = 0;
@@ -70,12 +82,18 @@ OIMO.BroadPhase.prototype = {
         this.collectPairs();
         
     },
-    collectPairs:function(){
-        throw new Error("Inheritance error.");
+
+    collectPairs: function () {
+
+        OIMO.Error("BroadPhase", "Inheritance error.");
+
     },
-    addPair:function(s1,s2){
-        var pair = new OIMO.Pair(s1,s2);
+
+    addPair: function ( s1, s2 ) {
+
+        var pair = new OIMO.Pair( s1, s2 );
         this.pairs.push(pair);
         this.numPairs++;
+
     }
 };

@@ -1,10 +1,16 @@
 /**
-* An axis-aligned bounding box.
-* @author saharan
-*/
-OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
+ * An axis-aligned bounding box.
+ * @author saharan
+ * @author lo-th
+ */
 
-    this.init(minX,maxX,minY,maxY,minZ,maxZ);
+OIMO.AABB = function ( minX, maxX, minY, maxY, minZ, maxZ ){
+
+    this.elements = new OIMO_ARRAY_TYPE(6);
+    var te = this.elements;
+
+    te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
+    te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
 
 };
 
@@ -12,52 +18,97 @@ OIMO.AABB.prototype = {
 
     constructor: OIMO.AABB,
 
-    init:function(minX,maxX,minY,maxY,minZ,maxZ){
+    set: function ( minX, maxX, minY, maxY, minZ, maxZ ) {
 
-        this.minX = minX || 0;
-        this.maxX = maxX || 0;
-        this.minY = minY || 0;
-        this.maxY = maxY || 0;
-        this.minZ = minZ || 0;
-        this.maxZ = maxZ || 0;
+        var te = this.elements;
 
-    },
-    /**
-    * Set this AABB to the combined AABB of aabb1 and aabb2.
-    * @param   aabb1
-    * @param   aabb2
-    */
-    combine:function(aabb1,aabb2){
+        te[ 0 ] = minX; te[ 3 ] = maxX;
+        te[ 1 ] = minY; te[ 4 ] = maxY;
+        te[ 2 ] = minZ; te[ 5 ] = maxZ;
 
-        this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
-        this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
-        this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
-        this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
-        this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
-        this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
+        return this;
 
     },
-    /**
-    * Get the surface area.
-    * @return
-    */
-    surfaceArea:function(){
 
-        var h = this.maxY-this.minY;
-        var d = this.maxZ-this.minZ;
-        return 2 * ((this.maxX-this.minX)*(h+d)+h*d);
+    intersectTest: function ( aabb ) {
+
+        var te = this.elements;
+        var ue = aabb.elements;
+        return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2];      
+    
+    },
+
+    intersectTestTwo: function ( aabb ) {
+
+        var te = this.elements;
+        var ue = aabb.elements;
+        return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5];      
+    
+    },
+
+    clone: function () {
+
+        return new this.constructor().fromArray( this.elements );
 
     },
-    /**
-    * Get whether the AABB intersects with the point or not.
-    * @param   x
-    * @param   y
-    * @param   z
-    * @return
-    */
+
+    copy: function ( aabb, margin ) {
+
+        var m = margin || 0;
+        var me = aabb.elements;
+        this.set( me[ 0 ]-m, me[ 3 ]+m, me[ 1 ]-m, me[ 4 ]+m, me[ 2 ]-m, me[ 5 ]+m );
+        return this;
+
+    },
+
+    fromArray: function ( array ) {
+
+        this.elements.set( array );
+        return this;
+
+    },
+
+    // Set this AABB to the combined AABB of aabb1 and aabb2.
+
+    combine: function( aabb1, aabb2 ) {
+
+        var a = aabb1.elements;
+        var b = aabb2.elements;
+        var te = this.elements;
+
+        te[0] = a[0] < b[0] ? a[0] : b[0];
+        te[1] = a[1] < b[1] ? a[1] : b[1];
+        te[2] = a[2] < b[2] ? a[2] : b[2];
+
+        te[3] = a[3] > b[3] ? a[3] : b[3];
+        te[4] = a[4] > b[4] ? a[4] : b[4];
+        te[5] = a[5] > b[5] ? a[5] : b[5];
+
+        return this;
+
+    },
+
+    
+    // Get the surface area.
+    
+    surfaceArea: function () {
+
+        var te = this.elements;
+        var a = te[3] - te[0];
+        var h = te[4] - te[1];
+        var d = te[5] - te[2];
+        return 2 * (a * (h + d) + h * d );
+
+    },
+
+    
+    // Get whether the AABB intersects with the point or not.
+    
     intersectsWithPoint:function(x,y,z){
 
-        return x>=this.minX && x<=this.maxX && y>=this.minY && y<=this.maxY && z>=this.minZ && z<=this.maxZ;
+        var te = this.elements;
+        return x>=te[0] && x<=te[3] && y>=te[1] && y<=te[4] && z>=te[2] && z<=te[5];
         
     }
+
 };

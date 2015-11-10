@@ -48,24 +48,27 @@ OIMO.Shape = function(config){
     this.belongsTo = config.belongsTo;
     // The bits of the collision groups with which the shape collides.
     this.collidesWith = config.collidesWith;
+
 };
 
 OIMO.Shape.prototype = {
 
     constructor: OIMO.Shape,
+    
+    // Calculate the mass information of the shape.
+    
+    calculateMassInfo: function ( out ) {
 
-    /**
-    * Calculate the mass information of the shape.
-    * @param   out
-    */
-    calculateMassInfo:function(out){
         OIMO.Error("Shape", "Inheritance error.");
+    
     },
+    
+    // Update the proxy of the shape.
+    
+    updateProxy: function () {
 
-    /**
-    * Update the proxy of the shape.
-    */
-    updateProxy:function(){
         OIMO.Error("Shape", "Inheritance error.");
+    
     }
+
 };

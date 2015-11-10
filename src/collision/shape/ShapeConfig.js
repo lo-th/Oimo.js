@@ -5,6 +5,7 @@
  */
 
 OIMO.ShapeConfig = function(){
+    
 	// The position of the shape in parent's coordinate system.
     this.relativePosition = new OIMO.Vec3();
     // The rotation matrix of the shape in parent's coordinate system.
@@ -19,4 +20,5 @@ OIMO.ShapeConfig = function(){
     this.belongsTo = 1;
     // The bits of the collision groups with which the shape collides.
     this.collidesWith = 0xffffffff;
-}
+
+};

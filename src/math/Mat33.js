@@ -12,6 +12,18 @@ OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
 OIMO.Mat33.prototype = {
     constructor: OIMO.Mat33,
 
+    set: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
+
+        var te = this.elements;
+
+        te[0] = e00; te[1] = e01; te[2] = e02;
+        te[3] = e10; te[4] = e11; te[5] = e12;
+        te[6] = e20; te[7] = e21; te[8] = e22;
+
+        return this;
+
+    },
+
     init: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
         var te = this.elements;
         te[0] = e00; te[1] = e01; te[2] = e02;
@@ -264,17 +276,7 @@ OIMO.Mat33.prototype = {
 
     },
 
-    set: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
-
-        var te = this.elements;
-
-        te[0] = e00; te[1] = e01; te[2] = e02;
-        te[3] = e10; te[4] = e11; te[5] = e12;
-        te[6] = e20; te[7] = e21; te[8] = e22;
-
-        return this;
-
-    },
+    
 
     identity: function () {
 

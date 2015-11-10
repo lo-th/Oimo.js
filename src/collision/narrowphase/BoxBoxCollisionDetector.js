@@ -2,16 +2,21 @@
  * A collision detector which detects collisions between two boxes.
  * @author saharan
  */
-OIMO.BoxBoxCollisionDetector = function(){
+OIMO.BoxBoxCollisionDetector = function () {
+
     OIMO.CollisionDetector.call( this );
-    this.clipVertices1=new OIMO_ARRAY_TYPE(24); // 8 vertices x,y,z
-    this.clipVertices2=new OIMO_ARRAY_TYPE(24);
-    this.used=new OIMO_ARRAY_TYPE(8);
+    this.clipVertices1 = new OIMO_ARRAY_TYPE(24); // 8 vertices x,y,z
+    this.clipVertices2 = new OIMO_ARRAY_TYPE(24);
+    this.used = new OIMO_ARRAY_TYPE(8);
     
     this.INF = 1/0;
-}
+
+};
+
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+OIMO.BoxBoxCollisionDetector.prototype.constructor = OIMO.BoxBoxCollisionDetector;
+
+OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
     // What you are doing 
     // · I to prepare a separate axis of the fifteen 
     //-Six in each of three normal vectors of the xyz direction of the box both 
@@ -1386,4 +1391,4 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
         }
     }
 
-}
+};

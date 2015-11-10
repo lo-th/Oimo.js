@@ -4,7 +4,7 @@
  * @author lo-th
  */
 
-OIMO.CylinderShape = function(config,radius,height){
+OIMO.CylinderShape = function ( config, radius, height ) {
 
     OIMO.Shape.call( this, config );
 
@@ -22,24 +22,25 @@ OIMO.CylinderShape = function(config,radius,height){
 OIMO.CylinderShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.CylinderShape.prototype.constructor = OIMO.CylinderShape;
 
-OIMO.CylinderShape.prototype.calculateMassInfo = function(out){
+OIMO.CylinderShape.prototype.calculateMassInfo = function ( out ) {
 
-    var mass = OIMO.PI*this.radius*this.radius*this.height*this.density;
-    var inertiaXZ = ( (0.25*this.radius*this.radius) + (0.0833*this.height*this.height) ) * mass;
-    var inertiaY = 0.5*this.radius*this.radius;
+    var rsq = this.radius * this.radius;
+    var mass = OIMO.PI * rsq * this.height * this.density;
+    var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
+    var inertiaY = 0.5 * rsq;
     out.mass = mass;
-    out.inertia.init( inertiaXZ,0,0,  0,inertiaY,0,  0,0,inertiaXZ );
+    out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
 
 };
 
-OIMO.CylinderShape.prototype.updateProxy = function(){
+OIMO.CylinderShape.prototype.updateProxy = function () {
 
     var te = this.rotation.elements;
     var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
-    xx = te[1]*te[1];
-    yy = te[4]*te[4];
-    zz = te[7]*te[7];
+    xx = te[1] * te[1];
+    yy = te[4] * te[4];
+    zz = te[7] * te[7];
 
     this.normalDirection.set( te[1], te[4], te[7] );
     this.halfDirection.scale( this.normalDirection, this.halfHeight );
@@ -57,22 +58,22 @@ OIMO.CylinderShape.prototype.updateProxy = function(){
     if(len>0) len = this.radius/len;
     dz *= len;
 
-    w = (this.halfDirection.x<0) ? -this.halfDirection.x : this.halfDirection.x;
-    h = (this.halfDirection.y<0) ? -this.halfDirection.y : this.halfDirection.y;
-    d = (this.halfDirection.z<0) ? -this.halfDirection.z : this.halfDirection.z;
+    w = this.halfDirection.x < 0 ? -this.halfDirection.x : this.halfDirection.x;
+    h = this.halfDirection.y < 0 ? -this.halfDirection.y : this.halfDirection.y;
+    d = this.halfDirection.z < 0 ? -this.halfDirection.z : this.halfDirection.z;
 
-    w = (wx<0) ? w-wx : w+wx;
-    h = (hy<0) ? h-hy : h+hy;
-    d = (dz<0) ? d-dz : d+dz;
+    w = wx < 0 ? w - wx : w + wx;
+    h = hy < 0 ? h - hy : h + hy;
+    d = dz < 0 ? d - dz : d + dz;
 
     p = OIMO.AABB_PROX;
 
-    this.aabb.init(
-        this.position.x-w-p,this.position.x+w+p,
-        this.position.y-h-p,this.position.y+h+p,
-        this.position.z-d-p,this.position.z+d+p
+    this.aabb.set(
+        this.position.x - w - p, this.position.x + w + p,
+        this.position.y - h - p, this.position.y + h + p,
+        this.position.z - d - p, this.position.z + d + p
     );
 
-    if(this.proxy!==null) this.proxy.update();
+    if ( this.proxy != null ) this.proxy.update();
 
 };

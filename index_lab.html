@@ -96,12 +96,14 @@ var vsize = {w:window.innerWidth, h:window.innerHeight};
 var geo = [];
 var meshs = [];
 var grounds = [];
+var mats = {};
+
 var blobEffect = null;
 
 // oimo
 var world = null;
 var bodys = [];
-var TimeStep = 1.0 / 60.0;
+var TimeStep = 0.01666;//1.0 / 60.0;
 var Iterations = 8;
 
 
@@ -133,10 +135,10 @@ function init() {
         renderer = new THREE.WebGLRenderer({canvas:canvas, precision:"mediump", antialias: true,  alpha: true });
     } catch( error ) {
         printErrorMsg('<p>Sorry, your browser does not support WebGL.</p>'
-                    + '<p>This testbed application uses WebGL to quickly draw'
-                    + ' LiquidFun particles.</p>'
-                    + '<p>LiquidFun can be used without WebGL, but unfortunately'
-                    + ' this testbed cannot.</p>'
+                    + '<p>This application uses WebGL to quickly draw'
+                    + ' OIMO Physics.</p>'
+                    + '<p>OIMO Physics can be used without WebGL, but unfortunately'
+                    + ' this application cannot.</p>'
                     + '<p>Have a great day!</p>');
         return;
     }
@@ -144,14 +146,20 @@ function init() {
     //renderer.setClearColor(0x25292e);
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.gammaInput = true;
-    renderer.gammaOutput = true;
+    //renderer.gammaInput = true;
+    //renderer.gammaOutput = true;
     renderer.setSize(w, window.innerHeight);
     //renderer.autoClear = false;
 
     geo['box'] = new THREE.BoxGeometry(1,1,1);//new THREE.BufferGeometry().fromDirectGeometry(new THREE.BoxGeometry(1,1,1));
     geo['sphere'] = new THREE.SphereBufferGeometry(1);
     geo['cylinder'] = new THREE.CylinderGeometry(1,1,1);//new THREE.BufferGeometry().fromDirectGeometry(new THREE.CylinderGeometry(1,1,1));
+
+
+    mats['statique'] = new THREE.MeshBasicMaterial({color:0x444444, name:'statique'});
+    mats['move'] = new THREE.MeshBasicMaterial({color:0xFF8800, name:'move'});
+    mats['sleep'] = new THREE.MeshBasicMaterial({color:0x888888, name:'sleep'});
+
 
     scene = new THREE.Scene();
 
@@ -353,7 +361,9 @@ var render = function() {
 
 var add = function(obj){
 
-    var mesh = new THREE.Mesh(geo[obj.type]);
+    var mat = obj.move ? mats.move : mats.statique;
+
+    var mesh = new THREE.Mesh(geo[obj.type], mat);
     var size = obj.size || [1,1,1];
     if(obj.type === 'sphere') mesh.scale.set(size[0], size[0], size[0]);
     else if(obj.type === 'cylinder') mesh.scale.set(size[0], size[1], size[0]);
@@ -361,7 +371,7 @@ var add = function(obj){
 
     scene.add(mesh);
 
-    meshs.push(mesh);
+    meshs.push( mesh );
     bodys.push(world.add(obj));
 
 }
@@ -404,19 +414,17 @@ var Step = function() {
             mesh.quaternion.copy(body.getQuaternion());
 
             // change material
-            /*if(mesh.material.name === 'sbox') mesh.material = mats.box;
-            if(mesh.material.name === 'ssph') mesh.material = mats.sph; 
+            if(mesh.material.name === 'sleep') mesh.material = mats.move;
 
             // reset position
-            if(mesh.position.y<-100){
-                x = -100 + Math.random()*200;
-                z = -100 + Math.random()*200;
-                y = 100 + Math.random()*1000;
+            if(mesh.position.y<-30){
+                x = -1 + Math.random()*2;
+                z = -1 + Math.random()*2;
+                y = 1 + Math.random()*10;
                 body.resetPosition(x,y,z);
-            }*/
+            }
         } else {
-           // if(mesh.material.name === 'box') mesh.material = mats.sbox;
-           // if(mesh.material.name === 'sph') mesh.material = mats.ssph;
+           if(mesh.material.name === 'move') mesh.material = mats.sleep;
         }
     }
 
@@ -425,13 +433,13 @@ var Step = function() {
 };
 
 /**@constructor*/
-function QueryCallback(point) {
+/*function QueryCallback(point) {
     this.point = point;
     this.fixture = null;
 };
 
 /**@return bool*/
-QueryCallback.prototype.ReportFixture = function(fixture) {
+/*QueryCallback.prototype.ReportFixture = function(fixture) {
     var body = fixture.body;
    // if (body.GetType() === b2_dynamicBody) {
         var inside = fixture.TestPoint(this.point);
@@ -441,7 +449,7 @@ QueryCallback.prototype.ReportFixture = function(fixture) {
         }
    // }
     return false;
-};
+};*/
 
 
 function resize() {

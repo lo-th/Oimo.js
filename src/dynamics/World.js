@@ -243,27 +243,18 @@ OIMO.World.prototype = {
     step:function(){
         var time0, time1, time2, time3;
 
-        if(!this.isNoStat) time0=OIMO.now();
+        var stat = !this.isNoStat ? true : false;
 
-        var body=this.rigidBodies;
+        if(stat) time0 = OIMO.now();
 
-        while(body!==null){
-            body.addedToIsland=false;
+        var body = this.rigidBodies;
+
+        while(body !== null){
+            body.addedToIsland = false;
             if(body.sleeping){
-                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); } // awake the body
-                /*var lv=body.linearVelocity;
-                var av=body.linearVelocity;
-                var p=body.position;
-                var sp=body.sleepPosition;
-                var o=body.orientation;
-                var so=body.sleepOrientation;
-               
-                if( lv.x!==0 || lv.y!==0 || lv.z!==0 || av.x!==0 || av.y!==0 || av.z!==0 ||
-                p.x!==sp.x || p.y!==sp.y || p.z!==sp.z ||
-                o.s!==so.s || o.x!==so.x || o.y!==so.y || o.z!==so.z
-                ){ body.awake(); }*/
+                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)) body.awake(); // awake the body
             }
-            body=body.next;
+            body = body.next;
         }
 
         
@@ -273,7 +264,7 @@ OIMO.World.prototype = {
         //------------------------------------------------------
 
         // broad phase
-        if(!this.isNoStat) time1=OIMO.now();
+        if(stat) time1=OIMO.now();
 
         this.broadPhase.detectPairs();
         var pairs = this.broadPhase.pairs;
@@ -282,7 +273,7 @@ OIMO.World.prototype = {
         //do{
         while(i--){
         //for(var i=0, l=numPairs; i<l; i++){
-            var pair=pairs[i];
+            var pair = pairs[i];
             var s1;
             var s2;
             if(pair.shape1.id<pair.shape2.id){
@@ -294,69 +285,70 @@ OIMO.World.prototype = {
             }
             var link;
             if(s1.numContacts<s2.numContacts){
-                link=s1.contactLink;
+                link = s1.contactLink;
             }else{
-                link=s2.contactLink;
+                link = s2.contactLink;
             }
-            var exists=false;
+            var exists = false;
             while(link){
-                var contact=link.contact;
-                if(contact.shape1==s1&&contact.shape2==s2){
-                    contact.persisting=true;
-                    exists=true;// contact already exists
+                var contact = link.contact;
+                if( contact.shape1 == s1 && contact.shape2 == s2 ){
+                    contact.persisting = true;
+                    exists = true;// contact already exists
                     break;
                 }
-                link=link.next;
+                link = link.next;
             }
             if(!exists){
                 this.addContact(s1,s2);
             }
         }// while(i-- >0);
 
-        if(!this.isNoStat){
+        if(stat){
             time2 = OIMO.now();
             this.performance.broadPhaseTime = time2-time1;
         }
 
         // update & narrow phase
-        this.numContactPoints=0;
-        contact=this.contacts;
+        this.numContactPoints = 0;
+        contact = this.contacts;
         while(contact!==null){
             if(!contact.persisting){
-                var aabb1=contact.shape1.aabb;
+                if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
+                /*var aabb1=contact.shape1.aabb;
                 var aabb2=contact.shape2.aabb;
                 if(
 	                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
 	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
 	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
-                ){
-                    var next=contact.next;
+                ){*/
+                    var next = contact.next;
                     this.removeContact(contact);
-                    contact=next;
+                    contact = next;
                     continue;
                 }
             }
-            var b1=contact.body1;
-            var b2=contact.body2;
+            var b1 = contact.body1;
+            var b2 = contact.body2;
             if(b1.isDynamic && !b1.sleeping || b2.isDynamic && !b2.sleeping){
                 contact.updateManifold();
             }
-            this.numContactPoints+=contact.manifold.numPoints;
-            contact.persisting=false;
-            contact.constraint.addedToIsland=false;
-            contact=contact.next;
+            this.numContactPoints += contact.manifold.numPoints;
+            contact.persisting = false;
+            contact.constraint.addedToIsland = false;
+            contact = contact.next;
         }
 
-        if(!this.isNoStat){
-            time3=OIMO.now();
-            this.performance.narrowPhaseTime=time3-time2;
+        if(stat){
+            time3 = OIMO.now();
+            this.performance.narrowPhaseTime = time3 - time2;
         }
 
         //------------------------------------------------------
         //   SOLVE ISLANDS
         //------------------------------------------------------
 
-        var invTimeStep=1/this.timeStep;
+        var invTimeStep = 1 / this.timeStep;
         //var body;
         var joint;
         var constraint;
@@ -470,7 +462,7 @@ OIMO.World.prototype = {
             var j = islandNumRigidBodies;
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
-                body=this.islandRigidBodies[j];
+                body = this.islandRigidBodies[j];
                 if(body.isDynamic){
                     body.linearVelocity.addEqual(gVel);
                     /*body.linearVelocity.x+=gx;
@@ -549,9 +541,9 @@ OIMO.World.prototype = {
             this.numIslands++;
         }
 
-        if(!this.isNoStat){
+        if(stat){
             time2 = OIMO.now();
-            this.performance.solvingTime = time2-time1;
+            this.performance.solvingTime = time2 - time1;
 
             //------------------------------------------------------
             //   END SIMULATION
@@ -560,9 +552,7 @@ OIMO.World.prototype = {
             time2 = OIMO.now();
             // fps update
             this.performance.upfps();
-
             this.performance.totalTime = time2 - time0;
-            //this.performance.updatingTime = this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
         }
     },
     addContact: function (s1,s2) {

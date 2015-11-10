@@ -1,9 +1,13 @@
 OIMO.BoxCylinderCollisionDetector = function(flip){
     OIMO.CollisionDetector.call( this );
     this.flip = flip;
-}
+};
+
 OIMO.BoxCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.BoxCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep){
+OIMO.BoxCylinderCollisionDetector.prototype.constructor = OIMO.BoxCylinderCollisionDetector;
+
+OIMO.BoxCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep ) {
+
     var t1x;
     var t1y;
     var t1z;
@@ -288,8 +292,10 @@ OIMO.BoxCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep)
 }
 }
 //return false;
-}
-OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,out){
+};
+
+OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function( c, dx, dy, dz, out ) {
+
     var rot=c.rotation.elements;
     var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
     var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
@@ -310,8 +316,11 @@ OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
-}
-OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,out){
+
+};
+
+OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function ( c, dx, dy, dz, out ) {
+
     var rot=c.rotation.elements;
     var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
     var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
@@ -350,8 +359,11 @@ OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
-}
-OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+
+};
+
+OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function( shape1, shape2, manifold ) {
+
     var b;
     var c;
     if(this.flip){
@@ -1015,4 +1027,5 @@ OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function(shape1,sh
     }
     }
     }
-}
+
+};

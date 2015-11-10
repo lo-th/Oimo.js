@@ -13,12 +13,18 @@ var OIMO = {
     // This will be incremented every time a shape is created.
     nextID : 0,
 
-    
+    // BroadPhase
+    BR_NULL : 0,
+    BR_BRUTE_FORCE : 1,
+    BR_SWEEP_AND_PRUNE : 2,
+    BR_BOUNDING_VOLUME_TREE : 3,
+
+    // body type
+    BODY_NULL : 0,
     BODY_DYNAMIC : 1,
     BODY_STATIC  : 2,
 
-
-    // body type
+    // shape type
     SHAPE_NULL     : 0,
     SHAPE_SPHERE   : 1,
     SHAPE_BOX      : 2,
@@ -342,27 +348,18 @@ OIMO.World.prototype = {
     step:function(){
         var time0, time1, time2, time3;
 
-        if(!this.isNoStat) time0=OIMO.now();
+        var stat = !this.isNoStat ? true : false;
 
-        var body=this.rigidBodies;
+        if(stat) time0 = OIMO.now();
 
-        while(body!==null){
-            body.addedToIsland=false;
+        var body = this.rigidBodies;
+
+        while(body !== null){
+            body.addedToIsland = false;
             if(body.sleeping){
-                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)){ body.awake(); } // awake the body
-                /*var lv=body.linearVelocity;
-                var av=body.linearVelocity;
-                var p=body.position;
-                var sp=body.sleepPosition;
-                var o=body.orientation;
-                var so=body.sleepOrientation;
-               
-                if( lv.x!==0 || lv.y!==0 || lv.z!==0 || av.x!==0 || av.y!==0 || av.z!==0 ||
-                p.x!==sp.x || p.y!==sp.y || p.z!==sp.z ||
-                o.s!==so.s || o.x!==so.x || o.y!==so.y || o.z!==so.z
-                ){ body.awake(); }*/
+                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)) body.awake(); // awake the body
             }
-            body=body.next;
+            body = body.next;
         }
 
         
@@ -372,7 +369,7 @@ OIMO.World.prototype = {
         //------------------------------------------------------
 
         // broad phase
-        if(!this.isNoStat) time1=OIMO.now();
+        if(stat) time1=OIMO.now();
 
         this.broadPhase.detectPairs();
         var pairs = this.broadPhase.pairs;
@@ -381,7 +378,7 @@ OIMO.World.prototype = {
         //do{
         while(i--){
         //for(var i=0, l=numPairs; i<l; i++){
-            var pair=pairs[i];
+            var pair = pairs[i];
             var s1;
             var s2;
             if(pair.shape1.id<pair.shape2.id){
@@ -393,69 +390,70 @@ OIMO.World.prototype = {
             }
             var link;
             if(s1.numContacts<s2.numContacts){
-                link=s1.contactLink;
+                link = s1.contactLink;
             }else{
-                link=s2.contactLink;
+                link = s2.contactLink;
             }
-            var exists=false;
+            var exists = false;
             while(link){
-                var contact=link.contact;
-                if(contact.shape1==s1&&contact.shape2==s2){
-                    contact.persisting=true;
-                    exists=true;// contact already exists
+                var contact = link.contact;
+                if( contact.shape1 == s1 && contact.shape2 == s2 ){
+                    contact.persisting = true;
+                    exists = true;// contact already exists
                     break;
                 }
-                link=link.next;
+                link = link.next;
             }
             if(!exists){
                 this.addContact(s1,s2);
             }
         }// while(i-- >0);
 
-        if(!this.isNoStat){
+        if(stat){
             time2 = OIMO.now();
             this.performance.broadPhaseTime = time2-time1;
         }
 
         // update & narrow phase
-        this.numContactPoints=0;
-        contact=this.contacts;
+        this.numContactPoints = 0;
+        contact = this.contacts;
         while(contact!==null){
             if(!contact.persisting){
-                var aabb1=contact.shape1.aabb;
+                if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
+                /*var aabb1=contact.shape1.aabb;
                 var aabb2=contact.shape2.aabb;
                 if(
 	                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
 	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
 	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
-                ){
-                    var next=contact.next;
+                ){*/
+                    var next = contact.next;
                     this.removeContact(contact);
-                    contact=next;
+                    contact = next;
                     continue;
                 }
             }
-            var b1=contact.body1;
-            var b2=contact.body2;
+            var b1 = contact.body1;
+            var b2 = contact.body2;
             if(b1.isDynamic && !b1.sleeping || b2.isDynamic && !b2.sleeping){
                 contact.updateManifold();
             }
-            this.numContactPoints+=contact.manifold.numPoints;
-            contact.persisting=false;
-            contact.constraint.addedToIsland=false;
-            contact=contact.next;
+            this.numContactPoints += contact.manifold.numPoints;
+            contact.persisting = false;
+            contact.constraint.addedToIsland = false;
+            contact = contact.next;
         }
 
-        if(!this.isNoStat){
-            time3=OIMO.now();
-            this.performance.narrowPhaseTime=time3-time2;
+        if(stat){
+            time3 = OIMO.now();
+            this.performance.narrowPhaseTime = time3 - time2;
         }
 
         //------------------------------------------------------
         //   SOLVE ISLANDS
         //------------------------------------------------------
 
-        var invTimeStep=1/this.timeStep;
+        var invTimeStep = 1 / this.timeStep;
         //var body;
         var joint;
         var constraint;
@@ -569,7 +567,7 @@ OIMO.World.prototype = {
             var j = islandNumRigidBodies;
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
-                body=this.islandRigidBodies[j];
+                body = this.islandRigidBodies[j];
                 if(body.isDynamic){
                     body.linearVelocity.addEqual(gVel);
                     /*body.linearVelocity.x+=gx;
@@ -648,9 +646,9 @@ OIMO.World.prototype = {
             this.numIslands++;
         }
 
-        if(!this.isNoStat){
+        if(stat){
             time2 = OIMO.now();
-            this.performance.solvingTime = time2-time1;
+            this.performance.solvingTime = time2 - time1;
 
             //------------------------------------------------------
             //   END SIMULATION
@@ -659,9 +657,7 @@ OIMO.World.prototype = {
             time2 = OIMO.now();
             // fps update
             this.performance.upfps();
-
             this.performance.totalTime = time2 - time0;
-            //this.performance.updatingTime = this.performance.totalTime-(this.performance.broadPhaseTime+this.performance.narrowPhaseTime+this.performance.solvingTime);
         }
     },
     addContact: function (s1,s2) {
@@ -740,7 +736,7 @@ OIMO.RigidBody = function ( x, y, z, rad, ax, ay, az ) {
     // Please do not change from the outside this variable. 
     // If you want to change the type of rigid body, always 
     // Please specify the type you want to set the arguments of setupMass method.
-    this.type = 0;
+    this.type = OIMO.BODY_NULL;
 
     this.massInfo = new OIMO.MassInfo();
 
@@ -750,11 +746,11 @@ OIMO.RigidBody = function ( x, y, z, rad, ax, ay, az ) {
     this.orientation = this.rotationAxisToQuad( rad || 0, ax || 0, ay || 0, az || 0 );
 
 
-    this.newPosition = new OIMO.Vec3(0,0,0);
+    this.newPosition = new OIMO.Vec3();
     this.controlPos = false;
     this.newOrientation = new OIMO.Quat();
-    this.newRotation = new OIMO.Vec3(0,0,0);
-    this.currentRotation = new OIMO.Vec3(0,0,0);
+    this.newRotation = new OIMO.Vec3();
+    this.currentRotation = new OIMO.Vec3();
     this.controlRot = false;
     this.controlRotInTime = false;
 
@@ -822,7 +818,8 @@ OIMO.RigidBody = function ( x, y, z, rad, ax, ay, az ) {
     this.sleepTime = 0;
     // I shows rigid body to determine whether it is a sleep state.
     this.sleeping = false;
-}
+
+};
 
 OIMO.RigidBody.prototype = {
 
@@ -833,14 +830,15 @@ OIMO.RigidBody.prototype = {
     * @param   shape shape to Add 
     */
     addShape:function(shape){
-        if(shape.parent){
-            throw new Error("It is not possible that you add to the multi-rigid body the shape of one");
-        }
-        if(this.shapes!=null)(this.shapes.prev=shape).next=this.shapes;
-        this.shapes=shape;
-        shape.parent=this;
-        if(this.parent)this.parent.addShape(shape);
+
+        if(shape.parent) OIMO.Error("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
+        
+        if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
+        this.shapes = shape;
+        shape.parent = this;
+        if(this.parent) this.parent.addShape( shape );
         this.numShapes++;
+
     },
     /**
     * I will delete the shape from the rigid body. 
@@ -848,18 +846,20 @@ OIMO.RigidBody.prototype = {
     * @param   shape shape to Delete 
     */
     removeShape:function(shape){
-        var remove=shape;
+
+        var remove = shape;
         if(remove.parent!=this)return;
         var prev=remove.prev;
         var next=remove.next;
-        if(prev!=null)prev.next=next;
-        if(next!=null)next.prev=prev;
+        if(prev!=null) prev.next=next;
+        if(next!=null) next.prev=prev;
         if(this.shapes==remove)this.shapes=next;
         remove.prev=null;
         remove.next=null;
         remove.parent=null;
         if(this.parent)this.parent.removeShape(remove);
         this.numShapes--;
+
     },
 
     remove: function () {
@@ -888,20 +888,21 @@ OIMO.RigidBody.prototype = {
     * @param   type
     * @param   adjustPosition
     */
-    setupMass:function(Type,AdjustPosition){
+    setupMass: function ( type, AdjustPosition ) {
+
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
-        var type = Type || OIMO.BODY_DYNAMIC;
-        //var te = this.localInertia.elements;
-        this.type = type;
-        this.isDynamic = type==OIMO.BODY_DYNAMIC;
-        this.isStatic = type==OIMO.BODY_STATIC;
+
+        this.type = type || OIMO.BODY_DYNAMIC;
+        this.isDynamic = this.type == OIMO.BODY_DYNAMIC;
+        this.isStatic = this.type == OIMO.BODY_STATIC;
+
         this.mass = 0;
         this.localInertia.set(0,0,0,0,0,0,0,0,0);
         var te = this.localInertia.elements;
         //
         var tmpM = new OIMO.Mat33();
         var tmpV = new OIMO.Vec3();
-        for(var shape = this.shapes; shape != null; shape = shape.next ){
+        for( var shape = this.shapes; shape != null; shape = shape.next ){
             shape.calculateMassInfo(this.massInfo);
             var shapeMass = this.massInfo.mass;
             var relX = shape.relativePosition.x;
@@ -957,46 +958,51 @@ OIMO.RigidBody.prototype = {
 
         this.inverseLocalInertia.invert(this.localInertia);
 
-        if(type==OIMO.BODY_STATIC){
-            this.inverseMass=0;
+        if( this.type == OIMO.BODY_STATIC ){
+            this.inverseMass = 0;
             this.inverseLocalInertia.set(0,0,0,0,0,0,0,0,0);
         }
+
         this.syncShapes();
         this.awake();
+
     },
     /**
     * Awake the rigid body.
     */
     awake:function(){
-        if(!this.allowSleep||!this.sleeping)return;
-        this.sleeping=false;
-        this.sleepTime=0;
+
+        if( !this.allowSleep || !this.sleeping ) return;
+        this.sleeping = false;
+        this.sleepTime = 0;
         // awake connected constraints
-        var cs=this.contactLink;
-        while(cs!=null){
-            cs.body.sleepTime=0;
-            cs.body.sleeping=false;
-            cs=cs.next;
+        var cs = this.contactLink;
+        while(cs != null){
+            cs.body.sleepTime = 0;
+            cs.body.sleeping = false;
+            cs = cs.next;
         }
-        var js=this.jointLink;
-        while(js!=null){
-            js.body.sleepTime=0;
-            js.body.sleeping=false;
-            js=js.next;
+        var js = this.jointLink;
+        while(js != null){
+            js.body.sleepTime = 0;
+            js.body.sleeping = false;
+            js = js.next;
         }
-        for(var shape=this.shapes;shape!=null;shape=shape.next){
+        for(var shape = this.shapes; shape!=null; shape = shape.next){
             shape.updateProxy();
         }
+
     },
     /**
     * Sleep the rigid body.
     */
     sleep:function(){
-        if(!this.allowSleep||this.sleeping)return;
+
+        if( !this.allowSleep || this.sleeping ) return;
         this.linearVelocity.set(0,0,0);
         this.angularVelocity.set(0,0,0);
-        this.sleepPosition.copy(this.position);
-        this.sleepOrientation.copy(this.orientation);
+        this.sleepPosition.copy( this.position );
+        this.sleepOrientation.copy( this.orientation );
         /*this.linearVelocity.x=0;
         this.linearVelocity.y=0;
         this.linearVelocity.z=0;
@@ -1011,9 +1017,9 @@ OIMO.RigidBody.prototype = {
         this.sleepOrientation.y=this.orientation.y;
         this.sleepOrientation.z=this.orientation.z;*/
         
-        this.sleepTime=0;
-        this.sleeping=true;
-        for(var shape=this.shapes;shape!=null;shape=shape.next){
+        this.sleepTime = 0;
+        this.sleeping = true;
+        for( var shape = this.shapes; shape != null; shape = shape.next ) {
             shape.updateProxy();
         }
     },
@@ -1021,7 +1027,7 @@ OIMO.RigidBody.prototype = {
     * Get whether the rigid body has not any connection with others.
     * @return
     */
-    isLonely:function(){
+    isLonely: function () {
         return this.numJoints==0 && this.numContacts==0;
     },
 
@@ -1032,7 +1038,7 @@ OIMO.RigidBody.prototype = {
     * @param  timeStep time 
     */
 
-    updatePosition:function(timeStep){
+    updatePosition: function ( timeStep ) {
         switch(this.type){
             case OIMO.BODY_STATIC:
                 this.linearVelocity.set(0,0,0);
@@ -1091,9 +1097,13 @@ OIMO.RigidBody.prototype = {
             break;
             default: OIMO.Error("RigidBody", "Invalid type.");
         }
+
         this.syncShapes();
+
     },
-    rotateInertia:function(rot,inertia,out){
+
+    rotateInertia: function ( rot, inertia, out ) {
+
         var tm1 = rot.elements;
         var tm2 = inertia.elements;
 
@@ -1125,8 +1135,11 @@ OIMO.RigidBody.prototype = {
         oe[6] = e20*a0 + e21*a1 + e22*a2;
         oe[7] = e20*a3 + e21*a4 + e22*a5;
         oe[8] = e20*a6 + e21*a7 + e22*a8;
+
     },
-    syncShapes:function(){
+
+    syncShapes: function () {
+
         var s=this.orientation.s;
         var x=this.orientation.x;
         var y=this.orientation.y;
@@ -1174,7 +1187,9 @@ OIMO.RigidBody.prototype = {
             shape.updateProxy();
         }
     },
-    applyImpulse:function(position,force){
+
+    applyImpulse: function ( position, force ) {
+
         this.linearVelocity.addScale(force, this.inverseMass);
         /*this.linearVelocity.x+=force.x*this.inverseMass;
         this.linearVelocity.y+=force.y*this.inverseMass;
@@ -1193,13 +1208,16 @@ OIMO.RigidBody.prototype = {
     //
     //---------------------------------------------
 
-    rotationVectToQuad: function(rot){
+    rotationVectToQuad: function ( rot ) {
+
         var r = OIMO.EulerToAxis( rot.x * OIMO.degtorad, rot.y * OIMO.degtorad, rot.z * OIMO.degtorad );
         return this.rotationAxisToQuad(r[0], r[1], r[2], r[3]);
+    
     },
 
-    rotationAxisToQuad: function(rad, ax, ay, az){ // in radian
-        var len=ax*ax+ay*ay+az*az; 
+    rotationAxisToQuad: function ( rad, ax, ay, az ) { // in radian
+        
+        var len = ax*ax+ay*ay+az*az; 
         if(len>0){
             len=1/OIMO.sqrt(len);
             ax*=len;
@@ -1209,28 +1227,34 @@ OIMO.RigidBody.prototype = {
         var sin=OIMO.sin(rad*0.5);
         var cos=OIMO.cos(rad*0.5);
         return new OIMO.Quat(cos,sin*ax,sin*ay,sin*az);
+    
     },
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
     //---------------------------------------------
 
-    setPosition:function(pos){
+    setPosition: function ( pos ) {
+
         this.newPosition.copy( pos ).multiplyScalar(OIMO.INV_SCALE);
         //this.newPosition.set(pos.x*OIMO.INV_SCALE,pos.y*OIMO.INV_SCALE,pos.z*OIMO.INV_SCALE);
         this.controlPos = true;
+    
     },
 
-    setQuaternion:function(q){ 
+    setQuaternion: function ( q ) { 
         //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
 
         this.newOrientation.set( q.x, q.y, q.z, q.w ); 
         this.controlRot = true;
+
     },
 
-    setRotation:function(rot){ 
+    setRotation: function ( rot ) {
+
         this.newOrientation = this.rotationVectToQuad(rot);
         this.controlRot = true;
+    
     },
 
     //---------------------------------------------
@@ -1264,11 +1288,15 @@ OIMO.RigidBody.prototype = {
         return new OIMO.Vec3().scale(this.position, OIMO.WORLD_SCALE);
     },
 
-    getRotation:function(){
+    getRotation: function () {
+
         return new OIMO.Euler().setFromRotationMatrix(this.rotation);
+
     },
-    getQuaternion:function(){
+    getQuaternion: function () {
+
         return new OIMO.Quaternion().setFromRotationMatrix(this.rotation);
+
     },
 
     getMatrix:function(){
@@ -1295,7 +1323,7 @@ OIMO.RigidBody.prototype = {
 
         return m;
     }
-}
+};
 /**
 * The main class of body.
 * is for simplify creation process and data access of rigidRody
@@ -1697,6 +1725,18 @@ OIMO.Mat33 = function(e00,e01,e02,e10,e11,e12,e20,e21,e22){
 OIMO.Mat33.prototype = {
     constructor: OIMO.Mat33,
 
+    set: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
+
+        var te = this.elements;
+
+        te[0] = e00; te[1] = e01; te[2] = e02;
+        te[3] = e10; te[4] = e11; te[5] = e12;
+        te[6] = e20; te[7] = e21; te[8] = e22;
+
+        return this;
+
+    },
+
     init: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
         var te = this.elements;
         te[0] = e00; te[1] = e01; te[2] = e02;
@@ -1949,17 +1989,7 @@ OIMO.Mat33.prototype = {
 
     },
 
-    set: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
-
-        var te = this.elements;
-
-        te[0] = e00; te[1] = e01; te[2] = e02;
-        te[3] = e10; te[4] = e11; te[5] = e12;
-        te[6] = e20; te[7] = e21; te[8] = e22;
-
-        return this;
-
-    },
+    
 
     identity: function () {
 
@@ -6835,11 +6865,13 @@ OIMO.ManifoldPoint = function(){
 * @author saharan
 */
 OIMO.MassInfo = function(){
+
 	// Mass of the shape.
     this.mass = 0;
     // The moment inertia of the shape.
     this.inertia = new OIMO.Mat33();
-}
+
+};
 /**
  * A shape is used to detect collisions of rigid bodies.
  * @author saharan
@@ -6890,26 +6922,29 @@ OIMO.Shape = function(config){
     this.belongsTo = config.belongsTo;
     // The bits of the collision groups with which the shape collides.
     this.collidesWith = config.collidesWith;
+
 };
 
 OIMO.Shape.prototype = {
 
     constructor: OIMO.Shape,
+    
+    // Calculate the mass information of the shape.
+    
+    calculateMassInfo: function ( out ) {
 
-    /**
-    * Calculate the mass information of the shape.
-    * @param   out
-    */
-    calculateMassInfo:function(out){
         OIMO.Error("Shape", "Inheritance error.");
+    
     },
+    
+    // Update the proxy of the shape.
+    
+    updateProxy: function () {
 
-    /**
-    * Update the proxy of the shape.
-    */
-    updateProxy:function(){
         OIMO.Error("Shape", "Inheritance error.");
+    
     }
+
 };
 /**
  * A shape configuration holds common configuration data for constructing a shape.
@@ -6918,6 +6953,7 @@ OIMO.Shape.prototype = {
  */
 
 OIMO.ShapeConfig = function(){
+    
 	// The position of the shape in parent's coordinate system.
     this.relativePosition = new OIMO.Vec3();
     // The rotation matrix of the shape in parent's coordinate system.
@@ -6932,14 +6968,15 @@ OIMO.ShapeConfig = function(){
     this.belongsTo = 1;
     // The bits of the collision groups with which the shape collides.
     this.collidesWith = 0xffffffff;
-}
+
+};
 /**
  * A box shape.
  * @author saharan
  * @author lo-th
  */
 
-OIMO.BoxShape = function(config,Width,Height,Depth){
+OIMO.BoxShape = function ( config, Width, Height, Depth ) {
 
     OIMO.Shape.call( this, config );
 
@@ -6958,125 +6995,125 @@ OIMO.BoxShape = function(config,Width,Height,Depth){
     // The half-depth of the box.
     this.halfDepth = Depth * 0.5;
 
-    this.dimentions = new OIMO_ARRAY_TYPE(18);
-    this.elements = new OIMO_ARRAY_TYPE(24);
+    this.dimentions = new OIMO_ARRAY_TYPE( 18 );
+    this.elements = new OIMO_ARRAY_TYPE( 24 );
     
 };
 
 OIMO.BoxShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.BoxShape.prototype.constructor = OIMO.BoxShape;
 
-OIMO.BoxShape.prototype.calculateMassInfo = function(out){
+OIMO.BoxShape.prototype.calculateMassInfo = function ( out ) {
 
     var mass = this.width * this.height * this.depth * this.density;
     var divid = 1/12;
     out.mass = mass;
-    out.inertia.init(
-        mass*(this.height*this.height+this.depth*this.depth)*divid,0,0,
-        0,mass*(this.width*this.width+this.depth*this.depth)*divid,0,
-        0,0,mass*(this.width*this.width+this.height*this.height)*divid
+    out.inertia.set(
+        mass * ( this.height * this.height + this.depth * this.depth ) * divid, 0, 0,
+        0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
+        0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
     );
     
 };
 
-OIMO.BoxShape.prototype.updateProxy = function(){
+OIMO.BoxShape.prototype.updateProxy = function () {
 
     var te = this.rotation.elements;
     var di = this.dimentions;
     // Width
-    di[0]=te[0];
-    di[1]=te[3];
-    di[2]=te[6];
+    di[0] = te[0];
+    di[1] = te[3];
+    di[2] = te[6];
     // Height
-    di[3]=te[1];
-    di[4]=te[4];
-    di[5]=te[7];
+    di[3] = te[1];
+    di[4] = te[4];
+    di[5] = te[7];
     // Depth
-    di[6]=te[2];
-    di[7]=te[5];
-    di[8]=te[8];
+    di[6] = te[2];
+    di[7] = te[5];
+    di[8] = te[8];
     // halp Width
-    di[9]=te[0]*this.halfWidth;
-    di[10]=te[3]*this.halfWidth;
-    di[11]=te[6]*this.halfWidth;
+    di[9] = te[0] * this.halfWidth;
+    di[10] = te[3] * this.halfWidth;
+    di[11] = te[6] * this.halfWidth;
     // halp Height
-    di[12]=te[1]*this.halfHeight;
-    di[13]=te[4]*this.halfHeight;
-    di[14]=te[7]*this.halfHeight;
+    di[12] = te[1] * this.halfHeight;
+    di[13] = te[4] * this.halfHeight;
+    di[14] = te[7] * this.halfHeight;
     // halp Depth
-    di[15]=te[2]*this.halfDepth;
-    di[16]=te[5]*this.halfDepth;
-    di[17]=te[8]*this.halfDepth;
+    di[15] = te[2] * this.halfDepth;
+    di[16] = te[5] * this.halfDepth;
+    di[17] = te[8] * this.halfDepth;
 
-    var wx=di[9];
-    var wy=di[10];
-    var wz=di[11];
-    var hx=di[12];
-    var hy=di[13];
-    var hz=di[14];
-    var dx=di[15];
-    var dy=di[16];
-    var dz=di[17];
+    var wx = di[9];
+    var wy = di[10];
+    var wz = di[11];
+    var hx = di[12];
+    var hy = di[13];
+    var hz = di[14];
+    var dx = di[15];
+    var dy = di[16];
+    var dz = di[17];
 
-    var x=this.position.x;
-    var y=this.position.y;
-    var z=this.position.z;
+    var x = this.position.x;
+    var y = this.position.y;
+    var z = this.position.z;
 
-    var v=this.elements;
+    var v = this.elements;
     //v1
-    v[0]=x+wx+hx+dx;
-    v[1]=y+wy+hy+dy;
-    v[2]=z+wz+hz+dz;
+    v[0] = x + wx + hx + dx;
+    v[1] = y + wy + hy + dy;
+    v[2] = z + wz + hz + dz;
     //v2
-    v[3]=x+wx+hx-dx;
-    v[4]=y+wy+hy-dy;
-    v[5]=z+wz+hz-dz;
+    v[3] = x + wx + hx - dx;
+    v[4] = y + wy + hy - dy;
+    v[5] = z + wz + hz - dz;
     //v3
-    v[6]=x+wx-hx+dx;
-    v[7]=y+wy-hy+dy;
-    v[8]=z+wz-hz+dz;
+    v[6] = x + wx - hx + dx;
+    v[7] = y + wy - hy + dy;
+    v[8] = z + wz - hz + dz;
     //v4
-    v[9]=x+wx-hx-dx;
-    v[10]=y+wy-hy-dy;
-    v[11]=z+wz-hz-dz;
+    v[9] = x + wx - hx - dx;
+    v[10] = y + wy - hy - dy;
+    v[11] = z + wz - hz - dz;
     //v5
-    v[12]=x-wx+hx+dx;
-    v[13]=y-wy+hy+dy;
-    v[14]=z-wz+hz+dz;
+    v[12] = x - wx + hx + dx;
+    v[13] = y - wy + hy + dy;
+    v[14] = z - wz + hz + dz;
     //v6
-    v[15]=x-wx+hx-dx;
-    v[16]=y-wy+hy-dy;
-    v[17]=z-wz+hz-dz;
+    v[15] = x - wx + hx - dx;
+    v[16] = y - wy + hy - dy;
+    v[17] = z - wz + hz - dz;
     //v7
-    v[18]=x-wx-hx+dx;
-    v[19]=y-wy-hy+dy;
-    v[20]=z-wz-hz+dz;
+    v[18] = x - wx - hx + dx;
+    v[19] = y - wy - hy + dy;
+    v[20] = z - wz - hz + dz;
     //v8
-    v[21]=x-wx-hx-dx;
-    v[22]=y-wy-hy-dy;
-    v[23]=z-wz-hz-dz;
+    v[21] = x - wx - hx - dx;
+    v[22] = y - wy - hy - dy;
+    v[23] = z - wz - hz - dz;
 
-    var w = (di[9]<0) ? -di[9] : di[9]; 
-    var h = (di[10]<0) ? -di[10] : di[10];
-    var d = (di[11]<0) ? -di[11] : di[11];
+    var w = di[9] < 0 ? -di[9] : di[9]; 
+    var h = di[10] < 0 ? -di[10] : di[10];
+    var d = di[11] < 0 ? -di[11] : di[11];
 
-    w = (di[12]<0) ? w-di[12] : w+di[12]; 
-    h = (di[13]<0) ? h-di[13] : h+di[13];
-    d = (di[14]<0) ? d-di[14] : d+di[14];
+    w = di[12] < 0 ? w - di[12] : w + di[12]; 
+    h = di[13] < 0 ? h - di[13] : h + di[13];
+    d = di[14] < 0 ? d - di[14] : d + di[14];
 
-    w = (di[15]<0) ? w-di[15] : w+di[15]; 
-    h = (di[16]<0) ? h-di[16] : h+di[16];
-    d = (di[17]<0) ? d-di[17] : d+di[17];
+    w = di[15] < 0 ? w - di[15] : w + di[15]; 
+    h = di[16] < 0 ? h - di[16] : h + di[16];
+    d = di[17] < 0 ? d - di[17] : d + di[17];
 
     var p = OIMO.AABB_PROX;
     
-    this.aabb.init(
-        this.position.x-w-p,this.position.x+w+p,
-        this.position.y-h-p,this.position.y+h+p,
-        this.position.z-d-p,this.position.z+d+p
+    this.aabb.set(
+        this.position.x - w - p, this.position.x + w + p,
+        this.position.y - h - p, this.position.y + h + p,
+        this.position.z - d - p, this.position.z + d + p
     );
 
-    if(this.proxy!==null) this.proxy.update();
+    if ( this.proxy != null ) this.proxy.update();
 
 };
 /**
@@ -7085,7 +7122,7 @@ OIMO.BoxShape.prototype.updateProxy = function(){
  * @author lo-th
  */
 
-OIMO.SphereShape = function(config,radius){
+OIMO.SphereShape = function ( config, radius ) {
 
     OIMO.Shape.call( this, config );
 
@@ -7098,26 +7135,26 @@ OIMO.SphereShape = function(config,radius){
 OIMO.SphereShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.SphereShape.prototype.constructor = OIMO.SphereShape;
 
-OIMO.SphereShape.prototype.calculateMassInfo = function(out){
+OIMO.SphereShape.prototype.calculateMassInfo = function ( out ) {
 
-    var mass = 1.333*OIMO.PI*this.radius*this.radius*this.radius*this.density;
+    var mass = 1.333 * OIMO.PI * this.radius * this.radius * this.radius * this.density;
     out.mass = mass;
-    var inertia = mass*this.radius*this.radius*0.4;
-    out.inertia.init( inertia,0,0,0,inertia,0,0,0,inertia );
+    var inertia = mass * this.radius * this.radius * 0.4;
+    out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
 
 };
 
-OIMO.SphereShape.prototype.updateProxy = function(){
+OIMO.SphereShape.prototype.updateProxy = function () {
 
     var p = OIMO.AABB_PROX;
 
-    this.aabb.init(
-        this.position.x-this.radius-p,this.position.x+this.radius+p,
-        this.position.y-this.radius-p,this.position.y+this.radius+p,
-        this.position.z-this.radius-p,this.position.z+this.radius+p
+    this.aabb.set(
+        this.position.x - this.radius - p, this.position.x + this.radius + p,
+        this.position.y - this.radius - p, this.position.y + this.radius + p,
+        this.position.z - this.radius - p, this.position.z + this.radius + p
     );
 
-    if(this.proxy!==null) this.proxy.update();
+    if ( this.proxy != null ) this.proxy.update();
 
 };
 /**
@@ -7126,7 +7163,7 @@ OIMO.SphereShape.prototype.updateProxy = function(){
  * @author lo-th
  */
 
-OIMO.CylinderShape = function(config,radius,height){
+OIMO.CylinderShape = function ( config, radius, height ) {
 
     OIMO.Shape.call( this, config );
 
@@ -7144,24 +7181,25 @@ OIMO.CylinderShape = function(config,radius,height){
 OIMO.CylinderShape.prototype = Object.create( OIMO.Shape.prototype );
 OIMO.CylinderShape.prototype.constructor = OIMO.CylinderShape;
 
-OIMO.CylinderShape.prototype.calculateMassInfo = function(out){
+OIMO.CylinderShape.prototype.calculateMassInfo = function ( out ) {
 
-    var mass = OIMO.PI*this.radius*this.radius*this.height*this.density;
-    var inertiaXZ = ( (0.25*this.radius*this.radius) + (0.0833*this.height*this.height) ) * mass;
-    var inertiaY = 0.5*this.radius*this.radius;
+    var rsq = this.radius * this.radius;
+    var mass = OIMO.PI * rsq * this.height * this.density;
+    var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
+    var inertiaY = 0.5 * rsq;
     out.mass = mass;
-    out.inertia.init( inertiaXZ,0,0,  0,inertiaY,0,  0,0,inertiaXZ );
+    out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
 
 };
 
-OIMO.CylinderShape.prototype.updateProxy = function(){
+OIMO.CylinderShape.prototype.updateProxy = function () {
 
     var te = this.rotation.elements;
     var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
-    xx = te[1]*te[1];
-    yy = te[4]*te[4];
-    zz = te[7]*te[7];
+    xx = te[1] * te[1];
+    yy = te[4] * te[4];
+    zz = te[7] * te[7];
 
     this.normalDirection.set( te[1], te[4], te[7] );
     this.halfDirection.scale( this.normalDirection, this.halfHeight );
@@ -7179,50 +7217,61 @@ OIMO.CylinderShape.prototype.updateProxy = function(){
     if(len>0) len = this.radius/len;
     dz *= len;
 
-    w = (this.halfDirection.x<0) ? -this.halfDirection.x : this.halfDirection.x;
-    h = (this.halfDirection.y<0) ? -this.halfDirection.y : this.halfDirection.y;
-    d = (this.halfDirection.z<0) ? -this.halfDirection.z : this.halfDirection.z;
+    w = this.halfDirection.x < 0 ? -this.halfDirection.x : this.halfDirection.x;
+    h = this.halfDirection.y < 0 ? -this.halfDirection.y : this.halfDirection.y;
+    d = this.halfDirection.z < 0 ? -this.halfDirection.z : this.halfDirection.z;
 
-    w = (wx<0) ? w-wx : w+wx;
-    h = (hy<0) ? h-hy : h+hy;
-    d = (dz<0) ? d-dz : d+dz;
+    w = wx < 0 ? w - wx : w + wx;
+    h = hy < 0 ? h - hy : h + hy;
+    d = dz < 0 ? d - dz : d + dz;
 
     p = OIMO.AABB_PROX;
 
-    this.aabb.init(
-        this.position.x-w-p,this.position.x+w+p,
-        this.position.y-h-p,this.position.y+h+p,
-        this.position.z-d-p,this.position.z+d+p
+    this.aabb.set(
+        this.position.x - w - p, this.position.x + w + p,
+        this.position.y - h - p, this.position.y + h + p,
+        this.position.z - d - p, this.position.z + d + p
     );
 
-    if(this.proxy!==null) this.proxy.update();
+    if ( this.proxy != null ) this.proxy.update();
 
 };
 OIMO.CollisionDetector = function(){
+
     this.flip = false;
-}
+
+};
 
 OIMO.CollisionDetector.prototype = {
+    
     constructor: OIMO.CollisionDetector,
 
-    detectCollision:function(shape1,shape2,manifold){
-        throw new Error("Inheritance error.");
+    detectCollision: function ( shape1, shape2, manifold ) {
+        
+        OIMO.Error("CollisionDetector", "Inheritance error.");
+
     }
-}
+
+};
 /**
  * A collision detector which detects collisions between two boxes.
  * @author saharan
  */
-OIMO.BoxBoxCollisionDetector = function(){
+OIMO.BoxBoxCollisionDetector = function () {
+
     OIMO.CollisionDetector.call( this );
-    this.clipVertices1=new OIMO_ARRAY_TYPE(24); // 8 vertices x,y,z
-    this.clipVertices2=new OIMO_ARRAY_TYPE(24);
-    this.used=new OIMO_ARRAY_TYPE(8);
+    this.clipVertices1 = new OIMO_ARRAY_TYPE(24); // 8 vertices x,y,z
+    this.clipVertices2 = new OIMO_ARRAY_TYPE(24);
+    this.used = new OIMO_ARRAY_TYPE(8);
     
     this.INF = 1/0;
-}
+
+};
+
 OIMO.BoxBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+OIMO.BoxBoxCollisionDetector.prototype.constructor = OIMO.BoxBoxCollisionDetector;
+
+OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
     // What you are doing 
     // · I to prepare a separate axis of the fifteen 
     //-Six in each of three normal vectors of the xyz direction of the box both 
@@ -8597,17 +8646,23 @@ OIMO.BoxBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,
         }
     }
 
-}
+};
 /**
  * A collision detector which detects collisions between sphere and box.
  * @author saharan
  */
-OIMO.SphereBoxCollisionDetector = function(flip){
+OIMO.SphereBoxCollisionDetector = function ( flip ) {
+    
     OIMO.CollisionDetector.call( this );
     this.flip = flip;
-}
+
+};
+
 OIMO.SphereBoxCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+OIMO.SphereBoxCollisionDetector.prototype.constructor = OIMO.SphereBoxCollisionDetector;
+
+OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
+
     var s;
     var b;
     if(this.flip){
@@ -8763,43 +8818,53 @@ OIMO.SphereBoxCollisionDetector.prototype.detectCollision = function(shape1,shap
         }
     }
 
-}
+};
 /**
  * A collision detector which detects collisions between two spheres.
  * @author saharan
  */
 OIMO.SphereSphereCollisionDetector = function(){
+
     OIMO.CollisionDetector.call( this );
+
 };
 
 OIMO.SphereSphereCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
+OIMO.SphereSphereCollisionDetector.prototype.constructor = OIMO.SphereSphereCollisionDetector;
+
 OIMO.SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+
     var s1 = shape1;
     var s2 = shape2;
     var p1 = s1.position;
     var p2 = s2.position;
-    var dx = p2.x-p1.x;
-    var dy = p2.y-p1.y;
-    var dz = p2.z-p1.z;
-    var len = dx*dx+dy*dy+dz*dz;
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    var dz = p2.z - p1.z;
+    var len = dx * dx + dy * dy + dz * dz;
     var r1 = s1.radius;
     var r2 = s2.radius;
-    var rad = r1+r2;
-    if(len>0 && len<rad*rad){
-        len = OIMO.sqrt(len);
-        var invLen=1/len;
+    var rad = r1 + r2;
+    if ( len > 0 && len < rad * rad ){
+        len = OIMO.sqrt( len );
+        var invLen = 1 / len;
         dx *= invLen;
         dy *= invLen;
         dz *= invLen;
-        manifold.addPoint(p1.x+dx*r1,p1.y+dy*r1,p1.z+dz*r1,dx,dy,dz,len-rad,false);
+        manifold.addPoint( p1.x + dx * r1, p1.y + dy * r1, p1.z + dz * r1, dx, dy, dz, len - rad, false );
     }
+
 };
 OIMO.BoxCylinderCollisionDetector = function(flip){
     OIMO.CollisionDetector.call( this );
     this.flip = flip;
-}
+};
+
 OIMO.BoxCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.BoxCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep){
+OIMO.BoxCylinderCollisionDetector.prototype.constructor = OIMO.BoxCylinderCollisionDetector;
+
+OIMO.BoxCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep ) {
+
     var t1x;
     var t1y;
     var t1z;
@@ -9084,8 +9149,10 @@ OIMO.BoxCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep)
 }
 }
 //return false;
-}
-OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,out){
+};
+
+OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function( c, dx, dy, dz, out ) {
+
     var rot=c.rotation.elements;
     var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
     var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
@@ -9106,8 +9173,11 @@ OIMO.BoxCylinderCollisionDetector.prototype.supportPointB = function(c,dx,dy,dz,
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
-}
-OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,out){
+
+};
+
+OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function ( c, dx, dy, dz, out ) {
+
     var rot=c.rotation.elements;
     var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
     var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
@@ -9146,8 +9216,11 @@ OIMO.BoxCylinderCollisionDetector.prototype.supportPointC = function(c,dx,dy,dz,
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
-}
-OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+
+};
+
+OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function( shape1, shape2, manifold ) {
+
     var b;
     var c;
     if(this.flip){
@@ -9811,12 +9884,19 @@ OIMO.BoxCylinderCollisionDetector.prototype.detectCollision = function(shape1,sh
     }
     }
     }
-}
-OIMO.CylinderCylinderCollisionDetector = function(){
+
+};
+OIMO.CylinderCylinderCollisionDetector = function () {
+    
     OIMO.CollisionDetector.call( this );
-}
+
+};
+
 OIMO.CylinderCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.CylinderCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos,dep){
+OIMO.CylinderCylinderCollisionDetector.prototype.constructor = OIMO.CylinderCylinderCollisionDetector;
+
+OIMO.CylinderCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep ) {
+
     var t1x;
     var t1y;
     var t1z;
@@ -10101,8 +10181,10 @@ OIMO.CylinderCylinderCollisionDetector.prototype.getSep = function(c1,c2,sep,pos
     }
     }
     //return false;
-}
-OIMO.CylinderCylinderCollisionDetector.prototype.supportPoint = function(c,dx,dy,dz,out){
+};
+
+OIMO.CylinderCylinderCollisionDetector.prototype.supportPoint = function ( c, dx, dy, dz, out ) {
+
     var rot=c.rotation.elements;
     var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
     var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
@@ -10141,8 +10223,11 @@ OIMO.CylinderCylinderCollisionDetector.prototype.supportPoint = function(c,dx,dy
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
     out.init(ldx,ldy,ldz);
-}
-OIMO.CylinderCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+
+};
+
+OIMO.CylinderCylinderCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
+
     var c1;
     var c2;
     if(shape1.id<shape2.id){
@@ -10608,84 +10693,97 @@ OIMO.CylinderCylinderCollisionDetector.prototype.detectCollision = function(shap
     }
     break;
     }
-}
+
+};
 OIMO.SphereCylinderCollisionDetector = function(flip){
+    
     OIMO.CollisionDetector.call( this );
-    this.flip=flip;
+    this.flip = flip;
+
 };
 
 OIMO.SphereCylinderCollisionDetector.prototype = Object.create( OIMO.CollisionDetector.prototype );
-OIMO.SphereCylinderCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+OIMO.SphereCylinderCollisionDetector.prototype.constructor = OIMO.SphereCylinderCollisionDetector;
+
+OIMO.SphereCylinderCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
+    
     var s;
     var c;
-    if(this.flip){
-    s=shape2;
-    c=shape1;
+    if( this.flip ){
+        s = shape2;
+        c = shape1;
     }else{
-    s=shape1;
-    c=shape2;
+        s = shape1;
+        c = shape2;
     }
-    var ps=s.position;
-    var psx=ps.x;
-    var psy=ps.y;
-    var psz=ps.z;
-    var pc=c.position;
-    var pcx=pc.x;
-    var pcy=pc.y;
-    var pcz=pc.z;
-    var dirx=c.normalDirection.x;
-    var diry=c.normalDirection.y;
-    var dirz=c.normalDirection.z;
-    var rads=s.radius;
-    var radc=c.radius;
-    var rad2=rads+radc;
-    var halfh=c.halfHeight;
-    var dx=psx-pcx;
-    var dy=psy-pcy;
-    var dz=psz-pcz;
-    var dot=dx*dirx+dy*diry+dz*dirz;
-    if(dot<-halfh-rads||dot>halfh+rads)return;
-    var cx=pcx+dot*dirx;
-    var cy=pcy+dot*diry;
-    var cz=pcz+dot*dirz;
-    var d2x=psx-cx;
-    var d2y=psy-cy;
-    var d2z=psz-cz;
-    var len=d2x*d2x+d2y*d2y+d2z*d2z;
-    if(len>rad2*rad2)return;
-    if(len>radc*radc){
-    len=radc/OIMO.sqrt(len);
-    d2x*=len;
-    d2y*=len;
-    d2z*=len;
+    var ps = s.position;
+    var psx = ps.x;
+    var psy = ps.y;
+    var psz = ps.z;
+    var pc = c.position;
+    var pcx = pc.x;
+    var pcy = pc.y;
+    var pcz = pc.z;
+    var dirx = c.normalDirection.x;
+    var diry = c.normalDirection.y;
+    var dirz = c.normalDirection.z;
+    var rads = s.radius;
+    var radc = c.radius;
+    var rad2 = rads + radc;
+    var halfh = c.halfHeight;
+    var dx = psx - pcx;
+    var dy = psy - pcy;
+    var dz = psz - pcz;
+    var dot = dx * dirx + dy * diry + dz * dirz;
+    if ( dot < -halfh - rads || dot > halfh + rads )return;
+    var cx = pcx + dot * dirx;
+    var cy = pcy + dot * diry;
+    var cz = pcz + dot * dirz;
+    var d2x = psx - cx;
+    var d2y = psy - cy;
+    var d2z = psz - cz;
+    var len = d2x * d2x + d2y * d2y + d2z * d2z;
+    if ( len > rad2 * rad2 ) return;
+    if ( len > radc * radc ) {
+        len = radc / OIMO.sqrt( len );
+        d2x *= len;
+        d2y *= len;
+        d2z *= len;
     }
-    if(dot<-halfh)dot=-halfh;
-    else if(dot>halfh)dot=halfh;
-    cx=pcx+dot*dirx+d2x;
-    cy=pcy+dot*diry+d2y;
-    cz=pcz+dot*dirz+d2z;
-    dx=cx-psx;
-    dy=cy-psy;
-    dz=cz-psz;
-    len=dx*dx+dy*dy+dz*dz;
+    if( dot < -halfh ) dot = -halfh;
+    else if( dot > halfh ) dot = halfh;
+    cx = pcx + dot * dirx + d2x;
+    cy = pcy + dot * diry + d2y;
+    cz = pcz + dot * dirz + d2z;
+    dx = cx - psx;
+    dy = cy - psy;
+    dz = cz - psz;
+    len = dx * dx + dy * dy + dz * dz;
     var invLen;
-    if(len>0&&len<rads*rads){
-        len=OIMO.sqrt(len);
-        invLen=1/len;
-        dx*=invLen;
-        dy*=invLen;
-        dz*=invLen;
+    if ( len > 0 && len < rads * rads ) {
+        len = OIMO.sqrt(len);
+        invLen = 1 / len;
+        dx *= invLen;
+        dy *= invLen;
+        dz *= invLen;
         ///result.addContactInfo(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,s,c,0,0,false);
-        manifold.addPoint(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,this.flip);
+        manifold.addPoint( psx + dx * rads, psy + dy * rads, psz + dz * rads, dx, dy, dz, len - rads, this.flip );
     }
+
 };
 /**
-* An axis-aligned bounding box.
-* @author saharan
-*/
-OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
+ * An axis-aligned bounding box.
+ * @author saharan
+ * @author lo-th
+ */
 
-    this.init(minX,maxX,minY,maxY,minZ,maxZ);
+OIMO.AABB = function ( minX, maxX, minY, maxY, minZ, maxZ ){
+
+    this.elements = new OIMO_ARRAY_TYPE(6);
+    var te = this.elements;
+
+    te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
+    te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
 
 };
 
@@ -10693,88 +10791,139 @@ OIMO.AABB.prototype = {
 
     constructor: OIMO.AABB,
 
-    init:function(minX,maxX,minY,maxY,minZ,maxZ){
+    set: function ( minX, maxX, minY, maxY, minZ, maxZ ) {
 
-        this.minX = minX || 0;
-        this.maxX = maxX || 0;
-        this.minY = minY || 0;
-        this.maxY = maxY || 0;
-        this.minZ = minZ || 0;
-        this.maxZ = maxZ || 0;
+        var te = this.elements;
 
-    },
-    /**
-    * Set this AABB to the combined AABB of aabb1 and aabb2.
-    * @param   aabb1
-    * @param   aabb2
-    */
-    combine:function(aabb1,aabb2){
+        te[ 0 ] = minX; te[ 3 ] = maxX;
+        te[ 1 ] = minY; te[ 4 ] = maxY;
+        te[ 2 ] = minZ; te[ 5 ] = maxZ;
 
-        this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
-        this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
-        this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
-        this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
-        this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
-        this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
+        return this;
 
     },
-    /**
-    * Get the surface area.
-    * @return
-    */
-    surfaceArea:function(){
 
-        var h = this.maxY-this.minY;
-        var d = this.maxZ-this.minZ;
-        return 2 * ((this.maxX-this.minX)*(h+d)+h*d);
+    intersectTest: function ( aabb ) {
+
+        var te = this.elements;
+        var ue = aabb.elements;
+        return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2];      
+    
+    },
+
+    intersectTestTwo: function ( aabb ) {
+
+        var te = this.elements;
+        var ue = aabb.elements;
+        return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5];      
+    
+    },
+
+    clone: function () {
+
+        return new this.constructor().fromArray( this.elements );
 
     },
-    /**
-    * Get whether the AABB intersects with the point or not.
-    * @param   x
-    * @param   y
-    * @param   z
-    * @return
-    */
+
+    copy: function ( aabb, margin ) {
+
+        var m = margin || 0;
+        var me = aabb.elements;
+        this.set( me[ 0 ]-m, me[ 3 ]+m, me[ 1 ]-m, me[ 4 ]+m, me[ 2 ]-m, me[ 5 ]+m );
+        return this;
+
+    },
+
+    fromArray: function ( array ) {
+
+        this.elements.set( array );
+        return this;
+
+    },
+
+    // Set this AABB to the combined AABB of aabb1 and aabb2.
+
+    combine: function( aabb1, aabb2 ) {
+
+        var a = aabb1.elements;
+        var b = aabb2.elements;
+        var te = this.elements;
+
+        te[0] = a[0] < b[0] ? a[0] : b[0];
+        te[1] = a[1] < b[1] ? a[1] : b[1];
+        te[2] = a[2] < b[2] ? a[2] : b[2];
+
+        te[3] = a[3] > b[3] ? a[3] : b[3];
+        te[4] = a[4] > b[4] ? a[4] : b[4];
+        te[5] = a[5] > b[5] ? a[5] : b[5];
+
+        return this;
+
+    },
+
+    
+    // Get the surface area.
+    
+    surfaceArea: function () {
+
+        var te = this.elements;
+        var a = te[3] - te[0];
+        var h = te[4] - te[1];
+        var d = te[5] - te[2];
+        return 2 * (a * (h + d) + h * d );
+
+    },
+
+    
+    // Get whether the AABB intersects with the point or not.
+    
     intersectsWithPoint:function(x,y,z){
 
-        return x>=this.minX && x<=this.maxX && y>=this.minY && y<=this.maxY && z>=this.minZ && z<=this.maxZ;
+        var te = this.elements;
+        return x>=te[0] && x<=te[3] && y>=te[1] && y<=te[4] && z>=te[2] && z<=te[5];
         
     }
+
 };
 /**
 * A proxy is used for broad-phase collecting pairs that can be colliding.
 */
-OIMO.Proxy = function(shape){
+
+OIMO.Proxy = function ( shape ) {
+
 	// The parent shape.
     this.shape = shape;
     // The axis-aligned bounding box.
     this.aabb = shape.aabb;
+
 };
 
 OIMO.Proxy.prototype = {
 
     constructor: OIMO.Proxy,
     
-    /**
-	* Update the proxy.
-	*/
+	// Update the proxy.
+	
     update:function(){
-        console.error("Inheritance error.");
-        //throw new Error("Inheritance error.");
+
+        OIMO.Error("Proxy","Inheritance error.");
+
     }
+
 };
 /**
 * A basic implementation of proxies.
 * @author saharan
 */
-OIMO.BasicProxy = function(shape){
+
+OIMO.BasicProxy = function( shape ) {
 
     OIMO.Proxy.call( this, shape );
 
 };
 
 OIMO.BasicProxy.prototype = Object.create( OIMO.Proxy.prototype );
+OIMO.BasicProxy.prototype.constructor = OIMO.BasicProxy;
 
 OIMO.BasicProxy.prototype.update = function () {
 
@@ -10785,7 +10934,7 @@ OIMO.BasicProxy.prototype.update = function () {
 
 OIMO.BroadPhase = function(){
     
-    this.types = 0x0;
+    this.types = OIMO.BR_NULL;
     this.numPairChecks = 0;
     this.numPairs = 0;
     this.pairs = [];
@@ -10800,33 +10949,42 @@ OIMO.BroadPhase.prototype = {
     * @param   shape
     * @return
     */
-    createProxy:function(shape){
-        throw new Error("Inheritance error.");
+    createProxy: function ( shape ) {
+
+        OIMO.Error("BroadPhase","Inheritance error.");
+
     },
+
     /**
     * Add the proxy into the broad-phase.
     * @param   proxy
     */
-    addProxy:function(proxy){
-        throw new Error("Inheritance error.");
+    addProxy: function ( proxy ) {
+
+        OIMO.Error("BroadPhase","Inheritance error.");
     },
+
     /**
     * Remove the proxy from the broad-phase.
     * @param   proxy
     */
-    removeProxy:function(proxy){
-        throw new Error("Inheritance error.");
+    removeProxy: function ( proxy ) {
+
+        OIMO.Error("BroadPhase","Inheritance error.");
+
     },
+
     /**
     * Returns whether the pair is available or not.
     * @param   s1
     * @param   s2
     * @return
     */
-    isAvailablePair:function(s1,s2){
+    isAvailablePair: function ( s1, s2 ) {
+
         var b1 = s1.parent;
         var b2 = s2.parent;
-        if( b1==b2 || // same parents 
+        if( b1 == b2 || // same parents 
             (!b1.isDynamic && !b2.isDynamic) || // static or kinematic object
             (s1.belongsTo&s2.collidesWith)==0 ||
             (s2.belongsTo&s1.collidesWith)==0 // collision filtering
@@ -10840,9 +10998,12 @@ OIMO.BroadPhase.prototype = {
            js = js.next;
         }
         return true;
+
     },
+
     // Detect overlapping pairs.
-    detectPairs:function(){
+    detectPairs: function () {
+
         // clear old
         this.pairs = [];
         this.numPairs = 0;
@@ -10851,47 +11012,57 @@ OIMO.BroadPhase.prototype = {
         this.collectPairs();
         
     },
-    collectPairs:function(){
-        throw new Error("Inheritance error.");
+
+    collectPairs: function () {
+
+        OIMO.Error("BroadPhase", "Inheritance error.");
+
     },
-    addPair:function(s1,s2){
-        var pair = new OIMO.Pair(s1,s2);
+
+    addPair: function ( s1, s2 ) {
+
+        var pair = new OIMO.Pair( s1, s2 );
         this.pairs.push(pair);
         this.numPairs++;
+
     }
 };
 /**
-* A broad-phase algorithm with brute-force search.
-* This always checks for all possible pairs.
-*/
+ * A broad-phase algorithm with brute-force search.
+ * This always checks for all possible pairs.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.BruteForceBroadPhase = function(){
 
     OIMO.BroadPhase.call(this);
-    this.types = 0x1;
+    this.types = OIMO.BR_BRUTE_FORCE;
     this.numProxies = 0;
     this.proxies = [];
 
 };
 
 OIMO.BruteForceBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
+OIMO.BruteForceBroadPhase.prototype.constructor = OIMO.BruteForceBroadPhase;
 
-OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
+OIMO.BruteForceBroadPhase.prototype.createProxy = function ( shape ) {
 
     return new OIMO.BasicProxy(shape);
 
 };
 
-OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
+OIMO.BruteForceBroadPhase.prototype.addProxy = function ( proxy ) {
 
-    this.proxies.push(proxy);
+    this.proxies.push( proxy );
     this.numProxies++;
 
 };
 
-OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
+OIMO.BruteForceBroadPhase.prototype.removeProxy = function ( proxy ) {
 
-    var n = this.proxies.indexOf(proxy);
-    if(n > -1){
+    var n = this.proxies.indexOf( proxy );
+    if ( n > -1 ){
         this.proxies.splice(n,1);
         this.numProxies--;
     }
@@ -10900,28 +11071,18 @@ OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
 
 OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
 
-    var i, j, p1, p2;//, b1, s1,  b2, s2; 
+    var i, j, p1, p2;
 
-    this.numPairChecks = OIMO.int(this.numProxies*(this.numProxies-1)*0.5);
+    this.numPairChecks = OIMO.int( this.numProxies*(this.numProxies-1)*0.5 );
     i = this.numProxies;
     while(i--){
         p1 = this.proxies[i];
-        //b1 = p1.aabb;
-        //s1 = p1.shape;
         j = this.numProxies;
         while(j!==i){ 
             j--;
             p2 = this.proxies[j];
-            //b2 = p2.aabb;
-            //s2 = p2.shape;
-            if(
-                p1.aabb.maxX < p2.aabb.minX || p1.aabb.minX > p2.aabb.maxX || 
-                p1.aabb.maxY < p2.aabb.minY || p1.aabb.minY > p2.aabb.maxY || 
-                p1.aabb.maxZ < p2.aabb.minZ || p1.aabb.minZ > p2.aabb.maxZ || 
-                !this.isAvailablePair(p1.shape,p2.shape) ) continue;
-            //if(b1.maxX<b2.minX || b1.minX>b2.maxX || b1.maxY<b2.minY || b1.minY>b2.maxY || b1.maxZ<b2.minZ || b1.minZ>b2.maxZ || !this.isAvailablePair(s1,s2) ) continue;
-            //addPair(s1, s2);
-            this.addPair(p1.shape,p2.shape);
+            if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
+            this.addPair( p1.shape, p2.shape );
         }
     }
 
@@ -10937,22 +11098,26 @@ OIMO.Pair = function(s1,s2){
     this.shape2 = s2 || null;
 };
 /**
-* A projection axis for sweep and prune broad-phase.
-* @author saharan
-*/
+ * A projection axis for sweep and prune broad-phase.
+ * @author saharan
+ */
+
 OIMO.SAPAxis = function(){
-    this.numElements=0;
-    this.bufferSize=256;
-    this.elements=[];
+
+    this.numElements = 0;
+    this.bufferSize = 256;
+    this.elements = [];
     this.elements.length = this.bufferSize;
-    this.stack=new OIMO_ARRAY_TYPE(64);
+    this.stack = new OIMO_ARRAY_TYPE(64);
+
 };
 
 OIMO.SAPAxis.prototype = {
 
     constructor: OIMO.SAPAxis,
 
-    addElements:function(min,max){
+    addElements: function ( min, max ) {
+
         if(this.numElements+2>=this.bufferSize){
             //this.bufferSize<<=1;
             this.bufferSize*=2;
@@ -10960,13 +11125,15 @@ OIMO.SAPAxis.prototype = {
             var i = this.numElements;
             while(i--){
             //for(var i=0, l=this.numElements; i<l; i++){
-                newElements[i]=this.elements[i];
+                newElements[i] = this.elements[i];
             }
         }
-        this.elements[this.numElements++]=min;
-        this.elements[this.numElements++]=max;
+        this.elements[this.numElements++] = min;
+        this.elements[this.numElements++] = max;
+
     },
-    removeElements:function(min,max){
+
+    removeElements: function ( min, max ) {
         var minIndex=-1;
         var maxIndex=-1;
         for(var i=0, l=this.numElements; i<l; i++){
@@ -10980,25 +11147,28 @@ OIMO.SAPAxis.prototype = {
                 }
             }
         }
-        for(i=minIndex+1, l=maxIndex; i<l; i++){
-            this.elements[i-1]=this.elements[i];
+        for(i = minIndex+1, l = maxIndex; i < l; i++){
+            this.elements[i-1] = this.elements[i];
         }
-        for(i=maxIndex+1, l=this.numElements; i<l; i++){
-            this.elements[i-2]=this.elements[i];
+        for(i = maxIndex+1, l = this.numElements; i < l; i++){
+            this.elements[i-2] = this.elements[i];
         }
 
-        this.elements[--this.numElements]=null;
-        this.elements[--this.numElements]=null;
+        this.elements[--this.numElements] = null;
+        this.elements[--this.numElements] = null;
     },
-    sort:function(){
-        var count=0;
-        var threshold=1;
-        while((this.numElements>>threshold)!=0)threshold++;
-        threshold=threshold*this.numElements>>2;
-        count=0;
-        var giveup=false;
-        var elements=this.elements;
-        for(var i=1, l=this.numElements; i<l; i++){ // try insertion sort
+
+    sort: function () {
+
+        var count = 0;
+        var threshold = 1;
+        while((this.numElements >> threshold) != 0 ) threshold++;
+        threshold = threshold * this.numElements >> 2;
+        count = 0;
+
+        var giveup = false;
+        var elements = this.elements;
+        for( var i = 1, l = this.numElements; i < l; i++){ // try insertion sort
             var tmp=elements[i];
             var pivot=tmp.value;
             var tmp2=elements[i-1];
@@ -11027,243 +11197,287 @@ OIMO.SAPAxis.prototype = {
             var diff=right-left;
             if(diff>16){  // quick sort
                 //var mid=left+(diff>>1);
-                var mid=left+(OIMO.floor(diff*0.5));
-                tmp=elements[mid];
-                elements[mid]=elements[right];
-                elements[right]=tmp;
-                pivot=tmp.value;
-                i=left-1;
-                j=right;
-                while(true){
+                var mid = left + (OIMO.floor(diff*0.5));
+                tmp = elements[mid];
+                elements[mid] = elements[right];
+                elements[right] = tmp;
+                pivot = tmp.value;
+                i = left-1;
+                j = right;
+                while( true ){
                     var ei;
                     var ej;
-                    do{ ei=elements[++i]; }while(ei.value<pivot);
-                    do{ ej=elements[--j]; }while(pivot<ej.value&&j!=left);
-                    if(i>=j)break;
-                    elements[i]=ej;
-                    elements[j]=ei;
+                    do{ ei = elements[++i]; } while( ei.value < pivot);
+                    do{ ej = elements[--j]; } while( pivot < ej.value && j != left );
+                    if( i >= j ) break;
+                    elements[i] = ej;
+                    elements[j] = ei;
                 }
 
-                elements[right]=elements[i];
-                elements[i]=tmp;
-                if(i-left>right-i){
-                    stack[count++]=left;
-                    stack[count++]=i-1;
-                    stack[count++]=i+1;
-                    stack[count++]=right;
+                elements[right] = elements[i];
+                elements[i] = tmp;
+                if( i - left > right - i ) {
+                    stack[count++] = left;
+                    stack[count++] = i - 1;
+                    stack[count++] = i + 1;
+                    stack[count++] = right;
                 }else{
-                    stack[count++]=i+1;
-                    stack[count++]=right;
-                    stack[count++]=left;
-                    stack[count++]=i-1;
+                    stack[count++] = i + 1;
+                    stack[count++] = right;
+                    stack[count++] = left;
+                    stack[count++] = i - 1;
                 }
             }else{
-                for(i=left+1;i<=right;i++){
-                    tmp=elements[i];
-                    pivot=tmp.value;
-                    tmp2=elements[i-1];
-                    if(tmp2.value>pivot){
-                        j=i;
+                for( i = left + 1; i <= right; i++ ) {
+                    tmp = elements[i];
+                    pivot = tmp.value;
+                    tmp2 = elements[i-1];
+                    if( tmp2.value > pivot ) {
+                        j = i;
                         do{
-                            elements[j]=tmp2;
-                            if(--j==0)break;
-                            tmp2=elements[j-1];
-                        }while(tmp2.value>pivot);
-                        elements[j]=tmp;
+                            elements[j] = tmp2;
+                            if( --j == 0 ) break;
+                            tmp2 = elements[j-1];
+                        }while( tmp2.value > pivot );
+                        elements[j] = tmp;
                     }
                 }
             }
         }
+        
     },
-    calculateTestCount:function(){
-        var num=1;
-        var sum=0;
-        for(var i=1, l=this.numElements; i<l; i++){
+
+    calculateTestCount: function () {
+
+        var num = 1;
+        var sum = 0;
+        for(var i = 1, l = this.numElements; i<l; i++){
             if(this.elements[i].max){
                 num--;
             }else{
-                sum+=num;
+                sum += num;
                 num++;
             }
         }
         return sum;
+
     }
 }
 /**
-* A broad-phase collision detection algorithm using sweep and prune.
-* @author saharan
-*/
-OIMO.SAPBroadPhase = function(){
+ * A broad-phase collision detection algorithm using sweep and prune.
+ * @author saharan
+ * @author lo-th
+ */
+
+OIMO.SAPBroadPhase = function () {
+
     OIMO.BroadPhase.call( this);
-    this.types = 0x2;
+    this.types = OIMO.BR_SWEEP_AND_PRUNE;
 
     this.numElementsD = 0;
     this.numElementsS = 0;
     // dynamic proxies
-    this.axesD = [];// vector !
+    this.axesD = [
+       new OIMO.SAPAxis(),
+       new OIMO.SAPAxis(),
+       new OIMO.SAPAxis()
+    ];
     // static or sleeping proxies
-    this.axesS = [];// vector !
-    this.axesD.length = 3;
-    this.axesS.length = 3;
+    this.axesS = [
+       new OIMO.SAPAxis(),
+       new OIMO.SAPAxis(),
+       new OIMO.SAPAxis()
+    ];
 
-    this.axesD[0] = new OIMO.SAPAxis();
-    this.axesD[1] = new OIMO.SAPAxis();
-    this.axesD[2] = new OIMO.SAPAxis();
-    this.axesS[0] = new OIMO.SAPAxis();
-    this.axesS[1] = new OIMO.SAPAxis();
-    this.axesS[2] = new OIMO.SAPAxis();
-    this.index1=0;
-    this.index2=1;
-}
+    this.index1 = 0;
+    this.index2 = 1;
+
+};
 
 OIMO.SAPBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
+OIMO.SAPBroadPhase.prototype.constructor = OIMO.SAPBroadPhase;
 
-OIMO.SAPBroadPhase.prototype.createProxy = function (shape) {
-    return new OIMO.SAPProxy(this,shape);
-}
+OIMO.SAPBroadPhase.prototype.createProxy = function ( shape ) {
 
-OIMO.SAPBroadPhase.prototype.addProxy = function (proxy) {
-    var p=(proxy);
+    return new OIMO.SAPProxy( this, shape );
+
+};
+
+OIMO.SAPBroadPhase.prototype.addProxy = function ( proxy ) {
+
+    var p = proxy;
     if(p.isDynamic()){
-        this.axesD[0].addElements(p.min[0],p.max[0]);
-        this.axesD[1].addElements(p.min[1],p.max[1]);
-        this.axesD[2].addElements(p.min[2],p.max[2]);
-        p.belongsTo=1;
-        this.numElementsD+=2;
-        }else{
-        this.axesS[0].addElements(p.min[0],p.max[0]);
-        this.axesS[1].addElements(p.min[1],p.max[1]);
-        this.axesS[2].addElements(p.min[2],p.max[2]);
-        p.belongsTo=2;
-        this.numElementsS+=2;
+        this.axesD[0].addElements( p.min[0], p.max[0] );
+        this.axesD[1].addElements( p.min[1], p.max[1] );
+        this.axesD[2].addElements( p.min[2], p.max[2] );
+        p.belongsTo = 1;
+        this.numElementsD += 2;
+    } else {
+        this.axesS[0].addElements( p.min[0], p.max[0] );
+        this.axesS[1].addElements( p.min[1], p.max[1] );
+        this.axesS[2].addElements( p.min[2], p.max[2] );
+        p.belongsTo = 2;
+        this.numElementsS += 2;
     }
-}
 
-OIMO.SAPBroadPhase.prototype.removeProxy = function (proxy) {
-    var p=(proxy);
-    if(p.belongsTo==0)return;
-    switch(p.belongsTo){
+};
+
+OIMO.SAPBroadPhase.prototype.removeProxy = function ( proxy ) {
+
+    var p = proxy;
+    if ( p.belongsTo == 0 ) return;
+
+    /*else if ( p.belongsTo == 1 ) {
+        this.axesD[0].removeElements( p.min[0], p.max[0] );
+        this.axesD[1].removeElements( p.min[1], p.max[1] );
+        this.axesD[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsD -= 2;
+    } else if ( p.belongsTo == 2 ) {
+        this.axesS[0].removeElements( p.min[0], p.max[0] );
+        this.axesS[1].removeElements( p.min[1], p.max[1] );
+        this.axesS[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsS -= 2;
+    }*/
+
+    switch( p.belongsTo ){
         case 1:
-        this.axesD[0].removeElements(p.min[0],p.max[0]);
-        this.axesD[1].removeElements(p.min[1],p.max[1]);
-        this.axesD[2].removeElements(p.min[2],p.max[2]);
-        this.numElementsD-=2;
+        this.axesD[0].removeElements( p.min[0], p.max[0] );
+        this.axesD[1].removeElements( p.min[1], p.max[1] );
+        this.axesD[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsD -= 2;
         break;
         case 2:
-        this.axesS[0].removeElements(p.min[0],p.max[0]);
-        this.axesS[1].removeElements(p.min[1],p.max[1]);
-        this.axesS[2].removeElements(p.min[2],p.max[2]);
-        this.numElementsS-=2;
+        this.axesS[0].removeElements( p.min[0], p.max[0] );
+        this.axesS[1].removeElements( p.min[1], p.max[1] );
+        this.axesS[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsS -= 2;
         break;
     }
-    p.belongsTo=0;
-}
+
+    p.belongsTo = 0;
+
+};
 
 OIMO.SAPBroadPhase.prototype.collectPairs = function () {
-    if(this.numElementsD==0)return;
-    var axis1=this.axesD[this.index1];
-    var axis2=this.axesD[this.index2];
+
+    if( this.numElementsD == 0 ) return;
+
+    var axis1 = this.axesD[this.index1];
+    var axis2 = this.axesD[this.index2];
+
     axis1.sort();
     axis2.sort();
-    var count1=axis1.calculateTestCount();
-    var count2=axis2.calculateTestCount();
+
+    var count1 = axis1.calculateTestCount();
+    var count2 = axis2.calculateTestCount();
     var elementsD;
     var elementsS;
-    if(count1<=count2){// select the best axis
-        axis2=this.axesS[this.index1];
+    if( count1 <= count2 ){// select the best axis
+        axis2 = this.axesS[this.index1];
         axis2.sort();
-        elementsD=axis1.elements;
-        elementsS=axis2.elements;
+        elementsD = axis1.elements;
+        elementsS = axis2.elements;
     }else{
-        axis1=this.axesS[this.index2];
+        axis1 = this.axesS[this.index2];
         axis1.sort();
-        elementsD=axis2.elements;
-        elementsS=axis1.elements;
-        this.index1^=this.index2;
-        this.index2^=this.index1;
-        this.index1^=this.index2;
+        elementsD = axis2.elements;
+        elementsS = axis1.elements;
+        this.index1 ^= this.index2;
+        this.index2 ^= this.index1;
+        this.index1 ^= this.index2;
     }
     var activeD;
     var activeS;
-    var p=0;
-    var q=0;
-    while(p<this.numElementsD){
+    var p = 0;
+    var q = 0;
+    while( p < this.numElementsD ){
         var e1;
         var dyn;
-        if(q==this.numElementsS){
-            e1=elementsD[p];
-            dyn=true;
+        if (q == this.numElementsS ){
+            e1 = elementsD[p];
+            dyn = true;
             p++;
         }else{
-            var d=elementsD[p];
-            var s=elementsS[q];
-            if(d.value<s.value){
-                e1=d;
-                dyn=true;
+            var d = elementsD[p];
+            var s = elementsS[q];
+            if( d.value < s.value ){
+                e1 = d;
+                dyn = true;
                 p++;
             }else{
-                e1=s;
-                dyn=false;
+                e1 = s;
+                dyn = false;
                 q++;
             }
         }
-        if(!e1.max){
-            var s1=e1.proxy.shape;var min1=e1.min1.value;var max1=e1.max1.value;var min2=e1.min2.value;var max2=e1.max2.value;
-            for(var e2=activeD;e2!=null;e2=e2.pair){// test for dynamic
-                var s2=e2.proxy.shape;
+        if( !e1.max ){
+            var s1 = e1.proxy.shape;
+            var min1 = e1.min1.value;
+            var max1 = e1.max1.value;
+            var min2 = e1.min2.value;
+            var max2 = e1.max2.value;
+
+            for( var e2 = activeD; e2 != null; e2 = e2.pair ) {// test for dynamic
+                var s2 = e2.proxy.shape;
+
                 this.numPairChecks++;
-                if( min1>e2.max1.value||max1<e2.min1.value|| min2>e2.max2.value||max2<e2.min2.value|| !this.isAvailablePair(s1,s2) ){ continue; }
-                this.addPair(s1,s2);
+                if( min1 > e2.max1.value || max1 < e2.min1.value || min2 > e2.max2.value || max2 < e2.min2.value || !this.isAvailablePair( s1, s2 ) ) continue;
+                this.addPair( s1, s2 );
             }
-            if(dyn){
-                for(e2=activeS;e2!=null;e2=e2.pair){// test for static
-                    s2=e2.proxy.shape;
+            if( dyn ){
+                for( e2 = activeS; e2 != null; e2 = e2.pair ) {// test for static
+                    s2 = e2.proxy.shape;
+
                     this.numPairChecks++;
-                    if( min1>e2.max1.value||max1<e2.min1.value|| min2>e2.max2.value||max2<e2.min2.value|| !this.isAvailablePair(s1,s2) ){ continue; }
-                    this.addPair(s1,s2);
+
+                    if( min1 > e2.max1.value || max1 < e2.min1.value|| min2 > e2.max2.value || max2 < e2.min2.value || !this.isAvailablePair(s1,s2) ) continue;
+                    this.addPair( s1, s2 );
                 }
-                e1.pair=activeD;
-                activeD=e1;
+                e1.pair = activeD;
+                activeD = e1;
             }else{
-                e1.pair=activeS;
-                activeS=e1;
+                e1.pair = activeS;
+                activeS = e1;
             }
         }else{
             var min = e1.pair;
-            if(dyn){
-                if(min==activeD){
-                    activeD=activeD.pair;
+            if( dyn ){
+                if( min == activeD ){
+                    activeD = activeD.pair;
                     continue;
                 }else{
-                    e1=activeD;
+                    e1 = activeD;
                 }
             }else{
-                if(min==activeS){
-                    activeS=activeS.pair;
+                if( min == activeS ){
+                    activeS = activeS.pair;
                     continue;
                 }else{
-                    e1=activeS;
+                    e1 = activeS;
                 }
             }
             do{
                 e2 = e1.pair;
-                if(e2===min){
+                if( e2 == min ){
                     e1.pair = e2.pair;
                     break;
                 }
-                e1=e2;
-            }while(e1!=null);
+                e1 = e2;
+            }while( e1 != null );
         }
     }
-    this.index2=(this.index1|this.index2)^3;
-}
+    this.index2 = (this.index1|this.index2)^3;
+    
+};
 /**
-* An element of proxies.
-* @author saharan
-*/
-OIMO.SAPElement = function(proxy,max){
+ * An element of proxies.
+ * @author saharan
+ */
+
+OIMO.SAPElement = function ( proxy, max ) {
+
     // The parent proxy
-    this.proxy=proxy;
+    this.proxy = proxy;
 	// The pair element.
     this.pair = null;
     // The minimum element on other axis.
@@ -11278,13 +11492,17 @@ OIMO.SAPElement = function(proxy,max){
     this.max = max;
     // The value of the element.
     this.value = 0;
+
 };
 /**
-* A proxy for sweep and prune broad-phase.
-* @author saharan
-*/
+ * A proxy for sweep and prune broad-phase.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.SAPProxy = function(sap,shape){
-    OIMO.Proxy.call( this, shape);
+
+    OIMO.Proxy.call( this, shape );
     // Type of the axis to which the proxy belongs to. [0:none, 1:dynamic, 2:static]
     this.belongsTo = 0;
     // The maximum elements on each axis.
@@ -11293,97 +11511,115 @@ OIMO.SAPProxy = function(sap,shape){
     this.min = [];
     
     this.sap = sap;
-    this.min[0] = new OIMO.SAPElement(this,false);
-    this.max[0] = new OIMO.SAPElement(this,true);
-    this.min[1] = new OIMO.SAPElement(this,false);
-    this.max[1] = new OIMO.SAPElement(this,true);
-    this.min[2] = new OIMO.SAPElement(this,false);
-    this.max[2] = new OIMO.SAPElement(this,true);
-    this.max[0].pair=this.min[0];
-    this.max[1].pair=this.min[1];
-    this.max[2].pair=this.min[2];
-    this.min[0].min1=this.min[1];
-    this.min[0].max1=this.max[1];
-    this.min[0].min2=this.min[2];
-    this.min[0].max2=this.max[2];
-    this.min[1].min1=this.min[0];
-    this.min[1].max1=this.max[0];
-    this.min[1].min2=this.min[2];
-    this.min[1].max2=this.max[2];
-    this.min[2].min1=this.min[0];
-    this.min[2].max1=this.max[0];
-    this.min[2].min2=this.min[1];
-    this.min[2].max2=this.max[1];
+    this.min[0] = new OIMO.SAPElement( this, false );
+    this.max[0] = new OIMO.SAPElement( this, true );
+    this.min[1] = new OIMO.SAPElement( this, false );
+    this.max[1] = new OIMO.SAPElement( this, true );
+    this.min[2] = new OIMO.SAPElement( this, false );
+    this.max[2] = new OIMO.SAPElement( this, true );
+    this.max[0].pair = this.min[0];
+    this.max[1].pair = this.min[1];
+    this.max[2].pair = this.min[2];
+    this.min[0].min1 = this.min[1];
+    this.min[0].max1 = this.max[1];
+    this.min[0].min2 = this.min[2];
+    this.min[0].max2 = this.max[2];
+    this.min[1].min1 = this.min[0];
+    this.min[1].max1 = this.max[0];
+    this.min[1].min2 = this.min[2];
+    this.min[1].max2 = this.max[2];
+    this.min[2].min1 = this.min[0];
+    this.min[2].max1 = this.max[0];
+    this.min[2].min2 = this.min[1];
+    this.min[2].max2 = this.max[1];
+
 };
+
 OIMO.SAPProxy.prototype = Object.create( OIMO.Proxy.prototype );
-/**
-* Returns whether the proxy is dynamic or not.
-* @return
-*/
+OIMO.SAPProxy.prototype.constructor = OIMO.SAPProxy;
+
+// Returns whether the proxy is dynamic or not.
+
 OIMO.SAPProxy.prototype.isDynamic = function () {
-    var body=this.shape.parent;
-    return body.isDynamic&&!body.sleeping;
-}
+
+    var body = this.shape.parent;
+    return body.isDynamic && !body.sleeping;
+
+};
+
 OIMO.SAPProxy.prototype.update = function () {
-    this.min[0].value=this.aabb.minX;
-    this.max[0].value=this.aabb.maxX;
-    this.min[1].value=this.aabb.minY;
-    this.max[1].value=this.aabb.maxY;
-    this.min[2].value=this.aabb.minZ;
-    this.max[2].value=this.aabb.maxZ;
-    if(this.belongsTo==1&&!this.isDynamic()||this.belongsTo==2&&this.isDynamic()){
+
+    var te = this.aabb.elements;
+    this.min[0].value = te[0];
+    this.min[1].value = te[1];
+    this.min[2].value = te[2];
+    this.max[0].value = te[3];
+    this.max[1].value = te[4];
+    this.max[2].value = te[5];
+
+    if( this.belongsTo == 1 && !this.isDynamic() || this.belongsTo == 2 && this.isDynamic() ){
         this.sap.removeProxy(this);
         this.sap.addProxy(this);
     }
-}
+
+};
 /**
-* A dynamic bounding volume tree for the broad-phase algorithm.
-* @author saharan
-*/
+ * A dynamic bounding volume tree for the broad-phase algorithm.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.DBVT = function(){
+
     // The root of the tree.
-    this.root=null;
-    this.freeNodes=[];// vector
+    this.root = null;
+    this.freeNodes = [];
     this.freeNodes.length = 16384;
-    this.numFreeNodes=0;
-    this.aabb=new OIMO.AABB();
-}
+    this.numFreeNodes = 0;
+    this.aabb = new OIMO.AABB();
+
+};
 
 OIMO.DBVT.prototype = {
+
     constructor: OIMO.DBVT,
     /**
     * Move a leaf.
     * @param   leaf
     */
-    moveLeaf:function(leaf){
-        this.deleteLeaf(leaf);
-        this.insertLeaf(leaf);
+    moveLeaf: function( leaf ) {
+
+        this.deleteLeaf( leaf );
+        this.insertLeaf( leaf );
+    
     },
+
     /**
     * Insert a leaf to the tree.
     * @param   node
     */
-    insertLeaf:function(leaf){
-        if(this.root==null){
-            this.root=leaf;
+    insertLeaf: function ( leaf ) {
+
+        if(this.root == null){
+            this.root = leaf;
             return;
         }
-        var lb=leaf.aabb;
-        var sibling=this.root;
+        var lb = leaf.aabb;
+        var sibling = this.root;
         var oldArea;
         var newArea;
-        while(sibling.proxy==null){ // descend the node to search the best pair
-            var c1=sibling.child1;
-            var c2=sibling.child2;
-            var b=sibling.aabb;
-            var c1b=c1.aabb;
-            var c2b=c2.aabb;
-            oldArea=b.surfaceArea();
+        while(sibling.proxy == null){ // descend the node to search the best pair
+            var c1 = sibling.child1;
+            var c2 = sibling.child2;
+            var b = sibling.aabb;
+            var c1b = c1.aabb;
+            var c2b = c2.aabb;
+            oldArea = b.surfaceArea();
             this.aabb.combine(lb,b);
-            newArea=this.aabb.surfaceArea();
-            var creatingCost=newArea*2;
-            var incrementalCost=(newArea-oldArea)*2; // cost of creating a new pair with the node
-            var discendingCost1=incrementalCost;
+            newArea = this.aabb.surfaceArea();
+            var creatingCost = newArea*2;
+            var incrementalCost = (newArea-oldArea)*2; // cost of creating a new pair with the node
+            var discendingCost1 = incrementalCost;
             this.aabb.combine(lb,c1b);
             if(c1.proxy!=null){
                 // leaf cost = area(combined aabb)
@@ -11405,53 +11641,56 @@ OIMO.DBVT.prototype = {
                 if(creatingCost<discendingCost1){
                     break;// stop descending
                 }else{
-                    sibling=c1;// descend into first child
+                    sibling = c1;// descend into first child
                 }
             }else{
                 if(creatingCost<discendingCost2){
                     break;// stop descending
                 }else{
-                    sibling=c2;// descend into second child
+                    sibling = c2;// descend into second child
                 }
             }
         }
-        var oldParent=sibling.parent;
+        var oldParent = sibling.parent;
         var newParent;
         if(this.numFreeNodes>0){
-            newParent=this.freeNodes[--this.numFreeNodes];
+            newParent = this.freeNodes[--this.numFreeNodes];
         }else{
-            newParent=new OIMO.DBVTNode();
+            newParent = new OIMO.DBVTNode();
         }
-        newParent.parent=oldParent;
-        newParent.child1=leaf;
-        newParent.child2=sibling;
+
+        newParent.parent = oldParent;
+        newParent.child1 = leaf;
+        newParent.child2 = sibling;
         newParent.aabb.combine(leaf.aabb,sibling.aabb);
-        newParent.height=sibling.height+1;
-        sibling.parent=newParent;
-        leaf.parent=newParent;
-        if(sibling==this.root){
+        newParent.height = sibling.height+1;
+        sibling.parent = newParent;
+        leaf.parent = newParent;
+        if(sibling == this.root){
             // replace root
-            this.root=newParent;
+            this.root = newParent;
         }else{
             // replace child
-            if(oldParent.child1==sibling){
-                oldParent.child1=newParent;
+            if(oldParent.child1 == sibling){
+                oldParent.child1 = newParent;
             }else{
-                oldParent.child2=newParent;
+                oldParent.child2 = newParent;
             }
         }
         // update whole tree
         do{
-            newParent=this.balance(newParent);
+            newParent = this.balance(newParent);
             this.fix(newParent);
-            newParent=newParent.parent;
-        }while(newParent!=null);
+            newParent = newParent.parent;
+        }while(newParent != null);
     },
     getBalance:function(node){
         if(node.proxy!=null)return 0;
         return node.child1.height-node.child2.height;
     },
-    print:function(node,indent,text){
+
+    /*print:function(node,indent,text){
+
         var hasChild=node.proxy==null;
         if(hasChild)text=this.print(node.child1,indent+1,text);
         for(var i=indent*2;i>=0;i--){
@@ -11460,17 +11699,19 @@ OIMO.DBVT.prototype = {
         text+=(hasChild?this.getBalance(node):"["+node.proxy.aabb.minX+"]")+"\n";
         if(hasChild)text=this.print(node.child2,indent+1,text);
         return text;
-    },
+    },*/
+
     /**
     * Delete a leaf from the tree.
     * @param   node
     */
-    deleteLeaf:function(leaf){
-        if(leaf==this.root){
-            this.root=null;
+    deleteLeaf: function( leaf ) {
+
+        if(leaf == this.root){
+            this.root = null;
             return;
         }
-        var parent=leaf.parent;
+        var parent = leaf.parent;
         var sibling;
         if(parent.child1==leaf){
             sibling=parent.child2;
@@ -11482,33 +11723,36 @@ OIMO.DBVT.prototype = {
             sibling.parent=null;
             return;
         }
-        var grandParent=parent.parent;
-        sibling.parent=grandParent;
-        if(grandParent.child1==parent){
-            grandParent.child1=sibling;
+        var grandParent = parent.parent;
+        sibling.parent = grandParent;
+        if(grandParent.child1 == parent ) {
+            grandParent.child1 = sibling;
         }else{
-            grandParent.child2=sibling;
+            grandParent.child2 = sibling;
         }
         if(this.numFreeNodes<16384){
-            this.freeNodes[this.numFreeNodes++]=parent;
+            this.freeNodes[this.numFreeNodes++] = parent;
         }
         do{
-            grandParent=this.balance(grandParent);
+            grandParent = this.balance(grandParent);
             this.fix(grandParent);
-            grandParent=grandParent.parent;
-        }while(grandParent!=null);
+            grandParent = grandParent.parent;
+        }while( grandParent != null );
+    
     },
-    balance:function(node){
-        var nh=node.height;
+
+    balance: function( node ) {
+
+        var nh = node.height;
         if(nh<2){
             return node;
         }
-        var p=node.parent;
-        var l=node.child1;
-        var r=node.child2;
-        var lh=l.height;
-        var rh=r.height;
-        var balance=lh-rh;
+        var p = node.parent;
+        var l = node.child1;
+        var r = node.child2;
+        var lh = l.height;
+        var rh = r.height;
+        var balance = lh-rh;
         var t;// for bit operation
 
         //          [ N ]
@@ -11519,16 +11763,16 @@ OIMO.DBVT.prototype = {
 
         // Is the tree balanced?
         if(balance>1){
-            var ll=l.child1;
-            var lr=l.child2;
-            var llh=ll.height;
-            var lrh=lr.height;
+            var ll = l.child1;
+            var lr = l.child2;
+            var llh = ll.height;
+            var lrh = lr.height;
 
             // Is L-L higher than L-R?
             if(llh>lrh){
                 // set N to L-R
-                l.child2=node;
-                node.parent=l;
+                l.child2 = node;
+                node.parent = l;
 
                 //          [ L ]
                 //         /     \
@@ -11537,8 +11781,8 @@ OIMO.DBVT.prototype = {
                 // [...] [...] [ L ] [ R ]
                 
                 // set L-R
-                node.child1=lr;
-                lr.parent=node;
+                node.child1 = lr;
+                lr.parent = node;
 
                 //          [ L ]
                 //         /     \
@@ -11547,8 +11791,8 @@ OIMO.DBVT.prototype = {
                 // [...] [...] [L-R] [ R ]
                 
                 // fix bounds and heights
-                node.aabb.combine(lr.aabb,r.aabb);
-                t=lrh-rh;
+                node.aabb.combine( lr.aabb, r.aabb );
+                t = lrh-rh;
                 node.height=lrh-(t&t>>31)+1;
                 l.aabb.combine(ll.aabb,node.aabb);
                 t=llh-nh;
@@ -11565,8 +11809,8 @@ OIMO.DBVT.prototype = {
                 // [ L ] [ R ] [...] [...]
                 
                 // set L-L
-                node.child1=ll;
-                ll.parent=node;
+                node.child1 = ll;
+                ll.parent = node;
 
                 //          [ L ]
                 //         /     \
@@ -11576,7 +11820,7 @@ OIMO.DBVT.prototype = {
                 
                 // fix bounds and heights
                 node.aabb.combine(ll.aabb,r.aabb);
-                t=llh-rh;
+                t = llh - rh;
                 node.height=llh-(t&t>>31)+1;
 
                 l.aabb.combine(node.aabb,lr.aabb);
@@ -11596,16 +11840,16 @@ OIMO.DBVT.prototype = {
             l.parent=p;
             return l;
         }else if(balance<-1){
-            var rl=r.child1;
-            var rr=r.child2;
-            var rlh=rl.height;
-            var rrh=rr.height;
+            var rl = r.child1;
+            var rr = r.child2;
+            var rlh = rl.height;
+            var rrh = rr.height;
 
             // Is R-L higher than R-R?
-            if(rlh>rrh){
+            if( rlh > rrh ) {
                 // set N to R-R
-                r.child2=node;
-                node.parent=r;
+                r.child2 = node;
+                node.parent = r;
 
                 //          [ R ]
                 //         /     \
@@ -11614,8 +11858,8 @@ OIMO.DBVT.prototype = {
                 // [...] [...] [ L ] [ R ]
                 
                 // set R-R
-                node.child2=rr;
-                rr.parent=node;
+                node.child2 = rr;
+                rr.parent = node;
 
                 //          [ R ]
                 //         /     \
@@ -11625,15 +11869,15 @@ OIMO.DBVT.prototype = {
                 
                 // fix bounds and heights
                 node.aabb.combine(l.aabb,rr.aabb);
-                t=lh-rrh;
-                node.height=lh-(t&t>>31)+1;
+                t = lh-rrh;
+                node.height = lh-(t&t>>31)+1;
                 r.aabb.combine(rl.aabb,node.aabb);
-                t=rlh-nh;
-                r.height=rlh-(t&t>>31)+1;
+                t = rlh-nh;
+                r.height = rlh-(t&t>>31)+1;
             }else{
                 // set N to R-L
-                r.child1=node;
-                node.parent=r;
+                r.child1 = node;
+                node.parent = r;
                 //          [ R ]
                 //         /     \
                 //    [ N ]       [R-R]
@@ -11641,8 +11885,8 @@ OIMO.DBVT.prototype = {
                 // [ L ] [ R ] [...] [...]
                 
                 // set R-L
-                node.child2=rl;
-                rl.parent=node;
+                node.child2 = rl;
+                rl.parent = node;
 
                 //          [ R ]
                 //         /     \
@@ -11674,181 +11918,181 @@ OIMO.DBVT.prototype = {
         return node;
     },
     fix:function(node){
-        var c1=node.child1;
-        var c2=node.child2;
-        node.aabb.combine(c1.aabb,c2.aabb);
-        var h1=c1.height;
-        var h2=c2.height;
-        if(h1<h2){
-            node.height=h2+1;
+        var c1 = node.child1;
+        var c2 = node.child2;
+        node.aabb.combine( c1.aabb, c2.aabb );
+        //var h1 = c1.height;
+        //var h2 = c2.height;
+
+        node.height = c1.height < c2.height ? c2.height+1 : c1.height+1; 
+        /*if( h1 < h2 ) {
+            node.height = h2+1;
         }else{
-            node.height=h1+1;
-        }
+            node.height = h1+1;
+        }*/
+
     }
 }
 /**
-* A broad-phase algorithm using dynamic bounding volume tree.
-* @author saharan
-*/
+ * A broad-phase algorithm using dynamic bounding volume tree.
+ * @author saharan
+ * @author lo-th
+ */
+
 OIMO.DBVTBroadPhase = function(){
+
     OIMO.BroadPhase.call( this);
-    this.types = 0x3;
+    this.types = OIMO.BR_BOUNDING_VOLUME_TREE;
 
+    this.tree = new OIMO.DBVT();
+    this.stack = [];
+    this.leaves = [];
     this.numLeaves = 0;
-    this.maxLeaves = 0;
-    this.tree=new OIMO.DBVT();
-    this.maxStack=256;
 
-    this.stack=[];// vector
-    this.stack.length = this.maxStack;
-    this.maxLeaves=256;
-    this.leaves=[];// vector
-    this.leaves.length = this.maxLeaves;
-}
+};
+
 OIMO.DBVTBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
-OIMO.DBVTBroadPhase.prototype.createProxy = function (shape) {
+OIMO.DBVTBroadPhase.prototype.constructor = OIMO.DBVTBroadPhase;
+
+OIMO.DBVTBroadPhase.prototype.createProxy = function ( shape ) {
+
     return new OIMO.DBVTProxy(shape);
-}
-OIMO.DBVTBroadPhase.prototype.addProxy = function (proxy) {
-    var p=(proxy);
-    this.tree.insertLeaf(p.leaf);
-    if(this.numLeaves==this.maxLeaves){
-    //this.maxLeaves<<=1;
-    this.maxLeaves*=2;
-    var newLeaves=[];// vector
-    newLeaves.length = this.maxLeaves;
-    for(var i=0;i<this.numLeaves;i++){
-    newLeaves[i]=this.leaves[i];
+
+};
+
+OIMO.DBVTBroadPhase.prototype.addProxy = function ( proxy ) {
+
+    this.tree.insertLeaf( proxy.leaf );
+    this.leaves.push( proxy.leaf );
+    this.numLeaves++;
+
+};
+
+OIMO.DBVTBroadPhase.prototype.removeProxy = function ( proxy ) {
+
+    this.tree.deleteLeaf( proxy.leaf );
+    var n = this.leaves.indexOf( proxy.leaf );
+    if ( n > -1 ) {
+        this.leaves.splice(n,1);
+        this.numLeaves--;
     }
-    this.leaves=newLeaves;
-    }
-    this.leaves[this.numLeaves++]=p.leaf;
-}
-OIMO.DBVTBroadPhase.prototype.removeProxy = function (proxy) {
-    var p=(proxy);
-    this.tree.deleteLeaf(p.leaf);
-    for(var i=0;i<this.numLeaves;i++){
-    if(this.leaves[i]==p.leaf){
-    this.leaves[i]=this.leaves[--this.numLeaves];
-    this.leaves[this.numLeaves]=null;
-    return;
-    }
-    }
-}
+
+};
+
 OIMO.DBVTBroadPhase.prototype.collectPairs = function () {
-    if(this.numLeaves<2)return;
-    for(var i=0;i<this.numLeaves;i++){
-    var leaf=this.leaves[i];
-    var trueB=leaf.proxy.aabb;
-    var leafB=leaf.aabb;
-    if(
-    trueB.minX<leafB.minX||trueB.maxX>leafB.maxX||
-    trueB.minY<leafB.minY||trueB.maxY>leafB.maxY||
-    trueB.minZ<leafB.minZ||trueB.maxZ>leafB.maxZ
-    ){// the leaf needs correcting
-    var margin=0.1;
-    this.tree.deleteLeaf(leaf);
-    leafB.minX=trueB.minX-margin;
-    leafB.maxX=trueB.maxX+margin;
-    leafB.minY=trueB.minY-margin;
-    leafB.maxY=trueB.maxY+margin;
-    leafB.minZ=trueB.minZ-margin;
-    leafB.maxZ=trueB.maxZ+margin;
-    this.tree.insertLeaf(leaf);
-    this.collide(leaf,this.tree.root);
+
+    if ( this.numLeaves < 2 ) return;
+
+    var leaf, margin = 0.1, i = this.numLeaves;
+
+    while(i--){
+
+        leaf = this.leaves[i];
+
+        if ( leaf.proxy.aabb.intersectTestTwo( leaf.aabb ) ){
+
+            leaf.aabb.copy( leaf.proxy.aabb, margin );
+            this.tree.deleteLeaf( leaf );
+            this.tree.insertLeaf( leaf );
+            this.collide( leaf, this.tree.root );
+
+        }
     }
+
+};
+
+OIMO.DBVTBroadPhase.prototype.collide = function ( node1, node2 ) {
+
+    var stackCount = 2;
+    var s1, s2, n1, n2, l1, l2;
+    this.stack[0] = node1;
+    this.stack[1] = node2;
+
+    while( stackCount > 0 ){
+
+        n1 = this.stack[--stackCount];
+        n2 = this.stack[--stackCount];
+        l1 = n1.proxy != null;
+        l2 = n2.proxy != null;
+        
+        this.numPairChecks++;
+
+        if( l1 && l2 ){
+            s1 = n1.proxy.shape;
+            s2 = n2.proxy.shape;
+            if ( s1 == s2 || s1.aabb.intersectTest( s2.aabb ) || !this.isAvailablePair( s1, s2 ) ) continue;
+
+            this.addPair(s1,s2);
+
+        }else{
+
+            if ( n1.aabb.intersectTest( n2.aabb ) ) continue;
+            
+            /*if(stackCount+4>=this.maxStack){// expand the stack
+                //this.maxStack<<=1;
+                this.maxStack*=2;
+                var newStack = [];// vector
+                newStack.length = this.maxStack;
+                for(var i=0;i<stackCount;i++){
+                    newStack[i] = this.stack[i];
+                }
+                this.stack = newStack;
+            }*/
+
+            if( l2 || !l1 && (n1.aabb.surfaceArea() > n2.aabb.surfaceArea()) ){
+                this.stack[stackCount++] = n1.child1;
+                this.stack[stackCount++] = n2;
+                this.stack[stackCount++] = n1.child2;
+                this.stack[stackCount++] = n2;
+            }else{
+                this.stack[stackCount++] = n1;
+                this.stack[stackCount++] = n2.child1;
+                this.stack[stackCount++] = n1;
+                this.stack[stackCount++] = n2.child2;
+            }
+        }
     }
-}
-OIMO.DBVTBroadPhase.prototype.collide = function (node1,node2) {
-    var stackCount=2;
-    this.stack[0]=node1;
-    this.stack[1]=node2;
-    while(stackCount>0){
-    var n1=this.stack[--stackCount];
-    var n2=this.stack[--stackCount];
-    var l1=n1.proxy!=null;
-    var l2=n2.proxy!=null;
-    this.numPairChecks++;
-    if(l1&&l2){
-    var s1=n1.proxy.shape;
-    var s2=n2.proxy.shape;
-    var b1=s1.aabb;
-    var b2=s2.aabb;
-    if(
-    s1==s2||
-    b1.maxX<b2.minX||b1.minX>b2.maxX||
-    b1.maxY<b2.minY||b1.minY>b2.maxY||
-    b1.maxZ<b2.minZ||b1.minZ>b2.maxZ||
-    !this.isAvailablePair(s1,s2)
-    ){
-    continue;
-    }
-    this.addPair(s1,s2);
-    }else{
-    b1=n1.aabb;
-    b2=n2.aabb;
-    if(
-    b1.maxX<b2.minX||b1.minX>b2.maxX||
-    b1.maxY<b2.minY||b1.minY>b2.maxY||
-    b1.maxZ<b2.minZ||b1.minZ>b2.maxZ
-    ){
-    continue;
-    }
-    if(stackCount+4>=this.maxStack){// expand the stack
-    //this.maxStack<<=1;
-    this.maxStack*=2;
-    var newStack=[];// vector
-    newStack.length = this.maxStack;
-    for(var i=0;i<stackCount;i++){
-    newStack[i]=this.stack[i];
-    }
-    this.stack=newStack;
-    }
-    if(l2||!l1&&(n1.aabb.surfaceArea()>n2.aabb.surfaceArea())){
-    this.stack[stackCount++]=n1.child1;
-    this.stack[stackCount++]=n2;
-    this.stack[stackCount++]=n1.child2;
-    this.stack[stackCount++]=n2;
-    }else{
-    this.stack[stackCount++]=n1;
-    this.stack[stackCount++]=n2.child1;
-    this.stack[stackCount++]=n1;
-    this.stack[stackCount++]=n2.child2;
-    }
-    }
-    }
-}
+
+};
 /**
 * A node of the dynamic bounding volume tree.
 * @author saharan
 */
 OIMO.DBVTNode = function(){
+    
 	// The first child node of this node.
-    this.child1=null;
+    this.child1 = null;
     // The second child node of this node.
-    this.child2=null;
+    this.child2 = null;
     //  The parent node of this tree.
-    this.parent=null;
+    this.parent = null;
     // The proxy of this node. This has no value if this node is not leaf.
-    this.proxy=null;
+    this.proxy = null;
     // The maximum distance from leaf nodes.
-    this.height=0;
+    this.height = 0;
     // The AABB of this node.
-    this.aabb=new OIMO.AABB();
-}
+    this.aabb = new OIMO.AABB();
+
+};
 /**
 * A proxy for dynamic bounding volume tree broad-phase.
 * @author saharan
 */
-OIMO.DBVTProxy = function(shape){
+OIMO.DBVTProxy = function ( shape ) {
+
     OIMO.Proxy.call( this, shape);
     // The leaf of the proxy.
     this.leaf = new OIMO.DBVTNode();
     this.leaf.proxy = this;
-}
+
+};
+
 OIMO.DBVTProxy.prototype = Object.create( OIMO.Proxy.prototype );
+OIMO.DBVTProxy.prototype.constructor = OIMO.DBVTProxy;
+
 OIMO.DBVTProxy.prototype.update = function () {
-}
+    
+};
 OIMO.World.prototype.add = function(obj){
     obj = obj || {};
 
