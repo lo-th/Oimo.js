@@ -4,6 +4,7 @@
 	"src/dynamics/RigidBody.js",
 	"src/util/Body.js",
 	"src/util/Link.js",
+	"src/util/Dictionary.js",
 	"src/util/Performance.js",
 	"src/math/Mat44.js",
 	"src/math/Mat33.js",

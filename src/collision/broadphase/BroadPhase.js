@@ -67,6 +67,7 @@ OIMO.BroadPhase.prototype = {
            if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
            js = js.next;
         }
+        
         return true;
 
     },

@@ -197,7 +197,7 @@
 
     function initOimoPhysics(){
 
-        world = new OIMO.World();
+        world = new OIMO.World( 0.01666, 2 );
         //initChairGeometry();
         initCapsuleGeometry(10,22,20,10);
         populate(1);

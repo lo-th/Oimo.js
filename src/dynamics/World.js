@@ -1,14 +1,16 @@
 /**
-* The class of physical computing world. 
-* You must be added to the world physical all computing objects
-* @author saharan
-*/
-OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
+ * The class of physical computing world. 
+ * You must be added to the world physical all computing objects
+ * @author saharan
+ * @author lo-th
+ */
+
+OIMO.World = function ( TimeStep, BroadPhaseType, Iterations, NoStat ) {
 
     
 
     // The time between each step
-    this.timeStep = TimeStep || 1/60;
+    this.timeStep = TimeStep || 0.01666; // 1/60;
     // The number of iterations for constraint solvers.
     this.numIterations = Iterations || 8;
      // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
@@ -106,7 +108,9 @@ OIMO.World.prototype = {
         while(this.rigidBodies!==null){
             this.removeRigidBody(this.rigidBodies);
         }
+        
         OIMO.nextID=0;
+        OIMO.proxyID=0;
     },
     /**
     * I'll add a rigid body to the world. 
@@ -252,7 +256,7 @@ OIMO.World.prototype = {
         while(body !== null){
             body.addedToIsland = false;
             if(body.sleeping){
-                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)) body.awake(); // awake the body
+                if( body.linearVelocity.testZero() || body.angularVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)) body.awake(); // awake the body
             }
             body = body.next;
         }

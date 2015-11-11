@@ -13,6 +13,8 @@ var OIMO = {
     // This will be incremented every time a shape is created.
     nextID : 0,
 
+    proxyID : 0,
+
     // BroadPhase
     BR_NULL : 0,
     BR_BRUTE_FORCE : 1,

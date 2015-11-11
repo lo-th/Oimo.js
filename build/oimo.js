@@ -13,6 +13,8 @@ var OIMO = {
     // This will be incremented every time a shape is created.
     nextID : 0,
 
+    proxyID : 0,
+
     // BroadPhase
     BR_NULL : 0,
     BR_BRUTE_FORCE : 1,
@@ -104,16 +106,18 @@ if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? F
     OIMO.now = perfNow;
 })(window);
 /**
-* The class of physical computing world. 
-* You must be added to the world physical all computing objects
-* @author saharan
-*/
-OIMO.World = function(TimeStep, BroadPhaseType, Iterations, NoStat){
+ * The class of physical computing world. 
+ * You must be added to the world physical all computing objects
+ * @author saharan
+ * @author lo-th
+ */
+
+OIMO.World = function ( TimeStep, BroadPhaseType, Iterations, NoStat ) {
 
     
 
     // The time between each step
-    this.timeStep = TimeStep || 1/60;
+    this.timeStep = TimeStep || 0.01666; // 1/60;
     // The number of iterations for constraint solvers.
     this.numIterations = Iterations || 8;
      // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
@@ -211,7 +215,9 @@ OIMO.World.prototype = {
         while(this.rigidBodies!==null){
             this.removeRigidBody(this.rigidBodies);
         }
+        
         OIMO.nextID=0;
+        OIMO.proxyID=0;
     },
     /**
     * I'll add a rigid body to the world. 
@@ -357,7 +363,7 @@ OIMO.World.prototype = {
         while(body !== null){
             body.addedToIsland = false;
             if(body.sleeping){
-                if( body.linearVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)) body.awake(); // awake the body
+                if( body.linearVelocity.testZero() || body.angularVelocity.testZero() || body.position.testDiff(body.sleepPosition) || body.orientation.testDiff(body.sleepOrientation)) body.awake(); // awake the body
             }
             body = body.next;
         }
@@ -1595,6 +1601,57 @@ OIMO.Link.prototype = {
         this.joint.awake();
     }
 }
+/**
+* The Dictionary class for testing
+* @author lo-th
+*/
+OIMO.Dictionary = function () {
+
+    this.data = {};
+    this.keys = [];
+
+};
+
+OIMO.Dictionary.prototype = {
+
+    constructor: OIMO.Dictionary,
+
+    set: function ( value ) {
+
+        var key = value.id;
+        if(!this.get[key]) this.keys.push(key);
+
+        this.data[key] = value;
+        
+    },
+
+    get: function ( id ) {
+
+        return this.data[ id ];
+
+    },
+
+    del: function ( value ) {
+        var k = this.keys;
+
+        var n = k.indexOf( value.id );
+         if ( n > -1 ){
+            delete this.data[k[n]];
+            k.splice( n, 1 );
+        }
+
+    },
+
+    reset: function () {
+
+        var data = this.data, keys = this.keys, key;
+        while(keys.length > 0){
+            key = keys.pop();
+            delete data[key];
+        }
+
+    }
+};
 OIMO.Performance = function(world){
 	this.parent = world;
 	this.infos = new OIMO_ARRAY_TYPE(13);
@@ -1628,8 +1685,8 @@ OIMO.Performance.prototype = {
             "FPS: " + this.fps +" fps<br><br>",
             "rigidbody "+this.parent.numRigidBodies+"<br>",
             "contact &nbsp;&nbsp;"+this.parent.numContacts+"<br>",
+            "ct-point &nbsp;"+this.parent.numContactPoints+"<br>",
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
-            "contact &nbsp;&nbsp;"+this.parent.numContactPoints+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
             "Time in milliseconde<br><br>",
             "broad-phase &nbsp;"+ OIMO.fix(this.broadPhaseTime) + "<br>",
@@ -2267,7 +2324,7 @@ OIMO.Quaternion.prototype = {
 
     }
 }
-OIMO.Vec3 = function(x,y,z){
+OIMO.Vec3 = function ( x, y, z ) {
     this.x = x || 0;
     this.y = y || 0;
     this.z = z || 0;
@@ -10920,6 +10977,8 @@ OIMO.BasicProxy = function( shape ) {
 
     OIMO.Proxy.call( this, shape );
 
+    this.id = OIMO.proxyID++;
+
 };
 
 OIMO.BasicProxy.prototype = Object.create( OIMO.Proxy.prototype );
@@ -10997,6 +11056,7 @@ OIMO.BroadPhase.prototype = {
            if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
            js = js.next;
         }
+        
         return true;
 
     },
@@ -11028,62 +11088,92 @@ OIMO.BroadPhase.prototype = {
     }
 };
 /**
- * A broad-phase algorithm with brute-force search.
- * This always checks for all possible pairs.
- * @author saharan
- * @author lo-th
- */
-
+* A broad-phase algorithm with brute-force search.
+* This always checks for all possible pairs.
+*/
 OIMO.BruteForceBroadPhase = function(){
-
-    OIMO.BroadPhase.call(this);
-    this.types = OIMO.BR_BRUTE_FORCE;
-    this.numProxies = 0;
+    OIMO.BroadPhase.call( this );
+    this.types = OIMO.BR_BRUTE_FORCE;;
+    //this.numProxies=0;
+    ///this.maxProxies = 256;
     this.proxies = [];
-
+    //this.proxies.length = 256;
 };
 
 OIMO.BruteForceBroadPhase.prototype = Object.create( OIMO.BroadPhase.prototype );
 OIMO.BruteForceBroadPhase.prototype.constructor = OIMO.BruteForceBroadPhase;
 
-OIMO.BruteForceBroadPhase.prototype.createProxy = function ( shape ) {
+OIMO.BruteForceBroadPhase.prototype.createProxy = function (shape) {
 
     return new OIMO.BasicProxy(shape);
 
 };
 
-OIMO.BruteForceBroadPhase.prototype.addProxy = function ( proxy ) {
-
+OIMO.BruteForceBroadPhase.prototype.addProxy = function (proxy) {
+    /*if(this.numProxies==this.maxProxies){
+        //this.maxProxies<<=1;
+        this.maxProxies*=2;
+        var newProxies=[];
+        newProxies.length = this.maxProxies;
+        var i = this.numProxies;
+        while(i--){
+        //for(var i=0, l=this.numProxies;i<l;i++){
+            newProxies[i]=this.proxies[i];
+        }
+        this.proxies=newProxies;
+    }*/
+    //this.proxies[this.numProxies++] = proxy;
     this.proxies.push( proxy );
-    this.numProxies++;
+    //this.numProxies++;
 
 };
 
-OIMO.BruteForceBroadPhase.prototype.removeProxy = function ( proxy ) {
+OIMO.BruteForceBroadPhase.prototype.removeProxy = function (proxy) {
 
     var n = this.proxies.indexOf( proxy );
     if ( n > -1 ){
-        this.proxies.splice(n,1);
-        this.numProxies--;
+        this.proxies.splice( n, 1 );
+        //this.numProxies--;
     }
     
+    /*var i = this.numProxies;
+    while(i--){
+    //for(var i=0, l=this.numProxies;i<l;i++){
+        if(this.proxies[i] == proxy){
+            this.proxies[i] = this.proxies[--this.numProxies];
+            this.proxies[this.numProxies] = null;
+            return;
+        }
+    }*/
+
 };
 
 OIMO.BruteForceBroadPhase.prototype.collectPairs = function () {
+    
+    var i = 0, j, p1, p2;
 
-    var i, j, p1, p2;
+    var px = this.proxies;
+    var l = px.length;//this.numProxies;
+    //var ar1 = [];
+    //var ar2 = [];
 
-    this.numPairChecks = OIMO.int( this.numProxies*(this.numProxies-1)*0.5 );
-    i = this.numProxies;
-    while(i--){
-        p1 = this.proxies[i];
-        j = this.numProxies;
-        while(j!==i){ 
-            j--;
-            p2 = this.proxies[j];
+    //for( i = px.length ; i-- ; ar1[ i ] = px[ i ] ){};
+    //for( i = px.length ; i-- ; ar2[ i ] = px[ i ] ){};
+
+    //var ar1 = JSON.parse(JSON.stringify(this.proxies))
+    //var ar2 = JSON.parse(JSON.stringify(this.proxies))
+
+    this.numPairChecks = l*(l-1)>>1;
+    //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
+
+    while( i < l ){
+        p1 = px[i++];
+        j = i + 1;
+        while( j < l ){ 
+            p2 = px[j++];
             if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
-            this.addPair( p1.shape, p2.shape );
-        }
+            this.addPair( p1.shape, p2.shape );        
+        }     
     }
 
 };
