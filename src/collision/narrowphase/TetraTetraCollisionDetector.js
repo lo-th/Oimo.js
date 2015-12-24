@@ -28,7 +28,7 @@ OIMO.TetraTetraCollisionDetector.prototype.detectCollision = function(tet1, tet2
    * collision detection.
    */
   var i, j, vec, fs1 = tet1.faces, vs1 = tet1.verts, fs2 = tet2.faces, vs2 = tet2.verts;
-  var j1, j2, j3; // Triangle vertices
+  var j1, j2, j3, ts = 0; // Triangle vertices `j1`, `j2` and `j3`
   
   for(i = 0; i < 4; i++){
     vec = vs1[i];
@@ -41,9 +41,11 @@ OIMO.TetraTetraCollisionDetector.prototype.detectCollision = function(tet1, tet2
         tricheck(pt(vec.x, vec.y), pt(j1.x, j1.y), pt(j2.x, j2.y), pt(j3.x, j3.y)) &&
         tricheck(pt(vec.x, vec.z), pt(j1.x, j1.z), pt(j2.x, j2.z), pt(j3.x, j3.z)) &&
         tricheck(pt(vec.z, vec.y), pt(j1.z, j1.y), pt(j2.z, j2.y), pt(j3.z, j3.y))
-      ){
+      )
+        ts++;
+
+      if(ts === 4) // Only add point if it is inside all 4 triangles
         manifold.addPoint(vec);
-      }
     }
   }
 };
