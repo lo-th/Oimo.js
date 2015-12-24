@@ -7,7 +7,7 @@
  */
  
 var OIMO = { 
-    REVISION: '1.2',
+    REVISION: "1.2",
 
     // Global identification of next shape.
     // This will be incremented every time a shape is created.
@@ -31,6 +31,7 @@ var OIMO = {
     SHAPE_SPHERE   : 1,
     SHAPE_BOX      : 2,
     SHAPE_CYLINDER : 3,
+    SHAPE_TETRA    : 4,
 
     // joint type
     JOINT_NULL            : 0,
