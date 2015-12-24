@@ -3,6 +3,7 @@
  * a shape that is made with 4 vertices and 4 faces
  * arranged in triangles. With this algorigthm, soft
  * body physics are possible and easier to implement.
+ * @author xprogram
  */
 OIMO.TetraTetraCollisionDetector = function(){
   OIMO.CollisionDetector.call(this);
