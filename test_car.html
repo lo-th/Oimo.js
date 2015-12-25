@@ -416,11 +416,11 @@ var vehicle = function () {
                 break;
                 case KEYID.ARROW_LEFT:
                     // I'm so confused right now...
-                    b.phy.j[0].rotationalLimitMotor1.setMotor(35, 4);
+                    b.phy.j[0].rotationalLimitMotor0.setMotor(100, 4);
                 break;
                 case KEYID.ARROW_RIGHT:
                     // Still confused... I think we need proper docs
-                    b.phy.j[0].rotationalLimitMotor1.setMotor(-35, 4);
+                    b.phy.j[0].rotationalLimitMotor0.setMotor(-100, 4);
                 break;
             }
         }
