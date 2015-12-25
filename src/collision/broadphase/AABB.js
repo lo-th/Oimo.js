@@ -135,6 +135,12 @@ OIMO.AABB.prototype = {
     },
     expandByScalar: function(s){
         var te = this.elements;
+
         te[0] += -s;
+        te[1] += -s;
+        te[2] += -s;
+        te[3] += s;
+        te[4] += s;
+        te[5] += s;
     }
 };
