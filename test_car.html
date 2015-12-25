@@ -429,9 +429,13 @@ var vehicle = function () {
     });
 
     document.addEventListener("keyup", function(event){
-        var P = cars.length;
-        while(P--)
-            cars[P].speed = 0;
+        var P = cars.length, b;
+        while(P--){
+            b = cars[P];
+            b.speed = 0;
+            b.phy.j[0].rotationalLimitMotor1.setMotor(0, 4);
+            b.phy.j[1].rotationalLimitMotor1.setMotor(0, 4);
+        }
     });
 
 </script>
