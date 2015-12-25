@@ -138,6 +138,7 @@ var vehicle = function () {
         camera.position.set( -400, 160, 0 );
 
         controls = new THREE.OrbitControls( camera, canvas );
+        controls.enableKeys = false; // So it doesn't conflict with cars
         controls.target.set(0, 20, 0);
         controls.update();
 
@@ -183,7 +184,7 @@ var vehicle = function () {
         back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
         scene.add( back );
 
-        // geometrys
+        // geometries
         geos['sphere'] = new THREE.BufferGeometry().fromGeometry( new THREE.SphereGeometry(1,16,10));
         geos['box'] = new THREE.BufferGeometry().fromGeometry( new THREE.BoxGeometry(1,1,1));
         geos['cylinder'] = new THREE.BufferGeometry().fromGeometry(new THREE.CylinderGeometry(1,1,1, 20,1));
@@ -415,11 +416,11 @@ var vehicle = function () {
                 break;
                 case KEYID.ARROW_LEFT:
                     // I'm so confused right now...
-                    b.phy.j[0].setRotationalLimitMotor1(5, 4);
+                    b.phy.j[0].rotationalLimitMotor1.setMotor(35, 4);
                 break;
                 case KEYID.ARROW_RIGHT:
                     // Still confused... I think we need proper docs
-                    b.phy.j[0].setRotationalLimitMotor1(-5, 4);
+                    b.phy.j[0].rotationalLimitMotor1.setMotor(-35, 4);
                 break;
             }
         }
