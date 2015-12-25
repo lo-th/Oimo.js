@@ -1,114 +1,86 @@
 /**
- * An axis-aligned bounding box.
- * @author saharan
- * @author lo-th
- */
-
-OIMO.AABB = function ( minX, maxX, minY, maxY, minZ, maxZ ){
-
-    this.elements = new OIMO_ARRAY_TYPE(6);
-    var te = this.elements;
-
-    te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
-    te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
-
-};
+* An axis-aligned bounding box.
+* @author saharan
+*/
+OIMO.AABB = function(minX,maxX,minY,maxY,minZ,maxZ){
+    this.minX=minX || 0;
+    this.maxX=maxX || 0;
+    this.minY=minY || 0;
+    this.maxY=maxY || 0;
+    this.minZ=minZ || 0;
+    this.maxZ=maxZ || 0;
+}
 
 OIMO.AABB.prototype = {
 
     constructor: OIMO.AABB,
 
-    set: function ( minX, maxX, minY, maxY, minZ, maxZ ) {
-
-        var te = this.elements;
-
-        te[ 0 ] = minX; te[ 3 ] = maxX;
-        te[ 1 ] = minY; te[ 4 ] = maxY;
-        te[ 2 ] = minZ; te[ 5 ] = maxZ;
-
-        return this;
-
+    init:function(minX,maxX,minY,maxY,minZ,maxZ){
+        this.minX=minX;
+        this.maxX=maxX;
+        this.minY=minY;
+        this.maxY=maxY;
+        this.minZ=minZ;
+        this.maxZ=maxZ;
     },
-
-    intersectTest: function ( aabb ) {
-
-        var te = this.elements;
-        var ue = aabb.elements;
-        return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2];      
-    
+    /**
+    * Set this AABB to the combined AABB of aabb1 and aabb2.
+    * @param   aabb1
+    * @param   aabb2
+    */
+    combine:function(aabb1,aabb2){
+        this.minX = (aabb1.minX<aabb2.minX) ? aabb1.minX : aabb2.minX;
+        this.maxX = (aabb1.maxX>aabb2.maxX) ? aabb1.maxX : aabb2.maxX;
+        this.minY = (aabb1.minY<aabb2.minY) ? aabb1.minY : aabb2.minY;
+        this.maxY = (aabb1.maxY>aabb2.maxY) ? aabb1.maxY : aabb2.maxY;
+        this.minZ = (aabb1.minZ<aabb2.minZ) ? aabb1.minZ : aabb2.minZ;
+        this.maxZ = (aabb1.maxZ>aabb2.maxZ) ? aabb1.maxZ : aabb2.maxZ;
+        /*
+        var margin=0;
+        this.minX-=margin;
+        this.minY-=margin;
+        this.minZ-=margin;
+        this.maxX+=margin;
+        this.maxY+=margin;
+        this.maxZ+=margin;
+        */
     },
-
-    intersectTestTwo: function ( aabb ) {
-
-        var te = this.elements;
-        var ue = aabb.elements;
-        return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5];      
-    
+    /**
+    * Get the surface area.
+    * @return
+    */
+    surfaceArea:function(){
+        var h=this.maxY-this.minY;
+        var d=this.maxZ-this.minZ;
+        return 2*((this.maxX-this.minX)*(h+d)+h*d);
     },
-
-    clone: function () {
-
-        return new this.constructor().fromArray( this.elements );
-
-    },
-
-    copy: function ( aabb, margin ) {
-
-        var m = margin || 0;
-        var me = aabb.elements;
-        this.set( me[ 0 ]-m, me[ 3 ]+m, me[ 1 ]-m, me[ 4 ]+m, me[ 2 ]-m, me[ 5 ]+m );
-        return this;
-
-    },
-
-    fromArray: function ( array ) {
-
-        this.elements.set( array );
-        return this;
-
-    },
-
-    // Set this AABB to the combined AABB of aabb1 and aabb2.
-
-    combine: function( aabb1, aabb2 ) {
-
-        var a = aabb1.elements;
-        var b = aabb2.elements;
-        var te = this.elements;
-
-        te[0] = a[0] < b[0] ? a[0] : b[0];
-        te[1] = a[1] < b[1] ? a[1] : b[1];
-        te[2] = a[2] < b[2] ? a[2] : b[2];
-
-        te[3] = a[3] > b[3] ? a[3] : b[3];
-        te[4] = a[4] > b[4] ? a[4] : b[4];
-        te[5] = a[5] > b[5] ? a[5] : b[5];
-
-        return this;
-
-    },
-
-    
-    // Get the surface area.
-    
-    surfaceArea: function () {
-
-        var te = this.elements;
-        var a = te[3] - te[0];
-        var h = te[4] - te[1];
-        var d = te[5] - te[2];
-        return 2 * (a * (h + d) + h * d );
-
-    },
-
-    
-    // Get whether the AABB intersects with the point or not.
-    
+    /**
+    * Get whether the AABB intersects with the point or not.
+    * @param   x
+    * @param   y
+    * @param   z
+    * @return
+    */
     intersectsWithPoint:function(x,y,z){
-
-        var te = this.elements;
-        return x>=te[0] && x<=te[3] && y>=te[1] && y<=te[4] && z>=te[2] && z<=te[5];
-        
+        return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
+    },
+    /**
+     * Set the AABB from an array
+     * of vertices. From THREE.
+     * @author mrdoob
+     * @author xprogram
+     */
+    setFromPoints: function(arr){
+        this.makeEmpty();
+        for(var i = 0; i < arr.length; i++){
+            this.expandByPoint(arr[i]);
+        }
+    },
+    makeEmpty: function(){
+        this.init(-Infinity, -Infinity, -Infinity, Infinity, Infinity, Infinity);
+    },
+    expandByPoint: function(pt){
+        this.init(OIMO.min(this.minX, pt.x), OIMO.min(this.minY, pt.y), OIMO.min(this.minY, pt.z));
+        this.init(OIMO.max(this.maxX, pt.x), OIMO.max(this.maxY, pt.y), OIMO.max(this.maxZ, pt.z));
     }
-
-};
+}
