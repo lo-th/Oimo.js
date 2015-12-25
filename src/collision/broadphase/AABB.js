@@ -114,7 +114,7 @@ OIMO.AABB.prototype = {
     /**
      * Set the AABB from an array
      * of vertices. From THREE.
-     * @author mrdoob
+     * @author WestLangley
      * @author xprogram
      */
     setFromPoints: function(arr){
@@ -132,6 +132,9 @@ OIMO.AABB.prototype = {
             OIMO.min(te[ 0 ], pt.x), OIMO.min(te[ 1 ], pt.y), OIMO.min(te[ 2 ], pt.z),
             OIMO.max(te[ 3 ], pt.x), OIMO.max(te[ 4 ], pt.y), OIMO.max(te[ 5 ], pt.z)
         );
+    },
+    expandByScalar: function(s){
+        var te = this.elements;
+        te[0] += -s;
     }
-
 };
