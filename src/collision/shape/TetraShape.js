@@ -24,6 +24,7 @@ OIMO.TetraShape.prototype.calculateMassInfo = function(){
 };
 OIMO.TetraShape.prototype.updateProxy = function(){
   this.aabb.setFromPoints(this.verts);
+  this.aabb.expandByScalar(OIMO.AABB_PROX);
 
   if(this.proxy !== null)
     this.proxy.update();
