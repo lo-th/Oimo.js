@@ -17,7 +17,7 @@
 <canvas id="canvas"></canvas>
 <div id='interface'>
     <input type="button" value="demo" onClick=populate(1)>
-    <input type="number" name="quantity" min="1" max="100" value="1"  id='MaxNumber'>
+    <input type="number" name="quantity" min="1" max="1" value="1"  id='MaxNumber'>
     <input type="submit" onClick=populate()>
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
 </div>
@@ -267,14 +267,7 @@ var vehicle = function () {
         var ground = world.add({size:[4000, 40, 10000], pos:[0,-20,0] });
         addStaticBox([4000, 40, 10000], [0,-20,0], [0,0,0]);
 
-        while(bm--){
-            xbo = -100 + Math.random() * 200;
-            zbo = -100 + Math.random() * 200;
-            ybo = 100 + Math.random() * 1000;
-
-            v = new vehicle();
-            v.body.position = new OIMO.Vec3(xbo, ybo, zbo);
-        }
+        new vehicle();
     }
 
     //----------------------------------
