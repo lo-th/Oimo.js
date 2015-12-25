@@ -55,7 +55,7 @@ OIMO.World = function ( TimeStep, BroadPhaseType, Iterations, NoStat ) {
 
     
 
-    var numShapeTypes = 4;//3;
+    var numShapeTypes = 5;//4;//3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
     var i=numShapeTypes;
@@ -68,7 +68,7 @@ OIMO.World = function ( TimeStep, BroadPhaseType, Iterations, NoStat ) {
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_SPHERE]=new OIMO.SphereBoxCollisionDetector(true);
     this.detectors[OIMO.SHAPE_BOX][OIMO.SHAPE_BOX]=new OIMO.BoxBoxCollisionDetector();
 
-    // cylinder add
+    // CYLINDER add
     this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_CYLINDER] = new OIMO.CylinderCylinderCollisionDetector();
 
     this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_BOX] = new OIMO.BoxCylinderCollisionDetector(true);
@@ -76,6 +76,9 @@ OIMO.World = function ( TimeStep, BroadPhaseType, Iterations, NoStat ) {
 
     this.detectors[OIMO.SHAPE_CYLINDER][OIMO.SHAPE_SPHERE] = new OIMO.SphereCylinderCollisionDetector(true);
     this.detectors[OIMO.SHAPE_SPHERE][OIMO.SHAPE_CYLINDER] = new OIMO.SphereCylinderCollisionDetector(false);
+
+    // TETRA add
+    this.detectors[OIMO.SHAPE_TETRA][OIMO.SHAPE_TETRA] = new OIMO.TetraTetraCollisionDetector();
 
  
     this.randX = 65535;

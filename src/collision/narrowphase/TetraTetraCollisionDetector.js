@@ -6,7 +6,7 @@
  * @author xprogram
  */
 OIMO.TetraTetraCollisionDetector = function(){
-  OIMO.CollisionDetector.call(this);
+    OIMO.CollisionDetector.call(this);
 };
 OIMO.TetraTetraCollisionDetector.prototype = Object.create(OIMO.CollisionDetector.prototype);
 OIMO.TetraTetraCollisionDetector.prototype.constructor = OIMO.TetraTetraCollisionDetector;
