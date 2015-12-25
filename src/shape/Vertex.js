@@ -7,6 +7,6 @@ OIMO.Vertex = function(x, y, z){
 	this.x = x;
 	this.y = y;
 	this.z = z;
-	this.uses = 0; // Number of faces this vertex is connected to
+	this.uses = []; // Array of faces this vertex is connected to
 	this.elements = [x, y, z];
 };
