@@ -253,6 +253,7 @@ var vehicle = function () {
         while (i--) scene.remove(meshs[ i ]);
         i = grounds.length;
         while (i--) scene.remove(grounds[ i ]);
+        content.remove(content.children[0]);
         i = cars.length;
         while (i--){
             scene.remove(cars[i].mesh.body);
