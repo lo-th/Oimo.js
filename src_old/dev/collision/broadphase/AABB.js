@@ -63,5 +63,24 @@ OIMO.AABB.prototype = {
     */
     intersectsWithPoint:function(x,y,z){
         return x>=this.minX&&x<=this.maxX&&y>=this.minY&&y<=this.maxY&&z>=this.minZ&&z<=this.maxZ;
+    },
+    /**
+     * Set the AABB from an array
+     * of vertices. From THREE.
+     * @author mrdoob
+     * @author xprogram
+     */
+    setFromPoints: function(arr){
+        this.makeEmpty();
+        for(var i = 0; i < arr.length; i++){
+            this.expandByPoint(arr[i]);
+        }
+    },
+    makeEmpty: function(){
+        this.init(-Infinity, -Infinity, -Infinity, Infinity, Infinity, Infinity);
+    },
+    expandByPoint: function(pt){
+        this.init(OIMO.min(this.minX, pt.x), OIMO.min(this.minY, pt.y), OIMO.min(this.minY, pt.z));
+        this.init(OIMO.max(this.maxX, pt.x), OIMO.max(this.maxY, pt.y), OIMO.max(this.maxZ, pt.z));
     }
 }
