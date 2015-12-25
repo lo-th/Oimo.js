@@ -296,8 +296,8 @@ var vehicle = function () {
             b.mesh.body.position.copy(b.phy.body.getPosition());
             b.mesh.body.quaternion.copy(b.phy.body.getQuaternion());
 
-            if(b.mesh.body.position.z<-800) b.speed = -100;
-            else if(b.mesh.body.position.z>800) b.speed = 100;
+            //if(b.mesh.body.position.z<-800) b.speed = -100;
+            //else if(b.mesh.body.position.z>800) b.speed = 100;
 
             j = 4;
             while(j--){
@@ -309,7 +309,7 @@ var vehicle = function () {
 
 
 
-                ///b.correctRotation(b.phy.w[j]);
+                //b.correctRotation(b.phy.w[j]);
             }
 
         }
@@ -399,6 +399,37 @@ var vehicle = function () {
             paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
         }
     }
+
+    // Key controls
+    var KEYID = {ARROW_UP: 38, ARROW_DOWN: 40, ARROW_LEFT: 37, ARROW_RIGHT: 39};
+    document.addEventListener("keydown", function(event){
+        var j = cars.length, b;
+        while(j--){
+            b = cars[j];
+            switch(event.which || event.keyCode){
+                case KEYID.ARROW_UP:
+                    b.speed = 100;
+                break;
+                case KEYID.ARROW_DOWN:
+                    b.speed = -100;
+                break;
+                case KEYID.ARROW_LEFT:
+                    // I'm so confused right now...
+                    b.phy.j[0].setRotationalLimitMotor1(5, 4);
+                break;
+                case KEYID.ARROW_RIGHT:
+                    // Still confused... I think we need proper docs
+                    b.phy.j[0].setRotationalLimitMotor1(-5, 4);
+                break;
+            }
+        }
+    });
+
+    document.addEventListener("keyup", function(event){
+        var P = cars.length;
+        while(P--)
+            cars[P].speed = 0;
+    });
 
 </script>
 </body>
