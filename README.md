@@ -11,20 +11,20 @@ It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/Oi
 - [oimo.js rev](http://lo-th.github.io/Oimo.js/index_rev.html)
 
 ##Basic demo no worker
-- [basic test](http://lo-th.github.io/Oimo.js/test_basic.html)
-- [compound test](http://lo-th.github.io/Oimo.js/test_compound.html)
-- [compound2 test](http://lo-th.github.io/Oimo.js/test_compound2.html)
-- [ragdoll test](http://lo-th.github.io/Oimo.js/test_ragdoll.html)
-- [collision test](http://lo-th.github.io/Oimo.js/test_collision.html)
-- [moving test](http://lo-th.github.io/Oimo.js/test_moving.html)
-- [terrain test](http://lo-th.github.io/Oimo.js/test_terrain.html)
-- [car test](http://lo-th.github.io/Oimo.js/test_car.html)
+- [Basic test](http://lo-th.github.io/Oimo.js/test_basic.html)
+- [Compound test (chair)](http://lo-th.github.io/Oimo.js/test_compound.html)
+- [Compound test (capsule)](http://lo-th.github.io/Oimo.js/test_compound2.html)
+- [Ragdoll test](http://lo-th.github.io/Oimo.js/test_ragdoll.html)
+- [Collision test](http://lo-th.github.io/Oimo.js/test_collision.html)
+- [Moving test](http://lo-th.github.io/Oimo.js/test_moving.html)
+- [Terrain test](http://lo-th.github.io/Oimo.js/test_terrain.html)
+- [Car test](http://lo-th.github.io/Oimo.js/test_car.html)
 
 ##Basic demo worker transferrable
-- [worker test](http://lo-th.github.io/Oimo.js/test_worker.html)
+- [Worker test](http://lo-th.github.io/Oimo.js/test_worker.html)
 
-##Basic demo with png compression (dev:32kb rev:30kb)
-- [png test](http://lo-th.github.io/Oimo.js/test_basic_png.html)
+##Basic demo with PNG compression (dev:32kb rev:30kb)
+- [PNG test](http://lo-th.github.io/Oimo.js/test_basic_png.html)
 
 ##Experimental demos
 - [BVH test](http://lo-th.github.io/Oimo.js/test_bvh.html)
@@ -43,5 +43,5 @@ Note :<br>
 Oimo Physics uses international system units 0.1 to 10 meters max for dynamic body.<br>
 In demo with three.js, i scale all by 100 so object is between 10 to 10000 three unit.<br>
 You can change world scale.<br>
-for three : world.worldscale(100);<br>
-default : world.worldscale(1);
+For three: `world.worldscale(100);`<br>
+Default: `world.worldscale(1);`
