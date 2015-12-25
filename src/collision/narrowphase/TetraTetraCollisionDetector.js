@@ -8,8 +8,8 @@
 OIMO.TetraTetraCollisionDetector = function(){
   OIMO.CollisionDetector.call(this);
 };
-OIMO.SphereSphereCollisionDetector.prototype = Object.create(OIMO.CollisionDetector.prototype);
-OIMO.SphereSphereCollisionDetector.prototype.constructor = OIMO.TetraTetraCollisionDetector;
+OIMO.TetraTetraCollisionDetector.prototype = Object.create(OIMO.CollisionDetector.prototype);
+OIMO.TetraTetraCollisionDetector.prototype.constructor = OIMO.TetraTetraCollisionDetector;
 
 OIMO.TetraTetraCollisionDetector.prototype.detectCollision = function(tet1, tet2, manifold){
   /*
@@ -30,6 +30,9 @@ OIMO.TetraTetraCollisionDetector.prototype.detectCollision = function(tet1, tet2
    */
   var i, j, vec, fs1 = tet1.faces, vs1 = tet1.verts, fs2 = tet2.faces, vs2 = tet2.verts;
   var j1, j2, j3, ts = 0; // Triangle vertices `j1`, `j2` and `j3`
+
+  // fs is undeclared
+  var fs = fs1;
   
   for(i = 0; i < 4; i++){
     vec = vs1[i];
