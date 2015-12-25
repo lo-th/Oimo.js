@@ -38,8 +38,7 @@ It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/Oi
 ##New Lab in progress
 - [LABS](http://lo-th.github.io/Oimo.js/docs/index_lab.html)
 
-=========
-Note :<br>
+##Note
 Oimo Physics uses international system units 0.1 to 10 meters max for dynamic body.<br>
 In demo with three.js, i scale all by 100 so object is between 10 to 10000 three unit.<br>
 You can change world scale.<br>
