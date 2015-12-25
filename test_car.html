@@ -40,6 +40,7 @@ var vehicle = function () {
         var id = cars.length;
 
         this.speed = 0;
+        this.force = 50;
 
         var phy = {w:[], j:[]};
         var mesh = {w:[]};
@@ -306,7 +307,7 @@ var vehicle = function () {
                 b.mesh.w[j].position.copy(b.phy.w[j].getPosition());
                 b.mesh.w[j].quaternion.copy(b.phy.w[j].getQuaternion());
 
-                b.phy.j[j].rotationalLimitMotor2.setMotor(b.speed, 15);
+                b.phy.j[j].rotationalLimitMotor2.setMotor(b.speed, b.force);
 
 
 
