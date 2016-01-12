@@ -92,20 +92,22 @@ var OIMO = {
 var OIMO_ARRAY_TYPE;
 if(!OIMO_ARRAY_TYPE) { OIMO_ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array; }
 
-(function(w){
-    var perfNow;
-    var perfNowNames = ['now', 'webkitNow', 'msNow', 'mozNow'];
-    if(!!w['performance']) for(var i = 0; i < perfNowNames.length; ++i){
-        var n = perfNowNames[i];
-        if(!!w['performance'][n]){
-            perfNow = function(){return w['performance'][n]()};
-            break;
-        }
-    }
-    if(!perfNow) perfNow = Date.now;
-    //w.perfNow = perfNow;
-    OIMO.now = perfNow;
-})(window);
+if(window){
+	(function(w){
+	    var perfNow;
+	    var perfNowNames = ['now', 'webkitNow', 'msNow', 'mozNow'];
+	    if(!!w['performance']) for(var i = 0; i < perfNowNames.length; ++i){
+	        var n = perfNowNames[i];
+	        if(!!w['performance'][n]){
+	            perfNow = function(){return w['performance'][n]()};
+	            break;
+	        }
+	    }
+	    if(!perfNow) perfNow = Date.now;
+	    //w.perfNow = perfNow;
+	    OIMO.now = perfNow;
+	})(window);
+}
 
 /**
  * The class of physical computing world. 
