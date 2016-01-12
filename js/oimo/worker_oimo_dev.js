@@ -220,7 +220,7 @@ var update = function(){
    
     //worldInfo();
 
-    self.postMessage({tell:"RUN", infos:world.performance.toArray(), matrix:matrix, matrixJoint:matrixJoint });
+    self.postMessage({tell:"RUN", matrix:matrix, matrixJoint:matrixJoint });
 
     if(isTimout){
         delay = timerStep - (Date.now()-timeStart);
