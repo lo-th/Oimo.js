@@ -274,7 +274,7 @@ var userKey = function(key){
 
 var createWorld = function(){
 
-    world = new OIMO.World( dt, broadPhase, iterations, false );
+    world = new OIMO.World( dt, broadPhase, iterations, true );
 
     timerStep = dt * 1000;
     world.gravity = new OIMO.Vec3(0, Gravity, 0);
