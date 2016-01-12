@@ -107,7 +107,7 @@ try {
 	    //w.perfNow = perfNow;
 	    OIMO.now = perfNow;
 	})(window);
-} catch(e){}
+} catch(e){OIMO.now = function(){return 0;};}
 
 /**
  * The class of physical computing world. 
