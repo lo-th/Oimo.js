@@ -81,9 +81,9 @@ var OIMO = {
     PI90   : 1.570796326794896,
     PI270  : 4.712388980384689,
 
-    CustomError : null,
+    CustomError: null,
 
-    Error : function(Class, Msg){ 
+    Error: function(Class, Msg){ 
         if(OIMO.CustomError == null) console.error(Class, Msg);
         else OIMO.CustomError.innerHTML += Class + " - " + Msg + '<br>';
     }
