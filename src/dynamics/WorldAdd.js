@@ -49,11 +49,11 @@ OIMO.World.prototype.add = function(obj){
         switch(type[0]){
             case "jointDistance": joint = new OIMO.DistanceJoint(jc, min, max); 
                 if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.limitMotor.setSpring(motor[0], motor[1]);
+                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
             break;
             case "jointHinge": joint = new OIMO.HingeJoint(jc, min, max);
                 if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
-                if(motor !== null) joint.limitMotor.setSpring(motor[0], motor[1]);
+                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
             break;
             case "jointPrisme": joint = new OIMO.PrismaticJoint(jc, min, max); break;
             case "jointSlide": joint = new OIMO.SliderJoint(jc, min, max); break;
@@ -61,7 +61,7 @@ OIMO.World.prototype.add = function(obj){
             case "jointWheel": joint = new OIMO.WheelJoint(jc);  
                 if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
                 if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.rotationalLimitMotor1.setSpring(motor[0], motor[1]);
+                if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
             break;
         }
 
