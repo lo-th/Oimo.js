@@ -13,7 +13,7 @@ OIMO.EulerToAxis = function( ox, oy, oz ){// angles in radians
     var z =c1*s2*c3 - s1*c2*s3;
     var angle = 2 * Math.acos(w);
     var norm = x*x+y*y+z*z;
-    if (norm < 0.001) {
+    if (norm === 0) {
         x=1;
         y=z=0;
     } else {
