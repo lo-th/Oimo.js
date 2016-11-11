@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="../css/demo.css">
 <script src="../js/three.min.js"></script>
-<script src="../build/Oimo.min.js"></script>
+<script src="../build/oimo.min.js"></script>
 <script src="../js/v3d.js"></script></head>
 <body>
 <div id='container'></div>
@@ -33,6 +33,7 @@ var infos = document.getElementById("info");;
 
 OIMO.WORLD_SCALE = 10;
 OIMO.INV_SCALE = 0.1;
+v3d.initLight();
 populate(1);
 setInterval(updateOimoPhysics, 1000/60);
 loop();
