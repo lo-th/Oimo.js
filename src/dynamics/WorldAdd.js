@@ -154,7 +154,10 @@ OIMO.World.prototype.add = function(obj){
             if(i>0){
                 //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
                 shapes[i].relativePosition = new OIMO.Vec3( p[n], p[n+1], p[n+2] );
-                if(r[n2+0]) shapes[i].relativeRotation = [ r[n2], r[n2+1], r[n2+2], r[n2+3] ];
+                if(r[n2+0]) {
+                    var q = body.rotationAxisToQuad(r[0], r[1], r[2], r[3]);
+                    shapes[i].relativeRotation = new OIMO.Mat33().setQuat(q);
+                }
             }
         } 
         
