@@ -1,3 +1,0 @@
-* {  margin: 0; padding: 0; border: 0;}
-body{ background-color: #3D4143; overflow: hidden; color:#cccccc; font-family:Consolas, 'ConsolasRegular', 'Courier New', monospace; font-size: 10px;}
-#info{ pointer-events:none; position: absolute; left:10px; top:10px; width: 300px; height: 400px; }
