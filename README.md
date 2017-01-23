@@ -1,6 +1,7 @@
-<p align="center"><a href="(http://lo-th.github.io/Oimo.js/"><img src="http://lo-th.github.io/Oimo.js/examples/assets/img/logo.png"/></a><br>
+<p align="center"><a href="http://lo-th.github.io/Oimo.js/"><img src="http://lo-th.github.io/Oimo.js/examples/assets/img/logo.png"/></a><br>
 Oimo.js is a lightweight 3d physics engine for javascript.<br>
-It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/OimoPhysics) originally created by [Saharan](http://el-ement.com/blog/) for actionscript 3.0.
+It's a full javascript conversion of <a href="https://github.com/saharan/OimoPhysics/">OimoPhysics</a><br>
+Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for actionscript 3.0.
 </p>
 
 ### Home ###
