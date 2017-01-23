@@ -8,6 +8,7 @@
 <link rel="shortcut icon" href="assets/favicon.ico">
 <link rel="stylesheet" href="css/demo.css">
 
+<script src="js/demo.js"></script>
 <script src="js/three.min.js"></script>
 <script src="js/controls/OrbitControls.js"></script>
 <script src="../build/oimo.js"></script>
@@ -22,19 +23,11 @@
     <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
 </div>
 <div id='info'></div>
-<div id='link'>
-    <a href="test_basic.html">Basic</a>
-    <a href="test_compound.html">Compound</a>
-    <a href="test_compound2.html">Compound2</a>
-    <a href="test_ragdoll.html">Ragdoll</a>
-    <a href="test_collision.html">Collision</a>
-    <a href="test_moving.html">Moving</a>
-    <a href="test_terrain.html">Terrain</a>
-    <a href="test_vehicle.html">Vehicle</a>
-</div>
 <img style="position: absolute; top: 0; right: 0; border: 0;" src="assets/img/ribbon.png"></a>
 <a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>   
 <script>
+    demolink();
+
     var isMobile = false;
     var antialias = true;
 
