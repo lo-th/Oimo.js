@@ -110,7 +110,7 @@ var JOINT_SLIDER = 5;
 var JOINT_PRISMATIC = 6;
 
 // AABB aproximation
-var AABB_PROX = Number.EPSILON;//0.005;
+var AABB_PROX = 0.005;//Number.EPSILON;//0.005;
 
 function Vec3 ( x, y, z ) {
 
