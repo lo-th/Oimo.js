@@ -41,7 +41,10 @@ Add physics object or joint
 ```javascript
 var body = world.add({ type:'sphere', size:[1,1,1], pos:[0,0,0], rot:[0,0,90], move:true, density:1 });
 
-// copy back position and rotation to three mesh
+// update world
+world.step();
+
+// and copy position and rotation to three mesh
 myMesh.position.copy( body.getPosition() );
 myMesh.quaternion.copy( body.getQuaternion() );
 ```
