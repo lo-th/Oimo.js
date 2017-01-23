@@ -39,7 +39,7 @@
             importScripts( e.data.oimoUrl );
 
             // Init physics
-            world = new OIMO.World( e.data.dt, 2, 8, true, 1 );
+            world = new OIMO.World( { timestep:e.data.dt, iterations:8, broadphase:2, worldscale:1, random:true, info:false } );
             world.gravity.init(0,-10,0);
 
             // Ground plane
@@ -89,6 +89,7 @@
 
         f[1] = Date.now();
         if (f[1]-1000>f[0]){ f[0]=f[1]; fps=f[2]; f[2]=0; } f[2]++;
+
         self.postMessage({ perf:fps, minfo:minfo })
 
     }

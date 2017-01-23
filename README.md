@@ -23,7 +23,7 @@ It's a full javascript conversion of [OimoPhysics](https://github.com/saharan/Oi
 - [Walker test](http://lo-th.github.io/Oimo.js/examples/test_walker.html)
 
 ##Basic demo worker
-- [Worker test](http://lo-th.github.io/Oimo.js/test_worker.html)
+- [Worker test](http://lo-th.github.io/Oimo.js/examples/test_worker.html)
 
 ##Note
 Oimo Physics uses international system units 0.1 to 10 meters max for dynamic body.<br>
