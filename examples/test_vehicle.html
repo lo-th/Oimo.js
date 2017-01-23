@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Oimo.js Vehicle</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=11" />
+<link rel="shortcut icon" href="assets/favicon.ico">
+<link rel="stylesheet" href="css/demo.css">
+
+<script src="js/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="../build/oimo.js"></script>
+
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id='interface'>
+    <input type="button" value="demo" onClick=populate(1)>
+    <input type="number" name="quantity" min="1" max="1" value="1"  id='MaxNumber'>
+    <input type="submit" onClick=populate()>
+    <input type="number" name="gravity" min="-20" max="20" value="-10" id='gravity' onChange=gravity() >
+</div>
+<div id='info'></div>
+<div id='link'>
+    <a href="test_basic.html">Basic</a>
+    <a href="test_compound.html">Compound</a>
+    <a href="test_compound2.html">Compound2</a>
+    <a href="test_ragdoll.html">Ragdoll</a>
+    <a href="test_collision.html">Collision</a>
+    <a href="test_moving.html">Moving</a>
+    <a href="test_terrain.html">Terrain</a>
+    <a href="test_car.html">Vehicle</a>
+</div>
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="assets/img/ribbon.png"></a>
+<a id="ribbon" href="https://github.com/lo-th/Oimo.js"></a>     
+<script>
+
+var vehicle = function () {
+
+        var id = cars.length;
+
+        this.speed = 0;
+        this.force = 25;
+
+        var phy = {w:[], j:[]};
+        var mesh = {w:[]};
+
+        var radius = 100;
+
+        phy.body = world.add({type:'box', size:[160,50,400], pos:[0,100,0], move:true, config:[10,0.4,0.0], name:'body' + id});
+        mesh.body = new THREE.Mesh( geos.box, matBox );
+        mesh.body.scale.set( 160,50,400 );
+
+        scene.add( mesh.body );
+
+        var x = 100, z = 180;
+
+        var axe1 = [0, 0, 1];
+        var axe2 = [0, 1, 0];
+
+        for(var i=0; i<4; i++){
+            if(i==1 || i==3) x = -100;
+            else x = 100;
+            if(i==2 || i==3) z = -180;
+            phy.w[i] = world.add({type:'cylinder', size:[radius*0.5,30], pos:[x,100,z], rot:[0,0,90], move:true, config:[10,10,0.0], name:'w'+i+'_'+id});
+          //  spring:[8,1]
+            mesh.w[i] = new THREE.Mesh( geos.cylinder, matBox );
+            mesh.w[i].scale.set( radius*0.5, 30, radius*0.5 );
+
+            phy.j[i] = world.add({type:"jointWheel", body1:'body' + id, body2:'w'+i+'_'+id, pos1:[x,0,z], pos2:[0,0,0], axe1:axe1, axe2:axe2, spring:[8,1], collision:false });
+           // , spring:[8,1]
+
+            scene.add( mesh.w[i] );
+        }
+
+        this.body = phy.body;
+        this.phy = phy;
+        this.mesh = mesh;
+
+        //return this;
+
+        //cars.push({ phy:phy, mesh:mesh })
+
+        cars.push(this)
+
+    };
+
+    vehicle.prototype = {
+        correctRotation : function (w) {
+            var t = this.body.rotation.elements;
+            var x = w.rotation.elements;
+            var axis1 = new OIMO.Vec3( t[1], t[4], t[7]);
+            //var axis2 = new OIMO.Vec3( x[2], x[5], x[8]);
+            var axis2 = new OIMO.Vec3( x[1], x[4], x[7]);
+            //var axis2 = new OIMO.Vec3(  x[0], x[3], x[6]);
+            var axis3 = new OIMO.Vec3().sub(axis2, axis1.scaleEqual(axis1.dot(axis2)));
+            w.orientation.mul( new OIMO.Quat().arc(axis2, axis3.normalize(axis3)), w.orientation );
+            w.orientation.normalize( w.orientation );
+        }
+    }
+
+
+    var isMobile = false;
+    var antialias = true;
+
+    // three var
+    var camera, scene, light, renderer, canvas, controls, content;
+    var cars = [];
+    var meshs = [];
+    var grounds = [];
+    var paddel;
+    var matBox, matSphere, matBoxSleep, matSphereSleep, matGround, matGroundTrans;
+    var buffgeoSphere, buffgeoBox;
+    var ray, mouse;
+    var ToRad = Math.PI / 180;
+    var ToDeg = 180 / Math.PI;
+    var rotTest;
+
+    //oimo var
+    var world = null;
+    var bodys = null;
+    var infos;
+    var type = 1;
+
+    var geos = {};
+ 
+    init();
+    loop();
+
+    function init() {
+        var n = navigator.userAgent;
+        if (n.match(/Android/i) || n.match(/webOS/i) || n.match(/iPhone/i) || n.match(/iPad/i) || n.match(/iPod/i) || n.match(/BlackBerry/i) || n.match(/Windows Phone/i)){ isMobile = true;  antialias = false; document.getElementById("MaxNumber").value = 200; }
+
+        infos = document.getElementById("info");
+
+        canvas = document.getElementById("canvas");
+
+        camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 5000 );
+        camera.position.set( -400, 160, 0 );
+
+        controls = new THREE.OrbitControls( camera, canvas );
+        controls.enableKeys = false; // So it doesn't conflict with cars
+        controls.target.set(0, 20, 0);
+        controls.update();
+
+        ray = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        scene = new THREE.Scene();
+
+        renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        content = new THREE.Object3D();
+        scene.add(content);
+
+        var materialType = 'MeshBasicMaterial';
+        
+        if(!isMobile){
+
+            scene.add( new THREE.AmbientLight( 0x3D4143 ) );
+
+            light = new THREE.DirectionalLight( 0xffffff , 1);
+            light.position.set( 300, 1000, 500 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            var d = 300;
+            light.shadow.camera = new THREE.OrthographicCamera( -d, d, d, -d,  500, 1600 );
+            light.shadow.bias = 0.0001;
+            light.shadow.mapSize.width = light.shadow.mapSize.height = 1024;
+            scene.add( light );
+
+            materialType = 'MeshPhongMaterial';
+
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowMap;//THREE.BasicShadowMap;
+        }
+
+        // background
+        var buffgeoBack = new THREE.BufferGeometry();
+        buffgeoBack.fromGeometry( new THREE.IcosahedronGeometry(3000,1) );
+        var back = new THREE.Mesh( buffgeoBack, new THREE.MeshBasicMaterial( { map:gradTexture([[1,0.75,0.5,0.25], ['#1B1D1E','#3D4143','#72797D', '#b0babf']]), side:THREE.BackSide, depthWrite: false }  ));
+        back.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(15*ToRad));
+        scene.add( back );
+
+        // geometries
+        geos['sphere'] = new THREE.BufferGeometry().fromGeometry( new THREE.SphereGeometry(1,16,10));
+        geos['box'] = new THREE.BufferGeometry().fromGeometry( new THREE.BoxGeometry(1,1,1));
+        geos['cylinder'] = new THREE.BufferGeometry().fromGeometry(new THREE.CylinderGeometry(1,1,1, 20,1));
+
+        buffgeoSphere = new THREE.BufferGeometry();
+        buffgeoSphere.fromGeometry( new THREE.SphereGeometry( 1, 20, 10 ) );
+
+        buffgeoBox = new THREE.BufferGeometry();
+        buffgeoBox.fromGeometry( new THREE.BoxGeometry( 1, 1, 1 ) );
+
+        matSphere = new THREE[materialType]( { map: basicTexture(0), name:'sph' } );
+        matBox = new THREE[materialType]( {  map: basicTexture(2), name:'box' } );
+        matSphereSleep = new THREE[materialType]( { map: basicTexture(1), name:'ssph' } );
+        matBoxSleep = new THREE[materialType]( {  map: basicTexture(3), name:'sbox' } );
+        matGround = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.5 } );
+        matGroundTrans = new THREE[materialType]( { color: 0x3D4143, transparent:true, opacity:0.6 } );
+
+        paddel = new THREE.Object3D();
+
+        rotTest = new THREE.Vector3();
+
+        // events
+
+        window.addEventListener( 'resize', onWindowResize, false );
+        canvas.addEventListener( 'mousemove', rayTest, false);
+        //canvas.onmousemove = rayTest;
+
+        // physics
+
+        initOimoPhysics();
+    }
+
+    function loop() {
+
+        updateOimoPhysics();
+        renderer.render( scene, camera );
+        requestAnimationFrame( loop );
+        
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+    }
+
+    function addStaticBox(size, position, rotation, spec) {
+        var mesh;
+        if(spec) mesh = new THREE.Mesh( buffgeoBox, matGroundTrans );
+        else mesh = new THREE.Mesh( buffgeoBox, matGround );
+        mesh.scale.set( size[0], size[1], size[2] );
+        mesh.position.set( position[0], position[1], position[2] );
+        mesh.rotation.set( rotation[0]*ToRad, rotation[1]*ToRad, rotation[2]*ToRad );
+        if(!grounds.length) content.add( mesh );
+        else scene.add( mesh );
+        grounds.push(mesh);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+    }
+
+    function clearMesh(){
+        var i = meshs.length;
+        while (i--) scene.remove(meshs[ i ]);
+        i = grounds.length;
+        while (i--) scene.remove(grounds[ i ]);
+        content.remove(content.children[0]);
+        i = cars.length;
+        while (i--){
+            scene.remove(cars[i].mesh.body);
+            scene.remove(cars[i].mesh.w[0]);
+            scene.remove(cars[i].mesh.w[1]);
+            scene.remove(cars[i].mesh.w[2]);
+            scene.remove(cars[i].mesh.w[3]);
+        }
+
+        grounds = [];
+        meshs = [];
+        cars = [];
+    }
+
+    function populate(){
+        var bm = document.getElementById("MaxNumber").value, v, xbo, ybo, zbo;
+
+        clearMesh();
+        world.clear();
+        bodys = [];
+
+        var ground = world.add({size:[4000, 40, 10000], pos:[0,-20,0] });
+        addStaticBox([4000, 40, 10000], [0,-20,0], [0,0,0]);
+
+        new vehicle();
+    }
+
+    //----------------------------------
+    //  OIMO PHYSICS
+    //----------------------------------
+
+    
+
+    function initOimoPhysics(){
+
+        world = new OIMO.World({info:true, worldscale:100});
+
+        // ground
+        var ground = world.add({size:[4000, 40, 10000], pos:[0,-20,0] });
+        addStaticBox([4000, 40, 10000], [0,-20,0], [0,0,0]);
+
+        //populate(1);
+        //setInterval(updateOimoPhysics, 1000/60);
+
+        var v = new vehicle();
+
+        //vehicle();
+    };
+
+
+
+
+    
+    function updateOimoPhysics() {
+
+        if(world == null) return;
+
+        world.step();
+
+        
+
+        var i = cars.length, b, j;
+        while(i--){
+            b = cars[i];
+
+            b.mesh.body.position.copy(b.phy.body.getPosition());
+            b.mesh.body.quaternion.copy(b.phy.body.getQuaternion());
+
+            //if(b.mesh.body.position.z<-800) b.speed = -100;
+            //else if(b.mesh.body.position.z>800) b.speed = 100;
+
+            j = 4;
+            while(j--){
+                b.correctRotation(b.phy.w[j]);
+                b.mesh.w[j].position.copy(b.phy.w[j].getPosition());
+                b.mesh.w[j].quaternion.copy(b.phy.w[j].getQuaternion());
+
+                b.phy.j[j].rotationalLimitMotor2.setMotor(b.speed, b.force);
+
+
+
+                //b.correctRotation(b.phy.w[j]);
+            }
+
+        }
+
+
+        // contact test
+       /* if(world.checkContact('paddle', 'sphere')) meshs[bodys.length-1].material = matSphere;
+        else if(world.checkContact('paddle', 'box')) meshs[bodys.length-1].material = matBox;
+        else meshs[bodys.length-1].material = matBoxSleep;*/
+
+        infos.innerHTML = world.getInfo();
+    }
+
+    function gravity(g){
+        nG = document.getElementById("gravity").value
+        world.gravity = new OIMO.Vec3(0, nG, 0);
+    }
+
+    var unwrapDegrees = function (r) {
+        r = r % 360;
+        if (r > 180) r -= 360;
+        if (r < -180) r += 360;
+        return r;
+    }
+
+    //----------------------------------
+    //  TEXTURES
+    //----------------------------------
+
+    function gradTexture(color) {
+        var c = document.createElement("canvas");
+        var ct = c.getContext("2d");
+        c.width = 16; c.height = 256;
+        var gradient = ct.createLinearGradient(0,0,0,256);
+        var i = color[0].length;
+        while(i--){ gradient.addColorStop(color[0][i],color[1][i]); }
+        ct.fillStyle = gradient;
+        ct.fillRect(0,0,16,256);
+        var texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+    }
+
+    function basicTexture(n){
+        var canvas = document.createElement( 'canvas' );
+        canvas.width = canvas.height = 64;
+        var ctx = canvas.getContext( '2d' );
+        var colors = [];
+        if(n===0){ // sphere
+            colors[0] = "#58AA80";
+            colors[1] = "#58FFAA";
+        }
+        if(n===1){ // sphere sleep
+            colors[0] = "#383838";
+            colors[1] = "#38AA80";
+        }
+        if(n===2){ // box
+            colors[0] = "#AA8058";
+            colors[1] = "#FFAA58";
+        }
+        if(n===3){ // box sleep
+            colors[0] = "#383838";
+            colors[1] = "#AA8038";
+        }
+        ctx.fillStyle = colors[0];
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillStyle = colors[1];
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.fillRect(32, 32, 32, 32);
+
+        var tx = new THREE.Texture(canvas);
+        tx.needsUpdate = true;
+        return tx;
+    }
+
+    //----------------------------------
+    //  RAY TEST
+    //----------------------------------
+
+    function rayTest(e) {
+        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+        ray.setFromCamera( mouse, camera );
+        var intersects = ray.intersectObjects( content.children, true );
+        if ( intersects.length) {
+            paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
+        }
+    }
+
+    // Key controls
+    var KEYID = {ARROW_UP: 38, ARROW_DOWN: 40, ARROW_LEFT: 37, ARROW_RIGHT: 39};
+    document.addEventListener("keydown", function(event){
+        var j = cars.length, b;
+        while(j--){
+            b = cars[j];
+            switch(event.which || event.keyCode){
+                case KEYID.ARROW_UP:
+                    b.speed = 100;
+                break;
+                case KEYID.ARROW_DOWN:
+                    b.speed = -100;
+                break;
+                case KEYID.ARROW_LEFT:
+                    // I'm so confused right now...
+                    //b.phy.j[0].rotationalLimitMotor1.setMotor(100, 20);
+                    //b.phy.j[1].rotationalLimitMotor1.setMotor(100, 20);
+                break;
+                case KEYID.ARROW_RIGHT:
+                    // Still confused... I think we need proper docs
+                    //b.phy.j[0].rotationalLimitMotor1.setMotor(-100, 20);
+                    //b.phy.j[1].rotationalLimitMotor1.setMotor(-100, 20);
+                break;
+            }
+        }
+    });
+
+    document.addEventListener("keyup", function(event){
+        var P = cars.length, b;
+        while(P--){
+            b = cars[P];
+            b.speed = 0;
+            b.phy.j[0].rotationalLimitMotor1.setMotor(0, 4);
+            b.phy.j[1].rotationalLimitMotor1.setMotor(0, 4);
+        }
+    });
+
+</script>
+</body>
+</html>

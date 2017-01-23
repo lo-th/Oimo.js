@@ -1,0 +1,22 @@
+* {  margin: 0; padding: 0; border: 0;}
+body{ background-color: #3D4143; overflow: hidden; color:#EEEEEE; font-family:monospace; font-size: 11px;}
+canvas{ position: absolute; top:0; left:0; pointer-events:auto; width:100%; height:100%; }
+input{ margin:0; padding:8px; background:linear-gradient(#72797D , #3D4143); color:#EEEEEE; font-family:monospace;}
+input[type='button'] {border: 2px solid #72797D; cursor: pointer;}
+input[type='button']:hover{border: 2px solid #72797D; cursor: pointer;background: #11BBFF; color:#000000;}
+#interface{ position: absolute; left:10px; top:10px; width:100%; height:20px; }
+#info{ pointer-events:none; position: absolute; left:10px; top:60px; width: 400px; height: 400px; }
+#link{ position: absolute; left:0; bottom:0; width:100%; height:30px; font-size:14px; word-spacing:10px; text-align:right; margin-left:-30px; font-weight:bold; }
+a:link {color: #EEEEEE; text-decoration: none;}
+a:visited {color: #EEEEEE; text-decoration: none;}
+a:hover {color: #11BBFF; text-decoration: none;}
+a:active {color: #11BBFF; text-decoration: none;}
+
+#ribbon{
+    position: absolute; top:-50px; right:48px;
+    width:30px; height:200px; background:none; 
+    pointer-events:auto; cursor:pointer;
+    -ms-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}

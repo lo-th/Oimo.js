@@ -1,0 +1,55 @@
+{
+  "name": "oimo",
+  "version": "1.0.0",
+  "description": "JavaScript 3D library",
+  "main": "build/oimo.js",
+  "repository": "lo-th/oimo",
+  "jsnext:main": "build/oimo.module.js",
+  "module": "build/oimo.module.js",
+  "files": [
+    "package.json",
+    "LICENSE",
+    "README.md",
+    "build/oimo.js",
+    "build/oimo.min.js",
+    "build/oimo.module.js",
+    "src",
+    "examples/js",
+    "examples/fonts"
+  ],
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "test"
+  },
+  "eslintConfig": {
+    "extends": "mdcs"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "build-uglify": "rollup -c && uglifyjs build/oimo.js -cm --preamble \"// lo-th.github.io/Oimo.js/license\" > build/oimo.min.js",
+    "build-closure": "rollup -c && java -jar utils/build/compiler/closure-compiler-v20160713.jar --warning_level=VERBOSE --jscomp_off=globalThis --jscomp_off=checkTypes --externs utils/build/externs.js --language_in=ECMASCRIPT5_STRICT --js build/oimo.js --js_output_file build/oimo.min.js",
+    "dev": "rollup -c -w",
+    "lint": "eslint src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "oimo",
+    "oimo.js",
+    "physics",
+    "3d"
+  ],
+  "author": "lo-th",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lo-th/Oimo.js/issues"
+  },
+  "homepage": "http://lo-th.github.io/Oimo.js/",
+  "devDependencies": {
+    "eslint": "latest",
+    "eslint-config-mdcs": "latest",
+    "rollup": "latest",
+    "rollup-watch": "latest",
+    "uglify-js": "latest"
+  }
+}
