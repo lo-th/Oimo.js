@@ -6,9 +6,7 @@ import { ShapeConfig } from '../collision/shape/ShapeConfig';
 
 
 import { _Math } from '../math/Math';
-//import { Euler } from '../math/Euler';
 import { Mat33 } from '../math/Mat33';
-//import { Mat44 } from '../math/Mat44';
 import { Quat } from '../math/Quat';
 import { Vec3 } from '../math/Vec3';
 
@@ -17,7 +15,7 @@ import { SphereShape } from '../collision/shape/SphereShape';
 import { CylinderShape } from '../collision/shape/CylinderShape';
 //import { TetraShape } from '../collision/shape/TetraShape';
 
-import { Contact } from '../constraint/contact/Contact';
+import { Contact } from '../constraint/contact/Contact_X';
 
 
 /**
@@ -36,8 +34,8 @@ function RigidBody ( x, y, z, rad, ax, ay, az, scale, invScale ) {
     // The maximum number of shapes that can be added to a one rigid.
     //this.MAX_SHAPES = 64;//64;
 
-    this.prev = null;
-    this.next = null;
+    //this.prev = null;
+    //this.next = null;
 
     // I represent the kind of rigid body.
     // Please do not change from the outside this variable. 
@@ -75,18 +73,15 @@ function RigidBody ( x, y, z, rad, ax, ay, az, scale, invScale ) {
 
     // It is a world that rigid body has been added.
     this.parent = null;
-    this.contactLink = null;
-    this.numContacts = 0;
+
+    // An array of contact that are included in the rigid body.
+    this.contactLink = [];
 
     // An array of shapes that are included in the rigid body.
-    this.shapes = null;
-    // The number of shapes that are included in the rigid body.
-    this.numShapes = 0;
+    this.shapes = [];
 
     // It is the link array of joint that is connected to the rigid body.
-    this.jointLink = null;
-    // The number of joints that are connected to the rigid body.
-    this.numJoints = 0;
+    this.jointLink = [];
 
     // It is the world coordinate of the center of gravity in the sleep just before.
     this.sleepPosition = new Vec3();
@@ -134,15 +129,18 @@ RigidBody.prototype = {
     * If you add a shape, please call the setupMass method to step up to the start of the next.
     * @param   shape shape to Add 
     */
-    addShape:function(shape){
+    addShape:function( shape ){
 
         if(shape.parent) Error("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
         
-        if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
-        this.shapes = shape;
+        //if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
+        //this.shapes = shape;
+
         shape.parent = this;
-        if(this.parent) this.parent.addShape( shape );
-        this.numShapes++;
+        shape.contactLink = [];
+        if( this.parent ) this.parent.addShape( shape );
+
+        this.shapes.push( shape );
 
     },
     /**
@@ -150,20 +148,22 @@ RigidBody.prototype = {
     * If you delete a shape, please call the setupMass method to step up to the start of the next. 
     * @param   shape shape to Delete 
     */
-    removeShape:function(shape){
+    removeShape:function( shape ){
 
-        var remove = shape;
-        if(remove.parent!=this)return;
-        var prev=remove.prev;
-        var next=remove.next;
-        if(prev!=null) prev.next=next;
-        if(next!=null) next.prev=prev;
-        if(this.shapes==remove)this.shapes=next;
-        remove.prev=null;
-        remove.next=null;
-        remove.parent=null;
-        if(this.parent)this.parent.removeShape(remove);
-        this.numShapes--;
+        this.shapes.splice( this.shapes.indexOf( shape ), 1 );
+
+        //var remove = shape;
+        if(shape.parent !== this) return;
+        //var prev=remove.prev;
+        //var next=remove.next;
+        //if(prev!=null) prev.next=next;
+        //if(next!=null) next.prev=prev;
+        //if(this.shapes==remove)this.shapes=next;
+        //remove.prev=null;
+        //remove.next=null;
+        shape.parent = null;
+        if( this.parent ) this.parent.removeShape( shape );
+        //this.numShapes--;
 
     },
 
@@ -208,8 +208,11 @@ RigidBody.prototype = {
         var tmpM = new Mat33();
         var tmpV = new Vec3();
 
-        for( var shape = this.shapes; shape !== null; shape = shape.next ){
+        var i = this.shapes.length, shape;
 
+        while(i--){
+
+            shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
             tmpV.addScale(shape.relativePosition, shapeMass);
@@ -227,8 +230,9 @@ RigidBody.prototype = {
 
         if( adjustPosition ){
             this.position.addEqual(tmpV);
-            for( shape=this.shapes; shape !== null; shape = shape.next ){
-                shape.relativePosition.subEqual(tmpV);
+            i = this.shapes.length;
+            while(i--){
+                this.shapes[i].relativePosition.subEqual( tmpV );
             }
 
             // subtract offset inertia
@@ -257,21 +261,27 @@ RigidBody.prototype = {
         if( !this.allowSleep || !this.sleeping ) return;
         this.sleeping = false;
         this.sleepTime = 0;
+
+        var i, js, cs;
+
         // awake connected constraints
-        var cs = this.contactLink;
-        while(cs != null){
+        i = this.contactLink.length;
+        while(i--){
+            cs = this.contactLink[i];
             cs.body.sleepTime = 0;
             cs.body.sleeping = false;
-            cs = cs.next;
         }
-        var js = this.jointLink;
-        while(js != null){
+
+        i = this.jointLink.length;
+        while(i--){
+            js = this.jointLink[i];
             js.body.sleepTime = 0;
             js.body.sleeping = false;
-            js = js.next;
         }
-        for(var shape = this.shapes; shape!=null; shape = shape.next){
-            shape.updateProxy();
+
+        i = this.shapes.length;
+        while(i--){
+            this.shapes[i].updateProxy();
         }
 
     },
@@ -289,8 +299,10 @@ RigidBody.prototype = {
         
         this.sleepTime = 0;
         this.sleeping = true;
-        for( var shape = this.shapes; shape != null; shape = shape.next ) {
-            shape.updateProxy();
+
+        var i = this.shapes.length;
+        while(i--){
+            this.shapes[i].updateProxy();
         }
     },
 
@@ -305,7 +317,8 @@ RigidBody.prototype = {
     * @return
     */
     isLonely: function () {
-        return this.numJoints==0 && this.numContacts==0;
+        return this.jointLink.length===0 && this.contactLink.length===0;
+        //return this.numJoints==0 && this.numContacts==0;
     },
 
     /** 
@@ -316,8 +329,11 @@ RigidBody.prototype = {
     */
 
     updatePosition: function ( timeStep ) {
-        switch(this.type){
+
+        switch( this.type ){
+
             case BODY_STATIC:
+
                 this.linearVelocity.set(0,0,0);
                 this.angularVelocity.set(0,0,0);
 
@@ -435,37 +451,25 @@ RigidBody.prototype = {
         tr[8]=1-xx-yy;
 
         this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
-        for(var shape = this.shapes; shape!=null; shape = shape.next){
-            //var relPos=shape.relativePosition;
-            //var relRot=shape.relativeRotation;
-            //var rot=shape.rotation;
-            /*var lx=relPos.x;
-            var ly=relPos.y;
-            var lz=relPos.z;
-            shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
-            shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
-            shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];*/
 
+        var i = this.shapes.length, shape;
+        while(i--){
+            shape = this.shapes[i];
             shape.position.mul( this.position, shape.relativePosition, this.rotation );
-            //shape.rotation.mul(shape.relativeRotation,this.rotation);
             // add by QuaziKb
-            shape.rotation.mul(this.rotation,shape.relativeRotation);
+            shape.rotation.mul( this.rotation, shape.relativeRotation );
             shape.updateProxy();
+
         }
     },
 
     applyImpulse: function ( position, force ) {
 
         this.linearVelocity.addScale(force, this.inverseMass);
-        /*this.linearVelocity.x+=force.x*this.inverseMass;
-        this.linearVelocity.y+=force.y*this.inverseMass;
-        this.linearVelocity.z+=force.z*this.inverseMass;*/
         var rel = new Vec3();
-        rel.sub(position,this.position).cross(rel,force).mulMat(this.inverseInertia,rel);
+        rel.sub( position, this.position ).cross(rel,force).mulMat(this.inverseInertia,rel);
         this.angularVelocity.addEqual(rel);
-        /*this.angularVelocity.x+=rel.x;
-        this.angularVelocity.y+=rel.y;
-        this.angularVelocity.z+=rel.z;*/
+
     },
 
     //---------------------------------------------
@@ -478,7 +482,6 @@ RigidBody.prototype = {
 
         var r = _Math.EulerToAxis( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );
         return new Quat().setFromAxis( r[0], r[1], r[2], r[3] );
-        //return this.rotationAxisToQuad(r[0], r[1], r[2], r[3]);
     
     },
 

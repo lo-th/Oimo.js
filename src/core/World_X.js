@@ -2,9 +2,9 @@ import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER } from '../constants';
 import { Performance, Error } from './Utils';
 
 
-import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPhase';
-import { SAPBroadPhase } from '../collision/broadphase/sap/SAPBroadPhase';
-import { DBVTBroadPhase } from '../collision/broadphase/dbvt/DBVTBroadPhase';
+import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPhase_X';
+import { SAPBroadPhase } from '../collision/broadphase/sap/SAPBroadPhase_X';
+import { DBVTBroadPhase } from '../collision/broadphase/dbvt/DBVTBroadPhase_X';
 
 import { BoxBoxCollisionDetector } from '../collision/narrowphase/BoxBoxCollisionDetector';
 import { BoxCylinderCollisionDetector } from '../collision/narrowphase/BoxCylinderCollisionDetector';
@@ -14,7 +14,6 @@ import { SphereCylinderCollisionDetector } from '../collision/narrowphase/Sphere
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector';
 
 import { _Math } from '../math/Math';
-//import { Euler } from '../math/Euler';
 import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { Vec3 } from '../math/Vec3';
@@ -25,7 +24,7 @@ import { SphereShape } from '../collision/shape/SphereShape';
 import { CylinderShape } from '../collision/shape/CylinderShape';
 //import { TetraShape } from '../collision/shape/TetraShape';
 
-import { Contact } from '../constraint/contact/Contact';
+import { Contact } from '../constraint/contact/Contact_X';
 
 import { JointConfig } from '../constraint/joint/JointConfig';
 import { HingeJoint } from '../constraint/joint/HingeJoint';
@@ -35,7 +34,7 @@ import { PrismaticJoint } from '../constraint/joint/PrismaticJoint';
 import { SliderJoint } from '../constraint/joint/SliderJoint';
 import { WheelJoint } from '../constraint/joint/WheelJoint';
 
-import { RigidBody } from './RigidBody';
+import { RigidBody } from './RigidBody_X';
 
 /**
  * The class of physical computing world. 
@@ -77,18 +76,18 @@ function World ( o ) {
 
 
     // The rigid body list
-    this.rigidBodies=null;
+    this.rigidBodies=[];//null;
     // number of rigid body
-    this.numRigidBodies=0;
+    //this.numRigidBodies=0;
     // The contact list
-    this.contacts=null;
+    this.contacts=[];//null;
     this.unusedContacts=null;
     // The number of contact
     this.numContacts=0;
     // The number of contact points
     this.numContactPoints=0;
     //  The joint list
-    this.joints=null;
+    this.joints=[];//null;
     // The number of joints.
     this.numJoints=0;
     // The number of simulation islands.
@@ -154,15 +153,19 @@ World.prototype = {
 
         this.randX = 65535;
 
-        while(this.joints!==null){
+        /*while(this.joints!==null){
             this.removeJoint( this.joints );
         }
         while(this.contacts!==null){
             this.removeContact( this.contacts );
         }
-        while(this.rigidBodies!==null){
+        /*while(this.rigidBodies!==null){
             this.removeRigidBody( this.rigidBodies );
-        }
+        }*/
+
+        while( this.joints.length > 0 ) this.removeJoint( this.joints.pop() );
+        while( this.contacts.length > 0 ) this.removeContact( this.contacts.pop(), true );
+        while( this.rigidBodies.length > 0 ) this.removeRigidBody( this.rigidBodies.pop() );
 
     },
     /**
@@ -172,17 +175,27 @@ World.prototype = {
     */
     addRigidBody:function( rigidBody ){
 
-        if(rigidBody.parent){
+        if( rigidBody.parent ){
             Error("World", "It is not possible to be added to more than one world one of the rigid body");
         }
-        rigidBody.parent=this;
+
+        rigidBody.parent = this;
         rigidBody.awake();
-        for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
-            this.addShape(shape);
+
+        var i = rigidBody.shapes.length
+        while(i--){
+            this.addShape(rigidBody.shapes[i]);
         }
-        if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
+
+        //for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
+          //  this.addShape(shape);
+        //}
+        
+        /*if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
         this.rigidBodies = rigidBody;
-        this.numRigidBodies++;
+        this.numRigidBodies++;*/
+
+        this.rigidBodies.push( rigidBody );
 
     },
     /**
@@ -195,39 +208,41 @@ World.prototype = {
         var remove=rigidBody;
         if(remove.parent!==this)return;
         remove.awake();
-        var js=remove.jointLink;
-        while(js!=null){
-	        var joint=js.joint;
-	        js=js.next;
-	        this.removeJoint(joint);
+
+        var i = remove.jointLink.length;
+        while(i--){
+	        this.removeJoint(remove.jointLink[i]);
         }
-        for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
-            this.removeShape(shape);
+
+        i = remove.shapes.length;
+        while(i--){
+            this.removeShape(remove.shapes[i]);
         }
-        var prev=remove.prev;
+        /*var prev=remove.prev;
         var next=remove.next;
         if(prev!==null) prev.next=next;
         if(next!==null) next.prev=prev;
         if(this.rigidBodies==remove) this.rigidBodies=next;
         remove.prev=null;
-        remove.next=null;
+        remove.next=null;*/
         remove.parent=null;
-        this.numRigidBodies--;
+        //this.numRigidBodies--;
 
     },
 
     getByName: function( name ){
 
         var result = null;
-        var body=this.rigidBodies;
-        while(body!==null){
+        var i, body, joint;
+        i = this.rigidBodies.length;
+        while(i--){
+            body = this.rigidBodies[i];
             if(body.name!== " " && body.name === name) result = body;
-            body=body.next;
         }
-        var joint=this.joints;
-        while(joint!==null){
+        i = this.joints.length;
+        while(i--){
+            joint = this.joints[i];
             if(joint.name!== "" && joint.name === name) result = joint;
-            joint=joint.next;
         }
         return result;
 
@@ -246,7 +261,7 @@ World.prototype = {
         }
         shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
-        this.broadPhase.addProxy(shape.proxy);
+        this.broadPhase.addProxy( shape.proxy );
 
     },
 
@@ -258,8 +273,8 @@ World.prototype = {
     */
     removeShape: function ( shape ){
 
-        this.broadPhase.removeProxy(shape.proxy);
-        shape.proxy=null;
+        this.broadPhase.removeProxy( shape.proxy );
+        shape.proxy = null;
 
     },
 
@@ -273,12 +288,15 @@ World.prototype = {
         if(joint.parent){
             Error("World", "It is not possible to be added to more than one world one of the joint");
         }
-        if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
-        this.joints=joint;
-        joint.parent=this;
-        this.numJoints++;
+        //if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
+        //this.joints=joint;
+
+        joint.parent = this;
+        //this.numJoints++;
         joint.awake();
-        joint.attach();
+        joint.attach( true );
+
+        this.joints.push( joint );
 
     },
 
@@ -289,64 +307,74 @@ World.prototype = {
     */
     removeJoint: function ( joint ) {
 
-        var remove=joint;
-        var prev=remove.prev;
+        
+        /*var prev=remove.prev;
         var next=remove.next;
         if(prev!==null)prev.next=next;
         if(next!==null)next.prev=prev;
         if(this.joints==remove)this.joints=next;
         remove.prev=null;
         remove.next=null;
-        this.numJoints--;
-        remove.awake();
-        remove.detach();
-        remove.parent=null;
+        this.numJoints--;*/
+        joint.awake();
+        joint.detach( true );
+        joint.parent = null;
 
     },
 
     addContact: function ( s1, s2 ) {
 
-        var newContact;
+        /*var newContact;
         if(this.unusedContacts!==null){
             newContact=this.unusedContacts;
             this.unusedContacts=this.unusedContacts.next;
         }else{
             newContact = new Contact();
-        }
-        newContact.attach(s1,s2);
+        }*/
+        var newContact = new Contact();
+        newContact.attach( s1, s2 );
         newContact.detector = this.detectors[s1.type][s2.type];
-        if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
-        this.contacts = newContact;
-        this.numContacts++;
+        //if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
+        //this.contacts = newContact;
+        this.contacts.push( newContact );
+
+        this.numContacts = this.contacts.length;
+
+        
 
     },
 
-    removeContact: function ( contact ) {
+    removeContact: function ( contact, ar ) {
 
-        var prev = contact.prev;
-        var next = contact.next;
-        if(next) next.prev = prev;
-        if(prev) prev.next = next;
-        if(this.contacts == contact) this.contacts = next;
-        contact.prev = null;
-        contact.next = null;
+        if( ar===undefined ) this.contacts.splice( this.contacts.indexOf(contact), 1 );
+
+        //var prev = contact.prev;
+        //var next = contact.next;
+        //if(next) next.prev = prev;
+        //if(prev) prev.next = next;
+        //if(this.contacts == contact) this.contacts = next;
+        //contact.prev = null;
+        //contact.next = null;
         contact.detach();
-        contact.next = this.unusedContacts;
-        this.unusedContacts = contact;
-        this.numContacts--;
+        //contact.next = this.unusedContacts;
+        //this.unusedContacts = contact;
+        this.numContacts = this.contacts.length;
+
 
     },
 
     checkContact: function ( name1, name2 ) {
 
         var n1, n2;
-        var contact = this.contacts;
-        while(contact!==null){
+        var i = this.contacts.length, contact;
+        //var contact = this.contacts;
+        while(i--){
+            contact = this.contacts[i];
             n1 = contact.body1.name || ' ';
             n2 = contact.body2.name || ' ';
             if((n1==name1 && n2==name2) || (n2==name1 && n1==name2)){ if(contact.touching) return true; else return false;}
-            else contact = contact.next;
         }
+
         return false;
 
     },
@@ -369,15 +397,15 @@ World.prototype = {
 
         if( stat ) this.performance.setTime( 0 );
 
-        var body = this.rigidBodies;
+        var body, base, contact, i, j, k, cs, js, next;
 
-        while( body !== null ){
+        i = this.rigidBodies.length;
 
+        while( i-- ){
+
+            body = this.rigidBodies[i]; 
             body.addedToIsland = false;
-
             if( body.sleeping ) body.testWakeUp();
-
-            body = body.next;
 
         }
 
@@ -393,7 +421,7 @@ World.prototype = {
 
         var pairs = this.broadPhase.pairs;
 
-        var i = this.broadPhase.numPairs;
+        i = this.broadPhase.numPairs;
         //do{
         while(i--){
         //for(var i=0, l=numPairs; i<l; i++){
@@ -409,18 +437,22 @@ World.prototype = {
             }
 
             var link;
-            if( s1.numContacts < s2.numContacts ) link = s1.contactLink;
+            var s1L = s1.contactLink.length;
+            var s2L = s2.contactLink.length;
+
+            if( s1L < s2L ) link = s1.contactLink;
             else link = s2.contactLink;
             
             var exists = false;
-            while(link){
-                var contact = link.contact;
+            j = link.length;
+            while(j--){
+                var contact = link[j].contact;
                 if( contact.shape1 == s1 && contact.shape2 == s2 ){
                     contact.persisting = true;
                     exists = true;// contact already exists
                     break;
                 }
-                link = link.next;
+                //link = link.next;
             }
             if(!exists){
                 this.addContact( s1, s2 );
@@ -435,8 +467,11 @@ World.prototype = {
 
         // update & narrow phase
         this.numContactPoints = 0;
-        contact = this.contacts;
-        while( contact!==null ){
+        //contact = this.contacts;
+        i = this.contacts.length;
+        while( i-- ){
+            contact = this.contacts[i];
+        //while( contact!==null ){
             if(!contact.persisting){
                 if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
                 /*var aabb1=contact.shape1.aabb;
@@ -446,9 +481,9 @@ World.prototype = {
 	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
 	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
                 ){*/
-                    var next = contact.next;
-                    this.removeContact(contact);
-                    contact = next;
+                    //var next = contact.next;
+                    this.removeContact( contact );
+                    //contact = next;
                     continue;
                 }
             }
@@ -460,7 +495,7 @@ World.prototype = {
             this.numContactPoints += contact.manifold.numPoints;
             contact.persisting = false;
             contact.constraint.addedToIsland = false;
-            contact = contact.next;
+           // contact = contact.next;
 
         }
 
@@ -471,11 +506,11 @@ World.prototype = {
         //------------------------------------------------------
 
         var invTimeStep = 1 / this.timeStep;
-        var joint;
         var constraint;
 
-        for( joint = this.joints; joint !== null; joint = joint.next ){
-            joint.addedToIsland = false;
+        i = this.joints.length;
+        while( i-- ){
+            this.joints[i].addedToIsland = false;
         }
 
 
@@ -489,8 +524,11 @@ World.prototype = {
         this.numIslands = 0;
 
         // build and solve simulation islands
-
-        for( var base = this.rigidBodies; base !== null; base = base.next ){
+        i = this.rigidBodies.length;
+        //while( body !== null ){
+        while( i-- ){
+            base = this.rigidBodies[i]; 
+        //for( var base = this.rigidBodies; base !== null; base = base.next ){
 
             if( base.addedToIsland || base.isStatic || base.sleeping ) continue;// ignore
             
@@ -529,9 +567,13 @@ World.prototype = {
                 // add rigid body to the island
                 this.islandRigidBodies[islandNumRigidBodies++] = body;
                 if(body.isStatic) continue;
+
+
                 
                 // search connections
-                for( var cs = body.contactLink; cs !== null; cs = cs.next ) {
+                j = body.contactLink.length;
+                while(j--){
+                    cs = body.contactLink[j];
                     var contact = cs.contact;
                     constraint = contact.constraint;
                     if( constraint.addedToIsland || !contact.touching ) continue;// ignore
@@ -539,7 +581,7 @@ World.prototype = {
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
-                    var next = cs.body;
+                    next = cs.body;
 
                     if(next.addedToIsland) continue;
                     
@@ -547,20 +589,26 @@ World.prototype = {
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
                 }
-                for( var js = body.jointLink; js !== null; js = js.next ) {
+
+                k = body.jointLink.length;
+                while(k--){
+
+                    js = body.jointLink[k];
                     constraint = js.joint;
 
-                    if(constraint.addedToIsland) continue;// ignore
+                    if( constraint.addedToIsland ) continue;// ignore
                     
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
                     next = js.body;
+
                     if( next.addedToIsland || !next.isDynamic ) continue;
                     
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
+
                 }
             } while( stackCount != 0 );
 
@@ -569,7 +617,7 @@ World.prototype = {
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
-            var j = islandNumRigidBodies;
+            j = islandNumRigidBodies;
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
@@ -601,7 +649,7 @@ World.prototype = {
             //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].preSolve( this.timeStep, invTimeStep );// pre-solve
             }
-            var k = this.numIterations;
+            k = this.numIterations;
             while(k--){
             //for(var k=0, l=this.numIterations; k<l; k++){
                 j = islandNumConstraints;

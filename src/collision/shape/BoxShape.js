@@ -136,7 +136,7 @@ BoxShape.prototype.updateProxy = function () {
     h = di[16] < 0 ? h - di[16] : h + di[16];
     d = di[17] < 0 ? d - di[17] : d + di[17];
 
-    var p = OIMO.AABB_PROX;
+    var p = AABB_PROX;
     
     this.aabb.set(
         this.position.x - w - p, this.position.x + w + p,

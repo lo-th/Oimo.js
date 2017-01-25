@@ -75,27 +75,45 @@ Vec3.prototype = {
     /*dot: function(v){
         return this.x*v.x+this.y*v.y+this.z*v.z;
     },*/
-    cross: function(v1,v2){
+    cross: function( v1, v2 ) {
+
         var ax = v1.x, ay = v1.y, az = v1.z, 
         bx = v2.x, by = v2.y, bz = v2.z;
         this.x = ay * bz - az * by;
         this.y = az * bx - ax * bz;
         this.z = ax * by - ay * bx;
         return this;
+
     },
-    mul: function(o, v, m){
+
+    mul: function( o, v, m ){
+
         var te = m.elements;
-        this.x=o.x+v.x*te[0]+v.y*te[1]+v.z*te[2];
-        this.y=o.y+v.x*te[3]+v.y*te[4]+v.z*te[5];
-        this.z=o.z+v.x*te[6]+v.y*te[7]+v.z*te[8];
+        this.x= o.x + v.x*te[0] + v.y*te[1] + v.z*te[2];
+        this.y= o.y + v.x*te[3] + v.y*te[4] + v.z*te[5];
+        this.z= o.z + v.x*te[6] + v.y*te[7] + v.z*te[8];
         return this;
+
     },
+
     mulMat: function(m,v){
+
         var te = m.elements;
         this.x = te[0]*v.x + te[1]*v.y + te[2]*v.z;
         this.y = te[3]*v.x + te[4]*v.y + te[5]*v.z;
         this.z = te[6]*v.x + te[7]*v.y + te[8]*v.z;
         return this;
+
+    },
+
+    mulManifold: function ( m, v ) {
+
+        var te = m.elements;
+        this.x = te[0]*v.x + te[3]*v.y + te[6]*v.z;
+        this.y = te[1]*v.x + te[4]*v.y + te[7]*v.z;
+        this.z = te[2]*v.x + te[5]*v.y + te[8]*v.z;
+        return this;
+
     },
 
     normalize: function(v){
@@ -164,11 +182,13 @@ Vec3.prototype = {
         return x*x + y*y + z*z;
     },*/
 
-    copy: function(v){
+    copy: function( v ){
+
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
         return this;
+
     },
 
     applyQuaternion: function ( q ) {

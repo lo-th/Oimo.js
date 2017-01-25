@@ -1,4 +1,4 @@
-export var REVISION = '1.3';
+export var REVISION = '1.0.1';
 // BroadPhase
 export var BR_NULL = 0;
 export var BR_BRUTE_FORCE = 1;
@@ -8,6 +8,8 @@ export var BR_BOUNDING_VOLUME_TREE = 3;
 export var BODY_NULL = 0;
 export var BODY_DYNAMIC = 1;
 export var BODY_STATIC = 2;
+export var BODY_KINEMATIC = 3;
+export var BODY_GHOST = 4;
 // shape type
 export var SHAPE_NULL = 0;
 export var SHAPE_SPHERE = 1;

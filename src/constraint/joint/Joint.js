@@ -70,44 +70,63 @@ Joint.prototype.updateAnchorPoints = function () {
 
 // Attach the joint from the bodies.
 
-Joint.prototype.attach = function () {
+Joint.prototype.attach = function ( isX ) {
 
     this.b1Link.body = this.body2;
     this.b2Link.body = this.body1;
-    if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
-    else this.b1Link.next = null;
-    this.body1.jointLink = this.b1Link;
-    this.body1.numJoints++;
-    if(this.body2.jointLink != null) (this.b2Link.next=this.body2.jointLink).prev = this.b2Link;
-    else this.b2Link.next = null;
-    this.body2.jointLink = this.b2Link;
-    this.body2.numJoints++;
-    
+
+    if(isX){
+
+        this.body1.jointLink.push( this.b1Link );
+        this.body2.jointLink.push( this.b2Link );;
+
+    } else {
+
+        if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
+        else this.b1Link.next = null;
+        this.body1.jointLink = this.b1Link;
+        this.body1.numJoints++;
+        if(this.body2.jointLink != null) (this.b2Link.next=this.body2.jointLink).prev = this.b2Link;
+        else this.b2Link.next = null;
+        this.body2.jointLink = this.b2Link;
+        this.body2.numJoints++;
+
+    }
+
 };
 
 // Detach the joint from the bodies.
 
-Joint.prototype.detach = function () {
+Joint.prototype.detach = function ( isX ) {
 
-    var prev = this.b1Link.prev;
-    var next = this.b1Link.next;
-    if(prev != null) prev.next = next;
-    if(next != null) next.prev = prev;
-    if(this.body1.jointLink == this.b1Link) this.body1.jointLink = next;
-    this.b1Link.prev = null;
-    this.b1Link.next = null;
-    this.b1Link.body = null;
-    this.body1.numJoints--;
+    if(isX){
 
-    prev = this.b2Link.prev;
-    next = this.b2Link.next;
-    if(prev != null) prev.next = next;
-    if(next != null) next.prev = prev;
-    if(this.body2.jointLink==this.b2Link) this.body2.jointLink = next;
-    this.b2Link.prev = null;
-    this.b2Link.next = null;
-    this.b2Link.body = null;
-    this.body2.numJoints--;
+        this.body1.jointLink.splice( this.body1.jointLink.indexOf( this.b1Link ), 1 );
+        this.body2.jointLink.splice( this.body2.jointLink.indexOf( this.b2Link ), 1 );
+
+    } else {
+
+        var prev = this.b1Link.prev;
+        var next = this.b1Link.next;
+        if(prev != null) prev.next = next;
+        if(next != null) next.prev = prev;
+        if(this.body1.jointLink == this.b1Link) this.body1.jointLink = next;
+        this.b1Link.prev = null;
+        this.b1Link.next = null;
+        this.b1Link.body = null;
+        this.body1.numJoints--;
+
+        prev = this.b2Link.prev;
+        next = this.b2Link.next;
+        if(prev != null) prev.next = next;
+        if(next != null) next.prev = prev;
+        if(this.body2.jointLink==this.b2Link) this.body2.jointLink = next;
+        this.b2Link.prev = null;
+        this.b2Link.next = null;
+        this.b2Link.body = null;
+        this.body2.numJoints--;
+
+    }
 
     this.b1Link.body = null;
     this.b2Link.body = null;

@@ -10,61 +10,7 @@ function Error( Class, Msg ){
 
 export { Error };
 
-//
 
-/*
-function Dictionary () {
-
-    this.data = {};
-    this.keys = [];
-
-};
-
-Dictionary.prototype = {
-
-    constructor: Dictionary,
-
-    set: function ( value ) {
-
-        var key = value.id;
-        if(!this.get[key]) this.keys.push(key);
-
-        this.data[key] = value;
-        
-    },
-
-    get: function ( id ) {
-
-        return this.data[ id ];
-
-    },
-
-    del: function ( value ) {
-        var k = this.keys;
-
-        var n = k.indexOf( value.id );
-         if ( n > -1 ){
-            delete this.data[k[n]];
-            k.splice( n, 1 );
-        }
-
-    },
-
-    reset: function () {
-
-        var data = this.data, keys = this.keys, key;
-        while(keys.length > 0){
-            key = keys.pop();
-            delete data[key];
-        }
-
-    }
-};
-
-export { Dictionary };
-*/
-
-//
 
 
 function Performance ( world ){
@@ -81,10 +27,20 @@ function Performance ( world ){
     this.version = REVISION;
 
     this.fps = 0;
+
+    this.tt = 0;
+
     this.broadPhaseTime = 0;
     this.narrowPhaseTime = 0;
     this.solvingTime = 0;
     this.totalTime = 0;
+    this.updateTime = 0;
+
+    this.MaxBroadPhaseTime = 0;
+    this.MaxNarrowPhaseTime = 0;
+    this.MaxSolvingTime = 0;
+    this.MaxTotalTime = 0;
+    this.MaxUpdateTime = 0;
 
 };
 
@@ -93,6 +49,16 @@ Performance.prototype = {
     setTime: function ( n ) {
 
         this.times[ n || 0 ] = performance.now();
+
+    },
+
+    resetMax: function(){
+
+        this.MaxBroadPhaseTime = 0;
+        this.MaxNarrowPhaseTime = 0;
+        this.MaxSolvingTime = 0;
+        this.MaxTotalTime = 0;
+        this.MaxUpdateTime = 0;
 
     },
 
@@ -115,8 +81,24 @@ Performance.prototype = {
         this.setTime( 2 );
         this.solvingTime = this.times[ 2 ] - this.times[ 1 ];
         this.totalTime = this.times[ 2 ] - this.times[ 0 ];
+        this.updateTime = this.totalTime - ( this.broadPhaseTime + this.narrowPhaseTime + this.solvingTime );
+
+        if( this.tt === 100 ) this.resetMax();
+
+        if( this.tt > 100 ){
+            if( this.broadPhaseTime > this.MaxBroadPhaseTime ) this.MaxBroadPhaseTime = this.broadPhaseTime;
+            if( this.narrowPhaseTime > this.MaxNarrowPhaseTime ) this.MaxNarrowPhaseTime = this.narrowPhaseTime;
+            if( this.solvingTime > this.MaxSolvingTime ) this.MaxSolvingTime = this.solvingTime;
+            if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
+            if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
+        }
+        
+
         this.upfps();
 
+        this.tt ++;
+        if(this.tt > 500) this.tt = 0;
+        
     },
 
 
@@ -124,12 +106,6 @@ Performance.prototype = {
 
         this.f[1] = Date.now();
         if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
-
-    },
-
-    updatingTime : function(){
-
-        return _Math.fix( this.totalTime-(this.broadPhaseTime+this.narrowPhaseTime+this.solvingTime ));
 
     },
 
@@ -145,11 +121,11 @@ Performance.prototype = {
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
             "Time in milliseconde<br><br>",
-            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + "<br>",
-            "narrowphase "+ _Math.fix(this.narrowPhaseTime) + "<br>",
-            "solving &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime) + "<br>",
-            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime)+ "<br>",
-            "updating &nbsp;&nbsp;&nbsp;&nbsp;"+ this.updatingTime() + "<br>"
+            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
+            "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
+            "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
+            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime) + " | " + _Math.fix(this.MaxTotalTime) + "<br>",
+            "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
         ].join("\n");
         return info;
 
@@ -166,7 +142,7 @@ Performance.prototype = {
         this.infos[6] = this.broadPhaseTime;
         this.infos[7] = this.narrowPhaseTime;
         this.infos[8] = this.solvingTime;
-        this.infos[9] = this.updatingTime();
+        this.infos[9] = this.updateTime;
         this.infos[10] = this.totalTime;
         this.infos[11] = this.fps;
         return this.infos;

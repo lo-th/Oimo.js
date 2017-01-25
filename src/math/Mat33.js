@@ -2,10 +2,9 @@ import { _Math } from './Math';
 import { Vec3 } from './Vec3';
 import { Quat } from './Quat';
 
-function Mat33 (e00,e01,e02,e10,e11,e12,e20,e21,e22){
+function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
     this.elements = new Float32Array(9);
-    //var te = this.elements;
 
     this.init(
         ( e00 !== undefined ) ? e00 : 1, e01 || 0, e02 || 0,
@@ -19,80 +18,96 @@ Mat33.prototype = {
 
     constructor: Mat33,
 
-    set: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
+    set: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
-        var te = this.elements;
-
-        te[0] = e00; te[1] = e01; te[2] = e02;
-        te[3] = e10; te[4] = e11; te[5] = e12;
-        te[6] = e20; te[7] = e21; te[8] = e22;
-
-        return this;
-
-    },
-
-    init: function( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
         var te = this.elements;
         te[0] = e00; te[1] = e01; te[2] = e02;
         te[3] = e10; te[4] = e11; te[5] = e12;
         te[6] = e20; te[7] = e21; te[8] = e22;
         return this;
+
     },
 
-    
+    init: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
-    multiply: function(s){
+        var te = this.elements;
+        te[0] = e00; te[1] = e01; te[2] = e02;
+        te[3] = e10; te[4] = e11; te[5] = e12;
+        te[6] = e20; te[7] = e21; te[8] = e22;
+        return this;
+
+    },
+
+    multiply: function ( s ) {
+
         var te = this.elements;
         te[0] *= s; te[1] *= s; te[2] *= s;
         te[3] *= s; te[4] *= s; te[5] *= s;
         te[6] *= s; te[7] *= s; te[8] *= s;
         return this;
-    },
 
+    },
     
-    add: function(m1,m2){
+    add: function ( m1, m2 ) {
+
         var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
         te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
         te[3] = tem1[3] + tem2[3]; te[4] = tem1[4] + tem2[4]; te[5] = tem1[5] + tem2[5];
         te[6] = tem1[6] + tem2[6]; te[7] = tem1[7] + tem2[7]; te[8] = tem1[8] + tem2[8];
         return this;
+
     },
-    addEqual: function(m){
+
+    addEqual: function( m ){
+
         var te = this.elements, tem = m.elements;
         te[0] += tem[0]; te[1] += tem[1]; te[2] += tem[2];
         te[3] += tem[3]; te[4] += tem[4]; te[5] += tem[5];
         te[6] += tem[6]; te[7] += tem[7]; te[8] += tem[8];
         return this;
+
     },
-    sub: function(m1,m2){
+
+    sub: function ( m1, m2 ) {
+
         var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
         te[0] = tem1[0] - tem2[0]; te[1] = tem1[1] - tem2[1]; te[2] = tem1[2] - tem2[2];
         te[3] = tem1[3] - tem2[3]; te[4] = tem1[4] - tem2[4]; te[5] = tem1[5] - tem2[5];
         te[6] = tem1[6] - tem2[6]; te[7] = tem1[7] - tem2[7]; te[8] = tem1[8] - tem2[8];
         return this;
+
     },
-    subEqual:function(m){
+
+    subEqual: function ( m ) {
+
         var te = this.elements, tem = m.elements;
         te[0] -= tem[0]; te[1] -= tem[1]; te[2] -= tem[2];
         te[3] -= tem[3]; te[4] -= tem[4]; te[5] -= tem[5];
         te[6] -= tem[6]; te[7] -= tem[7]; te[8] -= tem[8];
         return this;
+
     },
-    scale: function(m,s){
+
+    scale: function ( m, s ) {
         var te = this.elements, tm = m.elements;
         te[0] = tm[0] * s; te[1] = tm[1] * s; te[2] = tm[2] * s;
         te[3] = tm[3] * s; te[4] = tm[4] * s; te[5] = tm[5] * s;
         te[6] = tm[6] * s; te[7] = tm[7] * s; te[8] = tm[8] * s;
         return this;
     },
-    scaleEqual: function(s){
+
+    scaleEqual: function ( s ){
+
         var te = this.elements;
         te[0] *= s; te[1] *= s; te[2] *= s;
         te[3] *= s; te[4] *= s; te[5] *= s;
         te[6] *= s; te[7] *= s; te[8] *= s;
         return this;
+
     },
-    mul: function(m1,m2){
+
+    mul: function ( m1, m2 ) {
+
         var te = this.elements, tm1 = m1.elements, tm2 = m2.elements,
         a0 = tm1[0], a3 = tm1[3], a6 = tm1[6],
         a1 = tm1[1], a4 = tm1[4], a7 = tm1[7],
@@ -110,8 +125,11 @@ Mat33.prototype = {
         te[7] = a6*b1 + a7*b4 + a8*b7;
         te[8] = a6*b2 + a7*b5 + a8*b8;
         return this;
+
     },
-    mulScale: function(m,sx,sy,sz,Prepend){
+
+    mulScale: function ( m, sx, sy, sz, Prepend ) {
+
         var prepend = Prepend || false;
         var te = this.elements, tm = m.elements;
         if(prepend){
@@ -124,8 +142,11 @@ Mat33.prototype = {
             te[6] = tm[6]*sx; te[7] = tm[7]*sy; te[8] = tm[8]*sz;
         }
         return this;
+
     },
-    mulRotate: function(m,rad,ax,ay,az,Prepend){
+
+    mulRotate: function ( m, rad, ax, ay, az, Prepend ){
+
         var prepend = Prepend || false;
         var s=_Math.sin(rad);
         var c=_Math.cos(rad);
@@ -170,15 +191,21 @@ Mat33.prototype = {
             te[8]=a6*r02+a7*r12+a8*r22;
         }
         return this;
+
     },
-    transpose: function(m){
+
+    transpose: function ( m ) {
+
         var te = this.elements, tm = m.elements;
         te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
         te[3] = tm[1]; te[4] = tm[4]; te[5] = tm[7];
         te[6] = tm[2]; te[7] = tm[5]; te[8] = tm[8];
         return this;
+
     },
-    setQuat: function(q){
+
+    setQuat: function ( q ) {
+
         var te = this.elements,
         x2=2*q.x,  y2=2*q.y,  z2=2*q.z,
         xx=q.x*x2, yy=q.y*y2, zz=q.z*z2,
@@ -194,9 +221,13 @@ Mat33.prototype = {
         te[6]=xz-sy;
         te[7]=yz+sx;
         te[8]=1-xx-yy;
+
         return this;
+
     },
+
     invert: function(m){
+
         var te = this.elements, tm = m.elements,
         a0 = tm[0], a3 = tm[3], a6 = tm[6],
         a1 = tm[1], a4 = tm[4], a7 = tm[7],
@@ -218,14 +249,53 @@ Mat33.prototype = {
         te[8] = dt*(a0*a4 - a1*a3);
         return this;
     },
-    /*copy: function(m){
-        var te = this.elements, tem = m.elements;
-        te[0] = tem[0]; te[1] = tem[1]; te[2] = tem[2];
-        te[3] = tem[3]; te[4] = tem[4]; te[5] = tem[5];
-        te[6] = tem[6]; te[7] = tem[7]; te[8] = tem[8];
-        return this;
-    },*/
-    toEuler: function(){ // not work !!
+
+    addOffset: function ( m, v ) {
+
+        var relX = v.x;
+        var relY = v.y;
+        var relZ = v.z;
+
+        var te = this.elements;
+        te[0] += m * ( relY * relY + relZ * relZ );
+        te[4] += m * ( relX * relX + relZ * relZ );
+        te[8] += m * ( relX * relX + relY * relY );
+        var xy = m * relX * relY;
+        var yz = m * relY * relZ;
+        var zx = m * relZ * relX;
+        te[1] -= xy;
+        te[3] -= xy;
+        te[2] -= yz;
+        te[6] -= yz;
+        te[5] -= zx;
+        te[7] -= zx;
+
+    },
+
+    subOffset: function ( m, v ) {
+
+        var relX = v.x;
+        var relY = v.y;
+        var relZ = v.z;
+
+        var te = this.elements;
+        te[0] -= m * ( relY * relY + relZ * relZ );
+        te[4] -= m * ( relX * relX + relZ * relZ );
+        te[8] -= m * ( relX * relX + relY * relY );
+        var xy = m * relX * relY;
+        var yz = m * relY * relZ;
+        var zx = m * relZ * relX;
+        te[1] += xy;
+        te[3] += xy;
+        te[2] += yz;
+        te[6] += yz;
+        te[5] += zx;
+        te[7] += zx;
+
+    },
+
+    /*toEuler: function(){ // not work !!
+
         function clamp( x ) {
             return _Math.min( _Math.max( x, -1 ), 1 );
         }
@@ -251,15 +321,7 @@ Mat33.prototype = {
         }
         
         return p;
-    },
-    /*clone: function(){
-        var te = this.elements;
 
-        return new _Math.Mat33(
-            te[0], te[1], te[2],
-            te[3], te[4], te[5],
-            te[6], te[7], te[8]
-        );
     },*/
 
     toString: function(){
@@ -290,7 +352,6 @@ Mat33.prototype = {
     identity: function () {
 
         this.set( 1, 0, 0, 0, 1, 0, 0, 0, 1 );
-
         return this;
 
     },
@@ -318,23 +379,40 @@ Mat33.prototype = {
 
     },
 
-    fromArray: function ( array ) {
+    fromArray: function ( array, offset ) {
 
-        this.elements.set( array );
+        if ( offset === undefined ) offset = 0;
+
+        for( var i = 0; i < 9; i ++ ) {
+
+            this.elements[ i ] = array[ i + offset ];
+
+        }
 
         return this;
 
     },
 
-    toArray: function () {
+    toArray: function ( array, offset ) {
+
+        if ( array === undefined ) array = [];
+        if ( offset === undefined ) offset = 0;
 
         var te = this.elements;
 
-        return [
-            te[ 0 ], te[ 1 ], te[ 2 ],
-            te[ 3 ], te[ 4 ], te[ 5 ],
-            te[ 6 ], te[ 7 ], te[ 8 ]
-        ];
+        array[ offset ] = te[ 0 ];
+        array[ offset + 1 ] = te[ 1 ];
+        array[ offset + 2 ] = te[ 2 ];
+
+        array[ offset + 3 ] = te[ 3 ];
+        array[ offset + 4 ] = te[ 4 ];
+        array[ offset + 5 ] = te[ 5 ];
+
+        array[ offset + 6 ] = te[ 6 ];
+        array[ offset + 7 ] = te[ 7 ];
+        array[ offset + 8 ]  = te[ 8 ];
+
+        return array;
 
     }
 

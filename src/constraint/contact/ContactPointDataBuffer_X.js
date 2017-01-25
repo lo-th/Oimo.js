@@ -1,37 +1,40 @@
+import { Vec3 } from '../../math/Vec3';
 
 function ContactPointDataBuffer (){
 
-    this.norX=NaN;
-    this.norY=NaN;
-    this.norZ=NaN;
+    //this.d = new Float32Array( (23 * 3) + 7 );
 
-    this.tanX=NaN;
-    this.tanY=NaN;
-    this.tanZ=NaN;
+    this.norX=NaN;//0
+    this.norY=NaN;//1
+    this.norZ=NaN;//2
 
-    this.binX=NaN;
-    this.binY=NaN;
-    this.binZ=NaN;
+    this.tanX=NaN;//3
+    this.tanY=NaN;//4
+    this.tanZ=NaN;//5
 
-    //
-    
-    this.rp1X=NaN;
-    this.rp1Y=NaN;
-    this.rp1Z=NaN;
-
-    this.rp2X=NaN;
-    this.rp2Y=NaN;
-    this.rp2Z=NaN;
+    this.binX=NaN;//6
+    this.binY=NaN;//7
+    this.binZ=NaN;//8
 
     //
     
-    this.norU1X=NaN;
-    this.norU1Y=NaN;
-    this.norU1Z=NaN;
+    this.rp1X=NaN;//9
+    this.rp1Y=NaN;//10
+    this.rp1Z=NaN;//11
 
-    this.norU2X=NaN;
-    this.norU2Y=NaN;
-    this.norU2Z=NaN;
+    this.rp2X=NaN;//12
+    this.rp2Y=NaN;//13
+    this.rp2Z=NaN;//14
+
+    //
+    
+    this.norU1X=NaN;//15
+    this.norU1Y=NaN;//16
+    this.norU1Z=NaN;//17
+
+    this.norU2X=NaN;//18
+    this.norU2Y=NaN;//18
+    this.norU2Z=NaN;//20
 
     this.tanU1X=NaN;
     this.tanU1Y=NaN;
@@ -100,17 +103,21 @@ function ContactPointDataBuffer (){
     this.binTU2X=NaN;
     this.binTU2Y=NaN;
     this.binTU2Z=NaN;
+
+    //
     
     this.norImp=NaN;
     this.tanImp=NaN;
     this.binImp=NaN;
+
     this.norDen=NaN;
     this.tanDen=NaN;
     this.binDen=NaN;
-    this.norTar=NaN;
 
-    this.next=null;
-    this.last=false;
+    this.norTar=NaN;
+    
+    //this.next=null;
+    //this.last=false;
 
 }
 

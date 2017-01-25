@@ -5,11 +5,10 @@ export * from './core/Utils.js';
 
 export { _Math as Math } from './math/Math.js';
 export { Vec3 } from './math/Vec3.js';
-export { Euler } from './math/Euler.js';
 export { Quat } from './math/Quat.js';
 export { Mat33 } from './math/Mat33.js';
-export { Mat44 } from './math/Mat44.js';
 
+/*
 // broadphase
 export { AABB } from './collision/broadphase/AABB.js';
 export * from './collision/broadphase/Proxy.js';
@@ -36,19 +35,13 @@ export { CylinderCylinderCollisionDetector } from './collision/narrowphase/Cylin
 export { SphereBoxCollisionDetector } from './collision/narrowphase/SphereBoxCollisionDetector.js';
 export { SphereCylinderCollisionDetector } from './collision/narrowphase/SphereCylinderCollisionDetector.js';
 export { SphereSphereCollisionDetector } from './collision/narrowphase/SphereSphereCollisionDetector.js';
-//export { TetraTetraCollisionDetector } from './collision/narrowphase/TetraTetraCollisionDetector.js';
-//export { RayCollisionDetector } from './collision/narrowphase/RayCollisionDetector.js';
-
-
+export { TetraTetraCollisionDetector } from './collision/narrowphase/TetraTetraCollisionDetector.js';
+export { RayCollisionDetector } from './collision/narrowphase/RayCollisionDetector.js';
 
 // Shape
 export { MassInfo } from './collision/shape/MassInfo.js';
-export { ShapeConfig } from './collision/shape/ShapeConfig.js';
-export { Shape } from './collision/shape/Shape.js';
-export { BoxShape } from './collision/shape/BoxShape.js';
-export { SphereShape } from './collision/shape/SphereShape.js';
-export { CylinderShape } from './collision/shape/CylinderShape.js';
-//export { TetraShape } from './collision/shape/TetraShape.js';
+
+
 
 // Constraint
 export { Constraint } from './constraint/Constraint.js';
@@ -67,10 +60,18 @@ export { Rotational3Constraint } from './constraint/joint/base/Rotational3Constr
 export { RotationalConstraint } from './constraint/joint/base/RotationalConstraint.js';
 export { Translational3Constraint } from './constraint/joint/base/Translational3Constraint.js';
 export { TranslationalConstraint } from './constraint/joint/base/TranslationalConstraint.js';
+*/
 
-export { Joint } from './constraint/joint/Joint.js';
-export { JointLink } from './constraint/joint/JointLink.js';
-export { JointConfig } from './constraint/joint/JointConfig.js';
+
+export { Shape } from './collision/shape/Shape.js';
+export { BoxShape } from './collision/shape/BoxShape.js';
+export { SphereShape } from './collision/shape/SphereShape.js';
+export { CylinderShape } from './collision/shape/CylinderShape.js';
+export { ShapeConfig } from './collision/shape/ShapeConfig.js';
+
+//export { TetraShape } from './collision/shape/TetraShape.js';
+//export { Joint } from './constraint/joint/Joint.js';
+//export { JointLink } from './constraint/joint/JointLink.js';
 export { LimitMotor } from './constraint/joint/LimitMotor.js';
 export { HingeJoint } from './constraint/joint/HingeJoint.js';
 export { BallAndSocketJoint } from './constraint/joint/BallAndSocketJoint.js';
@@ -78,6 +79,16 @@ export { DistanceJoint } from './constraint/joint/DistanceJoint.js';
 export { PrismaticJoint } from './constraint/joint/PrismaticJoint.js';
 export { SliderJoint } from './constraint/joint/SliderJoint.js';
 export { WheelJoint } from './constraint/joint/WheelJoint.js';
+export { JointConfig } from './constraint/joint/JointConfig.js';
 
-export { World } from './core/World.js';
+
+
 export { RigidBody } from './core/RigidBody.js';
+export { World } from './core/World.js';
+
+
+
+// test version
+
+//export { RigidBody } from './core/RigidBody_X.js';
+//export { World } from './core/World_X.js';
