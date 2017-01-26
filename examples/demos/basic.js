@@ -82,10 +82,7 @@ function update () {
             meshs[id].quaternion.copy( b.getQuaternion() );
 
             if(meshs[id].position.y<-10){
-                x = Math.rand(-5,5);
-                z = Math.rand(-5,5);
-                y = Math.rand(10,20);
-                b.resetPosition(x,y,z);
+                b.resetPosition( Math.rand(-5,5), Math.rand(10,20), Math.rand(-5,5) );
             }
         }
 

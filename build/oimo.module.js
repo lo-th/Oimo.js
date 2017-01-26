@@ -11120,15 +11120,16 @@ Object.assign( World.prototype, {
     * Rigid body that has been added will be the operands of each step.
     * @param  rigidBody  Rigid body that you want to add
     */
-    addRigidBody:function( rigidBody ){
+    addRigidBody:function( rigidBody, sleep ){
 
         if(rigidBody.parent){
             Error("World", "It is not possible to be added to more than one world one of the rigid body");
         }
         rigidBody.parent=this;
-        rigidBody.awake();
-        for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
-            this.addShape(shape);
+        //if( !sleep ) rigidBody.awake();
+
+        for(var shape = rigidBody.shapes; shape !== null; shape = shape.next){
+            this.addShape( shape );
         }
         if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
         this.rigidBodies = rigidBody;
@@ -11705,28 +11706,22 @@ Object.assign( World.prototype, {
 
             return joint;
 
-        // is body
-        } else { 
-
-            // I'm dynamique or not
+        } else { // is body
+        
+            // body dynamic or static
             var move = o.move || false;
 
-            //var mass = o.mass || 0;
-
-            // I can sleep or not
-            var noSleep  = o.noSleep || false;
-            
-            // object position
+            // body position
             var p = o.pos || [0,0,0];
             p = p.map(function(x) { return x * invScale; });
 
-            // object size 
+            // body size 
             var s = o.size === undefined ? [1,1,1] : o.size;
             if( s.length === 1 ){ s[1] = s[0]; }
             if( s.length === 2 ){ s[2] = s[0]; }
             s = s.map(function(x) { return x * invScale; });
 
-            // object rotation in degree
+            // body rotation in degree
             var r = o.rot || [0,0,0];
             r = r.map( function(x) { return x * _Math.degtorad; } );
 
@@ -11793,12 +11788,15 @@ Object.assign( World.prototype, {
                 }
             } 
             
-            // I'm static or i move
+            // body static or dynamic
             if( move ){
                 if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
                 else body.setupMass( BODY_DYNAMIC, true );
-                if(noSleep) body.allowSleep = false;
+
+                // body can sleep or not
+                if( o.neverSleep ) body.allowSleep = false;
                 else body.allowSleep = true;
+
             } else {
                 body.setupMass( BODY_STATIC );
             }
@@ -11808,6 +11806,12 @@ Object.assign( World.prototype, {
 
             // finaly add to physics world
             this.addRigidBody( body );
+
+            // force sleep on not
+            if( move ){
+                if( o.sleep ) body.sleep();
+                else body.awake();
+            }
 
             return body;
         }

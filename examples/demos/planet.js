@@ -16,7 +16,7 @@ function demo() {
         gravity: [0,0,0],
     });
 
-    add({ type:'sphere', size:[10, 10, 10], pos:[0,0,0], density:1 });
+    add({ type:'sphere', geometry: geo.highsphere, size:[10, 10, 10], pos:[0,0,0], density:1 });
 
     // basic geometry body
 
