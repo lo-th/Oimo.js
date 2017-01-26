@@ -1,4 +1,4 @@
-export var REVISION = '1.0.1';
+export var REVISION = '1.0.2';
 // BroadPhase
 export var BR_NULL = 0;
 export var BR_BRUTE_FORCE = 1;

@@ -22,9 +22,13 @@ import { Contact } from '../constraint/contact/Contact';
 * Rigid body has the shape of a single or multiple collision processing, 
 * I can set the parameters individually.
 * @author saharan
+* @author lo-th
 */
 
-function RigidBody ( x, y, z, rad, ax, ay, az, scale, invScale ) {
+function RigidBody ( Position, Rotation, scale, invScale ) {
+
+    this.position = Position || new Vec3();
+    this.orientation = Rotation || new Quat();
 
     this.scale = scale || 1;
     this.invScale = invScale || 1;
@@ -43,13 +47,6 @@ function RigidBody ( x, y, z, rad, ax, ay, az, scale, invScale ) {
     this.type = BODY_NULL;
 
     this.massInfo = new MassInfo();
-
-    // It is the world coordinate of the center of gravity.
-    this.position = new Vec3( x, y, z );
-
-    this.orientation = new Quat().setFromAxis( rad || 0, ax || 0, ay || 0, az || 0 ); 
-    //this.orientation = this.rotationAxisToQuad( rad || 0, ax || 0, ay || 0, az || 0 );
-
 
     this.newPosition = new Vec3();
     this.controlPos = false;
@@ -452,43 +449,20 @@ Object.assign( RigidBody.prototype, {
         }
     },
 
+
+    //---------------------------------------------
+    // APPLY IMPULSE FORCE
+    //---------------------------------------------
+
     applyImpulse: function ( position, force ) {
 
         this.linearVelocity.addScale(force, this.inverseMass);
         var rel = new Vec3();
         rel.sub( position, this.position ).cross( rel, force ).mulMat( this.inverseInertia, rel );
         this.angularVelocity.addEqual( rel );
-        
+
     },
 
-    //---------------------------------------------
-    //
-    // FOR THREE JS
-    //
-    //---------------------------------------------
-
-    rotationVectToQuad: function ( rot ) {
-
-        var r = _Math.EulerToAxis( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );
-        return new Quat().setFromAxis( r[0], r[1], r[2], r[3] );
-        //return this.rotationAxisToQuad(r[0], r[1], r[2], r[3]);
-    
-    },
-
-    /*rotationAxisToQuad: function ( rad, ax, ay, az ) { // in radian
-        
-        var len = ax*ax+ay*ay+az*az; 
-        if(len>0){
-            len=1/_Math.sqrt(len);
-            ax*=len;
-            ay*=len;
-            az*=len;
-        }
-        var sin = _Math.sin( rad*0.5 );
-        var cos = _Math.cos( rad*0.5 );
-        return new Quat( sin*ax, sin*ay, sin*az, cos );
-    
-    },*/
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
@@ -511,7 +485,7 @@ Object.assign( RigidBody.prototype, {
 
     setRotation: function ( rot ) {
 
-        this.newOrientation = this.rotationVectToQuad( rot );
+        this.newOrientation = new Quat().setFromEuler( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.y * _Math.degtorad );//this.rotationVectToQuad( rot );
         this.controlRot = true;
     
     },
@@ -540,7 +514,7 @@ Object.assign( RigidBody.prototype, {
     resetRotation:function(x,y,z){
 
         this.angularVelocity.set(0,0,0);
-        this.orientation = this.rotationVectToQuad( new Vec3(x,y,z) );
+        this.orientation = new Quat().setFromEuler( x * _Math.degtorad, y * _Math.degtorad,  z * _Math.degtorad );//this.rotationVectToQuad( new Vec3(x,y,z) );
         this.awake();
 
     },

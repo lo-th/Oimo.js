@@ -772,20 +772,15 @@ Object.assign( World.prototype, {
 
             // object size 
             var s = o.size === undefined ? [1,1,1] : o.size;
-            if(s.length == 1){ s[1] = s[0]; }
-            if(s.length == 2){ s[2] = s[0]; }
+            if( s.length === 1 ){ s[1] = s[0]; }
+            if( s.length === 2 ){ s[2] = s[0]; }
             s = s.map(function(x) { return x * invScale; });
 
-            // object rotation in degre
-            var rot = o.rot || [0,0,0];
-            rot = rot.map(function(x) { return x * _Math.degtorad; });
-            var r = [];
-            for (var i=0; i<rot.length/3; i++){
-                var tmp = _Math.EulerToAxis(rot[i+0], rot[i+1], rot[i+2]);
-                r.push(tmp[0]);  r.push(tmp[1]); r.push(tmp[2]); r.push(tmp[3]);
-            }
+            // object rotation in degree
+            var r = o.rot || [0,0,0];
+            r = r.map( function(x) { return x * _Math.degtorad; } );
 
-            // My physics setting
+            // object physics setting
             var sc = new ShapeConfig();
             sc.density = o.density || 1;
             sc.friction = o.friction || 0.4;
@@ -816,44 +811,46 @@ Object.assign( World.prototype, {
                 sc.relativePosition.init( o.massPos[0], o.massPos[1], o.massPos[2] );
             }
             if(o.massRot){
-                o.massRot = o.massRot.map(function(x) { return x * degtorad; });
-                sc.relativeRotation = _Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
+                o.massRot = o.massRot.map(function(x) { return x * _Math.degtorad; });
+                var q = new Quat().setFromEuler( o.massRot[0], o.massRot[1], o.massRot[2] );
+                sc.relativeRotation = new Mat33().setQuat( q );//_Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
             }
+
+            var position = new Vec3( p[0], p[1], p[2] );
+            var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
             
             // My rigidbody
-            var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
+            var body = new RigidBody( position, rotation, this.scale, this.invScale );
+            //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
 
             // My shapes
             var shapes = [];
 
-            //if( typeof type === 'string' ) type = [type];// single shape
-
-            var n, n2;
-            for(var i=0; i<type.length; i++){
+            var n;
+            for( var i = 0; i< type.length; i++ ){
                 n = i*3;
-                n2 = i*4;
+                //n2 = i*4;
                 switch(type[i]){
                     case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
                     case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
                     case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
                 }
-                body.addShape(shapes[i]);
+                body.addShape( shapes[i] );
                 if(i>0){
                     //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
-                    shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
-                    //if(r[n2+0]) shapes[i].relativeRotation = [ r[n2], r[n2+1], r[n2+2], r[n2+3] ];
-                    if(r[n2+0]) {
-                        var q = new Quat().setFromAxis( r[n2], r[n2+1], r[n2+2], r[n2+3] );
-                        //var q = body.rotationAxisToQuad( r[0], r[1], r[2], r[3] );
-                        shapes[i].relativeRotation = new Mat33().setQuat(q);
+                    if( p[n] ) shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
+
+                    if( r[n] ) {
+                        var q = new Quat().setFromEuler( r[n], r[n+1], r[n+2] );
+                        shapes[i].relativeRotation = new Mat33().setQuat( q );
                     }
                 }
             } 
             
             // I'm static or i move
             if( move ){
-                if(o.massPos || o.massRot) body.setupMass(0x1, false);
-                else body.setupMass(0x1, true);
+                if(o.massPos || o.massRot) body.setupMass( 0x1, false );
+                else body.setupMass( 0x1, true );
                 if(noSleep) body.allowSleep = false;
                 else body.allowSleep = true;
             } else {

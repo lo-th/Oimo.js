@@ -213,14 +213,18 @@
         var sizes = [];
         var positions = [];
         var n = 0;
+        var x, y, z;
         var vertices = g.attributes.position.array;
 
 
         for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
 
             vertices[ j + 1 ] = (data[ i ] * 10)-100;
+            x = vertices[ j ];
+            y = vertices[ j+1 ] - r;
+            z = vertices[ j+2 ];
 
-            b = world.add({type:'sphere', size:[r], pos:[vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]] })
+            b = world.add({type:'sphere', size:[r], pos:[x,y,z] })
 
         }
 
@@ -229,11 +233,15 @@
             vertices[ j + 1 ] = (data[ i ] * 10)-100;
 
             types.push('sphere');
-            sizes.push([r,r,r]);
-            positions.push([vertices[ j ],vertices[ j + 1 ]-r,vertices[ j + 2 ]]);
+            sizes.push(r,r,r);
+            x = vertices[ j ];
+            y = vertices[ j+1 ] - r;
+            z = vertices[ j+2 ];
+            positions.push(x,y,z);
         }
         var phyterrain = world.add({type:types, size:sizes, pos:positions, move:false })
-        */
+        phyterrain.resetPosition(0,0,0);*/
+        
 
         
         

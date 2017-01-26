@@ -153,6 +153,25 @@ Object.assign( Quat.prototype, {
         return"Quat["+this.x.toFixed(4)+", ("+this.y.toFixed(4)+", "+this.z.toFixed(4)+", "+this.w.toFixed(4)+")]";
     },
 
+    setFromEuler: function ( x, y, z ){
+
+        var c1 = Math.cos( x * 0.5 );
+        var c2 = Math.cos( y * 0.5 );
+        var c3 = Math.cos( z * 0.5 );
+        var s1 = Math.sin( x * 0.5 );
+        var s2 = Math.sin( y * 0.5 );
+        var s3 = Math.sin( z * 0.5 );
+
+        // XYZ
+        this.x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.w = c1 * c2 * c3 - s1 * s2 * s3;
+
+        return this;
+
+    },
+    
     setFromAxis: function ( rad, ax, ay, az ) {
 
         var len = ax*ax+ay*ay+az*az; 

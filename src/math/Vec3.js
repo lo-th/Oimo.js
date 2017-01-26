@@ -276,7 +276,7 @@ Object.assign( Vec3.prototype, {
 
     toArray: function ( array, offset ) {
 
-        offset = offset || 0;
+        if ( offset === undefined ) offset = 0;
 
         array[ offset ] = this.x;
         array[ offset + 1 ] = this.y;
@@ -286,8 +286,11 @@ Object.assign( Vec3.prototype, {
 
     fromArray: function( array, offset ){
 
-        offset = offset || 0;
-        this.set( array[ offset ], array[ offset + 1 ], array[ offset + 2 ] );
+        if ( offset === undefined ) offset = 0;
+        
+        this.x = array[ offset ];
+        this.y = array[ offset + 1 ];
+        this.z = array[ offset + 2 ];
         return this;
 
     },
