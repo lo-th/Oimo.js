@@ -169,9 +169,9 @@ function Translational3Constraint (joint,limitMotor1,limitMotor2,limitMotor3){
     this.weight=-1;
 }
 
-Translational3Constraint.prototype = {
-    
-    constructor: Translational3Constraint,
+Object.assign( Translational3Constraint.prototype, {
+
+    Translational3Constraint: true,
 
     preSolve:function(timeStep,invTimeStep){
         this.ax1=this.limitMotor1.axis.x;
@@ -699,6 +699,7 @@ Translational3Constraint.prototype = {
         this.a2.y-=dImpulse1*this.a2y1+dImpulse2*this.a2y2+dImpulse3*this.a2y3;
         this.a2.z-=dImpulse1*this.a2z1+dImpulse2*this.a2z2+dImpulse3*this.a2z3;
     }
-}
+    
+} );
 
 export { Translational3Constraint };

@@ -35,9 +35,9 @@ function AngularConstraint( joint, targetOrientation ) {
 
 };
 
-AngularConstraint.prototype = {
+Object.assign( AngularConstraint.prototype, {
 
-    constructor: AngularConstraint,
+    AngularConstraint: true,
 
     preSolve: function ( timeStep, invTimeStep ) {
 
@@ -90,6 +90,6 @@ AngularConstraint.prototype = {
 
     }
 
-};
+} );
 
 export { AngularConstraint };

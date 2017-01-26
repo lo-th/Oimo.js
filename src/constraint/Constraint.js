@@ -5,7 +5,9 @@ import { Vec3 } from '../math/Vec3';
 * The base class of all type of the constraints.
 * @author saharan
 */
+
 function Constraint(){
+
     // The parent world of the constraint.
     this.parent = null;
     // The first body of the constraint.
@@ -15,11 +17,11 @@ function Constraint(){
     // Internal
     this.addedToIsland = false;
 
-};
+}
 
-Constraint.prototype = {
+Object.assign( Constraint.prototype, {
 
-    constructor: Constraint,
+    Constraint: true,
     /**
     * Prepare for solving the constraint.
     * @param   timeStep
@@ -42,7 +44,7 @@ Constraint.prototype = {
         Error("Constraint", "Inheritance error.");
     }
 
-}
+} );
 
 
 export { Constraint };

@@ -1,5 +1,6 @@
-import { AABB } from '../AABB';
+import { AABB } from '../../../math/AABB';
 import { DBVTNode } from './DBVTNode';
+
 /**
  * A dynamic bounding volume tree for the broad-phase algorithm.
  * @author saharan
@@ -17,9 +18,9 @@ function DBVT(){
 
 };
 
-DBVT.prototype = {
+Object.assign( DBVT.prototype, {
 
-    constructor: DBVT,
+    DBVT: true,
     /**
     * Move a leaf.
     * @param   leaf
@@ -370,6 +371,7 @@ DBVT.prototype = {
         }*/
 
     }
-}
+    
+} );
 
 export { DBVT };

@@ -11,54 +11,66 @@ import { _Math } from '../../math/Math';
 function Contact(){
 
     // The first shape.
-    this.shape1=null;
+    this.shape1 = null;
     // The second shape.
-    this.shape2=null;
+    this.shape2 = null;
     // The first rigid body.
-    this.body1=null;
+    this.body1 = null;
     // The second rigid body.
-    this.body2=null;
+    this.body2 = null;
     // Internal
-    this.persisting=false;
+    this.persisting = false;
     // Whether both the rigid bodies are sleeping or not.
-    this.sleeping=false;
+    this.sleeping = false;
     // The collision detector between two shapes.
-    this.detector=null;
+    this.detector = null;
     // The contact constraint of the contact.
-    this.constraint=null;
+    this.constraint = null;
     // Whether the shapes are touching or not.
-    this.touching=false;
+    this.touching = false;
 
-    this.b1Link=new ContactLink(this);
-    this.b2Link=new ContactLink(this);
-    this.s1Link=new ContactLink(this);
-    this.s2Link=new ContactLink(this);
+    this.b1Link = new ContactLink( this );
+    this.b2Link = new ContactLink( this );
+    this.s1Link = new ContactLink( this );
+    this.s2Link = new ContactLink( this );
+
     // The contact manifold of the contact.
-    this.manifold=new ContactManifold();
-    this.buffer=[];// vector 4
-    this.buffer.length = 4;
-    this.buffer[0]=new ImpulseDataBuffer();
-    this.buffer[1]=new ImpulseDataBuffer();
-    this.buffer[2]=new ImpulseDataBuffer();
-    this.buffer[3]=new ImpulseDataBuffer();
-    this.points=this.manifold.points;
-    this.constraint=new ContactConstraint(this.manifold);
+    this.manifold = new ContactManifold();
+
+    this.buffer = [
+
+        new ImpulseDataBuffer(),
+        new ImpulseDataBuffer(),
+        new ImpulseDataBuffer(),
+        new ImpulseDataBuffer()
+
+    ];
+
+    this.points = this.manifold.points;
+    this.constraint = new ContactConstraint( this.manifold );
+
 }
 
-Contact.prototype = {
+Object.assign( Contact.prototype, {
 
-    constructor: Contact,
+    Contact: true,
 
-    mixRestitution:function(restitution1,restitution2){
+    mixRestitution: function ( restitution1, restitution2 ) {
+
         return _Math.sqrt(restitution1*restitution2);
+
     },
-    mixFriction:function(friction1,friction2){
+    mixFriction: function ( friction1, friction2 ) {
+
         return _Math.sqrt(friction1*friction2);
+
     },
+
     /**
     * Update the contact manifold.
     */
-    updateManifold:function(){
+    updateManifold: function () {
+
         this.constraint.restitution=this.mixRestitution(this.shape1.restitution,this.shape2.restitution);
         this.constraint.friction=this.mixFriction(this.shape1.friction,this.shape2.friction);
         var numBuffers=this.manifold.numPoints;
@@ -131,6 +143,7 @@ Contact.prototype = {
             }
         }
     },
+
     /**
     * Attach the contact to the shapes.
     * @param   shape1
@@ -173,6 +186,7 @@ Contact.prototype = {
         this.manifold.numPoints = 0;
 
     },
+
     /**
     * Detach the contact from the shapes.
     */
@@ -205,6 +219,7 @@ Contact.prototype = {
         this.body2=null;
         
     }
-}
+
+} );
 
 export { Contact };

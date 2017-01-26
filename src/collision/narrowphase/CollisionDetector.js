@@ -6,9 +6,9 @@ function CollisionDetector (){
 
 };
 
-CollisionDetector.prototype = {
-    
-    constructor: CollisionDetector,
+Object.assign( CollisionDetector.prototype, {
+
+    CollisionDetector: true,
 
     detectCollision: function ( shape1, shape2, manifold ) {
         
@@ -16,6 +16,6 @@ CollisionDetector.prototype = {
 
     }
 
-};
+} );
 
 export { CollisionDetector };

@@ -96,6 +96,7 @@ function World ( o ) {
    
     // The gravity in the world.
     this.gravity = new Vec3(0,-9.8,0);
+    if( o.gravity !== undefined ) this.gravity.fromArray( o.gravity );
 
     
 
@@ -134,11 +135,11 @@ function World ( o ) {
     this.islandStack = [];
     this.islandConstraints = [];
 
-};
+}
 
-World.prototype = {
+Object.assign( World.prototype, {
 
-    constructor: World,
+    World: true,
 
     getInfo: function(){
 
@@ -797,15 +798,17 @@ World.prototype = {
             // I can sleep or not
             var noSleep  = o.noSleep || false;
             
-            // My start position
+            // object position
             var p = o.pos || [0,0,0];
             p = p.map(function(x) { return x * invScale; });
 
-            // My size 
-            var s = o.size || [1,1,1];
+            // object size 
+            var s = o.size === undefined ? [1,1,1] : o.size;
+            if(s.length == 1){ s[1] = s[0]; }
+            if(s.length == 2){ s[2] = s[0]; }
             s = s.map(function(x) { return x * invScale; });
 
-            // My rotation in degre
+            // object rotation in degre
             var rot = o.rot || [0,0,0];
             rot = rot.map(function(x) { return x * _Math.degtorad; });
             var r = [];
@@ -899,6 +902,6 @@ World.prototype = {
     }
 
 
-}
+} );
 
 export { World };

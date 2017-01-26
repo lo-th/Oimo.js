@@ -1,4 +1,4 @@
-import { AABB } from '../AABB';
+import { AABB } from '../../../math/AABB';
 
 /**
 * A node of the dynamic bounding volume tree.

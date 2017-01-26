@@ -57,9 +57,9 @@ function RotationalConstraint ( joint, limitMotor ){
     this.motorImpulse=0;
 }
 
-RotationalConstraint.prototype = {
+Object.assign( RotationalConstraint.prototype, {
 
-    constructor: RotationalConstraint,
+    RotationalConstraint: true,
 
     preSolve:function(timeStep,invTimeStep){
         this.ax=this.limitMotor.axis.x;
@@ -205,6 +205,7 @@ RotationalConstraint.prototype = {
         this.a2.z-=totalImpulse*this.a2z;
 
     }
-}
+
+} );
 
 export { RotationalConstraint };

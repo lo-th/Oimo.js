@@ -11,8 +11,6 @@ function Error( Class, Msg ){
 export { Error };
 
 
-
-
 function Performance ( world ){
 
     this.parent = world;
@@ -44,7 +42,9 @@ function Performance ( world ){
 
 };
 
-Performance.prototype = {
+Object.assign( Performance.prototype, {
+
+    Performance: true,
 
     setTime: function ( n ) {
 
@@ -149,66 +149,6 @@ Performance.prototype = {
 
     }
 
-};
+} );
 
 export { Performance };
-
-
-
-/*
-
-function Link ( o ){
-
-    o = o || {};
-    if(!o.world) return;
-    if(o.type === undefined) o.type = "jointHinge";
-    this.name = o.name || '';
-    this.joint = o.world.add(o);
-}
-
-Link.prototype = {
-
-    constructor: Link,
-    getPosition: function(){ return this.joint.getPosition(); },
-    //getMatrix: function(){ return this.joint.getMatrix(); },
-    remove: function(){ this.joint.dispose(); },
-    awake: function(){ this.joint.awake(); }
-
-}
-
-export { Link };
-
-
-//
-
-
-function Body ( o ) {
-    
-    o = o || {};
-    if(!o.world) return;
-    if(o.type === undefined) o.type = "box";
-    this.name = o.name || '';
-    this.body = o.world.add(o);
-
-}
-
-Body.prototype = {
-
-    constructor: Body,
-    setPosition:function(pos){ this.body.setPosition(pos); },
-    setQuaternion:function(q){ this.body.setQuaternion(q); },
-    setRotation:function(rot){ this.body.setRotation(rot); },
-    getPosition:function(){ return this.body.getPosition(); },
-    getRotation:function(){ return this.body.getRotation(); },
-    getQuaternion:function(){ return this.body.getQuaternion(); },
-    //getMatrix:function(){ return this.body.getMatrix(); },
-    getSleep:function(){ return this.body.sleeping; },
-    resetPosition:function(x,y,z){ this.body.resetPosition(x,y,z); },
-    resetRotation:function(x,y,z){ this.body.resetRotation(x,y,z); },
-    awake:function(){ this.body.awake(); },
-    remove:function(){ this.body.dispose(); },
-    checkContact:function(name){ this.body.checkContact(name); }
-
-}
-
-export { Body };*/

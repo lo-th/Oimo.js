@@ -7,11 +7,11 @@ function Quat ( x, y, z, w ){
     this.z=z || 0;
     this.w=( w !== undefined ) ? w : 1;
 
-};
+}
 
-Quat.prototype = {
+Object.assign( Quat.prototype, {
 
-    constructor: Quat,
+    Quat: true,
 
     set: function ( x, y, z, w ) {
 
@@ -248,23 +248,8 @@ Quat.prototype = {
         this.set( array[ offset ], array[ offset + 1 ], array[ offset + 2 ], array[ offset + 3 ] );
         return this;
 
-    },
-}
+    }
+
+} );
 
 export { Quat };
-
-/*
-// for three easy export
-_Math.Quaternion = function ( x, y, z, w ) {
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
-    this.w = ( w !== undefined ) ? w : 1;
-};
-
-_Math.Quaternion.prototype = {
-
-    constructor: _Math.Quaternion,
-
-    
-}*/

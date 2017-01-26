@@ -15,9 +15,10 @@ import { Pair } from './Pair';
 
 };
 
-BroadPhase.prototype = {
+Object.assign( BroadPhase.prototype, {
 
-    constructor: BroadPhase,
+    BroadPhase: true,
+
     /**
     * Create a new proxy.
     * @param   shape
@@ -101,6 +102,7 @@ BroadPhase.prototype = {
         this.numPairs++;
 
     }
-};
+    
+} );
 
 export { BroadPhase };

@@ -6,6 +6,7 @@ import { Mat33 } from '../../../math/Mat33';
 * @author saharan
 */
 function LinearConstraint ( joint ){
+
     this.m1=NaN;
     this.m2=NaN;
 
@@ -63,13 +64,15 @@ function LinearConstraint ( joint ){
     this.impx = 0;
     this.impy = 0;
     this.impz = 0;
+
 }
 
-LinearConstraint.prototype = {
+Object.assign( LinearConstraint.prototype, {
 
-    constructor: LinearConstraint,
+    LinearConstraint: true,
 
-    preSolve:function(timeStep,invTimeStep){
+    preSolve: function ( timeStep, invTimeStep ) {
+        
         this.r1x = this.r1.x;
         this.r1y = this.r1.y;
         this.r1z = this.r1.z;
@@ -215,6 +218,6 @@ LinearConstraint.prototype = {
 
     }
 
-}
+} );
 
 export { LinearConstraint };

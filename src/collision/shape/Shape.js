@@ -3,7 +3,7 @@ import { Error } from '../../core/Utils';
 import { _Math } from '../../math/Math';
 import { Vec3 } from '../../math/Vec3';
 import { Mat33 } from '../../math/Mat33';
-import { AABB } from '../broadphase/AABB';
+import { AABB } from '../../math/AABB';
 
 /**
  * A shape is used to detect collisions of rigid bodies.
@@ -61,9 +61,9 @@ function Shape (config){
 
 };
 
-Shape.prototype = {
+Object.assign( Shape.prototype, {
 
-    constructor: Shape,
+    Shape: true,
     
     // Calculate the mass information of the shape.
     
@@ -81,6 +81,6 @@ Shape.prototype = {
     
     }
 
-};
+} );
 
 export { Shape };

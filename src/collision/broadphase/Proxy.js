@@ -15,9 +15,9 @@ function Proxy( shape ) {
 
 };
 
-Proxy.prototype = {
+Object.assign( Proxy.prototype, {
 
-    constructor: Proxy,
+    Proxy: true,
     
 	// Update the proxy.
 	
@@ -27,6 +27,6 @@ Proxy.prototype = {
 
     }
 
-};
+} );
 
 export { ProxyIdCount, Proxy };

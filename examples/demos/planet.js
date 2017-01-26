@@ -4,16 +4,19 @@ function demo() {
 
     cam ( 0, 10, 40 );
 
+    view.hideGrid();
+
     world = new OIMO.World({ 
         timestep: 1/60, 
         iterations: 8, 
         broadphase: 2, // 1: brute force, 2: sweep & prune, 3: volume tree
         worldscale: 1, 
         random: true, 
-        info:true // display statistique
+        info:true, // display statistique
+        gravity: [0,0,0],
     });
 
-    var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
+    add({ type:'sphere', size:[10, 10, 10], pos:[0,0,0], density:1 });
 
     // basic geometry body
 
@@ -21,18 +24,19 @@ function demo() {
     
     while( i-- ) {
 
-        w = Math.rand(0.1,1);
-        h = Math.rand(0.1,4);
-        d = Math.rand(0.1,1);
+        w = Math.rand(0.3,1);
+        h = Math.rand(0.3,4);
+        d = Math.rand(0.3,1);
+
 
         o = {
 
             move:true, 
             density:1,
             pos : [ 
-                Math.rand(-5,5),
-                Math.rand(2,20) + ( i*h ),
-                Math.rand(-5,5),
+                Math.rand(10,100) * ( Math.randInt(0,1) ? -1:1 ),
+                Math.rand(10,100) * ( Math.randInt(0,1) ? -1:1 ),
+                Math.rand(10,100) * ( Math.randInt(0,1) ? -1:1 ),
             ],
             rot : [
                 Math.randInt(0,360),
@@ -41,20 +45,6 @@ function demo() {
             ]
 
         };
-
-        rot = [
-            Math.randInt(0,360),
-            Math.randInt(0,360),
-            Math.randInt(0,360),
-        ];
-
-        /*pos = [
-            Math.rand(-5,5),
-            Math.rand(2,20) + ( i*h ),
-            Math.rand(-5,5)
-        ];
-
-        o = { pos:pos, rot:rot, move:true, density:d };*/
 
         switch( Math.randInt(0,2) ){
 
@@ -81,9 +71,12 @@ function update () {
 
     world.step();
 
+    var force;
+    var center = new THREE.Vector3();
+
     bodys.forEach( function ( b, id ) {
 
-        if(b.type===1){
+        if( b.type === 1 ){
 
             if( b.sleeping ) meshs[id].material = mat.sleep;
             else meshs[id].material = mat.move;
@@ -91,12 +84,10 @@ function update () {
             meshs[id].position.copy( b.getPosition() );
             meshs[id].quaternion.copy( b.getQuaternion() );
 
-            if(meshs[id].position.y<-10){
-                x = Math.rand(-5,5);
-                z = Math.rand(-5,5);
-                y = Math.rand(10,20);
-                b.resetPosition(x,y,z);
-            }
+            force = meshs[id].position.clone().negate().normalize().multiplyScalar(0.1);
+
+            b.applyImpulse( center, force );
+
         }
 
 

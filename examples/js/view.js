@@ -116,8 +116,8 @@ view = {
 
         renderer.render( scene, camera );
 
-        time = performance.now();//now();
-        if ( (time - 1000) > temp ){ temp = time; fps = count; count = 0; }; count++;
+        //time = performance.now();//now();
+        //if ( (time - 1000) > temp ){ temp = time; fps = count; count = 0; }; count++;
 
     },
 
@@ -129,8 +129,6 @@ view = {
 
     reset: function () {
 
-        isNeedUpdate = false;
-
         postUpdate = function () {};
         update = function () {};
 
@@ -139,7 +137,7 @@ view = {
         this.setShadowPosY(-0.01);
         helper.visible = true;
 
-        var c, i;
+        //var c, i;
 
         /*while( bodys.length > 0 ) scene.remove( bodys.pop() );
         while( solids.length > 0 ) scene.remove( solids.pop() );

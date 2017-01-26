@@ -80,9 +80,9 @@ function TranslationalConstraint ( joint, limitMotor ){
     this.motorImpulse=0;
 }
 
-TranslationalConstraint.prototype = {
+Object.assign( TranslationalConstraint.prototype, {
 
-    constructor: TranslationalConstraint,
+    TranslationalConstraint: true,
 
     preSolve:function(timeStep,invTimeStep){
         this.ax=this.limitMotor.axis.x;
@@ -279,6 +279,6 @@ TranslationalConstraint.prototype = {
         this.a2.y-=totalImpulse*this.a2y;
         this.a2.z-=totalImpulse*this.a2z;
     }
-}
+} );
 
 export { TranslationalConstraint };

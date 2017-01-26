@@ -11,13 +11,13 @@ function SAPAxis (){
     this.bufferSize = 256;
     this.elements = [];
     this.elements.length = this.bufferSize;
-    this.stack = new Float32Array(64);
+    this.stack = new Float32Array( 64 );
 
-};
+}
 
-SAPAxis.prototype = {
+Object.assign( SAPAxis.prototype, {
 
-    constructor: SAPAxis,
+    SAPAxis: true,
 
     addElements: function ( min, max ) {
 
@@ -37,6 +37,7 @@ SAPAxis.prototype = {
     },
 
     removeElements: function ( min, max ) {
+
         var minIndex=-1;
         var maxIndex=-1;
         for(var i=0, l=this.numElements; i<l; i++){
@@ -59,6 +60,7 @@ SAPAxis.prototype = {
 
         this.elements[--this.numElements] = null;
         this.elements[--this.numElements] = null;
+
     },
 
     sort: function () {
@@ -165,6 +167,7 @@ SAPAxis.prototype = {
         return sum;
 
     }
-}
+
+} );
 
 export { SAPAxis };

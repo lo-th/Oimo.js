@@ -12,11 +12,11 @@ function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
         e20 || 0, e21 || 0, ( e22 !== undefined ) ? e22 : 1
     );
 
-};
+}
 
-Mat33.prototype = {
+Object.assign( Mat33.prototype, {
 
-    constructor: Mat33,
+    Mat33: true,
 
     set: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
@@ -417,6 +417,6 @@ Mat33.prototype = {
     }
 
 
-};
+} );
 
 export { Mat33 };

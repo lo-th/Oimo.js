@@ -12,6 +12,7 @@ var editor = ( function () {
 
 var content, codeContent, code, separator, menuCode, debug, title; 
 var callback = function(){};
+var callbackReset = function(){};
 var isSelfDrag = false;
 var isFocus = false;
 var errorLines = [];
@@ -43,9 +44,10 @@ var icon_Github = [
 
 editor = {
 
-    init: function ( Callback, withCode ) {
+    init: function ( Callback, CallbackReset, withCode ) {
 
         if(Callback) callback = Callback;
+        if(CallbackReset) callbackReset = CallbackReset;
 
         isWithCode = withCode || false;
 
@@ -465,13 +467,21 @@ editor = {
 
     onChange: function () {
 
+        var full = true;
+        var hash = location.hash.substr( 1 );
+        if( hash === fileName ) full = false;
+
+        callbackReset( full );
+
         clearTimeout( interval );
         var value = code.getValue();
-        if( this.validate( value ) ) interval = setTimeout( function() { editor.inject( value ); }, 500);
+        if( this.validate( value ) ) interval = setTimeout( function() { editor.inject( value ); }, 0 );
 
     },
 
     inject: function ( value ) {
+
+        location.hash = fileName;
 
         var oScript = document.createElement("script");
         oScript.language = "javascript";

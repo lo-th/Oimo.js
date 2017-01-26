@@ -123,11 +123,12 @@ function Rotational3Constraint ( joint, limitMotor1, limitMotor2, limitMotor3 ) 
     this.motorImpulse2=0;
     this.limitImpulse3=0;
     this.motorImpulse3=0;
+
 }
 
-Rotational3Constraint.prototype = {
+Object.assign( Rotational3Constraint.prototype, {
 
-    constructor: Rotational3Constraint,
+    Rotational3Constraint: true,
 
     preSolve: function( timeStep, invTimeStep ){
 
@@ -588,6 +589,7 @@ Rotational3Constraint.prototype = {
 
         rvn2=rvx*this.ax2+rvy*this.ay2+rvz*this.az2;
     }
-}
+    
+} );
 
 export { Rotational3Constraint };

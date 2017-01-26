@@ -119,11 +119,12 @@ function RigidBody ( x, y, z, rad, ax, ay, az, scale, invScale ) {
     // I shows rigid body to determine whether it is a sleep state.
     this.sleeping = false;
 
-};
+}
 
-RigidBody.prototype = {
+Object.assign( RigidBody.prototype, {
 
-    constructor: RigidBody,
+    RigidBody: true,
+
     /**
     * I'll add a shape to rigid body.  
     * If you add a shape, please call the setupMass method to step up to the start of the next.
@@ -467,9 +468,9 @@ RigidBody.prototype = {
 
         this.linearVelocity.addScale(force, this.inverseMass);
         var rel = new Vec3();
-        rel.sub( position, this.position ).cross(rel,force).mulMat(this.inverseInertia,rel);
-        this.angularVelocity.addEqual(rel);
-
+        rel.sub( position, this.position ).cross( rel, force ).mulMat( this.inverseInertia, rel );
+        this.angularVelocity.addEqual( rel );
+        
     },
 
     //---------------------------------------------
@@ -571,6 +572,6 @@ RigidBody.prototype = {
 
     },
 
-};
+} );
 
 export { RigidBody };

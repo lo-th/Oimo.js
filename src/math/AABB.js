@@ -1,4 +1,4 @@
-import { _Math } from '../../math/Math';
+import { _Math } from './Math';
 
 
 /**
@@ -17,9 +17,9 @@ function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
 };
 
-AABB.prototype = {
+Object.assign( AABB.prototype, {
 
-    constructor: AABB,
+    AABB: true,
 
     set: function ( minX, maxX, minY, maxY, minZ, maxZ ) {
 
@@ -147,6 +147,7 @@ AABB.prototype = {
         te[4] += s;
         te[5] += s;
     }
-};
+    
+} );
 
 export { AABB };

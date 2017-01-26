@@ -16,7 +16,7 @@ var meshs = [];
 var mat, geo;
 
 var demos = [ 
-    'basic', 'empty'
+    'basic', 'planet', 'empty'
 ];
 
 demos.sort();
@@ -40,21 +40,13 @@ function init(){
     mat = view.getMat();
     geo = view.getGeo();
     scene = view.getScene();
-    //user.init();
-    //editor.init( launch, isWithCode );
-    //ammo.init( ready, direct, isBuffer );
-    
-   //loop();
 
 };
 
 function next(){
 
-    editor.init( launch, isWithCode );
-    ready ()
-    //ammo.init( ready, direct, isBuffer );
-    
-   //loop();
+    editor.init( launch, reset, isWithCode );
+    ready ();
 
 };
 
@@ -70,9 +62,11 @@ function next(){
 
 function reset () {
 
-    if( world ) world.clear();
     while( meshs.length > 0 ) scene.remove( meshs.pop() );
-    //view.reset();
+
+    view.reset();
+
+    if( world ) world.clear();
 
     bodys = [];
     meshs = [];
@@ -89,22 +83,7 @@ function ready () {
 
 function launch ( name ) {
 
-    var full = true;
-    var hash = location.hash.substr( 1 );
-    if( hash === name ) full = false;
-
-    location.hash = name;
-
-    reset();
-
-    //ammo.reset( full );
-    
-
     demo = new window['demo'];
-
-    // start Physics engine
-    //setTimeout( ammo.start, 10 );
-    //ammo.start();
 
 };
 
