@@ -33,7 +33,15 @@ or use node and install [package](https://www.npmjs.com/package/oimo) : npm inst
 Create physics world
 
 ```javascript
-world = new OIMO.World({ timestep:1/60, iterations:8, broadphase:2, worldscale:1, random:true, info:false });
+world = new OIMO.World({ 
+    timestep: 1/60, 
+    iterations: 8, 
+    broadphase: 2, // 1 brute force, 2 sweep and prune, 3 volume tree
+    worldscale: 1, // scale full world 
+    random: true,  // randomize sample
+    info: false,   // calculate statistic or not
+    gravity: [0,-9.8,0] 
+});
 ```
 
 Add physics object or joint
@@ -70,4 +78,4 @@ myMesh.quaternion.copy( body.getQuaternion() );
 ### Note ###
 
 Oimo Physics uses international system units 0.1 to 10 meters max for dynamic body.<br>
-In basic demo with three.js, i scale all by 100 so object is between 10 to 10000 three unit.<br>
+In basic demo with three.js, i scale all by 100 so object is between 10 to 1000 three unit.<br>
