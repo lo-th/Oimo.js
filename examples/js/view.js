@@ -93,7 +93,7 @@ var spy = -0.01;
 var perlin = null;
 
 var environment, envcontext, nEnv = 1, isWirframe = true;
-var envLists = [ 'wireframe','ceramic','plastic','smooth','metal','chrome','brush','black','glow','red','sky' ];
+var envLists = [ 'wireframe','chrome','ceramic','plastic','smooth','metal','brush','black','glow','red','sky' ];
 var envMap;
 
 

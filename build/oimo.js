@@ -11255,18 +11255,19 @@
 
 	    getByName: function( name ){
 
-	        var result = null;
-	        var body=this.rigidBodies;
-	        while(body!==null){
-	            if(body.name!== " " && body.name === name) result = body;
+	        var body = this.rigidBodies;
+	        while( body !== null ){
+	            if( body.name === name ) return body;
 	            body=body.next;
 	        }
-	        var joint=this.joints;
-	        while(joint!==null){
-	            if(joint.name!== "" && joint.name === name) result = joint;
-	            joint=joint.next;
+
+	        var joint = this.joints;
+	        while( joint !== null ){
+	            if( joint.name === name ) return joint;
+	            joint = joint.next;
 	        }
-	        return result;
+
+	        return null;
 
 	    },
 
@@ -11710,7 +11711,7 @@
 	        // is joint
 	        if( type[0].substring(0,5) === 'joint' ){ 
 
-	            if(type[0] === 'joint')type[0] = 'jointHinge';
+	            if( type[0] === 'joint' ) type[0] = 'jointHinge';
 
 	            var axe1 = o.axe1 || [1,0,0];
 	            var axe2 = o.axe2 || [1,0,0];
@@ -11746,10 +11747,24 @@
 	            jc.localAxis2.init(axe2[0], axe2[1], axe2[2]);
 	            jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
 	            jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
-	            if (typeof o.body1 == 'string' || o.body1 instanceof String) o.body1 = this.getByName(o.body1);
-	            if (typeof o.body2 == 'string' || o.body2 instanceof String) o.body2 = this.getByName(o.body2);
-	            jc.body1 = o.body1;
-	            jc.body2 = o.body2;
+
+	            var b1 = null;
+	            var b2 = null;
+
+	            if( o.body1 === undefined || o.body2 === undefined ) return Error('World', "Can't add joint if attach rigidbodys not define !" );
+
+	            if ( o.body1.constructor === String ) { b1 = this.getByName( o.body1 ); }
+	            else if ( o.body1.constructor === Number ) { b1 = this.getByName( o.body1 ); }
+	            else if ( o.body1.constructor === RigidBody ) { b1 = o.body1; }
+
+	            if ( o.body2.constructor === String ) { b2 = this.getByName( o.body2 ); }
+	            else if ( o.body2.constructor === Number ) { b2 = this.getByName( o.body2 ); }
+	            else if ( o.body2.constructor === RigidBody ) { b2 = o.body2; }
+
+	            if( b1 === null || b2 === null ) return Error('World', "Can't add joint attach rigidbodys not find !" );
+
+	            jc.body1 = b1;
+	            jc.body2 = b2;
 
 	            var joint;
 	            switch(type[0]){
@@ -11882,8 +11897,9 @@
 	                body.setupMass(0x2);
 	            }
 	            
-	            body.name = o.name || ' ';
-	            
+	            if( o.name !== undefined ) body.name = o.name;
+	            else if( move ) body.name = this.numRigidBodies - 1;
+
 	            // finaly add to physics world
 	            this.addRigidBody( body );
 

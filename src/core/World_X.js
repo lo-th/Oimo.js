@@ -233,19 +233,21 @@ Object.assign( World.prototype, {
 
     getByName: function( name ){
 
-        var result = null;
         var i, body, joint;
+
         i = this.rigidBodies.length;
         while(i--){
             body = this.rigidBodies[i];
-            if(body.name!== " " && body.name === name) result = body;
+            if( body.name === name ) return body;
         }
+
         i = this.joints.length;
         while(i--){
             joint = this.joints[i];
-            if(joint.name!== "" && joint.name === name) result = joint;
+            if( joint.name === name ) return joint;
         }
-        return result;
+
+        return null;
 
     },
 
@@ -757,10 +759,24 @@ Object.assign( World.prototype, {
             jc.localAxis2.init(axe2[0], axe2[1], axe2[2]);
             jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
             jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
-            if (typeof o.body1 == 'string' || o.body1 instanceof String) o.body1 = this.getByName(o.body1);
-            if (typeof o.body2 == 'string' || o.body2 instanceof String) o.body2 = this.getByName(o.body2);
-            jc.body1 = o.body1;
-            jc.body2 = o.body2;
+            
+            var b1 = null;
+            var b2 = null;
+
+            if( o.body1 === undefined || o.body2 === undefined ) return Error('World', "Can't add joint if attach rigidbodys not define !" );
+
+            if ( o.body1.constructor === String ) { b1 = this.getByName( o.body1 ); }
+            else if ( o.body1.constructor === Number ) { b1 = this.getByName( o.body1 ); }
+            else if ( o.body1.constructor === RigidBody ) { b1 = o.body1; }
+
+            if ( o.body2.constructor === String ) { b2 = this.getByName( o.body2 ); }
+            else if ( o.body2.constructor === Number ) { b2 = this.getByName( o.body2 ); }
+            else if ( o.body2.constructor === RigidBody ) { b2 = o.body2; }
+
+            if( b1 === null || b2 === null ) return Error('World', "Can't add joint attach rigidbodys not find !" );
+
+            jc.body1 = b1;
+            jc.body2 = b2;
 
             var joint;
             switch(type[0]){
@@ -892,7 +908,8 @@ Object.assign( World.prototype, {
                 body.setupMass(0x2);
             }
             
-            body.name = o.name || ' ';
+            if( o.name !== undefined ) body.name = o.name;
+            else if( o.move ) body.name = this.rigidBodies.length;
             
             // finaly add to physics world
             this.addRigidBody( body );

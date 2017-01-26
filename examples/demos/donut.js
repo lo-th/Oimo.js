@@ -1,6 +1,6 @@
 function demo() {
 
-    cam ( 0, 10, 40 );
+    cam ( 90, 20, 100 );
 
     world = new OIMO.World({ 
         timestep: 1/60, 
@@ -11,51 +11,36 @@ function demo() {
         info:true // display statistique
     });
 
-    var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
+    var ground = world.add({size:[1000, 10, 1000], pos:[0,-5,0], density:1 });
 
     // basic geometry body
 
-    var i = 200, d, h, w, o;
+    var i, x, y, z, s, b;
+
+    var mx = 250;
+
+    for( i = 0; i < mx; i++){
+
+        x = Math.sin(i*0.025) * 40;
+        y = 60 + Math.sin(i*0.5) * 15;
+        z = Math.cos(i*0.025) * 40;
+
+        add({ type:'sphere', size:[1], pos:[x, y, z], move:true });
+
+       
+
+        if( i > 0 ) world.add({ type:'jointHinge', body1:(i-1), body2:i, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
+        if( i === mx-1 ) world.add({ type:'jointHinge', body1:0, body2:mx-1, pos1:[0,-2,0], pos2:[0,2,0], collision:true });
+
+    }
+
     
-    while( i-- ) {
-
-        w = Math.rand(0.1,1);
-        h = Math.rand(0.1,4);
-        d = Math.rand(0.1,1);
-
-        o = {
-
-            move:true, 
-            density:1,
-            pos : [ 
-                Math.rand(-5,5),
-                Math.rand(2,20) + ( i*h ),
-                Math.rand(-5,5),
-            ],
-            rot : [
-                Math.randInt(0,360),
-                Math.randInt(0,360),
-                Math.randInt(0,360),
-            ]
-
-        };
-
-        rot = [
-            Math.randInt(0,360),
-            Math.randInt(0,360),
-            Math.randInt(0,360),
-        ];
-
-        switch( Math.randInt(0,2) ){
-
-            case 0 : o.type = 'sphere'; o.size = [w]; break;
-            case 1 : o.type = 'box';  o.size = [w,w,d]; break;
-            case 2 : o.type = 'cylinder'; o.size = [d,h,d]; break;
-
-        }
-
-        add( o );
-
+    
+    for( i = 0; i<40; i++ ){
+        x = Math.rand(-50, 50);
+        z = Math.rand(-50, 50);
+        s = Math.rand(5, 15);
+        add({ type:'box', geometry:geo.dice, size:[s,s,s], pos:[x,s*0.5,z], move:true });
     }
 
 };
