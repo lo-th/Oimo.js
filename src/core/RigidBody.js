@@ -192,7 +192,7 @@ Object.assign( RigidBody.prototype, {
 
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
 
-        this.type = type || BODY_DYNAMIC;
+        this.type = type || BODY_STATIC;
         this.isDynamic = this.type === BODY_DYNAMIC;
         this.isStatic = this.type === BODY_STATIC;
 

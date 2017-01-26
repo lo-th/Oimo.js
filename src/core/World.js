@@ -1,4 +1,4 @@
-import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER } from '../constants';
+import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
 import { Performance, Error } from './Utils';
 
 
@@ -780,29 +780,25 @@ Object.assign( World.prototype, {
             var r = o.rot || [0,0,0];
             r = r.map( function(x) { return x * _Math.degtorad; } );
 
-            // object physics setting
+            // object physics settings
             var sc = new ShapeConfig();
-            sc.density = o.density || 1;
-            sc.friction = o.friction || 0.4;
-            sc.restitution = o.restitution || 0.0;
-            sc.belongsTo = o.belongsTo || 1;
-            sc.collidesWith = o.collidesWith || 0xffffffff
+            // The density of the shape.
+            if( o.density !== undefined ) sc.density = o.density;
+            // The coefficient of friction of the shape.
+            if( o.friction !== undefined ) sc.friction = o.friction;
+            // The coefficient of restitution of the shape.
+            if( o.restitution !== undefined ) sc.restitution = o.restitution;
+            // The bits of the collision groups to which the shape belongs.
+            if( o.belongsTo !== undefined ) sc.belongsTo = o.belongsTo;
+            // The bits of the collision groups with which the shape collides.
+            if( o.collidesWith !== undefined ) sc.collidesWith = o.collidesWith;
 
-            //if( o.sc  !== undefined ) sc = o.sc;
-
-            if(o.config){
-                // The density of the shape.
-                sc.density = o.config[0] === undefined ? 1 : o.config[0];
-                // The coefficient of friction of the shape.
-                sc.friction = o.config[1] === undefined ? 0.4 : o.config[1];
-                // The coefficient of restitution of the shape.
-                sc.restitution = o.config[2] === undefined ? 0.2 : o.config[2];
-                // The bits of the collision groups to which the shape belongs.
-                sc.belongsTo = o.config[3] || 1;
-                //sc.belongsTo = o.config[3] === undefined ? 1 : o.config[3];
-                // The bits of the collision groups with which the shape collides.
-                sc.collidesWith = o.config[4] || 0xffffffff;
-                //sc.collidesWith = o.config[4] === undefined ? 0xffffffff : o.config[4];
+            if(o.config !== undefined ){
+                if( o.config[0] !== undefined ) sc.density = o.config[0];
+                if( o.config[1] !== undefined ) sc.friction = o.config[1];
+                if( o.config[2] !== undefined ) sc.restitution = o.config[2];
+                if( o.config[3] !== undefined ) sc.belongsTo = o.config[3];
+                if( o.config[4] !== undefined ) sc.collidesWith = o.config[4];
             }
 
 
@@ -849,12 +845,12 @@ Object.assign( World.prototype, {
             
             // I'm static or i move
             if( move ){
-                if(o.massPos || o.massRot) body.setupMass( 0x1, false );
-                else body.setupMass( 0x1, true );
+                if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
+                else body.setupMass( BODY_DYNAMIC, true );
                 if(noSleep) body.allowSleep = false;
                 else body.allowSleep = true;
             } else {
-                body.setupMass(0x2);
+                body.setupMass( BODY_STATIC );
             }
             
             if( o.name !== undefined ) body.name = o.name;

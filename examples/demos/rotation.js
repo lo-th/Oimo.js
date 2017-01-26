@@ -11,13 +11,13 @@ function demo() {
         info:true // display statistique
     });
 
-    add({size:[50, 10, 20], pos:[0,-5,12], rot:[0,0,-1], density:1 });
-    add({size:[50, 10, 20], pos:[0,-5,-12], rot:[0,0,1], density:1 });
+    add({size:[50, 10, 20], pos:[0,-5,12], rot:[0,0,-1], density:1, restitution:0.5  });
+    add({size:[50, 10, 20], pos:[0,-5,-12], rot:[0,0,1], density:1, restitution:0.5  });
 
     // basic geometry body
 
-    add({ type:'sphere', size:[1], pos:[0,20,12], move:true });
-    add({ type:'sphere', size:[1], pos:[0,20,-12], move:true });
+    add({ type:'sphere', size:[1], pos:[0,20,12], move:true, restitution:0.5 });
+    add({ type:'sphere', size:[1], pos:[0,20,-12], move:true, restitution:0.5 });
 
 };
 

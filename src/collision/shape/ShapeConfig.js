@@ -14,7 +14,7 @@ function ShapeConfig (){
     // The rotation matrix of the shape in parent's coordinate system.
     this.relativeRotation = new Mat33();
     // The coefficient of friction of the shape.
-    this.friction = 0.4;
+    this.friction = 0.2; // 0.4
     // The coefficient of restitution of the shape.
     this.restitution = 0.2;
     // The density of the shape.

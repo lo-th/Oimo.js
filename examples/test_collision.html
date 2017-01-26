@@ -228,12 +228,12 @@
 
             if(t===1){
                 config[3] = group2;
-                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config});
+                bodys[i] = world.add({type:'sphere', size:[w*0.5], pos:[x,y,z], move:true, config:config });
                 meshs[i] = new THREE.Mesh( buffgeoSphere, matSphere );
                 meshs[i].scale.set( w*0.5, w*0.5, w*0.5 );
             } else if(t===2){
                 config[3] = group3;
-                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config});
+                bodys[i] = world.add({type:'box', size:[w,h,d], pos:[x,y,z], move:true, config:config });
                 meshs[i] = new THREE.Mesh( buffgeoBox, matBox );
                 meshs[i].scale.set( w, h, d );
             }
