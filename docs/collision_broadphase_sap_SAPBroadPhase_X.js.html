@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: collision/broadphase/sap/SAPBroadPhase_X.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: collision/broadphase/sap/SAPBroadPhase_X.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { BR_SWEEP_AND_PRUNE } from '../../../constants';
+import { BroadPhase } from '../BroadPhase_X';
+import { SAPAxis } from './SAPAxis';
+import { SAPProxy } from './SAPProxy';
+
+/**
+ * A broad-phase collision detection algorithm using sweep and prune.
+ * @author saharan
+ * @author lo-th
+ */
+
+function SAPBroadPhase () {
+
+    BroadPhase.call( this);
+    this.types = BR_SWEEP_AND_PRUNE;
+
+    this.numElementsD = 0;
+    this.numElementsS = 0;
+    // dynamic proxies
+    this.axesD = [
+       new SAPAxis(),
+       new SAPAxis(),
+       new SAPAxis()
+    ];
+    // static or sleeping proxies
+    this.axesS = [
+       new SAPAxis(),
+       new SAPAxis(),
+       new SAPAxis()
+    ];
+
+    this.index1 = 0;
+    this.index2 = 1;
+
+};
+
+SAPBroadPhase.prototype = Object.create( BroadPhase.prototype );
+SAPBroadPhase.prototype.constructor = SAPBroadPhase;
+
+SAPBroadPhase.prototype.createProxy = function ( shape ) {
+
+    return new SAPProxy( this, shape );
+
+};
+
+SAPBroadPhase.prototype.addProxy = function ( proxy ) {
+
+    var p = proxy;
+    if(p.isDynamic()){
+        this.axesD[0].addElements( p.min[0], p.max[0] );
+        this.axesD[1].addElements( p.min[1], p.max[1] );
+        this.axesD[2].addElements( p.min[2], p.max[2] );
+        p.belongsTo = 1;
+        this.numElementsD += 2;
+    } else {
+        this.axesS[0].addElements( p.min[0], p.max[0] );
+        this.axesS[1].addElements( p.min[1], p.max[1] );
+        this.axesS[2].addElements( p.min[2], p.max[2] );
+        p.belongsTo = 2;
+        this.numElementsS += 2;
+    }
+
+};
+
+SAPBroadPhase.prototype.removeProxy = function ( proxy ) {
+
+    var p = proxy;
+    if ( p.belongsTo == 0 ) return;
+
+    /*else if ( p.belongsTo == 1 ) {
+        this.axesD[0].removeElements( p.min[0], p.max[0] );
+        this.axesD[1].removeElements( p.min[1], p.max[1] );
+        this.axesD[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsD -= 2;
+    } else if ( p.belongsTo == 2 ) {
+        this.axesS[0].removeElements( p.min[0], p.max[0] );
+        this.axesS[1].removeElements( p.min[1], p.max[1] );
+        this.axesS[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsS -= 2;
+    }*/
+
+    switch( p.belongsTo ){
+        case 1:
+        this.axesD[0].removeElements( p.min[0], p.max[0] );
+        this.axesD[1].removeElements( p.min[1], p.max[1] );
+        this.axesD[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsD -= 2;
+        break;
+        case 2:
+        this.axesS[0].removeElements( p.min[0], p.max[0] );
+        this.axesS[1].removeElements( p.min[1], p.max[1] );
+        this.axesS[2].removeElements( p.min[2], p.max[2] );
+        this.numElementsS -= 2;
+        break;
+    }
+
+    p.belongsTo = 0;
+
+};
+
+SAPBroadPhase.prototype.collectPairs = function () {
+
+    if( this.numElementsD == 0 ) return;
+
+    var axis1 = this.axesD[this.index1];
+    var axis2 = this.axesD[this.index2];
+
+    axis1.sort();
+    axis2.sort();
+
+    var count1 = axis1.calculateTestCount();
+    var count2 = axis2.calculateTestCount();
+    var elementsD;
+    var elementsS;
+    if( count1 &lt;= count2 ){// select the best axis
+        axis2 = this.axesS[this.index1];
+        axis2.sort();
+        elementsD = axis1.elements;
+        elementsS = axis2.elements;
+    }else{
+        axis1 = this.axesS[this.index2];
+        axis1.sort();
+        elementsD = axis2.elements;
+        elementsS = axis1.elements;
+        this.index1 ^= this.index2;
+        this.index2 ^= this.index1;
+        this.index1 ^= this.index2;
+    }
+    var activeD;
+    var activeS;
+    var p = 0;
+    var q = 0;
+    while( p &lt; this.numElementsD ){
+        var e1;
+        var dyn;
+        if (q == this.numElementsS ){
+            e1 = elementsD[p];
+            dyn = true;
+            p++;
+        }else{
+            var d = elementsD[p];
+            var s = elementsS[q];
+            if( d.value &lt; s.value ){
+                e1 = d;
+                dyn = true;
+                p++;
+            }else{
+                e1 = s;
+                dyn = false;
+                q++;
+            }
+        }
+        if( !e1.max ){
+            var s1 = e1.proxy.shape;
+            var min1 = e1.min1.value;
+            var max1 = e1.max1.value;
+            var min2 = e1.min2.value;
+            var max2 = e1.max2.value;
+
+            for( var e2 = activeD; e2 != null; e2 = e2.pair ) {// test for dynamic
+                var s2 = e2.proxy.shape;
+
+                this.numPairChecks++;
+                if( min1 > e2.max1.value || max1 &lt; e2.min1.value || min2 > e2.max2.value || max2 &lt; e2.min2.value || !this.isAvailablePair( s1, s2 ) ) continue;
+                this.addPair( s1, s2 );
+            }
+            if( dyn ){
+                for( e2 = activeS; e2 != null; e2 = e2.pair ) {// test for static
+                    s2 = e2.proxy.shape;
+
+                    this.numPairChecks++;
+
+                    if( min1 > e2.max1.value || max1 &lt; e2.min1.value|| min2 > e2.max2.value || max2 &lt; e2.min2.value || !this.isAvailablePair(s1,s2) ) continue;
+                    this.addPair( s1, s2 );
+                }
+                e1.pair = activeD;
+                activeD = e1;
+            }else{
+                e1.pair = activeS;
+                activeS = e1;
+            }
+        }else{
+            var min = e1.pair;
+            if( dyn ){
+                if( min == activeD ){
+                    activeD = activeD.pair;
+                    continue;
+                }else{
+                    e1 = activeD;
+                }
+            }else{
+                if( min == activeS ){
+                    activeS = activeS.pair;
+                    continue;
+                }else{
+                    e1 = activeS;
+                }
+            }
+            do{
+                e2 = e1.pair;
+                if( e2 == min ){
+                    e1.pair = e2.pair;
+                    break;
+                }
+                e1 = e2;
+            }while( e1 != null );
+        }
+    }
+    this.index2 = (this.index1|this.index2)^3;
+    
+};
+
+export { SAPBroadPhase };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AABB">AABB</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addJoint">addJoint</a></li><li><a href="global.html#addProxy">addProxy</a></li><li><a href="global.html#addRigidBody">addRigidBody</a></li><li><a href="global.html#addShape">addShape</a></li><li><a href="global.html#AngularConstraint">AngularConstraint</a></li><li><a href="global.html#attach">attach</a></li><li><a href="global.html#awake">awake</a></li><li><a href="global.html#BallAndSocketJoint">BallAndSocketJoint</a></li><li><a href="global.html#BasicProxy">BasicProxy</a></li><li><a href="global.html#BoxBoxCollisionDetector">BoxBoxCollisionDetector</a></li><li><a href="global.html#BoxShape">BoxShape</a></li><li><a href="global.html#BroadPhase">BroadPhase</a></li><li><a href="global.html#BruteForceBroadPhase">BruteForceBroadPhase</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#Constraint">Constraint</a></li><li><a href="global.html#Contact">Contact</a></li><li><a href="global.html#ContactConstraint">ContactConstraint</a></li><li><a href="global.html#ContactLink">ContactLink</a></li><li><a href="global.html#ContactManifold">ContactManifold</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#createProxy">createProxy</a></li><li><a href="global.html#CylinderShape">CylinderShape</a></li><li><a href="global.html#DBVT">DBVT</a></li><li><a href="global.html#DBVTBroadPhase">DBVTBroadPhase</a></li><li><a href="global.html#DBVTNode">DBVTNode</a></li><li><a href="global.html#DBVTProxy">DBVTProxy</a></li><li><a href="global.html#deleteLeaf">deleteLeaf</a></li><li><a href="global.html#detach">detach</a></li><li><a href="global.html#DistanceJoint">DistanceJoint</a></li><li><a href="global.html#HingeJoint">HingeJoint</a></li><li><a href="global.html#insertLeaf">insertLeaf</a></li><li><a href="global.html#isAvailablePair">isAvailablePair</a></li><li><a href="global.html#isLonely">isLonely</a></li><li><a href="global.html#Joint">Joint</a></li><li><a href="global.html#LimitMotor">LimitMotor</a></li><li><a href="global.html#LinearConstraint">LinearConstraint</a></li><li><a href="global.html#ManifoldPoint">ManifoldPoint</a></li><li><a href="global.html#MassInfo">MassInfo</a></li><li><a href="global.html#moveLeaf">moveLeaf</a></li><li><a href="global.html#Pair">Pair</a></li><li><a href="global.html#postSolve">postSolve</a></li><li><a href="global.html#preSolve">preSolve</a></li><li><a href="global.html#PrismaticJoint">PrismaticJoint</a></li><li><a href="global.html#RayCollisionDetector">RayCollisionDetector</a></li><li><a href="global.html#removeJoint">removeJoint</a></li><li><a href="global.html#removeProxy">removeProxy</a></li><li><a href="global.html#removeRigidBody">removeRigidBody</a></li><li><a href="global.html#removeShape">removeShape</a></li><li><a href="global.html#RigidBody">RigidBody</a></li><li><a href="global.html#Rotational3Constraint">Rotational3Constraint</a></li><li><a href="global.html#RotationalConstraint">RotationalConstraint</a></li><li><a href="global.html#SAPAxis">SAPAxis</a></li><li><a href="global.html#SAPBroadPhase">SAPBroadPhase</a></li><li><a href="global.html#SAPElement">SAPElement</a></li><li><a href="global.html#SAPProxy">SAPProxy</a></li><li><a href="global.html#setFromPoints">setFromPoints</a></li><li><a href="global.html#setupMass">setupMass</a></li><li><a href="global.html#ShapeConfig">ShapeConfig</a></li><li><a href="global.html#sleep">sleep</a></li><li><a href="global.html#SliderJoint">SliderJoint</a></li><li><a href="global.html#solve">solve</a></li><li><a href="global.html#SphereBoxCollisionDetector">SphereBoxCollisionDetector</a></li><li><a href="global.html#SphereShape">SphereShape</a></li><li><a href="global.html#SphereSphereCollisionDetector">SphereSphereCollisionDetector</a></li><li><a href="global.html#step">step</a></li><li><a href="global.html#TetraShape">TetraShape</a></li><li><a href="global.html#TetraTetraCollisionDetector">TetraTetraCollisionDetector</a></li><li><a href="global.html#Translational3Constraint">Translational3Constraint</a></li><li><a href="global.html#TranslationalConstraint">TranslationalConstraint</a></li><li><a href="global.html#triangleIntersect">triangleIntersect</a></li><li><a href="global.html#updateManifold">updateManifold</a></li><li><a href="global.html#updatePosition">updatePosition</a></li><li><a href="global.html#WheelJoint">WheelJoint</a></li><li><a href="global.html#World">World</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jan 27 2017 09:02:39 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -18,8 +18,8 @@ import { Contact } from '../constraint/contact/Contact';
 
 
 /**
-* The class of rigid body. 
-* Rigid body has the shape of a single or multiple collision processing, 
+* The class of rigid body.
+* Rigid body has the shape of a single or multiple collision processing,
 * I can set the parameters individually.
 * @author saharan
 * @author lo-th
@@ -41,8 +41,8 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     this.next = null;
 
     // I represent the kind of rigid body.
-    // Please do not change from the outside this variable. 
-    // If you want to change the type of rigid body, always 
+    // Please do not change from the outside this variable.
+    // If you want to change the type of rigid body, always
     // Please specify the type you want to set the arguments of setupMass method.
     this.type = BODY_NULL;
 
@@ -56,7 +56,7 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     this.controlRot = false;
     this.controlRotInTime = false;
 
-    
+
 
     // Is the translational velocity.
     this.linearVelocity = new Vec3();
@@ -88,7 +88,7 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     this.sleepOrientation = new Quat();
     // I will show this rigid body to determine whether it is a rigid body static.
     this.isStatic = false;
-    // I indicates that this rigid body to determine whether it is a rigid body dynamic. 
+    // I indicates that this rigid body to determine whether it is a rigid body dynamic.
     this.isDynamic = false;
     // It is a rotation matrix representing the orientation.
     this.rotation = new Mat33();
@@ -96,8 +96,8 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     //--------------------------------------------
     // It will be recalculated automatically from the shape, which is included.
     //--------------------------------------------
-    
-    // This is the weight. 
+
+    // This is the weight.
     this.mass = NaN;
     // It is the reciprocal of the mass.
     this.inverseMass = NaN;
@@ -125,16 +125,16 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
 Object.assign( RigidBody.prototype, {
 
     RigidBody: true,
-    
+
     /**
-    * I'll add a shape to rigid body.  
+    * I'll add a shape to rigid body.
     * If you add a shape, please call the setupMass method to step up to the start of the next.
-    * @param   shape shape to Add 
+    * @param   shape shape to Add
     */
     addShape:function(shape){
 
         if(shape.parent) Error("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
-        
+
         if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
         this.shapes = shape;
         shape.parent = this;
@@ -143,9 +143,9 @@ Object.assign( RigidBody.prototype, {
 
     },
     /**
-    * I will delete the shape from the rigid body. 
-    * If you delete a shape, please call the setupMass method to step up to the start of the next. 
-    * @param   shape shape to Delete 
+    * I will delete the shape from the rigid body.
+    * If you delete a shape, please call the setupMass method to step up to the start of the next.
+    * @param   shape shape to Delete
     */
     removeShape:function(shape){
 
@@ -283,7 +283,7 @@ Object.assign( RigidBody.prototype, {
         this.angularVelocity.set(0,0,0);
         this.sleepPosition.copy( this.position );
         this.sleepOrientation.copy( this.orientation );
-        
+
         this.sleepTime = 0;
         this.sleeping = true;
         for( var shape = this.shapes; shape != null; shape = shape.next ) {
@@ -299,17 +299,18 @@ Object.assign( RigidBody.prototype, {
 
     /**
     * Get whether the rigid body has not any connection with others.
-    * @return
+    * @return {void}
     */
     isLonely: function () {
         return this.numJoints==0 && this.numContacts==0;
     },
 
-    /** 
-    * The time integration of the motion of a rigid body, you can update the information such as the shape. 
-    * This method is invoked automatically when calling the step of the World, 
-    * There is no need to call from outside usually. 
-    * @param  timeStep time 
+    /**
+    * The time integration of the motion of a rigid body, you can update the information such as the shape.
+    * This method is invoked automatically when calling the step of the World,
+    * There is no need to call from outside usually.
+    * @param  timeStep time
+    * @return {void}
     */
 
     updatePosition: function ( timeStep ) {
@@ -418,13 +419,13 @@ Object.assign( RigidBody.prototype, {
 
         this.newPosition.copy( pos ).multiplyScalar( this.invScale );
         this.controlPos = true;
-    
+
     },
 
-    setQuaternion: function ( q ) { 
+    setQuaternion: function ( q ) {
         //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
 
-        this.newOrientation.set( q.x, q.y, q.z, q.w ); 
+        this.newOrientation.set( q.x, q.y, q.z, q.w );
         this.controlRot = true;
 
     },
@@ -433,7 +434,7 @@ Object.assign( RigidBody.prototype, {
 
         this.newOrientation = new Quat().setFromEuler( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.y * _Math.degtorad );//this.rotationVectToQuad( rot );
         this.controlRot = true;
-    
+
     },
 
     //---------------------------------------------
@@ -456,7 +457,7 @@ Object.assign( RigidBody.prototype, {
         this.awake();
 
     },
-    
+
     resetRotation:function(x,y,z){
 
         this.angularVelocity.set(0,0,0);

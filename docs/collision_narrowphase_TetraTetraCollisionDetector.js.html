@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: collision/narrowphase/TetraTetraCollisionDetector.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: collision/narrowphase/TetraTetraCollisionDetector.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { CollisionDetector } from './CollisionDetector';
+import { _Math } from '../../math/Math';
+
+/**
+ * Class for checking collisions between 2 tetras,
+ * a shape that is made with 4 vertices and 4 faces
+ * arranged in triangles. With this algorigthm, soft
+ * body physics are possible and easier to implement.
+ * @author xprogram
+ */
+function TetraTetraCollisionDetector(){
+
+    CollisionDetector.call(this);
+
+};
+
+TetraTetraCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
+TetraTetraCollisionDetector.prototype.constructor = TetraTetraCollisionDetector;
+
+TetraTetraCollisionDetector.prototype.detectCollision = function(tet1, tet2, manifold){
+    /*
+     * What we are doing:
+     * Each tetra is represented by four 3D triangles. The only
+     * quick way of finding if another tetra is within the other
+     * tetra is to see if a single vertex is within the triangles
+     * of the other tetra. So, for example, a tetra is represented
+     * by points B, C, D and E with triangles BCD, BCE, DCE and BDE.
+     * There is another tetra with a vertex A which was detected for
+     * collision by the broadphase. Now, if the point A is between ALL
+     * triangles of the other tetra (BCD, BCE, etc.) then the collision
+     * is valid and we can pass point A to the manifold. Since the only
+     * points on the tetra are the 4 vertices, collision detection is
+     * not so complex. However, it can be time-consuming because we
+     * need to split the 3D triangles into three 2D triangles each for
+     * collision detection.
+     */
+    var i, j, vec, fs1 = tet1.faces, vs1 = tet1.verts, fs2 = tet2.faces, vs2 = tet2.verts;
+    var j1, j2, j3, ts = 0; // Triangle vertices `j1`, `j2` and `j3`
+
+    // fs is undeclared
+    var fs = fs1;
+  
+    for(i = 0; i &lt; 4; i++){
+        vec = vs1[i];
+        for(j = 0; j &lt; 4; j++){
+            j1 = vs2[fs[i].a];
+            j2 = vs2[fs[i].b];
+            j3 = vs2[fs[i].c];
+
+            if(
+                this.tricheck(this.pt(vec.x, vec.y), this.pt(j1.x, j1.y), this.pt(j2.x, j2.y), this.pt(j3.x, j3.y)) &amp;&amp;
+                this.tricheck(this.pt(vec.x, vec.z), this.pt(j1.x, j1.z), this.pt(j2.x, j2.z), this.pt(j3.x, j3.z)) &amp;&amp;
+                this.tricheck(this.pt(vec.z, vec.y), this.pt(j1.z, j1.y), this.pt(j2.z, j2.y), this.pt(j3.z, j3.y))
+            )
+            ts++;
+
+          if(ts === 4) // Only add point if it is inside all 4 triangles
+            manifold.addPoint(vec);
+        }
+    }
+};
+
+// Taken from: http://jsfiddle.net/PerroAZUL/zdaY8/1/
+TetraTetraCollisionDetector.prototype.tricheck = function ( p, p0, p1, p2 ){
+
+    var A = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
+    var sg = A &lt; 0 ? -1 : 1;
+    var s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y) * sg;
+    var t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sg;
+    return s > 0 &amp;&amp; t > 0 &amp;&amp; (s + t) &lt; 2 * A * sg;
+
+}
+
+TetraTetraCollisionDetector.prototype.pt = function (x, y){
+    return {x: x, y: y};
+}
+
+
+export { TetraTetraCollisionDetector };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AABB">AABB</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addJoint">addJoint</a></li><li><a href="global.html#addProxy">addProxy</a></li><li><a href="global.html#addRigidBody">addRigidBody</a></li><li><a href="global.html#addShape">addShape</a></li><li><a href="global.html#AngularConstraint">AngularConstraint</a></li><li><a href="global.html#attach">attach</a></li><li><a href="global.html#awake">awake</a></li><li><a href="global.html#BallAndSocketJoint">BallAndSocketJoint</a></li><li><a href="global.html#BasicProxy">BasicProxy</a></li><li><a href="global.html#BoxBoxCollisionDetector">BoxBoxCollisionDetector</a></li><li><a href="global.html#BoxShape">BoxShape</a></li><li><a href="global.html#BroadPhase">BroadPhase</a></li><li><a href="global.html#BruteForceBroadPhase">BruteForceBroadPhase</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#Constraint">Constraint</a></li><li><a href="global.html#Contact">Contact</a></li><li><a href="global.html#ContactConstraint">ContactConstraint</a></li><li><a href="global.html#ContactLink">ContactLink</a></li><li><a href="global.html#ContactManifold">ContactManifold</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#createProxy">createProxy</a></li><li><a href="global.html#CylinderShape">CylinderShape</a></li><li><a href="global.html#DBVT">DBVT</a></li><li><a href="global.html#DBVTBroadPhase">DBVTBroadPhase</a></li><li><a href="global.html#DBVTNode">DBVTNode</a></li><li><a href="global.html#DBVTProxy">DBVTProxy</a></li><li><a href="global.html#deleteLeaf">deleteLeaf</a></li><li><a href="global.html#detach">detach</a></li><li><a href="global.html#DistanceJoint">DistanceJoint</a></li><li><a href="global.html#HingeJoint">HingeJoint</a></li><li><a href="global.html#insertLeaf">insertLeaf</a></li><li><a href="global.html#isAvailablePair">isAvailablePair</a></li><li><a href="global.html#isLonely">isLonely</a></li><li><a href="global.html#Joint">Joint</a></li><li><a href="global.html#LimitMotor">LimitMotor</a></li><li><a href="global.html#LinearConstraint">LinearConstraint</a></li><li><a href="global.html#ManifoldPoint">ManifoldPoint</a></li><li><a href="global.html#MassInfo">MassInfo</a></li><li><a href="global.html#moveLeaf">moveLeaf</a></li><li><a href="global.html#Pair">Pair</a></li><li><a href="global.html#postSolve">postSolve</a></li><li><a href="global.html#preSolve">preSolve</a></li><li><a href="global.html#PrismaticJoint">PrismaticJoint</a></li><li><a href="global.html#RayCollisionDetector">RayCollisionDetector</a></li><li><a href="global.html#removeJoint">removeJoint</a></li><li><a href="global.html#removeProxy">removeProxy</a></li><li><a href="global.html#removeRigidBody">removeRigidBody</a></li><li><a href="global.html#removeShape">removeShape</a></li><li><a href="global.html#RigidBody">RigidBody</a></li><li><a href="global.html#Rotational3Constraint">Rotational3Constraint</a></li><li><a href="global.html#RotationalConstraint">RotationalConstraint</a></li><li><a href="global.html#SAPAxis">SAPAxis</a></li><li><a href="global.html#SAPBroadPhase">SAPBroadPhase</a></li><li><a href="global.html#SAPElement">SAPElement</a></li><li><a href="global.html#SAPProxy">SAPProxy</a></li><li><a href="global.html#setFromPoints">setFromPoints</a></li><li><a href="global.html#setupMass">setupMass</a></li><li><a href="global.html#ShapeConfig">ShapeConfig</a></li><li><a href="global.html#sleep">sleep</a></li><li><a href="global.html#SliderJoint">SliderJoint</a></li><li><a href="global.html#solve">solve</a></li><li><a href="global.html#SphereBoxCollisionDetector">SphereBoxCollisionDetector</a></li><li><a href="global.html#SphereShape">SphereShape</a></li><li><a href="global.html#SphereSphereCollisionDetector">SphereSphereCollisionDetector</a></li><li><a href="global.html#step">step</a></li><li><a href="global.html#TetraShape">TetraShape</a></li><li><a href="global.html#TetraTetraCollisionDetector">TetraTetraCollisionDetector</a></li><li><a href="global.html#Translational3Constraint">Translational3Constraint</a></li><li><a href="global.html#TranslationalConstraint">TranslationalConstraint</a></li><li><a href="global.html#triangleIntersect">triangleIntersect</a></li><li><a href="global.html#updateManifold">updateManifold</a></li><li><a href="global.html#updatePosition">updatePosition</a></li><li><a href="global.html#WheelJoint">WheelJoint</a></li><li><a href="global.html#World">World</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jan 27 2017 09:02:39 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

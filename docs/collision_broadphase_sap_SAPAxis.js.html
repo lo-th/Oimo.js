@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: collision/broadphase/sap/SAPAxis.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: collision/broadphase/sap/SAPAxis.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { _Math } from '../../../math/Math';
+
+/**
+ * A projection axis for sweep and prune broad-phase.
+ * @author saharan
+ */
+
+function SAPAxis (){
+
+    this.numElements = 0;
+    this.bufferSize = 256;
+    this.elements = [];
+    this.elements.length = this.bufferSize;
+    this.stack = new Float32Array( 64 );
+
+}
+
+Object.assign( SAPAxis.prototype, {
+
+    SAPAxis: true,
+
+    addElements: function ( min, max ) {
+
+        if(this.numElements+2>=this.bufferSize){
+            //this.bufferSize&lt;&lt;=1;
+            this.bufferSize*=2;
+            var newElements=[];
+            var i = this.numElements;
+            while(i--){
+            //for(var i=0, l=this.numElements; i&lt;l; i++){
+                newElements[i] = this.elements[i];
+            }
+        }
+        this.elements[this.numElements++] = min;
+        this.elements[this.numElements++] = max;
+
+    },
+
+    removeElements: function ( min, max ) {
+
+        var minIndex=-1;
+        var maxIndex=-1;
+        for(var i=0, l=this.numElements; i&lt;l; i++){
+            var e=this.elements[i];
+            if(e==min||e==max){
+                if(minIndex==-1){
+                    minIndex=i;
+                }else{
+                    maxIndex=i;
+                break;
+                }
+            }
+        }
+        for(i = minIndex+1, l = maxIndex; i &lt; l; i++){
+            this.elements[i-1] = this.elements[i];
+        }
+        for(i = maxIndex+1, l = this.numElements; i &lt; l; i++){
+            this.elements[i-2] = this.elements[i];
+        }
+
+        this.elements[--this.numElements] = null;
+        this.elements[--this.numElements] = null;
+
+    },
+
+    sort: function () {
+
+        var count = 0;
+        var threshold = 1;
+        while((this.numElements >> threshold) != 0 ) threshold++;
+        threshold = threshold * this.numElements >> 2;
+        count = 0;
+
+        var giveup = false;
+        var elements = this.elements;
+        for( var i = 1, l = this.numElements; i &lt; l; i++){ // try insertion sort
+            var tmp=elements[i];
+            var pivot=tmp.value;
+            var tmp2=elements[i-1];
+            if(tmp2.value>pivot){
+                var j=i;
+                do{
+                    elements[j]=tmp2;
+                    if(--j==0)break;
+                    tmp2=elements[j-1];
+                }while(tmp2.value>pivot);
+                elements[j]=tmp;
+                count+=i-j;
+                if(count>threshold){
+                    giveup=true; // stop and use quick sort
+                    break;
+                }
+            }
+        }
+        if(!giveup)return;
+        count=2;var stack=this.stack;
+        stack[0]=0;
+        stack[1]=this.numElements-1;
+        while(count>0){
+            var right=stack[--count];
+            var left=stack[--count];
+            var diff=right-left;
+            if(diff>16){  // quick sort
+                //var mid=left+(diff>>1);
+                var mid = left + (_Math.floor(diff*0.5));
+                tmp = elements[mid];
+                elements[mid] = elements[right];
+                elements[right] = tmp;
+                pivot = tmp.value;
+                i = left-1;
+                j = right;
+                while( true ){
+                    var ei;
+                    var ej;
+                    do{ ei = elements[++i]; } while( ei.value &lt; pivot);
+                    do{ ej = elements[--j]; } while( pivot &lt; ej.value &amp;&amp; j != left );
+                    if( i >= j ) break;
+                    elements[i] = ej;
+                    elements[j] = ei;
+                }
+
+                elements[right] = elements[i];
+                elements[i] = tmp;
+                if( i - left > right - i ) {
+                    stack[count++] = left;
+                    stack[count++] = i - 1;
+                    stack[count++] = i + 1;
+                    stack[count++] = right;
+                }else{
+                    stack[count++] = i + 1;
+                    stack[count++] = right;
+                    stack[count++] = left;
+                    stack[count++] = i - 1;
+                }
+            }else{
+                for( i = left + 1; i &lt;= right; i++ ) {
+                    tmp = elements[i];
+                    pivot = tmp.value;
+                    tmp2 = elements[i-1];
+                    if( tmp2.value > pivot ) {
+                        j = i;
+                        do{
+                            elements[j] = tmp2;
+                            if( --j == 0 ) break;
+                            tmp2 = elements[j-1];
+                        }while( tmp2.value > pivot );
+                        elements[j] = tmp;
+                    }
+                }
+            }
+        }
+        
+    },
+
+    calculateTestCount: function () {
+
+        var num = 1;
+        var sum = 0;
+        for(var i = 1, l = this.numElements; i&lt;l; i++){
+            if(this.elements[i].max){
+                num--;
+            }else{
+                sum += num;
+                num++;
+            }
+        }
+        return sum;
+
+    }
+
+} );
+
+export { SAPAxis };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AABB">AABB</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addJoint">addJoint</a></li><li><a href="global.html#addProxy">addProxy</a></li><li><a href="global.html#addRigidBody">addRigidBody</a></li><li><a href="global.html#addShape">addShape</a></li><li><a href="global.html#AngularConstraint">AngularConstraint</a></li><li><a href="global.html#attach">attach</a></li><li><a href="global.html#awake">awake</a></li><li><a href="global.html#BallAndSocketJoint">BallAndSocketJoint</a></li><li><a href="global.html#BasicProxy">BasicProxy</a></li><li><a href="global.html#BoxBoxCollisionDetector">BoxBoxCollisionDetector</a></li><li><a href="global.html#BoxShape">BoxShape</a></li><li><a href="global.html#BroadPhase">BroadPhase</a></li><li><a href="global.html#BruteForceBroadPhase">BruteForceBroadPhase</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#Constraint">Constraint</a></li><li><a href="global.html#Contact">Contact</a></li><li><a href="global.html#ContactConstraint">ContactConstraint</a></li><li><a href="global.html#ContactLink">ContactLink</a></li><li><a href="global.html#ContactManifold">ContactManifold</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#createProxy">createProxy</a></li><li><a href="global.html#CylinderShape">CylinderShape</a></li><li><a href="global.html#DBVT">DBVT</a></li><li><a href="global.html#DBVTBroadPhase">DBVTBroadPhase</a></li><li><a href="global.html#DBVTNode">DBVTNode</a></li><li><a href="global.html#DBVTProxy">DBVTProxy</a></li><li><a href="global.html#deleteLeaf">deleteLeaf</a></li><li><a href="global.html#detach">detach</a></li><li><a href="global.html#DistanceJoint">DistanceJoint</a></li><li><a href="global.html#HingeJoint">HingeJoint</a></li><li><a href="global.html#insertLeaf">insertLeaf</a></li><li><a href="global.html#isAvailablePair">isAvailablePair</a></li><li><a href="global.html#isLonely">isLonely</a></li><li><a href="global.html#Joint">Joint</a></li><li><a href="global.html#LimitMotor">LimitMotor</a></li><li><a href="global.html#LinearConstraint">LinearConstraint</a></li><li><a href="global.html#ManifoldPoint">ManifoldPoint</a></li><li><a href="global.html#MassInfo">MassInfo</a></li><li><a href="global.html#moveLeaf">moveLeaf</a></li><li><a href="global.html#Pair">Pair</a></li><li><a href="global.html#postSolve">postSolve</a></li><li><a href="global.html#preSolve">preSolve</a></li><li><a href="global.html#PrismaticJoint">PrismaticJoint</a></li><li><a href="global.html#RayCollisionDetector">RayCollisionDetector</a></li><li><a href="global.html#removeJoint">removeJoint</a></li><li><a href="global.html#removeProxy">removeProxy</a></li><li><a href="global.html#removeRigidBody">removeRigidBody</a></li><li><a href="global.html#removeShape">removeShape</a></li><li><a href="global.html#RigidBody">RigidBody</a></li><li><a href="global.html#Rotational3Constraint">Rotational3Constraint</a></li><li><a href="global.html#RotationalConstraint">RotationalConstraint</a></li><li><a href="global.html#SAPAxis">SAPAxis</a></li><li><a href="global.html#SAPBroadPhase">SAPBroadPhase</a></li><li><a href="global.html#SAPElement">SAPElement</a></li><li><a href="global.html#SAPProxy">SAPProxy</a></li><li><a href="global.html#setFromPoints">setFromPoints</a></li><li><a href="global.html#setupMass">setupMass</a></li><li><a href="global.html#ShapeConfig">ShapeConfig</a></li><li><a href="global.html#sleep">sleep</a></li><li><a href="global.html#SliderJoint">SliderJoint</a></li><li><a href="global.html#solve">solve</a></li><li><a href="global.html#SphereBoxCollisionDetector">SphereBoxCollisionDetector</a></li><li><a href="global.html#SphereShape">SphereShape</a></li><li><a href="global.html#SphereSphereCollisionDetector">SphereSphereCollisionDetector</a></li><li><a href="global.html#step">step</a></li><li><a href="global.html#TetraShape">TetraShape</a></li><li><a href="global.html#TetraTetraCollisionDetector">TetraTetraCollisionDetector</a></li><li><a href="global.html#Translational3Constraint">Translational3Constraint</a></li><li><a href="global.html#TranslationalConstraint">TranslationalConstraint</a></li><li><a href="global.html#triangleIntersect">triangleIntersect</a></li><li><a href="global.html#updateManifold">updateManifold</a></li><li><a href="global.html#updatePosition">updatePosition</a></li><li><a href="global.html#WheelJoint">WheelJoint</a></li><li><a href="global.html#World">World</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jan 27 2017 09:02:39 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

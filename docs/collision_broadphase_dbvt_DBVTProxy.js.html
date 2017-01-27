@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: collision/broadphase/dbvt/DBVTProxy.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: collision/broadphase/dbvt/DBVTProxy.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { Proxy } from '../Proxy';
+import { DBVTNode } from './DBVTNode';
+
+/**
+* A proxy for dynamic bounding volume tree broad-phase.
+* @author saharan
+*/
+function DBVTProxy ( shape ) {
+
+    Proxy.call( this, shape);
+    // The leaf of the proxy.
+    this.leaf = new DBVTNode();
+    this.leaf.proxy = this;
+
+};
+
+DBVTProxy.prototype = Object.create( Proxy.prototype );
+DBVTProxy.prototype.constructor = DBVTProxy;
+
+DBVTProxy.prototype.update = function () {
+    
+};
+
+export { DBVTProxy };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AABB">AABB</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addJoint">addJoint</a></li><li><a href="global.html#addProxy">addProxy</a></li><li><a href="global.html#addRigidBody">addRigidBody</a></li><li><a href="global.html#addShape">addShape</a></li><li><a href="global.html#AngularConstraint">AngularConstraint</a></li><li><a href="global.html#attach">attach</a></li><li><a href="global.html#awake">awake</a></li><li><a href="global.html#BallAndSocketJoint">BallAndSocketJoint</a></li><li><a href="global.html#BasicProxy">BasicProxy</a></li><li><a href="global.html#BoxBoxCollisionDetector">BoxBoxCollisionDetector</a></li><li><a href="global.html#BoxShape">BoxShape</a></li><li><a href="global.html#BroadPhase">BroadPhase</a></li><li><a href="global.html#BruteForceBroadPhase">BruteForceBroadPhase</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#Constraint">Constraint</a></li><li><a href="global.html#Contact">Contact</a></li><li><a href="global.html#ContactConstraint">ContactConstraint</a></li><li><a href="global.html#ContactLink">ContactLink</a></li><li><a href="global.html#ContactManifold">ContactManifold</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#createProxy">createProxy</a></li><li><a href="global.html#CylinderShape">CylinderShape</a></li><li><a href="global.html#DBVT">DBVT</a></li><li><a href="global.html#DBVTBroadPhase">DBVTBroadPhase</a></li><li><a href="global.html#DBVTNode">DBVTNode</a></li><li><a href="global.html#DBVTProxy">DBVTProxy</a></li><li><a href="global.html#deleteLeaf">deleteLeaf</a></li><li><a href="global.html#detach">detach</a></li><li><a href="global.html#DistanceJoint">DistanceJoint</a></li><li><a href="global.html#HingeJoint">HingeJoint</a></li><li><a href="global.html#insertLeaf">insertLeaf</a></li><li><a href="global.html#isAvailablePair">isAvailablePair</a></li><li><a href="global.html#isLonely">isLonely</a></li><li><a href="global.html#Joint">Joint</a></li><li><a href="global.html#LimitMotor">LimitMotor</a></li><li><a href="global.html#LinearConstraint">LinearConstraint</a></li><li><a href="global.html#ManifoldPoint">ManifoldPoint</a></li><li><a href="global.html#MassInfo">MassInfo</a></li><li><a href="global.html#moveLeaf">moveLeaf</a></li><li><a href="global.html#Pair">Pair</a></li><li><a href="global.html#postSolve">postSolve</a></li><li><a href="global.html#preSolve">preSolve</a></li><li><a href="global.html#PrismaticJoint">PrismaticJoint</a></li><li><a href="global.html#RayCollisionDetector">RayCollisionDetector</a></li><li><a href="global.html#removeJoint">removeJoint</a></li><li><a href="global.html#removeProxy">removeProxy</a></li><li><a href="global.html#removeRigidBody">removeRigidBody</a></li><li><a href="global.html#removeShape">removeShape</a></li><li><a href="global.html#RigidBody">RigidBody</a></li><li><a href="global.html#Rotational3Constraint">Rotational3Constraint</a></li><li><a href="global.html#RotationalConstraint">RotationalConstraint</a></li><li><a href="global.html#SAPAxis">SAPAxis</a></li><li><a href="global.html#SAPBroadPhase">SAPBroadPhase</a></li><li><a href="global.html#SAPElement">SAPElement</a></li><li><a href="global.html#SAPProxy">SAPProxy</a></li><li><a href="global.html#setFromPoints">setFromPoints</a></li><li><a href="global.html#setupMass">setupMass</a></li><li><a href="global.html#ShapeConfig">ShapeConfig</a></li><li><a href="global.html#sleep">sleep</a></li><li><a href="global.html#SliderJoint">SliderJoint</a></li><li><a href="global.html#solve">solve</a></li><li><a href="global.html#SphereBoxCollisionDetector">SphereBoxCollisionDetector</a></li><li><a href="global.html#SphereShape">SphereShape</a></li><li><a href="global.html#SphereSphereCollisionDetector">SphereSphereCollisionDetector</a></li><li><a href="global.html#step">step</a></li><li><a href="global.html#TetraShape">TetraShape</a></li><li><a href="global.html#TetraTetraCollisionDetector">TetraTetraCollisionDetector</a></li><li><a href="global.html#Translational3Constraint">Translational3Constraint</a></li><li><a href="global.html#TranslationalConstraint">TranslationalConstraint</a></li><li><a href="global.html#triangleIntersect">triangleIntersect</a></li><li><a href="global.html#updateManifold">updateManifold</a></li><li><a href="global.html#updatePosition">updatePosition</a></li><li><a href="global.html#WheelJoint">WheelJoint</a></li><li><a href="global.html#World">World</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jan 27 2017 09:02:39 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

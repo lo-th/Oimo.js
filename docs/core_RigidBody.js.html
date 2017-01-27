@@ -1,9 +1,36 @@
-import { BODY_NULL, BODY_DYNAMIC, BODY_STATIC } from '../constants';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: core/RigidBody.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: core/RigidBody.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { BODY_NULL, BODY_DYNAMIC, BODY_STATIC } from '../constants';
 import { Error } from './Utils';
 
 import { MassInfo } from '../collision/shape/MassInfo';
 import { ShapeConfig } from '../collision/shape/ShapeConfig';
-
 
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
@@ -15,7 +42,7 @@ import { SphereShape } from '../collision/shape/SphereShape';
 import { CylinderShape } from '../collision/shape/CylinderShape';
 //import { TetraShape } from '../collision/shape/TetraShape';
 
-import { Contact } from '../constraint/contact/Contact_X';
+import { Contact } from '../constraint/contact/Contact';
 
 
 /**
@@ -23,22 +50,23 @@ import { Contact } from '../constraint/contact/Contact_X';
 * Rigid body has the shape of a single or multiple collision processing,
 * I can set the parameters individually.
 * @author saharan
+* @author lo-th
 */
 
-function RigidBody ( Position, Rotation ) {
+function RigidBody ( Position, Rotation, scale, invScale ) {
 
     this.position = Position || new Vec3();
     this.orientation = Rotation || new Quat();
 
-    this.scale =1;
-    this.invScale = 1;
+    this.scale = scale || 1;
+    this.invScale = invScale || 1;
 
     this.name = "";
     // The maximum number of shapes that can be added to a one rigid.
     //this.MAX_SHAPES = 64;//64;
 
-    //this.prev = null;
-    //this.next = null;
+    this.prev = null;
+    this.next = null;
 
     // I represent the kind of rigid body.
     // Please do not change from the outside this variable.
@@ -48,11 +76,13 @@ function RigidBody ( Position, Rotation ) {
 
     this.massInfo = new MassInfo();
 
-
     this.newPosition = new Vec3();
-    this.newOrientation = new Quat();
     this.controlPos = false;
+    this.newOrientation = new Quat();
+    this.newRotation = new Vec3();
+    this.currentRotation = new Vec3();
     this.controlRot = false;
+    this.controlRotInTime = false;
 
 
 
@@ -67,15 +97,18 @@ function RigidBody ( Position, Rotation ) {
 
     // It is a world that rigid body has been added.
     this.parent = null;
-
-    // An array of contact that are included in the rigid body.
-    this.contactLink = [];
+    this.contactLink = null;
+    this.numContacts = 0;
 
     // An array of shapes that are included in the rigid body.
-    this.shapes = [];
+    this.shapes = null;
+    // The number of shapes that are included in the rigid body.
+    this.numShapes = 0;
 
     // It is the link array of joint that is connected to the rigid body.
-    this.jointLink = [];
+    this.jointLink = null;
+    // The number of joints that are connected to the rigid body.
+    this.numJoints = 0;
 
     // It is the world coordinate of the center of gravity in the sleep just before.
     this.sleepPosition = new Vec3();
@@ -93,10 +126,9 @@ function RigidBody ( Position, Rotation ) {
     //--------------------------------------------
 
     // This is the weight.
-    this.mass = 0;
+    this.mass = NaN;
     // It is the reciprocal of the mass.
-    this.inverseMass = 0;
-
+    this.inverseMass = NaN;
     // It is the inverse of the inertia tensor in the world system.
     this.inverseInertia = new Mat33();
     // It is the inertia tensor in the initial state.
@@ -122,31 +154,20 @@ Object.assign( RigidBody.prototype, {
 
     RigidBody: true,
 
-    setParent: function ( world ) {
-
-        this.parent = world;
-        this.scale = this.parent.scale;
-        this.invScale = this.parent.invScale;
-
-    },
-
     /**
     * I'll add a shape to rigid body.
     * If you add a shape, please call the setupMass method to step up to the start of the next.
     * @param   shape shape to Add
     */
-    addShape:function( shape ){
+    addShape:function(shape){
 
         if(shape.parent) Error("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
 
-        //if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
-        //this.shapes = shape;
-
+        if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
+        this.shapes = shape;
         shape.parent = this;
-        shape.contactLink = [];
-        if( this.parent ) this.parent.addShape( shape );
-
-        this.shapes.push( shape );
+        if(this.parent) this.parent.addShape( shape );
+        this.numShapes++;
 
     },
     /**
@@ -154,22 +175,20 @@ Object.assign( RigidBody.prototype, {
     * If you delete a shape, please call the setupMass method to step up to the start of the next.
     * @param   shape shape to Delete
     */
-    removeShape:function( shape ){
+    removeShape:function(shape){
 
-        this.shapes.splice( this.shapes.indexOf( shape ), 1 );
-
-        //var remove = shape;
-        if(shape.parent !== this) return;
-        //var prev=remove.prev;
-        //var next=remove.next;
-        //if(prev!=null) prev.next=next;
-        //if(next!=null) next.prev=prev;
-        //if(this.shapes==remove)this.shapes=next;
-        //remove.prev=null;
-        //remove.next=null;
-        shape.parent = null;
-        if( this.parent ) this.parent.removeShape( shape );
-        //this.numShapes--;
+        var remove = shape;
+        if(remove.parent!=this)return;
+        var prev=remove.prev;
+        var next=remove.next;
+        if(prev!=null) prev.next=next;
+        if(next!=null) next.prev=prev;
+        if(this.shapes==remove)this.shapes=next;
+        remove.prev=null;
+        remove.next=null;
+        remove.parent=null;
+        if(this.parent)this.parent.removeShape(remove);
+        this.numShapes--;
 
     },
 
@@ -203,7 +222,7 @@ Object.assign( RigidBody.prototype, {
 
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
 
-        this.type = type || BODY_DYNAMIC;
+        this.type = type || BODY_STATIC;
         this.isDynamic = this.type === BODY_DYNAMIC;
         this.isStatic = this.type === BODY_STATIC;
 
@@ -214,11 +233,8 @@ Object.assign( RigidBody.prototype, {
         var tmpM = new Mat33();
         var tmpV = new Vec3();
 
-        var i = this.shapes.length, shape;
+        for( var shape = this.shapes; shape !== null; shape = shape.next ){
 
-        while(i--){
-
-            shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
             tmpV.addScale(shape.relativePosition, shapeMass);
@@ -236,9 +252,8 @@ Object.assign( RigidBody.prototype, {
 
         if( adjustPosition ){
             this.position.addEqual(tmpV);
-            i = this.shapes.length;
-            while(i--){
-                this.shapes[i].relativePosition.subEqual( tmpV );
+            for( shape=this.shapes; shape !== null; shape = shape.next ){
+                shape.relativePosition.subEqual(tmpV);
             }
 
             // subtract offset inertia
@@ -267,27 +282,21 @@ Object.assign( RigidBody.prototype, {
         if( !this.allowSleep || !this.sleeping ) return;
         this.sleeping = false;
         this.sleepTime = 0;
-
-        var i, js, cs;
-
         // awake connected constraints
-        i = this.contactLink.length;
-        while(i--){
-            cs = this.contactLink[i];
+        var cs = this.contactLink;
+        while(cs != null){
             cs.body.sleepTime = 0;
             cs.body.sleeping = false;
+            cs = cs.next;
         }
-
-        i = this.jointLink.length;
-        while(i--){
-            js = this.jointLink[i];
+        var js = this.jointLink;
+        while(js != null){
             js.body.sleepTime = 0;
             js.body.sleeping = false;
+            js = js.next;
         }
-
-        i = this.shapes.length;
-        while(i--){
-            this.shapes[i].updateProxy();
+        for(var shape = this.shapes; shape!=null; shape = shape.next){
+            shape.updateProxy();
         }
 
     },
@@ -305,10 +314,8 @@ Object.assign( RigidBody.prototype, {
 
         this.sleepTime = 0;
         this.sleeping = true;
-
-        var i = this.shapes.length;
-        while(i--){
-            this.shapes[i].updateProxy();
+        for( var shape = this.shapes; shape != null; shape = shape.next ) {
+            shape.updateProxy();
         }
     },
 
@@ -323,8 +330,7 @@ Object.assign( RigidBody.prototype, {
     * @return {void}
     */
     isLonely: function () {
-        return this.jointLink.length===0 && this.contactLink.length===0;
-        //return this.numJoints==0 && this.numContacts==0;
+        return this.numJoints==0 &amp;&amp; this.numContacts==0;
     },
 
     /**
@@ -336,21 +342,18 @@ Object.assign( RigidBody.prototype, {
     */
 
     updatePosition: function ( timeStep ) {
-
-        switch( this.type ){
-
+        switch(this.type){
             case BODY_STATIC:
-
                 this.linearVelocity.set(0,0,0);
                 this.angularVelocity.set(0,0,0);
 
                 // ONLY FOR TEST
                 if(this.controlPos){
-                    this.position.copy( this.newPosition );
+                    this.position.copy(this.newPosition);
                     this.controlPos = false;
                 }
                 if(this.controlRot){
-                    this.orientation.copy( this.newOrientation );
+                    this.orientation.copy(this.newOrientation);
                     this.controlRot = false;
                 }
                 /*this.linearVelocity.x=0;
@@ -380,8 +383,8 @@ Object.assign( RigidBody.prototype, {
 
                 }
 
-                this.position.addTime( this.linearVelocity, timeStep );
-                this.orientation.addTime( this.angularVelocity, timeStep );
+                this.position.addTime(this.linearVelocity, timeStep);
+                this.orientation.addTime(this.angularVelocity, timeStep);
 
             break;
             default: Error("RigidBody", "Invalid type.");
@@ -402,17 +405,25 @@ Object.assign( RigidBody.prototype, {
 
         this.rotation.setQuat( this.orientation );
         this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
+        for(var shape = this.shapes; shape!=null; shape = shape.next){
+            //var relPos=shape.relativePosition;
+            //var relRot=shape.relativeRotation;
+            //var rot=shape.rotation;
+            /*var lx=relPos.x;
+            var ly=relPos.y;
+            var lz=relPos.z;
+            shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
+            shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
+            shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];*/
 
-        var i = this.shapes.length, shape;
-        while(i--){
-            shape = this.shapes[i];
             shape.position.mul( this.position, shape.relativePosition, this.rotation );
+            //shape.rotation.mul(shape.relativeRotation,this.rotation);
             // add by QuaziKb
             shape.rotation.mul( this.rotation, shape.relativeRotation );
             shape.updateProxy();
-
         }
     },
+
 
     //---------------------------------------------
     // APPLY IMPULSE FORCE
@@ -426,6 +437,7 @@ Object.assign( RigidBody.prototype, {
         this.angularVelocity.addEqual( rel );
 
     },
+
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
@@ -500,4 +512,26 @@ Object.assign( RigidBody.prototype, {
 
 } );
 
-export { RigidBody };
+export { RigidBody };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AABB">AABB</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addJoint">addJoint</a></li><li><a href="global.html#addProxy">addProxy</a></li><li><a href="global.html#addRigidBody">addRigidBody</a></li><li><a href="global.html#addShape">addShape</a></li><li><a href="global.html#AngularConstraint">AngularConstraint</a></li><li><a href="global.html#attach">attach</a></li><li><a href="global.html#awake">awake</a></li><li><a href="global.html#BallAndSocketJoint">BallAndSocketJoint</a></li><li><a href="global.html#BasicProxy">BasicProxy</a></li><li><a href="global.html#BoxBoxCollisionDetector">BoxBoxCollisionDetector</a></li><li><a href="global.html#BoxShape">BoxShape</a></li><li><a href="global.html#BroadPhase">BroadPhase</a></li><li><a href="global.html#BruteForceBroadPhase">BruteForceBroadPhase</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#Constraint">Constraint</a></li><li><a href="global.html#Contact">Contact</a></li><li><a href="global.html#ContactConstraint">ContactConstraint</a></li><li><a href="global.html#ContactLink">ContactLink</a></li><li><a href="global.html#ContactManifold">ContactManifold</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#createProxy">createProxy</a></li><li><a href="global.html#CylinderShape">CylinderShape</a></li><li><a href="global.html#DBVT">DBVT</a></li><li><a href="global.html#DBVTBroadPhase">DBVTBroadPhase</a></li><li><a href="global.html#DBVTNode">DBVTNode</a></li><li><a href="global.html#DBVTProxy">DBVTProxy</a></li><li><a href="global.html#deleteLeaf">deleteLeaf</a></li><li><a href="global.html#detach">detach</a></li><li><a href="global.html#DistanceJoint">DistanceJoint</a></li><li><a href="global.html#HingeJoint">HingeJoint</a></li><li><a href="global.html#insertLeaf">insertLeaf</a></li><li><a href="global.html#isAvailablePair">isAvailablePair</a></li><li><a href="global.html#isLonely">isLonely</a></li><li><a href="global.html#Joint">Joint</a></li><li><a href="global.html#LimitMotor">LimitMotor</a></li><li><a href="global.html#LinearConstraint">LinearConstraint</a></li><li><a href="global.html#ManifoldPoint">ManifoldPoint</a></li><li><a href="global.html#MassInfo">MassInfo</a></li><li><a href="global.html#moveLeaf">moveLeaf</a></li><li><a href="global.html#Pair">Pair</a></li><li><a href="global.html#postSolve">postSolve</a></li><li><a href="global.html#preSolve">preSolve</a></li><li><a href="global.html#PrismaticJoint">PrismaticJoint</a></li><li><a href="global.html#RayCollisionDetector">RayCollisionDetector</a></li><li><a href="global.html#removeJoint">removeJoint</a></li><li><a href="global.html#removeProxy">removeProxy</a></li><li><a href="global.html#removeRigidBody">removeRigidBody</a></li><li><a href="global.html#removeShape">removeShape</a></li><li><a href="global.html#RigidBody">RigidBody</a></li><li><a href="global.html#Rotational3Constraint">Rotational3Constraint</a></li><li><a href="global.html#RotationalConstraint">RotationalConstraint</a></li><li><a href="global.html#SAPAxis">SAPAxis</a></li><li><a href="global.html#SAPBroadPhase">SAPBroadPhase</a></li><li><a href="global.html#SAPElement">SAPElement</a></li><li><a href="global.html#SAPProxy">SAPProxy</a></li><li><a href="global.html#setFromPoints">setFromPoints</a></li><li><a href="global.html#setupMass">setupMass</a></li><li><a href="global.html#ShapeConfig">ShapeConfig</a></li><li><a href="global.html#sleep">sleep</a></li><li><a href="global.html#SliderJoint">SliderJoint</a></li><li><a href="global.html#solve">solve</a></li><li><a href="global.html#SphereBoxCollisionDetector">SphereBoxCollisionDetector</a></li><li><a href="global.html#SphereShape">SphereShape</a></li><li><a href="global.html#SphereSphereCollisionDetector">SphereSphereCollisionDetector</a></li><li><a href="global.html#step">step</a></li><li><a href="global.html#TetraShape">TetraShape</a></li><li><a href="global.html#TetraTetraCollisionDetector">TetraTetraCollisionDetector</a></li><li><a href="global.html#Translational3Constraint">Translational3Constraint</a></li><li><a href="global.html#TranslationalConstraint">TranslationalConstraint</a></li><li><a href="global.html#triangleIntersect">triangleIntersect</a></li><li><a href="global.html#updateManifold">updateManifold</a></li><li><a href="global.html#updatePosition">updatePosition</a></li><li><a href="global.html#WheelJoint">WheelJoint</a></li><li><a href="global.html#World">World</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jan 27 2017 09:02:39 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
