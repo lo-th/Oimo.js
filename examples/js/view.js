@@ -69,6 +69,8 @@ var isCamFollow = false;
 var currentFollow = null;
 var cameraGroup;
 
+var extraMesh;
+
 //var azimut = 0, oldAzimut = 0;
 //var polar = 0, oldPolar = 0;
 
@@ -121,6 +123,12 @@ view = {
 
     },
 
+    addMesh: function ( m ) {
+
+        extraMesh.add( m );
+
+    },
+
     //--------------------------------------
     //
     //   RESET
@@ -136,6 +144,8 @@ view = {
         this.resetCamera();
         this.setShadowPosY(-0.01);
         helper.visible = true;
+
+        while( extraMesh.children.length > 0 ) scene.remove( extraMesh.children.pop() );
 
         //var c, i;
 
@@ -214,6 +224,9 @@ view = {
         content = new THREE.Group();
         scene.add( content );
 
+        extraMesh = new THREE.Group();
+        scene.add( extraMesh );
+
         // CAMERA / CONTROLER
 
         camera = new THREE.PerspectiveCamera( 60 , 1 , 1, 1000 );
@@ -264,6 +277,7 @@ view = {
             move: new THREE.MeshBasicMaterial({ color:0x999999, name:'move', wireframe:true }),
             sleep: new THREE.MeshBasicMaterial({ color:0x9999FF, name:'sleep', wireframe:true }),
             statique: new THREE.MeshBasicMaterial({ color:0x333399, name:'statique', wireframe:true, transparent:true, opacity:0.6 }),
+            donut: new THREE.MeshBasicMaterial({ color:0xFFD700, name:'donut', wireframe:true }),
 
         }
 

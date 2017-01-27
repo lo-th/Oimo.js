@@ -45,6 +45,7 @@ THREE.Tubular = function ( pp, tubularSegments, radius, radialSegments, closed, 
         }
 
         this.positions.push( end );
+        
 
     }
 
@@ -324,7 +325,7 @@ THREE.Tubular.prototype.updatePath = function ( F ) {
     //this.updateUV()
     //this.updateIndices()
 
-   //this.computeBoundingSphere();
+   this.computeBoundingSphere();
    
 
 }
