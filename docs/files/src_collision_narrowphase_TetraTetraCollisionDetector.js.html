@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>src\collision\narrowphase\TetraTetraCollisionDetector.js - oimo</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="icon" href="../assets/favicon.ico">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+                <h1><img src="../assets/css/logo.png" title="oimo" width="117" height="52"></h1>
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: 1.0.4</em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+                    <h2 class="off-left">APIs</h2>
+                    <div id="api-tabview" class="tabview">
+                        <ul class="tabs">
+                            <li><a href="#api-classes">Classes</a></li>
+                            <li><a href="#api-modules">Modules</a></li>
+                        </ul>
+                
+                        <div id="api-tabview-filter">
+                            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+                        </div>
+                
+                        <div id="api-tabview-panel">
+                            <ul id="api-classes" class="apis classes">
+                                <li><a href="../classes/BoxShape.html">BoxShape</a></li>
+                                <li><a href="../classes/CylinderShape.html">CylinderShape</a></li>
+                                <li><a href="../classes/MassInfo.html">MassInfo</a></li>
+                                <li><a href="../classes/Proxy.html">Proxy</a></li>
+                                <li><a href="../classes/Shape.html">Shape</a></li>
+                                <li><a href="../classes/ShapeConfig.html">ShapeConfig</a></li>
+                                <li><a href="../classes/SphereShape.html">SphereShape</a></li>
+                            </ul>
+                
+                
+                            <ul id="api-modules" class="apis modules">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+                    Show:
+                    <label for="api-show-inherited">
+                        <input type="checkbox" id="api-show-inherited" checked>
+                        Inherited
+                    </label>
+            
+                    <label for="api-show-protected">
+                        <input type="checkbox" id="api-show-protected">
+                        Protected
+                    </label>
+            
+                    <label for="api-show-private">
+                        <input type="checkbox" id="api-show-private">
+                        Private
+                    </label>
+                    <label for="api-show-deprecated">
+                        <input type="checkbox" id="api-show-deprecated">
+                        Deprecated
+                    </label>
+            
+                </div>
+            
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<h1 class="file-heading">File: src\collision\narrowphase\TetraTetraCollisionDetector.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+import { CollisionDetector } from &#x27;./CollisionDetector&#x27;;
+import { _Math } from &#x27;../../math/Math&#x27;;
+
+/**
+ * Class for checking collisions between 2 tetras,
+ * a shape that is made with 4 vertices and 4 faces
+ * arranged in triangles. With this algorigthm, soft
+ * body physics are possible and easier to implement.
+ * @author xprogram
+ */
+function TetraTetraCollisionDetector(){
+
+    CollisionDetector.call(this);
+
+};
+
+TetraTetraCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
+TetraTetraCollisionDetector.prototype.constructor = TetraTetraCollisionDetector;
+
+TetraTetraCollisionDetector.prototype.detectCollision = function(tet1, tet2, manifold){
+    /*
+     * What we are doing:
+     * Each tetra is represented by four 3D triangles. The only
+     * quick way of finding if another tetra is within the other
+     * tetra is to see if a single vertex is within the triangles
+     * of the other tetra. So, for example, a tetra is represented
+     * by points B, C, D and E with triangles BCD, BCE, DCE and BDE.
+     * There is another tetra with a vertex A which was detected for
+     * collision by the broadphase. Now, if the point A is between ALL
+     * triangles of the other tetra (BCD, BCE, etc.) then the collision
+     * is valid and we can pass point A to the manifold. Since the only
+     * points on the tetra are the 4 vertices, collision detection is
+     * not so complex. However, it can be time-consuming because we
+     * need to split the 3D triangles into three 2D triangles each for
+     * collision detection.
+     */
+    var i, j, vec, fs1 = tet1.faces, vs1 = tet1.verts, fs2 = tet2.faces, vs2 = tet2.verts;
+    var j1, j2, j3, ts = 0; // Triangle vertices &#x60;j1&#x60;, &#x60;j2&#x60; and &#x60;j3&#x60;
+
+    // fs is undeclared
+    var fs = fs1;
+  
+    for(i = 0; i &lt; 4; i++){
+        vec = vs1[i];
+        for(j = 0; j &lt; 4; j++){
+            j1 = vs2[fs[i].a];
+            j2 = vs2[fs[i].b];
+            j3 = vs2[fs[i].c];
+
+            if(
+                this.tricheck(this.pt(vec.x, vec.y), this.pt(j1.x, j1.y), this.pt(j2.x, j2.y), this.pt(j3.x, j3.y)) &amp;&amp;
+                this.tricheck(this.pt(vec.x, vec.z), this.pt(j1.x, j1.z), this.pt(j2.x, j2.z), this.pt(j3.x, j3.z)) &amp;&amp;
+                this.tricheck(this.pt(vec.z, vec.y), this.pt(j1.z, j1.y), this.pt(j2.z, j2.y), this.pt(j3.z, j3.y))
+            )
+            ts++;
+
+          if(ts === 4) // Only add point if it is inside all 4 triangles
+            manifold.addPoint(vec);
+        }
+    }
+};
+
+// Taken from: http://jsfiddle.net/PerroAZUL/zdaY8/1/
+TetraTetraCollisionDetector.prototype.tricheck = function ( p, p0, p1, p2 ){
+
+    var A = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
+    var sg = A &lt; 0 ? -1 : 1;
+    var s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y) * sg;
+    var t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sg;
+    return s &gt; 0 &amp;&amp; t &gt; 0 &amp;&amp; (s + t) &lt; 2 * A * sg;
+
+}
+
+TetraTetraCollisionDetector.prototype.pt = function (x, y){
+    return {x: x, y: y};
+}
+
+
+export { TetraTetraCollisionDetector };
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

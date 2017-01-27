@@ -4,11 +4,14 @@ import { _Math } from '../../math/Math';
 import { Vec3 } from '../../math/Vec3';
 
 /**
- * A cylinder shap.
+ * A cylinder shape.
+ *
+ * @class CylinderShape
+ * @constructor
+ * @extends Shape
  * @author saharan
  * @author lo-th
  */
-
 function CylinderShape( config, radius, height ) {
 
     Shape.call( this, config );
@@ -18,10 +21,10 @@ function CylinderShape( config, radius, height ) {
     this.radius = radius;
     this.height = height;
     this.halfHeight = height * 0.5;
-    
+
     this.normalDirection = new Vec3();
     this.halfDirection = new Vec3();
-    
+
 };
 
 CylinderShape.prototype = Object.create( Shape.prototype );

@@ -22,7 +22,7 @@ Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for action
 - [Worker test](http://lo-th.github.io/Oimo.js/examples/test_worker.html)
 
 ## Docs ###
-In progress: http://lo-th.github.io/Oimo.js/docs/global.html.
+In progress: http://lo-th.github.io/Oimo.js/docs/
 
 ### Usage ###
 

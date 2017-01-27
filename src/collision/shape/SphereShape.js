@@ -4,17 +4,25 @@ import { _Math } from '../../math/Math';
 
 /**
  * A sphere shape.
+ *
+ * @class SphereShape
+ * @constructor
+ * @extends Shape
  * @author saharan
  * @author lo-th
  */
-
 function SphereShape( config, radius ) {
 
     Shape.call( this, config );
 
     this.type = SHAPE_SPHERE;
 
-    // The radius of the shape.
+    /**
+     * The radius of the shape.
+     *
+     * @property radius
+     * @type {Number}
+     */
     this.radius = radius;
 
 };

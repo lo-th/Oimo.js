@@ -3,13 +3,21 @@ import { Mat33 } from '../../math/Mat33';
 
 /**
  * A shape configuration holds common configuration data for constructing a shape.
- * Shape configurations can be reused safely.
+ * These configurations can be reused safely.
+ *
+ * @class ShapeConfig
+ * @constructor
  * @author saharan
+ * @author lo-th
  */
- 
-function ShapeConfig (){
-    
-    // The position of the shape in parent's coordinate system.
+function ShapeConfig(){
+
+    /**
+     * The position of the shape in parent's coordinate system.
+     *
+     * @property relativePosition
+     * @type {Vec3}
+     */
     this.relativePosition = new Vec3();
     // The rotation matrix of the shape in parent's coordinate system.
     this.relativeRotation = new Mat33();

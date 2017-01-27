@@ -3,32 +3,70 @@ import { Shape } from './Shape';
 
 /**
  * A box shape.
+ *
+ * @class BoxShape
+ * @constructor
+ * @extends Shape
  * @author saharan
  * @author lo-th
  */
-
 function BoxShape( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
 
     this.type = SHAPE_BOX;
 
-    // The width of the box.
+    /**
+     * The width of the box.
+     *
+     * @property width
+     * @type {Number}
+     */
     this.width = Width;
-    // The height of the box.
+
+    /**
+     * The height of the box.
+     *
+     * @property height
+     * @type {Number}
+     */
     this.height = Height;
-    // The depth of the box.
+
+    /**
+     * The depth of the box.
+     *
+     * @property depth
+     * @type {Number}
+     */
     this.depth = Depth;
-    // The half-width of the box.
+
+    /**
+     * The half-width of the box.
+     *
+     * @property halfWidth
+     * @type {Number}
+     */
     this.halfWidth = Width * 0.5;
-    // The half-height of the box.
+
+    /**
+     * The half-height of the box.
+     *
+     * @property halfHeight
+     * @type {Number}
+     */
     this.halfHeight = Height * 0.5;
-    // The half-depth of the box.
+
+    /**
+     * The half-depth of the box.
+     *
+     * @property halfDepth
+     * @type {Number}
+     */
     this.halfDepth = Depth * 0.5;
 
     this.dimentions = new Float32Array( 18 );
     this.elements = new Float32Array( 24 );
-    
+
 };
 
 BoxShape.prototype = Object.create( Shape.prototype );
@@ -44,7 +82,7 @@ BoxShape.prototype.calculateMassInfo = function ( out ) {
         0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
         0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
     );
-    
+
 };
 
 BoxShape.prototype.updateProxy = function () {
@@ -124,20 +162,20 @@ BoxShape.prototype.updateProxy = function () {
     v[22] = y - wy - hy - dy;
     v[23] = z - wz - hz - dz;
 
-    var w = di[9] < 0 ? -di[9] : di[9]; 
+    var w = di[9] < 0 ? -di[9] : di[9];
     var h = di[10] < 0 ? -di[10] : di[10];
     var d = di[11] < 0 ? -di[11] : di[11];
 
-    w = di[12] < 0 ? w - di[12] : w + di[12]; 
+    w = di[12] < 0 ? w - di[12] : w + di[12];
     h = di[13] < 0 ? h - di[13] : h + di[13];
     d = di[14] < 0 ? d - di[14] : d + di[14];
 
-    w = di[15] < 0 ? w - di[15] : w + di[15]; 
+    w = di[15] < 0 ? w - di[15] : w + di[15];
     h = di[16] < 0 ? h - di[16] : h + di[16];
     d = di[17] < 0 ? d - di[17] : d + di[17];
 
     var p = AABB_PROX;
-    
+
     this.aabb.set(
         this.position.x - w - p, this.position.x + w + p,
         this.position.y - h - p, this.position.y + h + p,
