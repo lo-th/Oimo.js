@@ -21,6 +21,9 @@ Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for action
 - [Walker test](http://lo-th.github.io/Oimo.js/examples/test_walker.html)
 - [Worker test](http://lo-th.github.io/Oimo.js/examples/test_worker.html)
 
+## Docs ###
+In progress: http://lo-th.github.io/Oimo.js/docs/global.html.
+
 ### Usage ###
 
 Download the [minified library](http://lo-th.github.io/Oimo.js/build/three.min.js) and include it in your html.
