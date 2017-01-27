@@ -1,5 +1,4 @@
 import { BR_BRUTE_FORCE } from '../../constants';
-import { Error } from '../../core/Utils';
 import { BroadPhase } from './BroadPhase';
 import { BasicProxy } from './BasicProxy';
 
@@ -53,7 +52,7 @@ BruteForceBroadPhase.prototype.removeProxy = function ( proxy ) {
         this.proxies.splice( n, 1 );
         //this.numProxies--;
     }
-    
+
     /*var i = this.numProxies;
     while(i--){
     //for(var i=0, l=this.numProxies;i<l;i++){
@@ -67,7 +66,7 @@ BruteForceBroadPhase.prototype.removeProxy = function ( proxy ) {
 };
 
 BruteForceBroadPhase.prototype.collectPairs = function () {
-    
+
     var i = 0, j, p1, p2;
 
     var px = this.proxies;
@@ -87,11 +86,11 @@ BruteForceBroadPhase.prototype.collectPairs = function () {
     while( i < l ){
         p1 = px[i++];
         j = i + 1;
-        while( j < l ){ 
+        while( j < l ){
             p2 = px[j++];
             if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
-            this.addPair( p1.shape, p2.shape );        
-        }     
+            this.addPair( p1.shape, p2.shape );
+        }
     }
 
 };

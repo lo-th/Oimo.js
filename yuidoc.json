@@ -1,8 +1,0 @@
-{
-    "logo": "../examples/assets/img/logo-docs.png",
-    "options": {
-    	"linkNatives": true,
-        "outdir": "docs",
-        "paths": ["./src/"]
-    }
-}

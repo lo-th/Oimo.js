@@ -5,8 +5,8 @@ import { REVISION } from '../constants';
  * Logs an error.
  *
  * @method printError
- * @param clazz The class that reported the error.
- * @param msg The message describing the error.
+ * @param clazz {String} The class name that reported the error.
+ * @param msg {String} The message describing the error.
  */
 function printError(clazz, msg){
     console.error("[OIMO] " + clazz + ": " + msg);
@@ -14,14 +14,21 @@ function printError(clazz, msg){
 
 export { printError };
 
-
+/**
+ * A performance evaluator. Calculates
+ * speed of physics pipeline.
+ *
+ * @class InfoDisplay
+ * @constructor
+ * @param world {World} The attached world.
+ */
 function InfoDisplay(world){
 
 	/**
 	 * The world it belongs to.
 	 *
-	 * @property parent
-	 * @type World
+	 * @name InfoDisplay#parent
+	 * @type {World}
 	 */
     this.parent = world;
 
@@ -51,7 +58,10 @@ function InfoDisplay(world){
     this.MaxUpdateTime = 0;
 };
 
-Object.assign(InfoDisplay.prototype, {
+Object.assign(InfoDisplay.prototype,
+
+/** @lends InfoDisplay.prototype */
+{
 
     setTime: function(n){
         this.times[ n || 0 ] = performance.now();

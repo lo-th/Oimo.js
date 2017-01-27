@@ -1149,17 +1149,32 @@
 
 	};
 
-	function printError$1(clazz, msg){
+	/**
+	 * Logs an error.
+	 *
+	 * @method printError
+	 * @param clazz {String} The class name that reported the error.
+	 * @param msg {String} The message describing the error.
+	 */
+	function printError(clazz, msg){
 	    console.error("[OIMO] " + clazz + ": " + msg);
 	}
 
+	/**
+	 * A performance evaluator. Calculates
+	 * speed of physics pipeline.
+	 *
+	 * @class InfoDisplay
+	 * @constructor
+	 * @param world {World} The attached world.
+	 */
 	function InfoDisplay(world){
 
 		/**
 		 * The world it belongs to.
 		 *
-		 * @property parent
-		 * @type World
+		 * @name InfoDisplay#parent
+		 * @type {World}
 		 */
 	    this.parent = world;
 
@@ -1189,7 +1204,10 @@
 	    this.MaxUpdateTime = 0;
 	}
 
-	Object.assign(InfoDisplay.prototype, {
+	Object.assign(InfoDisplay.prototype,
+
+	/** @lends InfoDisplay.prototype */
+	{
 
 	    setTime: function(n){
 	        this.times[ n || 0 ] = performance.now();
@@ -1287,6 +1305,11 @@
 	    }
 	});
 
+	/**
+	 * An axis-aligned bounding box.
+	 * @author saharan
+	 * @author lo-th
+	 */
 	function AABB( minX, maxX, minY, maxY, minZ, maxZ){
 	    this.elements = new Float32Array( 6 );
 	    var te = this.elements;
@@ -1449,7 +1472,7 @@
 	    /**
 	     * The global identification of the shape should be unique to the shape.
 	     *
-	     * @property id
+	     * @name Shape#id
 	     * @type {Number}
 	     */
 	    this.id = ShapeIdCount();
@@ -1458,7 +1481,7 @@
 	     * The previous shape in parent rigid body. Used
 	     * for fast interations.
 	     *
-	     * @property prev
+	     * @name Shape#prev
 	     * @type {Shape}
 	     */
 	    this.prev = null;
@@ -1467,7 +1490,7 @@
 	     * The next shape in parent rigid body. Used
 	     * for fast interations.
 	     *
-	     * @property next
+	     * @name Shape#next
 	     * @type {Shape}
 	     */
 	    this.next = null;
@@ -1475,7 +1498,7 @@
 	    /**
 	     * The proxy of the shape used for broad-phase collision detection.
 	     *
-	     * @property proxy
+	     * @name Shape#proxy
 	     * @type {Proxy}
 	     */
 	    this.proxy = null;
@@ -1483,7 +1506,7 @@
 	    /**
 	     * The parent rigid body of the shape.
 	     *
-	     * @property parent
+	     * @name Shape#parent
 	     * @type {RigidBody}
 	     */
 	    this.parent = null;
@@ -1491,7 +1514,7 @@
 	    /**
 	     * The linked list of the contacts with the shape.
 	     *
-	     * @property contactLink
+	     * @name Shape#contactLink
 	     * @type {ContactLink}
 	     */
 	    this.contactLink = null;
@@ -1499,7 +1522,7 @@
 	    /**
 	     * The number of the contacts with the shape.
 	     *
-	     * @property numContacts
+	     * @name Shape#numContacts
 	     * @type {Number}
 	     */
 	    this.numContacts = 0;
@@ -1507,7 +1530,7 @@
 	    /**
 	     * The center of gravity of the shape in world coordinate system.
 	     *
-	     * @property position
+	     * @name Shape#position
 	     * @type {Vec3}
 	     */
 	    this.position = new Vec3();
@@ -1515,7 +1538,7 @@
 	    /**
 	     * The rotation matrix of the shape in world coordinate system.
 	     *
-	     * @property rotation
+	     * @name Shape#rotation
 	     * @type {Mat33}
 	     */
 	    this.rotation = new Mat33();
@@ -1523,7 +1546,7 @@
 	    /**
 	     * The position of the shape in parent's coordinate system.
 	     *
-	     * @property relativePosition
+	     * @name Shape#relativePosition
 	     * @type {Vec3}
 	     */
 	    this.relativePosition = new Vec3().copy(config.relativePosition);
@@ -1531,7 +1554,7 @@
 	    /**
 	     * The rotation matrix of the shape in parent's coordinate system.
 	     *
-	     * @property relativeRotation
+	     * @name Shape#relativeRotation
 	     * @type {Mat33}
 	     */
 	    this.relativeRotation = new Mat33().copy(config.relativeRotation);
@@ -1539,7 +1562,7 @@
 	    /**
 	     * The axis-aligned bounding box of the shape.
 	     *
-	     * @property aabb
+	     * @name Shape#aabb
 	     * @type {AABB}
 	     */
 	    this.aabb = new AABB();
@@ -1547,7 +1570,7 @@
 	    /**
 	     * The density of the shape.
 	     *
-	     * @property density
+	     * @name Shape#density
 	     * @type {Number}
 	     */
 	    this.density = config.density;
@@ -1555,7 +1578,7 @@
 	    /**
 	     * The coefficient of friction of the shape.
 	     *
-	     * @property friction
+	     * @name Shape#friction
 	     * @type {Number}
 	     */
 	    this.friction = config.friction;
@@ -1563,7 +1586,7 @@
 	    /**
 	     * The coefficient of restitution of the shape.
 	     *
-	     * @property restitution
+	     * @name Shape#restitution
 	     * @type {Number}
 	     */
 	    this.restitution = config.restitution;
@@ -1571,7 +1594,7 @@
 	    /**
 	     * The bits of the collision groups to which the shape belongs.
 	     *
-	     * @property belongsTo
+	     * @name Shape#belongsTo
 	     * @type {Number}
 	     */
 	    this.belongsTo = config.belongsTo;
@@ -1579,38 +1602,47 @@
 	    /**
 	     * The bits of the collision groups with which the shape collides.
 	     *
-	     * @property collidesWith
+	     * @name Shape#collidesWith
 	     * @type {Number}
 	     */
 	    this.collidesWith = config.collidesWith;
 
 	}
 
-	Object.assign(Shape.prototype, {
+	Object.assign(Shape.prototype,
 
-	    Shape: true,
+	/** @lends Shape.prototype */
+	{
 
 	    /**
 	     * Calculate the mass information of the shape.
 	     *
-	     * @method calculateMassInfo
+	     * @param {Mat33} out - Output object for calculations.
 	     * @return void
 	     */
 	    calculateMassInfo: function(out){
-	        printError$1("Shape", "Inheritance error.");
+	        printError("Shape", "Inheritance error.");
 	    },
 
 	    /**
 	     * Update the proxy of the shape.
 	     *
-	     * @method updateProxy
 	     * @return void
 	     */
 	    updateProxy: function(){
-	        printError$1("Shape", "Inheritance error.");
+	        printError("Shape", "Inheritance error.");
 	    }
 	});
 
+	/**
+	 * A box shape.
+	 *
+	 * @class BoxShape
+	 * @constructor
+	 * @extends Shape
+	 * @author saharan
+	 * @author lo-th
+	 */
 	function BoxShape( config, Width, Height, Depth ) {
 
 	    Shape.call( this, config );
@@ -1620,7 +1652,7 @@
 	    /**
 	     * The width of the box.
 	     *
-	     * @property width
+	     * @name BoxShape#width
 	     * @type {Number}
 	     */
 	    this.width = Width;
@@ -1628,7 +1660,7 @@
 	    /**
 	     * The height of the box.
 	     *
-	     * @property height
+	     * @name BoxShape#height
 	     * @type {Number}
 	     */
 	    this.height = Height;
@@ -1636,7 +1668,7 @@
 	    /**
 	     * The depth of the box.
 	     *
-	     * @property depth
+	     * @name BoxShape#depth
 	     * @type {Number}
 	     */
 	    this.depth = Depth;
@@ -1644,7 +1676,7 @@
 	    /**
 	     * The half-width of the box.
 	     *
-	     * @property halfWidth
+	     * @name BoxShape#halfWidth
 	     * @type {Number}
 	     */
 	    this.halfWidth = Width * 0.5;
@@ -1652,7 +1684,7 @@
 	    /**
 	     * The half-height of the box.
 	     *
-	     * @property halfHeight
+	     * @name BoxShape#halfHeight
 	     * @type {Number}
 	     */
 	    this.halfHeight = Height * 0.5;
@@ -1660,7 +1692,7 @@
 	    /**
 	     * The half-depth of the box.
 	     *
-	     * @property halfDepth
+	     * @name BoxShape#halfDepth
 	     * @type {Number}
 	     */
 	    this.halfDepth = Depth * 0.5;
@@ -1670,123 +1702,135 @@
 
 	}
 
-	BoxShape.prototype = Object.create( Shape.prototype );
-	BoxShape.prototype.constructor = BoxShape;
+	BoxShape.prototype = Object.create(Shape.prototype);
+	Object.assign(BoxShape.prototype,
 
-	BoxShape.prototype.calculateMassInfo = function ( out ) {
+	/** @lends BoxShape.prototype */
+	{
+		constructor: BoxShape,
 
-	    var mass = this.width * this.height * this.depth * this.density;
-	    var divid = 1/12;
-	    out.mass = mass;
-	    out.inertia.set(
-	        mass * ( this.height * this.height + this.depth * this.depth ) * divid, 0, 0,
-	        0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
-	        0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
-	    );
+		calculateMassInfo: function ( out ) {
+			var mass = this.width * this.height * this.depth * this.density;
+			var divid = 1/12;
+			out.mass = mass;
+			out.inertia.set(
+				mass * ( this.height * this.height + this.depth * this.depth ) * divid, 0, 0,
+				0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
+				0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
+			);
+		},
 
-	};
+		updateProxy: function () {
 
-	BoxShape.prototype.updateProxy = function () {
+			var te = this.rotation.elements;
+			var di = this.dimentions;
+			// Width
+			di[0] = te[0];
+			di[1] = te[3];
+			di[2] = te[6];
+			// Height
+			di[3] = te[1];
+			di[4] = te[4];
+			di[5] = te[7];
+			// Depth
+			di[6] = te[2];
+			di[7] = te[5];
+			di[8] = te[8];
+			// half Width
+			di[9] = te[0] * this.halfWidth;
+			di[10] = te[3] * this.halfWidth;
+			di[11] = te[6] * this.halfWidth;
+			// half Height
+			di[12] = te[1] * this.halfHeight;
+			di[13] = te[4] * this.halfHeight;
+			di[14] = te[7] * this.halfHeight;
+			// half Depth
+			di[15] = te[2] * this.halfDepth;
+			di[16] = te[5] * this.halfDepth;
+			di[17] = te[8] * this.halfDepth;
 
-	    var te = this.rotation.elements;
-	    var di = this.dimentions;
-	    // Width
-	    di[0] = te[0];
-	    di[1] = te[3];
-	    di[2] = te[6];
-	    // Height
-	    di[3] = te[1];
-	    di[4] = te[4];
-	    di[5] = te[7];
-	    // Depth
-	    di[6] = te[2];
-	    di[7] = te[5];
-	    di[8] = te[8];
-	    // halp Width
-	    di[9] = te[0] * this.halfWidth;
-	    di[10] = te[3] * this.halfWidth;
-	    di[11] = te[6] * this.halfWidth;
-	    // halp Height
-	    di[12] = te[1] * this.halfHeight;
-	    di[13] = te[4] * this.halfHeight;
-	    di[14] = te[7] * this.halfHeight;
-	    // halp Depth
-	    di[15] = te[2] * this.halfDepth;
-	    di[16] = te[5] * this.halfDepth;
-	    di[17] = te[8] * this.halfDepth;
+			var wx = di[9];
+			var wy = di[10];
+			var wz = di[11];
+			var hx = di[12];
+			var hy = di[13];
+			var hz = di[14];
+			var dx = di[15];
+			var dy = di[16];
+			var dz = di[17];
 
-	    var wx = di[9];
-	    var wy = di[10];
-	    var wz = di[11];
-	    var hx = di[12];
-	    var hy = di[13];
-	    var hz = di[14];
-	    var dx = di[15];
-	    var dy = di[16];
-	    var dz = di[17];
+			var x = this.position.x;
+			var y = this.position.y;
+			var z = this.position.z;
 
-	    var x = this.position.x;
-	    var y = this.position.y;
-	    var z = this.position.z;
+			var v = this.elements;
+			//v1
+			v[0] = x + wx + hx + dx;
+			v[1] = y + wy + hy + dy;
+			v[2] = z + wz + hz + dz;
+			//v2
+			v[3] = x + wx + hx - dx;
+			v[4] = y + wy + hy - dy;
+			v[5] = z + wz + hz - dz;
+			//v3
+			v[6] = x + wx - hx + dx;
+			v[7] = y + wy - hy + dy;
+			v[8] = z + wz - hz + dz;
+			//v4
+			v[9] = x + wx - hx - dx;
+			v[10] = y + wy - hy - dy;
+			v[11] = z + wz - hz - dz;
+			//v5
+			v[12] = x - wx + hx + dx;
+			v[13] = y - wy + hy + dy;
+			v[14] = z - wz + hz + dz;
+			//v6
+			v[15] = x - wx + hx - dx;
+			v[16] = y - wy + hy - dy;
+			v[17] = z - wz + hz - dz;
+			//v7
+			v[18] = x - wx - hx + dx;
+			v[19] = y - wy - hy + dy;
+			v[20] = z - wz - hz + dz;
+			//v8
+			v[21] = x - wx - hx - dx;
+			v[22] = y - wy - hy - dy;
+			v[23] = z - wz - hz - dz;
 
-	    var v = this.elements;
-	    //v1
-	    v[0] = x + wx + hx + dx;
-	    v[1] = y + wy + hy + dy;
-	    v[2] = z + wz + hz + dz;
-	    //v2
-	    v[3] = x + wx + hx - dx;
-	    v[4] = y + wy + hy - dy;
-	    v[5] = z + wz + hz - dz;
-	    //v3
-	    v[6] = x + wx - hx + dx;
-	    v[7] = y + wy - hy + dy;
-	    v[8] = z + wz - hz + dz;
-	    //v4
-	    v[9] = x + wx - hx - dx;
-	    v[10] = y + wy - hy - dy;
-	    v[11] = z + wz - hz - dz;
-	    //v5
-	    v[12] = x - wx + hx + dx;
-	    v[13] = y - wy + hy + dy;
-	    v[14] = z - wz + hz + dz;
-	    //v6
-	    v[15] = x - wx + hx - dx;
-	    v[16] = y - wy + hy - dy;
-	    v[17] = z - wz + hz - dz;
-	    //v7
-	    v[18] = x - wx - hx + dx;
-	    v[19] = y - wy - hy + dy;
-	    v[20] = z - wz - hz + dz;
-	    //v8
-	    v[21] = x - wx - hx - dx;
-	    v[22] = y - wy - hy - dy;
-	    v[23] = z - wz - hz - dz;
+			var w = di[9] < 0 ? -di[9] : di[9];
+			var h = di[10] < 0 ? -di[10] : di[10];
+			var d = di[11] < 0 ? -di[11] : di[11];
 
-	    var w = di[9] < 0 ? -di[9] : di[9];
-	    var h = di[10] < 0 ? -di[10] : di[10];
-	    var d = di[11] < 0 ? -di[11] : di[11];
+			w = di[12] < 0 ? w - di[12] : w + di[12];
+			h = di[13] < 0 ? h - di[13] : h + di[13];
+			d = di[14] < 0 ? d - di[14] : d + di[14];
 
-	    w = di[12] < 0 ? w - di[12] : w + di[12];
-	    h = di[13] < 0 ? h - di[13] : h + di[13];
-	    d = di[14] < 0 ? d - di[14] : d + di[14];
+			w = di[15] < 0 ? w - di[15] : w + di[15];
+			h = di[16] < 0 ? h - di[16] : h + di[16];
+			d = di[17] < 0 ? d - di[17] : d + di[17];
 
-	    w = di[15] < 0 ? w - di[15] : w + di[15];
-	    h = di[16] < 0 ? h - di[16] : h + di[16];
-	    d = di[17] < 0 ? d - di[17] : d + di[17];
+			var p = AABB_PROX;
 
-	    var p = AABB_PROX;
+			this.aabb.set(
+				this.position.x - w - p, this.position.x + w + p,
+				this.position.y - h - p, this.position.y + h + p,
+				this.position.z - d - p, this.position.z + d + p
+			);
 
-	    this.aabb.set(
-	        this.position.x - w - p, this.position.x + w + p,
-	        this.position.y - h - p, this.position.y + h + p,
-	        this.position.z - d - p, this.position.z + d + p
-	    );
+			if ( this.proxy != null ) this.proxy.update();
 
-	    if ( this.proxy != null ) this.proxy.update();
+		}
+	});
 
-	};
-
+	/**
+	 * A sphere shape.
+	 *
+	 * @class SphereShape
+	 * @constructor
+	 * @extends Shape
+	 * @author saharan
+	 * @author lo-th
+	 */
 	function SphereShape( config, radius ) {
 
 	    Shape.call( this, config );
@@ -1796,7 +1840,7 @@
 	    /**
 	     * The radius of the shape.
 	     *
-	     * @property radius
+	     * @name SphereShape#radius
 	     * @type {Number}
 	     */
 	    this.radius = radius;
@@ -1804,31 +1848,45 @@
 	}
 
 	SphereShape.prototype = Object.create( Shape.prototype );
-	SphereShape.prototype.constructor = SphereShape;
+	Object.assign(SphereShape.prototype,
 
-	SphereShape.prototype.calculateMassInfo = function ( out ) {
+	/** @lends SphereShape.prototype */
+	{
+		constructor: SphereShape,
 
-	    var mass = 1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
-	    out.mass = mass;
-	    var inertia = mass * this.radius * this.radius * 0.4;
-	    out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+		calculateMassInfo: function ( out ) {
 
-	};
+			var mass = 1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
+			out.mass = mass;
+			var inertia = mass * this.radius * this.radius * 0.4;
+			out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
 
-	SphereShape.prototype.updateProxy = function () {
+		},
 
-	    var p = AABB_PROX;
+		updateProxy: function () {
 
-	    this.aabb.set(
-	        this.position.x - this.radius - p, this.position.x + this.radius + p,
-	        this.position.y - this.radius - p, this.position.y + this.radius + p,
-	        this.position.z - this.radius - p, this.position.z + this.radius + p
-	    );
+			var p = AABB_PROX;
 
-	    if ( this.proxy != null ) this.proxy.update();
+			this.aabb.set(
+				this.position.x - this.radius - p, this.position.x + this.radius + p,
+				this.position.y - this.radius - p, this.position.y + this.radius + p,
+				this.position.z - this.radius - p, this.position.z + this.radius + p
+			);
 
-	};
+			if ( this.proxy != null ) this.proxy.update();
 
+		}
+	});
+
+	/**
+	 * A cylinder shape.
+	 *
+	 * @class CylinderShape
+	 * @constructor
+	 * @extends Shape
+	 * @author saharan
+	 * @author lo-th
+	 */
 	function CylinderShape( config, radius, height ) {
 
 	    Shape.call( this, config );
@@ -1903,6 +1961,15 @@
 
 	};
 
+	/**
+	 * A shape configuration holds common configuration data for constructing a shape.
+	 * These configurations can be reused safely.
+	 *
+	 * @class ShapeConfig
+	 * @constructor
+	 * @author saharan
+	 * @author lo-th
+	 */
 	function ShapeConfig(){
 
 	    /**
@@ -1994,6 +2061,13 @@
 	    }
 	};
 
+	/**
+	 * The base class of all type of the constraints.
+	 *
+	 * @class Constraint
+	 * @author saharan
+	 * @author lo-th
+	 */
 	function Constraint(){
 
 	    /**
@@ -2033,7 +2107,7 @@
 	     * @return any
 	     */
 	    preSolve: function( timeStep, invTimeStep ){
-	        printError$1("Constraint", "Inheritance error.");
+	        printError("Constraint", "Inheritance error.");
 	    },
 
 	    /**
@@ -2044,7 +2118,7 @@
 	     * @return any
 	     */
 	    solve: function(){
-	        printError$1("Constraint", "Inheritance error.");
+	        printError("Constraint", "Inheritance error.");
 	    },
 
 	    /**
@@ -2054,7 +2128,7 @@
 	     * @return any
 	     */
 	    postSolve: function(){
-	        printError$1("Constraint", "Inheritance error.");
+	        printError("Constraint", "Inheritance error.");
 	    }
 	});
 
@@ -2070,6 +2144,14 @@
 	    this.joint = joint;
 
 	}
+
+	//import { Mat44 } from '../../math/Mat44';
+
+	/**
+	 * Joints are used to constrain the motion between two rigid bodies.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function Joint ( config ){
 
@@ -2240,25 +2322,10 @@
 
 	};
 
-	/*Joint.prototype.getMatrix = function () {
-
-	    var m = this.matrix.elements;
-	    var p1 = this.anchorPoint1;
-	    var p2 = this.anchorPoint2;
-	    m[0] = p1.x * this.scale;
-	    m[1] = p1.y * this.scale;
-	    m[2] = p1.z * this.scale;
-	    m[3] = 0;
-
-	    m[4] = p2.x * this.scale;
-	    m[5] = p2.y * this.scale;
-	    m[6] = p2.z * this.scale;
-	    m[7] = 0;
-
-	    return m;
-
-	};*/
-
+	/**
+	* A linear constraint for all axes for various joints.
+	* @author saharan
+	*/
 	function LinearConstraint ( joint ){
 
 	    this.m1=NaN;
@@ -3068,6 +3135,12 @@
 	    
 	} );
 
+	/**
+	 * A hinge joint allows only for relative rotation of rigid bodies along the axis.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
 	    Joint.call( this, config);
@@ -3177,6 +3250,12 @@
 
 	HingeJoint.prototype.postSolve = function () {
 	};
+
+	/**
+	 * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function BallAndSocketJoint ( config ){
 
@@ -3491,6 +3570,12 @@
 	    }
 	} );
 
+	/**
+	 * A distance joint limits the distance between two anchor points on rigid bodies.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function DistanceJoint ( config, minDistance, maxDistance ){
 
 	    Joint.call( this, config );
@@ -3537,6 +3622,11 @@
 
 	DistanceJoint.prototype.postSolve = function () {
 	};
+
+	/**
+	* An angular constraint for all axes for various joints.
+	* @author saharan
+	*/
 
 	function AngularConstraint( joint, targetOrientation ) {
 
@@ -4327,6 +4417,12 @@
 	    
 	} );
 
+	/**
+	 * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
 	    Joint.call( this, config );
@@ -4411,6 +4507,12 @@
 
 	PrismaticJoint.prototype.postSolve = function () {
 	};
+
+	/**
+	 * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4545,6 +4647,13 @@
 
 	SliderJoint.prototype.postSolve = function () {
 	};
+
+	/**
+	 * A wheel joint allows for relative rotation between two rigid bodies along two axes.
+	 * The wheel joint also allows for relative translation for the suspension.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function WheelJoint ( config ){
 
@@ -4723,6 +4832,14 @@
 
 	}
 
+	/**
+	 * This class holds mass information of a shape.
+	 *
+	 * @class MassInfo
+	 * @constructor
+	 * @author lo-th
+	 * @author saharan
+	 */
 	function MassInfo (){
 
 	    /**
@@ -4774,6 +4891,11 @@
 
 	}
 
+	/**
+	* The class holds details of the contact point.
+	* @author saharan
+	*/
+
 	function ManifoldPoint(){
 
 	    // Whether this manifold point is persisting or not.
@@ -4806,6 +4928,11 @@
 	    this.penetration = 0;
 
 	}
+
+	/**
+	* A contact manifold between two shapes.
+	* @author saharan
+	*/
 
 	function ContactManifold () {
 
@@ -5005,6 +5132,10 @@
 
 	}
 
+	/**
+	* ...
+	* @author saharan
+	*/
 	function ContactConstraint ( manifold ){
 	    
 	    Constraint.call( this );
@@ -5459,6 +5590,11 @@
 	    }
 	};
 
+	/**
+	* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
+	* @author saharan
+	*/
+
 	function Contact(){
 
 	    // The first shape.
@@ -5713,6 +5849,16 @@
 
 	} );
 
+	//import { TetraShape } from '../collision/shape/TetraShape';
+
+	/**
+	* The class of rigid body.
+	* Rigid body has the shape of a single or multiple collision processing,
+	* I can set the parameters individually.
+	* @author saharan
+	* @author lo-th
+	*/
+
 	function RigidBody ( Position, Rotation, scale, invScale ) {
 
 	    this.position = Position || new Vec3();
@@ -5820,7 +5966,7 @@
 	    addShape:function(shape){
 
 	        if(shape.parent){
-				printError$1("RigidBody", "It is not possible that you add a shape which already has an associated body.");
+				printError("RigidBody", "It is not possible that you add a shape which already has an associated body.");
 			}
 
 	        if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
@@ -6169,140 +6315,6 @@
 
 	} );
 
-	function InfoDisplay$1(world){
-
-		/**
-		 * The world it belongs to.
-		 *
-		 * @property parent
-		 * @type World
-		 */
-	    this.parent = world;
-
-	    this.infos = new Float32Array( 13 );
-	    this.f = [0,0,0];
-
-	    this.times = [0,0,0,0];
-
-	    this.broadPhase = this.parent.broadPhaseType;
-
-	    this.version = REVISION;
-
-	    this.fps = 0;
-
-	    this.tt = 0;
-
-	    this.broadPhaseTime = 0;
-	    this.narrowPhaseTime = 0;
-	    this.solvingTime = 0;
-	    this.totalTime = 0;
-	    this.updateTime = 0;
-
-	    this.MaxBroadPhaseTime = 0;
-	    this.MaxNarrowPhaseTime = 0;
-	    this.MaxSolvingTime = 0;
-	    this.MaxTotalTime = 0;
-	    this.MaxUpdateTime = 0;
-	}
-
-	Object.assign(InfoDisplay$1.prototype, {
-
-	    setTime: function(n){
-	        this.times[ n || 0 ] = performance.now();
-	    },
-
-	    resetMax: function(){
-
-	        this.MaxBroadPhaseTime = 0;
-	        this.MaxNarrowPhaseTime = 0;
-	        this.MaxSolvingTime = 0;
-	        this.MaxTotalTime = 0;
-	        this.MaxUpdateTime = 0;
-
-	    },
-
-	    calcBroadPhase: function () {
-
-	        this.setTime( 2 );
-	        this.broadPhaseTime = this.times[ 2 ] - this.times[ 1 ];
-
-	    },
-
-	    calcNarrowPhase: function () {
-
-	        this.setTime( 3 );
-	        this.narrowPhaseTime = this.times[ 3 ] - this.times[ 2 ];
-
-	    },
-
-	    calcEnd: function () {
-
-	        this.setTime( 2 );
-	        this.solvingTime = this.times[ 2 ] - this.times[ 1 ];
-	        this.totalTime = this.times[ 2 ] - this.times[ 0 ];
-	        this.updateTime = this.totalTime - ( this.broadPhaseTime + this.narrowPhaseTime + this.solvingTime );
-
-	        if( this.tt === 100 ) this.resetMax();
-
-	        if( this.tt > 100 ){
-	            if( this.broadPhaseTime > this.MaxBroadPhaseTime ) this.MaxBroadPhaseTime = this.broadPhaseTime;
-	            if( this.narrowPhaseTime > this.MaxNarrowPhaseTime ) this.MaxNarrowPhaseTime = this.narrowPhaseTime;
-	            if( this.solvingTime > this.MaxSolvingTime ) this.MaxSolvingTime = this.solvingTime;
-	            if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
-	            if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
-	        }
-
-
-	        this.upfps();
-
-	        this.tt ++;
-	        if(this.tt > 500) this.tt = 0;
-
-	    },
-
-
-	    upfps : function(){
-	        this.f[1] = Date.now();
-	        if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
-	    },
-
-	    show: function(){
-	        var info =[
-	            "Oimo.js "+this.version+"<br>",
-	            this.broadPhase + "<br><br>",
-	            "FPS: " + this.fps +" fps<br><br>",
-	            "rigidbody "+this.parent.numRigidBodies+"<br>",
-	            "contact &nbsp;&nbsp;"+this.parent.numContacts+"<br>",
-	            "ct-point &nbsp;"+this.parent.numContactPoints+"<br>",
-	            "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
-	            "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
-	            "Time in milliseconds<br><br>",
-	            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
-	            "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
-	            "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
-	            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime) + " | " + _Math.fix(this.MaxTotalTime) + "<br>",
-	            "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
-	        ].join("\n");
-	        return info;
-	    },
-
-	    toArray: function(){
-	        this.infos[0] = this.parent.broadPhase.types;
-	        this.infos[1] = this.parent.numRigidBodies;
-	        this.infos[2] = this.parent.numContacts;
-	        this.infos[3] = this.parent.broadPhase.numPairChecks;
-	        this.infos[4] = this.parent.numContactPoints;
-	        this.infos[5] = this.parent.numIslands;
-	        this.infos[6] = this.broadPhaseTime;
-	        this.infos[7] = this.narrowPhaseTime;
-	        this.infos[8] = this.solvingTime;
-	        this.infos[9] = this.updateTime;
-	        this.infos[10] = this.totalTime;
-	        this.infos[11] = this.fps;
-	        return this.infos;
-	    }
-	});
-
 	/**
 	* A pair of shapes that may collide.
 	* @author saharan
@@ -6316,7 +6328,11 @@
 
 	}
 
-	function BroadPhase(){
+	/**
+	* The broad-phase is used for collecting all possible pairs for collision.
+	*/
+
+	 function BroadPhase(){
 
 	    this.types = BR_NULL;
 	    this.numPairChecks = 0;
@@ -6463,6 +6479,11 @@
 	    }
 	});
 
+	/**
+	* A basic implementation of proxies.
+	* @author saharan
+	*/
+
 	function BasicProxy ( shape ) {
 
 	    Proxy.call( this, shape );
@@ -6478,6 +6499,10 @@
 
 	};
 
+	/**
+	* A broad-phase algorithm with brute-force search.
+	* This always checks for all possible pairs.
+	*/
 	function BruteForceBroadPhase(){
 
 	    BroadPhase.call( this );
@@ -6524,7 +6549,7 @@
 	        this.proxies.splice( n, 1 );
 	        //this.numProxies--;
 	    }
-	    
+
 	    /*var i = this.numProxies;
 	    while(i--){
 	    //for(var i=0, l=this.numProxies;i<l;i++){
@@ -6538,7 +6563,7 @@
 	};
 
 	BruteForceBroadPhase.prototype.collectPairs = function () {
-	    
+
 	    var i = 0, j, p1, p2;
 
 	    var px = this.proxies;
@@ -6558,14 +6583,19 @@
 	    while( i < l ){
 	        p1 = px[i++];
 	        j = i + 1;
-	        while( j < l ){ 
+	        while( j < l ){
 	            p2 = px[j++];
 	            if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
-	            this.addPair( p1.shape, p2.shape );        
-	        }     
+	            this.addPair( p1.shape, p2.shape );
+	        }
 	    }
 
 	};
+
+	/**
+	 * A projection axis for sweep and prune broad-phase.
+	 * @author saharan
+	 */
 
 	function SAPAxis (){
 
@@ -6758,6 +6788,12 @@
 
 	}
 
+	/**
+	 * A proxy for sweep and prune broad-phase.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SAPProxy ( sap, shape ){
 
 	    Proxy.call( this, shape );
@@ -6821,6 +6857,12 @@
 	    }
 
 	};
+
+	/**
+	 * A broad-phase collision detection algorithm using sweep and prune.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SAPBroadPhase () {
 
@@ -7023,6 +7065,10 @@
 	    
 	};
 
+	/**
+	* A node of the dynamic bounding volume tree.
+	* @author saharan
+	*/
 	function DBVTNode(){
 	    
 		// The first child node of this node.
@@ -7039,6 +7085,12 @@
 	    this.aabb = new AABB();
 
 	}
+
+	/**
+	 * A dynamic bounding volume tree for the broad-phase algorithm.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVT(){
 
@@ -7407,6 +7459,10 @@
 	    
 	} );
 
+	/**
+	* A proxy for dynamic bounding volume tree broad-phase.
+	* @author saharan
+	*/
 	function DBVTProxy ( shape ) {
 
 	    Proxy.call( this, shape);
@@ -7422,6 +7478,12 @@
 	DBVTProxy.prototype.update = function () {
 	    
 	};
+
+	/**
+	 * A broad-phase algorithm using dynamic bounding volume tree.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVTBroadPhase(){
 
@@ -7557,6 +7619,10 @@
 
 	} );
 
+	/**
+	 * A collision detector which detects collisions between two boxes.
+	 * @author saharan
+	 */
 	function BoxBoxCollisionDetector() {
 
 	    CollisionDetector.call( this );
@@ -10788,6 +10854,10 @@
 
 	};
 
+	/**
+	 * A collision detector which detects collisions between sphere and box.
+	 * @author saharan
+	 */
 	function SphereBoxCollisionDetector ( flip ) {
 	    
 	    CollisionDetector.call( this );
@@ -11034,6 +11104,10 @@
 
 	};
 
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan
+	 */
 	function SphereSphereCollisionDetector (){
 
 	    CollisionDetector.call( this );
@@ -11975,7 +12049,7 @@
 	exports.JOINT_SLIDER = JOINT_SLIDER;
 	exports.JOINT_PRISMATIC = JOINT_PRISMATIC;
 	exports.AABB_PROX = AABB_PROX;
-	exports.printError = printError$1;
+	exports.printError = printError;
 	exports.InfoDisplay = InfoDisplay;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

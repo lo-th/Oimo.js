@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Index</title>
+    <title>Class: BoxShape</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -410,90 +410,1387 @@
     </ul>
 </div>
     <div class="main">
-        <h1 class="page-title" data-filename="index.html">Index</h1>
+        <h1 class="page-title" data-filename="BoxShape.html">Class: BoxShape</h1>
         
 
 
+
+<section>
+    
+<header>
+    <h2>
+    BoxShape
+    </h2>
+    
+        <div class="class-description">BoxShape</div>
+    
+</header>  
+
+<article>
+    <div class="container-overview">
+    
+    
+    
+        
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="BoxShape">
+            
+            new BoxShape<span class="signature">()</span>
+        </h4>
+    
+        
+        <div class="tag-source">
+            collision/shape/BoxShape.js, line 13
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        A box shape.
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>saharan</li>
+        
+            <li>lo-th</li>
+        </ul>
+    </dd>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+    
+    </div>
+    
+    
+        <h3 class="subsection-title">Extends</h3>
+        
+        <ul>
+            <li><a href="Shape.html">Shape</a></li>
+        </ul>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Members</h3>
+        
+        <dl>
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="aabb">aabb<span class="type-signature type aabb"><a href="global.html#AABB">AABB</a></span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The axis-aligned bounding box of the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="belongsTo">belongsTo<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The bits of the collision groups to which the shape belongs.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="collidesWith">collidesWith<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The bits of the collision groups with which the shape collides.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="contactLink">contactLink<span class="type-signature type contactlink"><a href="global.html#ContactLink">ContactLink</a></span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The linked list of the contacts with the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="density">density<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The density of the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="depth">depth<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The depth of the box.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="friction">friction<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The coefficient of friction of the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="halfDepth">halfDepth<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The half-depth of the box.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="halfHeight">halfHeight<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The half-height of the box.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="halfWidth">halfWidth<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The half-width of the box.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="height">height<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The height of the box.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="id">id<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The global identification of the shape should be unique to the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="next">next<span class="type-signature type shape"><a href="Shape.html">Shape</a></span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The next shape in parent rigid body. Usedfor fast interations.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="numContacts">numContacts<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The number of the contacts with the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="parent">parent<span class="type-signature type rigidbody"><a href="global.html#RigidBody">RigidBody</a></span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The parent rigid body of the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="position">position<span class="type-signature type vec3">Vec3</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The center of gravity of the shape in world coordinate system.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="prev">prev<span class="type-signature type shape"><a href="Shape.html">Shape</a></span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The previous shape in parent rigid body. Usedfor fast interations.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="proxy">proxy<span class="type-signature type proxy"><a href="Proxy.html">Proxy</a></span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The proxy of the shape used for broad-phase collision detection.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="relativePosition">relativePosition<span class="type-signature type vec3">Vec3</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The position of the shape in parent's coordinate system.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="relativeRotation">relativeRotation<span class="type-signature type mat33">Mat33</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The rotation matrix of the shape in parent's coordinate system.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="restitution">restitution<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The coefficient of restitution of the shape.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="rotation">rotation<span class="type-signature type mat33">Mat33</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The rotation matrix of the shape in world coordinate system.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="width">width<span class="type-signature type number">Number</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        The width of the box.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        </dl>
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
+<dt>
+    <div class="nameContainer inherited">
+        <h4 class="name" id="calculateMassInfo">
+            
+                <span class="inherited"><a href="Shape.html#calculateMassInfo">inherited</a></span>
+            
+            calculateMassInfo<span class="signature">(out)</span>
+        </h4>
+    
+        
+        <div class="tag-source">
+            collision/shape/Shape.js, line 174
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Calculate the mass information of the shape.
+    </div>
+    
+
+    
+    
+    
+    
+    
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>out</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Mat33</span>
+
+
+            
+            </td>
+            
+            
+            
+            <td class="description last">
+                
+                Output object for calculations.</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
     
 
 
-    <h3> </h3>
+
+void
 
 
+    
+    
+    
+</dd>
 
+        
+            
+<dt>
+    <div class="nameContainer inherited">
+        <h4 class="name" id="updateProxy">
+            
+                <span class="inherited"><a href="Shape.html#updateProxy">inherited</a></span>
+            
+            updateProxy<span class="signature">()</span>
+        </h4>
+    
+        
+        <div class="tag-source">
+            collision/shape/Shape.js, line 183
+        </div>
+        
+    </div>
 
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Update the proxy of the shape.
+    </div>
+    
 
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
 
+    
+    
 
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
     
 
 
 
-
-    <section>
-        <article class="readme"><p align="center"><a target="_blank" href="http://lo-th.github.io/Oimo.js/"><img src="http://lo-th.github.io/Oimo.js/examples/assets/img/logo.png"/></a><br>
-Oimo.js is a lightweight 3d physics engine for JavaScript.<br>
-It's a full javascript conversion of <a target="_blank" href="https://github.com/saharan/OimoPhysics/">OimoPhysics</a><br>
-Originally created by <a target="_blank" href="http://el-ement.com/blog/">Saharan</a> for actionscript 3.0.
-</p>
-
-<h3>Home</h3><ul>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/index.html">oimo.js</a> (in progress)</li>
-</ul>
-<h3>Demo</h3><ul>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_basic.html">Basic test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_compound.html">Compound test (chair)</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_compound2.html">Compound test (capsule)</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_ragdoll.html">Ragdoll test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_collision.html">Collision test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_moving.html">Moving test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_terrain.html">Terrain test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_vehicle.html">Car test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_walker.html">Walker test</a></li>
-<li><a target="_blank" href="http://lo-th.github.io/Oimo.js/examples/test_worker.html">Worker test</a></li>
-</ul>
-<h3>Usage</h3><p>Download the <a target="_blank" href="http://lo-th.github.io/Oimo.js/build/oimo.min.js">minified library</a> and include it in your HTML.<br>
-Alternatively, use <strong>Node</strong> and install the <a target="_blank" href="https://www.npmjs.com/package/oimo">package</a>: <code>npm install oimo</code></p>
-<pre class="prettyprint source lang-html"><code>&lt;script src=&quot;js/oimo.min.js&quot;>&lt;/script></code></pre><p>Create physics world:</p>
-<pre class="prettyprint source lang-javascript"><code>world = new OIMO.World({ 
-    timestep: 1/60, 
-    iterations: 8, 
-    broadphase: 2, // 1 brute force, 2 sweep and prune, 3 volume tree
-    worldscale: 1, // scale full world 
-    random: true,  // randomize sample
-    info: false,   // calculate statistic or not
-    gravity: [0,-9.8,0] 
-});</code></pre><p>Add physics object or joint</p>
-<pre class="prettyprint source lang-javascript"><code>var body = world.add({ 
-    type:'sphere', // type of shape : sphere, box, cylinder 
-    size:[1,1,1], // size of shape
-    pos:[0,0,0], // start position in degree
-    rot:[0,0,90], // start rotation in degree
-    move:true, // dynamic or statique
-    density: 1,
-    friction: 0.2,
-    restitution: 0.2,
-    belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-    collidesWith: 0xffffffff; // The bits of the collision groups with which the shape collides.
-});
-
-var body = world.add({ 
-    type:'jointHinge', // type of joint : jointDistance, jointHinge, jointPrisme, jointSlide, jointWheel
-    body1: &quot;b1&quot;, // name or id of attach rigidbody
-    body2: &quot;b1&quot;, // name or id of attach rigidbody
-});
+void
 
 
-// update world
-world.step();
+    
+    
+    
+</dd>
 
-// and copy position and rotation to three mesh
-myMesh.position.copy( body.getPosition() );
-myMesh.quaternion.copy( body.getQuaternion() );</code></pre><h3>Note</h3><p>Oimo Physics uses international system units: 0.1 to 10 meters max for dynamic body.<br>
-In basic demo with THREE, I scaled all by 100 so objects are between 10 to 1000 in THREE units.<br></p></article>
-    </section>
+        </dl>
+    
+    
+    
+    
+    
+</article>
 
+</section>  
 
 
 

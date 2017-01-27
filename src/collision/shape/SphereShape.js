@@ -20,7 +20,7 @@ function SphereShape( config, radius ) {
     /**
      * The radius of the shape.
      *
-     * @property radius
+     * @name SphereShape#radius
      * @type {Number}
      */
     this.radius = radius;
@@ -28,29 +28,34 @@ function SphereShape( config, radius ) {
 };
 
 SphereShape.prototype = Object.create( Shape.prototype );
-SphereShape.prototype.constructor = SphereShape;
+Object.assign(SphereShape.prototype,
 
-SphereShape.prototype.calculateMassInfo = function ( out ) {
+/** @lends SphereShape.prototype */
+{
+	constructor: SphereShape,
 
-    var mass = 1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
-    out.mass = mass;
-    var inertia = mass * this.radius * this.radius * 0.4;
-    out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+	calculateMassInfo: function ( out ) {
 
-};
+		var mass = 1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
+		out.mass = mass;
+		var inertia = mass * this.radius * this.radius * 0.4;
+		out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
 
-SphereShape.prototype.updateProxy = function () {
+	},
 
-    var p = AABB_PROX;
+	updateProxy: function () {
 
-    this.aabb.set(
-        this.position.x - this.radius - p, this.position.x + this.radius + p,
-        this.position.y - this.radius - p, this.position.y + this.radius + p,
-        this.position.z - this.radius - p, this.position.z + this.radius + p
-    );
+		var p = AABB_PROX;
 
-    if ( this.proxy != null ) this.proxy.update();
+		this.aabb.set(
+			this.position.x - this.radius - p, this.position.x + this.radius + p,
+			this.position.y - this.radius - p, this.position.y + this.radius + p,
+			this.position.z - this.radius - p, this.position.z + this.radius + p
+		);
 
-};
+		if ( this.proxy != null ) this.proxy.update();
+
+	}
+});
 
 export { SphereShape };

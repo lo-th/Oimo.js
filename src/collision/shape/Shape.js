@@ -23,7 +23,7 @@ function Shape(config){
     /**
      * The global identification of the shape should be unique to the shape.
      *
-     * @property id
+     * @name Shape#id
      * @type {Number}
      */
     this.id = ShapeIdCount();
@@ -32,7 +32,7 @@ function Shape(config){
      * The previous shape in parent rigid body. Used
      * for fast interations.
      *
-     * @property prev
+     * @name Shape#prev
      * @type {Shape}
      */
     this.prev = null;
@@ -41,7 +41,7 @@ function Shape(config){
      * The next shape in parent rigid body. Used
      * for fast interations.
      *
-     * @property next
+     * @name Shape#next
      * @type {Shape}
      */
     this.next = null;
@@ -49,7 +49,7 @@ function Shape(config){
     /**
      * The proxy of the shape used for broad-phase collision detection.
      *
-     * @property proxy
+     * @name Shape#proxy
      * @type {Proxy}
      */
     this.proxy = null;
@@ -57,7 +57,7 @@ function Shape(config){
     /**
      * The parent rigid body of the shape.
      *
-     * @property parent
+     * @name Shape#parent
      * @type {RigidBody}
      */
     this.parent = null;
@@ -65,7 +65,7 @@ function Shape(config){
     /**
      * The linked list of the contacts with the shape.
      *
-     * @property contactLink
+     * @name Shape#contactLink
      * @type {ContactLink}
      */
     this.contactLink = null;
@@ -73,7 +73,7 @@ function Shape(config){
     /**
      * The number of the contacts with the shape.
      *
-     * @property numContacts
+     * @name Shape#numContacts
      * @type {Number}
      */
     this.numContacts = 0;
@@ -81,7 +81,7 @@ function Shape(config){
     /**
      * The center of gravity of the shape in world coordinate system.
      *
-     * @property position
+     * @name Shape#position
      * @type {Vec3}
      */
     this.position = new Vec3();
@@ -89,7 +89,7 @@ function Shape(config){
     /**
      * The rotation matrix of the shape in world coordinate system.
      *
-     * @property rotation
+     * @name Shape#rotation
      * @type {Mat33}
      */
     this.rotation = new Mat33();
@@ -97,7 +97,7 @@ function Shape(config){
     /**
      * The position of the shape in parent's coordinate system.
      *
-     * @property relativePosition
+     * @name Shape#relativePosition
      * @type {Vec3}
      */
     this.relativePosition = new Vec3().copy(config.relativePosition);
@@ -105,7 +105,7 @@ function Shape(config){
     /**
      * The rotation matrix of the shape in parent's coordinate system.
      *
-     * @property relativeRotation
+     * @name Shape#relativeRotation
      * @type {Mat33}
      */
     this.relativeRotation = new Mat33().copy(config.relativeRotation);
@@ -113,7 +113,7 @@ function Shape(config){
     /**
      * The axis-aligned bounding box of the shape.
      *
-     * @property aabb
+     * @name Shape#aabb
      * @type {AABB}
      */
     this.aabb = new AABB();
@@ -121,7 +121,7 @@ function Shape(config){
     /**
      * The density of the shape.
      *
-     * @property density
+     * @name Shape#density
      * @type {Number}
      */
     this.density = config.density;
@@ -129,7 +129,7 @@ function Shape(config){
     /**
      * The coefficient of friction of the shape.
      *
-     * @property friction
+     * @name Shape#friction
      * @type {Number}
      */
     this.friction = config.friction;
@@ -137,7 +137,7 @@ function Shape(config){
     /**
      * The coefficient of restitution of the shape.
      *
-     * @property restitution
+     * @name Shape#restitution
      * @type {Number}
      */
     this.restitution = config.restitution;
@@ -145,7 +145,7 @@ function Shape(config){
     /**
      * The bits of the collision groups to which the shape belongs.
      *
-     * @property belongsTo
+     * @name Shape#belongsTo
      * @type {Number}
      */
     this.belongsTo = config.belongsTo;
@@ -153,21 +153,22 @@ function Shape(config){
     /**
      * The bits of the collision groups with which the shape collides.
      *
-     * @property collidesWith
+     * @name Shape#collidesWith
      * @type {Number}
      */
     this.collidesWith = config.collidesWith;
 
 };
 
-Object.assign(Shape.prototype, {
+Object.assign(Shape.prototype,
 
-    Shape: true,
+/** @lends Shape.prototype */
+{
 
     /**
      * Calculate the mass information of the shape.
      *
-     * @method calculateMassInfo
+     * @param {Mat33} out - Output object for calculations.
      * @return void
      */
     calculateMassInfo: function(out){
@@ -177,7 +178,6 @@ Object.assign(Shape.prototype, {
     /**
      * Update the proxy of the shape.
      *
-     * @method updateProxy
      * @return void
      */
     updateProxy: function(){

@@ -1,5 +1,5 @@
 <p align="center"><a href="http://lo-th.github.io/Oimo.js/"><img src="http://lo-th.github.io/Oimo.js/examples/assets/img/logo.png"/></a><br>
-Oimo.js is a lightweight 3d physics engine for javascript.<br>
+Oimo.js is a lightweight 3d physics engine for JavaScript.<br>
 It's a full javascript conversion of <a href="https://github.com/saharan/OimoPhysics/">OimoPhysics</a><br>
 Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for actionscript 3.0.
 </p>
@@ -21,19 +21,16 @@ Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for action
 - [Walker test](http://lo-th.github.io/Oimo.js/examples/test_walker.html)
 - [Worker test](http://lo-th.github.io/Oimo.js/examples/test_worker.html)
 
-## Documentation ###
-In progress: http://lo-th.github.io/Oimo.js/docs/index.html
-
 ### Usage ###
 
-Download the [minified library](http://lo-th.github.io/Oimo.js/build/three.min.js) and include it in your html.
-or use node and install [package](https://www.npmjs.com/package/oimo) : npm install oimo
+Download the [minified library](http://lo-th.github.io/Oimo.js/build/oimo.min.js) and include it in your HTML.<br>
+Alternatively, use **Node** and install the [package](https://www.npmjs.com/package/oimo): `npm install oimo`
 
 ```html
 <script src="js/oimo.min.js"></script>
 ```
 
-Create physics world
+Create physics world:
 
 ```javascript
 world = new OIMO.World({ 
@@ -80,5 +77,5 @@ myMesh.quaternion.copy( body.getQuaternion() );
 
 ### Note ###
 
-Oimo Physics uses international system units 0.1 to 10 meters max for dynamic body.<br>
-In basic demo with three.js, i scale all by 100 so object is between 10 to 1000 three unit.<br>
+Oimo Physics uses international system units: 0.1 to 10 meters max for dynamic body.<br>
+In basic demo with THREE, I scaled all by 100 so objects are between 10 to 1000 in THREE units.<br>
