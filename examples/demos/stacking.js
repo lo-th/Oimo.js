@@ -9,7 +9,7 @@ function demo() {
         iterations: 8, 
         broadphase: 2, // 1: brute force, 2: sweep & prune, 3: volume tree
         worldscale: 1, 
-        random: true, 
+        random: false, 
         info:true, // display statistique
     });
 

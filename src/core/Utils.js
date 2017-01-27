@@ -19,8 +19,8 @@ function Performance ( world ){
 
     this.times = [0,0,0,0];
 
-    this.types = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
-    this.broadPhase = this.types[ this.parent.broadPhase.types ];
+    //this.types = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
+    this.broadPhase = this.parent.broadPhaseType;//this.types[ this.parent.broadPhase.types ];
 
     this.version = REVISION;
 

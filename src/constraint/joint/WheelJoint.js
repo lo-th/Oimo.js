@@ -150,9 +150,9 @@ WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     by*=tmp1X;
     bz*=tmp1X;
 
-    this.nor.init(nx,ny,nz);
-    this.tan.init(tx,ty,tz);
-    this.bin.init(bx,by,bz);
+    this.nor.set(nx,ny,nz);
+    this.tan.set(tx,ty,tz);
+    this.bin.set(bx,by,bz);
     
     this.r3.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);

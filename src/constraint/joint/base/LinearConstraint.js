@@ -128,7 +128,7 @@ Object.assign( LinearConstraint.prototype, {
 
         var rxx = this.m1+this.m2;
 
-        var kk = new Mat33( rxx, 0, 0,  0, rxx, 0,  0, 0, rxx );
+        var kk = new Mat33().set( rxx, 0, 0,  0, rxx, 0,  0, 0, rxx );
         var k = kk.elements;
 
         k[0] += ii1[4]*this.r1z*this.r1z-(ii1[7]+ii1[5])*this.r1y*this.r1z+ii1[8]*this.r1y*this.r1y;
@@ -152,7 +152,7 @@ Object.assign( LinearConstraint.prototype, {
         k[8] += ii2[0]*this.r2y*this.r2y-(ii2[3]+ii2[1])*this.r2x*this.r2y+ii2[4]*this.r2x*this.r2x;
 
         var inv=1/( k[0]*(k[4]*k[8]-k[7]*k[5]) + k[3]*(k[7]*k[2]-k[1]*k[8]) + k[6]*(k[1]*k[5]-k[4]*k[2]) );
-        this.dd = new Mat33(
+        this.dd = new Mat33().set(
             k[4]*k[8]-k[5]*k[7], k[2]*k[7]-k[1]*k[8], k[1]*k[5]-k[2]*k[4],
             k[5]*k[6]-k[3]*k[8], k[0]*k[8]-k[2]*k[6], k[2]*k[3]-k[0]*k[5],
             k[3]*k[7]-k[4]*k[6], k[1]*k[6]-k[0]*k[7], k[0]*k[4]-k[1]*k[3]

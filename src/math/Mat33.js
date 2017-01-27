@@ -4,13 +4,17 @@ import { Quat } from './Quat';
 
 function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
-    this.elements = new Float32Array(9);
+    this.elements = new Float32Array( [
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    ]);
 
-    this.init(
-        ( e00 !== undefined ) ? e00 : 1, e01 || 0, e02 || 0,
-        e10 || 0, ( e11 !== undefined ) ? e11 : 1, e12 || 0,
-        e20 || 0, e21 || 0, ( e22 !== undefined ) ? e22 : 1
-    );
+    if ( arguments.length > 0 ) {
+
+        console.error( 'OIMO.Mat33: the constructor no longer reads arguments. use .set() instead.' );
+
+    }
 
 }
 
@@ -21,19 +25,11 @@ Object.assign( Mat33.prototype, {
     set: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
         var te = this.elements;
+
         te[0] = e00; te[1] = e01; te[2] = e02;
         te[3] = e10; te[4] = e11; te[5] = e12;
         te[6] = e20; te[7] = e21; te[8] = e22;
-        return this;
 
-    },
-
-    init: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
-
-        var te = this.elements;
-        te[0] = e00; te[1] = e01; te[2] = e02;
-        te[3] = e10; te[4] = e11; te[5] = e12;
-        te[6] = e20; te[7] = e21; te[8] = e22;
         return this;
 
     },
@@ -106,15 +102,29 @@ Object.assign( Mat33.prototype, {
 
     },
 
-    mul: function ( m1, m2 ) {
+    mul: function ( m1, m2, transpose ) {
 
-        var te = this.elements, tm1 = m1.elements, tm2 = m2.elements,
-        a0 = tm1[0], a3 = tm1[3], a6 = tm1[6],
-        a1 = tm1[1], a4 = tm1[4], a7 = tm1[7],
-        a2 = tm1[2], a5 = tm1[5], a8 = tm1[8],
-        b0 = tm2[0], b3 = tm2[3], b6 = tm2[6],
-        b1 = tm2[1], b4 = tm2[4], b7 = tm2[7],
-        b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+        var te = this.elements;
+        var tm1 = m1.elements;
+        var tm2 = m2.elements;
+        var tmp;
+
+        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
+        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
+        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+
+        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
+        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
+        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+
+        if( transpose ){
+
+            tmp = b1; b1 = b3; b3 = tmp;
+            tmp = b2; b2 = b6; b6 = tmp;
+            tmp = b5; b5 = b7; b7 = tmp;
+
+        }
+
         te[0] = a0*b0 + a1*b3 + a2*b6;
         te[1] = a0*b1 + a1*b4 + a2*b7;
         te[2] = a0*b2 + a1*b5 + a2*b8;
@@ -124,11 +134,12 @@ Object.assign( Mat33.prototype, {
         te[6] = a6*b0 + a7*b3 + a8*b6;
         te[7] = a6*b1 + a7*b4 + a8*b7;
         te[8] = a6*b2 + a7*b5 + a8*b8;
+
         return this;
 
     },
 
-    mulScale: function ( m, sx, sy, sz, Prepend ) {
+    /*mulScale: function ( m, sx, sy, sz, Prepend ) {
 
         var prepend = Prepend || false;
         var te = this.elements, tm = m.elements;
@@ -143,58 +154,9 @@ Object.assign( Mat33.prototype, {
         }
         return this;
 
-    },
+    },*/
 
-    mulRotate: function ( m, rad, ax, ay, az, Prepend ){
-
-        var prepend = Prepend || false;
-        var s=_Math.sin(rad);
-        var c=_Math.cos(rad);
-        var c1=1-c;
-        var r00=ax*ax*c1+c;
-        var r01=ax*ay*c1-az*s;
-        var r02=ax*az*c1+ay*s;
-        var r10=ay*ax*c1+az*s;
-        var r11=ay*ay*c1+c;
-        var r12=ay*az*c1-ax*s;
-        var r20=az*ax*c1-ay*s;
-        var r21=az*ay*c1+ax*s;
-        var r22=az*az*c1+c;
-
-        var tm = m.elements;
-
-        var a0 = tm[0], a3 = tm[3], a6 = tm[6];
-        var a1 = tm[1], a4 = tm[4], a7 = tm[7];
-        var a2 = tm[2], a5 = tm[5], a8 = tm[8];
-
-        var te = this.elements;
-        
-        if(prepend){
-            te[0]=r00*a0+r01*a3+r02*a6;
-            te[1]=r00*a1+r01*a4+r02*a7;
-            te[2]=r00*a2+r01*a5+r02*a8;
-            te[3]=r10*a0+r11*a3+r12*a6;
-            te[4]=r10*a1+r11*a4+r12*a7;
-            te[5]=r10*a2+r11*a5+r12*a8;
-            te[6]=r20*a0+r21*a3+r22*a6;
-            te[7]=r20*a1+r21*a4+r22*a7;
-            te[8]=r20*a2+r21*a5+r22*a8;
-        }else{
-            te[0]=a0*r00+a1*r10+a2*r20;
-            te[1]=a0*r01+a1*r11+a2*r21;
-            te[2]=a0*r02+a1*r12+a2*r22;
-            te[3]=a3*r00+a4*r10+a5*r20;
-            te[4]=a3*r01+a4*r11+a5*r21;
-            te[5]=a3*r02+a4*r12+a5*r22;
-            te[6]=a6*r00+a7*r10+a8*r20;
-            te[7]=a6*r01+a7*r11+a8*r21;
-            te[8]=a6*r02+a7*r12+a8*r22;
-        }
-        return this;
-
-    },
-
-    transpose: function ( m ) {
+    /*transpose: function ( m ) {
 
         var te = this.elements, tm = m.elements;
         te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
@@ -202,25 +164,28 @@ Object.assign( Mat33.prototype, {
         te[6] = tm[2]; te[7] = tm[5]; te[8] = tm[8];
         return this;
 
-    },
+    },*/
 
     setQuat: function ( q ) {
 
-        var te = this.elements,
-        x2=2*q.x,  y2=2*q.y,  z2=2*q.z,
-        xx=q.x*x2, yy=q.y*y2, zz=q.z*z2,
-        xy=q.x*y2, yz=q.y*z2, xz=q.x*z2,
-        sx=q.w*x2, sy=q.w*y2, sz=q.w*z2;
+        var te = this.elements;
+        var x = q.x, y = q.y, z = q.z, w = q.w;
+        var x2 = x + x,  y2 = y + y, z2 = z + z;
+        var xx = x * x2, xy = x * y2, xz = x * z2;
+        var yy = y * y2, yz = y * z2, zz = z * z2;
+        var wx = w * x2, wy = w * y2, wz = w * z2;
         
-        te[0]=1-yy-zz;
-        te[1]=xy-sz;
-        te[2]=xz+sy;
-        te[3]=xy+sz;
-        te[4]=1-xx-zz;
-        te[5]=yz-sx;
-        te[6]=xz-sy;
-        te[7]=yz+sx;
-        te[8]=1-xx-yy;
+        te[0] = 1 - ( yy + zz );
+        te[1] = xy - wz;
+        te[2] = xz + wy;
+
+        te[3] = xy + wz;
+        te[4] = 1 - ( xx + zz );
+        te[5] = yz - wx;
+
+        te[6] = xz - wy;
+        te[7] = yz + wx;
+        te[8] = 1 - ( xx + yy );
 
         return this;
 
@@ -324,14 +289,14 @@ Object.assign( Mat33.prototype, {
 
     },*/
 
-    toString: function(){
+    /*toString: function(){
         var te = this.elements;
         var text=
         "Mat33|"+te[0].toFixed(4)+", "+te[1].toFixed(4)+", "+te[2].toFixed(4)+"|\n"+
         "     |"+te[3].toFixed(4)+", "+te[4].toFixed(4)+", "+te[5].toFixed(4)+"|\n"+
         "     |"+te[6].toFixed(4)+", "+te[7].toFixed(4)+", "+te[8].toFixed(4)+"|" ;
         return text;
-    },
+    },*/
 
     // OK 
 
@@ -359,13 +324,15 @@ Object.assign( Mat33.prototype, {
 
     clone: function () {
 
-        return new this.constructor().fromArray( this.elements );
+        return new Mat33().fromArray( this.elements );
 
     },
 
     copy: function ( m ) {
 
-        var me = m.elements;
+        this.elements.set( m.elements );
+
+        /*var me = m.elements;
 
         this.set(
 
@@ -373,7 +340,7 @@ Object.assign( Mat33.prototype, {
             me[ 1 ], me[ 4 ], me[ 7 ],
             me[ 2 ], me[ 5 ], me[ 8 ]
 
-        );
+        );*/
 
         return this;
 

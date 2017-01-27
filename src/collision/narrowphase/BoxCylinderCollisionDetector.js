@@ -59,9 +59,9 @@ BoxCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep
     ny=v1z*v0x-v1x*v0z;
     nz=v1x*v0y-v1y*v0x;
     if(nx*nx+ny*ny+nz*nz==0){
-    sep.init(v1x-v0x,v1y-v0y,v1z-v0z);
+    sep.set( v1x-v0x, v1y-v0y, v1z-v0z );
     sep.normalize(sep);
-    pos.init((v11x+v12x)*0.5,(v11y+v12y)*0.5,(v11z+v12z)*0.5);
+    pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
     return true;
     }
     this.supportPointB(c1,-nx,-ny,-nz,sup);
@@ -231,8 +231,8 @@ BoxCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep
     var separation=-(v4x*nx+v4y*ny+v4z*nz);
     if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
     if(hit){
-    sep.init(-nx,-ny,-nz);
-    pos.init((p1x+p2x)*0.5,(p1y+p2y)*0.5,(p1z+p2z)*0.5);
+    sep.set( -nx, -ny, -nz );
+    pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
     dep.x=separation;
     return true;
     }
@@ -321,7 +321,7 @@ BoxCylinderCollisionDetector.prototype.supportPointB = function( c, dx, dy, dz, 
     ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
-    out.init(ldx,ldy,ldz);
+    out.set( ldx, ldy, ldz );
 
 };
 
@@ -364,7 +364,7 @@ BoxCylinderCollisionDetector.prototype.supportPointC = function ( c, dx, dy, dz,
     ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
     ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
     ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
-    out.init(ldx,ldy,ldz);
+    out.set( ldx, ldy, ldz );
 
 };
 

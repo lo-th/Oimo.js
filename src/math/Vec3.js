@@ -12,12 +12,6 @@ Object.assign( Vec3.prototype, {
 
     Vec3: true,
 
-    init: function ( x, y, z ) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
-        return this;
-    },
     set: function(x,y,z){
         this.x = x;
         this.y = y;

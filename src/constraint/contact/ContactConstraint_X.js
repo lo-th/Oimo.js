@@ -18,6 +18,9 @@ function ContactConstraint ( manifold ){
     // The coefficient of friction of the constraint.
     this.friction=NaN;
 
+    this.body1 = null;
+    this.body2 = null;
+
     this.p1=null;
     this.p2=null;
     this.lv1=null;
@@ -79,6 +82,9 @@ ContactConstraint.prototype.detach = function(){
     this.av2=null;
     this.i1=null;
     this.i2=null;
+
+    this.body1 = null;
+    this.body2 = null;
 
 }
 
@@ -448,6 +454,10 @@ ContactConstraint.prototype.solve = function(){
     var av2y = this.av2.y;
     var av2z = this.av2.z;
 
+    var rvX;
+    var rvY;
+    var rvZ;
+
     var oldImp1;
     var newImp1;
     var oldImp2;
@@ -458,9 +468,8 @@ ContactConstraint.prototype.solve = function(){
     var tanImp;
     var binImp;
     var max;
-    var rvX;
-    var rvY;
-    var rvZ;
+
+    
 
     var len;
 

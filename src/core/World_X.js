@@ -12,6 +12,7 @@ import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/Cyli
 import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector';
 import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector';
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector';
+//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
 
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
@@ -57,12 +58,16 @@ function World ( o ) {
     this.timeStep = o.timestep || 0.01666; // 1/60;
     // The number of iterations for constraint solvers.
     this.numIterations = o.iterations || 8;
+
      // It is a wide-area collision judgment that is used in order to reduce as much as possible a detailed collision judgment.
     switch( o.broadphase || 2 ){
         case 1: this.broadPhase = new BruteForceBroadPhase(); break;
         case 2: default: this.broadPhase = new SAPBroadPhase(); break;
         case 3: this.broadPhase = new DBVTBroadPhase(); break;
     }
+
+    this.Btypes = ['None','BruteForce X','Sweep & Prune X', 'Bounding Volume Tree X' ];
+    this.broadPhaseType = this.Btypes[ o.broadphase || 2 ];
 
     // This is the detailed information of the performance. 
     this.performance = null;
@@ -78,10 +83,10 @@ function World ( o ) {
     // The rigid body list
     this.rigidBodies=[];//null;
     // number of rigid body
-    //this.numRigidBodies=0;
+    this.numRigidBodies=0;
     // The contact list
     this.contacts=[];//null;
-    this.unusedContacts=null;
+    //this.unusedContacts=null;
     // The number of contact
     this.numContacts=0;
     // The number of contact points
@@ -180,23 +185,19 @@ Object.assign( World.prototype, {
             Error("World", "It is not possible to be added to more than one world one of the rigid body");
         }
 
-        rigidBody.parent = this;
-        rigidBody.awake();
+        rigidBody.setParent( this );
 
-        var i = rigidBody.shapes.length
+        var i = rigidBody.shapes.length;
+
         while(i--){
+
             this.addShape(rigidBody.shapes[i]);
+
         }
 
-        //for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
-          //  this.addShape(shape);
-        //}
-        
-        /*if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
-        this.rigidBodies = rigidBody;
-        this.numRigidBodies++;*/
-
         this.rigidBodies.push( rigidBody );
+
+        this.numRigidBodies = this.rigidBodies.length;
 
     },
     /**
@@ -206,8 +207,8 @@ Object.assign( World.prototype, {
     */
     removeRigidBody:function( rigidBody ){
 
-        var remove=rigidBody;
-        if(remove.parent!==this)return;
+        var remove = rigidBody;
+        if(remove.parent!==this) return;
         remove.awake();
 
         var i = remove.jointLink.length;
@@ -226,7 +227,9 @@ Object.assign( World.prototype, {
         if(this.rigidBodies==remove) this.rigidBodies=next;
         remove.prev=null;
         remove.next=null;*/
-        remove.parent=null;
+        remove.parent = null;
+
+        this.numRigidBodies = this.rigidBodies.length;
         //this.numRigidBodies--;
 
     },
@@ -262,6 +265,7 @@ Object.assign( World.prototype, {
         if(!shape.parent || !shape.parent.parent){
             Error("World", "It is not possible to be added alone to shape world");
         }
+
         shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
         this.broadPhase.addProxy( shape.proxy );
@@ -370,12 +374,11 @@ Object.assign( World.prototype, {
 
         var n1, n2;
         var i = this.contacts.length, contact;
-        //var contact = this.contacts;
         while(i--){
             contact = this.contacts[i];
-            n1 = contact.body1.name || ' ';
-            n2 = contact.body2.name || ' ';
-            if((n1==name1 && n2==name2) || (n2==name1 && n1==name2)){ if(contact.touching) return true; else return false;}
+            n1 = contact.body1.name;
+            n2 = contact.body2.name;
+            if((n1===name1 && n2===name2) || (n2===name1 && n1===name2)){ if(contact.touching) return true; else return false;}
         }
 
         return false;
@@ -712,201 +715,218 @@ Object.assign( World.prototype, {
 
     },
 
+    /**
+    * add someting to world
+    */
+
     add: function( o ){
         
         o = o || {};
 
+        var type = o.type || "box";
+        if( type.constructor === String ) type = [ type ];
+        var isJoint = type[0].substring( 0, 5 ) === 'joint' ? true : false;
+
+        if( isJoint ) return this.initJoint( type[0], o );
+        else return this.initBody( type, o );
+
+    },
+
+    initBody: function( type, o ){
+
         var invScale = this.invScale;
 
-        var type = o.type || "box";
-        if( typeof type === 'string' ) type = [type];// single shape
+        // body dynamic or static
+        var move = o.move || false;
+        
+        // body position
+        var p = o.pos || [0,0,0];
+        p = p.map(function(x) { return x * invScale; });
 
-        if(type[0].substring(0,5) == 'joint'){ // is joint
+        // body size 
+        var s = o.size === undefined ? [1,1,1] : o.size;
+        if(s.length == 1){ s[1] = s[0]; }
+        if(s.length == 2){ s[2] = s[0]; }
+        s = s.map(function(x) { return x * invScale; });
 
-            if(type[0] === 'joint')type[0] = 'jointHinge';
+        // body rotation in degree
+        var r = o.rot || [0,0,0];
+        r = r.map( function(x) { return x * _Math.degtorad; } );
 
-            var axe1 = o.axe1 || [1,0,0];
-            var axe2 = o.axe2 || [1,0,0];
-            var pos1 = o.pos1 || [0,0,0];
-            var pos2 = o.pos2 || [0,0,0];
+        // body physics settings
+        var sc = new ShapeConfig();
+        // The density of the shape.
+        if( o.density !== undefined ) sc.density = o.density;
+        // The coefficient of friction of the shape.
+        if( o.friction !== undefined ) sc.friction = o.friction;
+        // The coefficient of restitution of the shape.
+        if( o.restitution !== undefined ) sc.restitution = o.restitution;
+        // The bits of the collision groups to which the shape belongs.
+        if( o.belongsTo !== undefined ) sc.belongsTo = o.belongsTo;
+        // The bits of the collision groups with which the shape collides.
+        if( o.collidesWith !== undefined ) sc.collidesWith = o.collidesWith;
 
-            pos1 = pos1.map(function(x){ return x * invScale; });
-            pos2 = pos2.map(function(x){ return x * invScale; });
-
-            var min, max;
-            if(type[0]==="jointDistance"){
-                min = o.min || 0;
-                max = o.max || 10;
-                min = min * invScale;
-                max = max * invScale;
-            }else{
-                min = o.min || 57.29578;
-                max = o.max || 0;
-                min = min * _Math.degtorad;
-                max = max * _Math.degtorad;
-            }
-
-            var limit = o.limit || null;
-            var spring = o.spring || null;
-            var motor = o.motor || null;
-
-            // joint setting
-            var jc = new JointConfig();
-            jc.scale = this.scale;
-            jc.invScale = this.invScale;
-            jc.allowCollision = o.collision || false;
-            jc.localAxis1.init(axe1[0], axe1[1], axe1[2]);
-            jc.localAxis2.init(axe2[0], axe2[1], axe2[2]);
-            jc.localAnchorPoint1.init(pos1[0], pos1[1], pos1[2]);
-            jc.localAnchorPoint2.init(pos2[0], pos2[1], pos2[2]);
-
-            var b1 = null;
-            var b2 = null;
-
-            if( o.body1 === undefined || o.body2 === undefined ) return Error('World', "Can't add joint if attach rigidbodys not define !" );
-
-            if ( o.body1.constructor === String ) { b1 = this.getByName( o.body1 ); }
-            else if ( o.body1.constructor === Number ) { b1 = this.getByName( o.body1 ); }
-            else if ( o.body1.constructor === RigidBody ) { b1 = o.body1; }
-
-            if ( o.body2.constructor === String ) { b2 = this.getByName( o.body2 ); }
-            else if ( o.body2.constructor === Number ) { b2 = this.getByName( o.body2 ); }
-            else if ( o.body2.constructor === RigidBody ) { b2 = o.body2; }
-
-            if( b1 === null || b2 === null ) return Error('World', "Can't add joint attach rigidbodys not find !" );
-
-            jc.body1 = b1;
-            jc.body2 = b2;
-
-            var joint;
-            switch(type[0]){
-                case "jointDistance": joint = new DistanceJoint(jc, min, max); 
-                    if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
-                    if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
-                break;
-                case "jointHinge": joint = new HingeJoint(jc, min, max);
-                    if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
-                    if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
-                break;
-                case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
-                case "jointSlide": joint = new SliderJoint(jc, min, max); break;
-                case "jointBall": joint = new BallAndSocketJoint(jc); break;
-                case "jointWheel": joint = new WheelJoint(jc);  
-                    if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
-                    if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
-                    if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
-                break;
-            }
-
-            joint.name = o.name || '';
-            // finaly add to physics world
-            this.addJoint( joint );
-
-            return joint;
-
-        } else { // is body
-
-            // I'm dynamique or not
-            var move = o.move || false;
-
-            //var mass = o.mass || 0;
-
-            // I can sleep or not
-            var noSleep  = o.noSleep || false;
-            
-            // object position
-            var p = o.pos || [0,0,0];
-            p = p.map(function(x) { return x * invScale; });
-
-            // object size 
-            var s = o.size === undefined ? [1,1,1] : o.size;
-            if(s.length == 1){ s[1] = s[0]; }
-            if(s.length == 2){ s[2] = s[0]; }
-            s = s.map(function(x) { return x * invScale; });
-
-            // object rotation in degree
-            var r = o.rot || [0,0,0];
-            r = r.map( function(x) { return x * _Math.degtorad; } );
-
-            // object physics settings
-            var sc = new ShapeConfig();
-            // The density of the shape.
-            if( o.density !== undefined ) sc.density = o.density;
-            // The coefficient of friction of the shape.
-            if( o.friction !== undefined ) sc.friction = o.friction;
-            // The coefficient of restitution of the shape.
-            if( o.restitution !== undefined ) sc.restitution = o.restitution;
-            // The bits of the collision groups to which the shape belongs.
-            if( o.belongsTo !== undefined ) sc.belongsTo = o.belongsTo;
-            // The bits of the collision groups with which the shape collides.
-            if( o.collidesWith !== undefined ) sc.collidesWith = o.collidesWith;
-
-            if(o.config !== undefined ){
-                if( o.config[0] !== undefined ) sc.density = o.config[0];
-                if( o.config[1] !== undefined ) sc.friction = o.config[1];
-                if( o.config[2] !== undefined ) sc.restitution = o.config[2];
-                if( o.config[3] !== undefined ) sc.belongsTo = o.config[3];
-                if( o.config[4] !== undefined ) sc.collidesWith = o.config[4];
-            }
-
-
-            if(o.massPos){
-                o.massPos = o.massPos.map(function(x) { return x * invScale; });
-                sc.relativePosition.init( o.massPos[0], o.massPos[1], o.massPos[2] );
-            }
-            if(o.massRot){
-                o.massRot = o.massRot.map(function(x) { return x * degtorad; });
-                sc.relativeRotation = _Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
-            }
-
-            var position = new Vec3( p[0], p[1], p[2] );
-            var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
-            
-            // My rigidbody
-            var body = new RigidBody( position, rotation, this.scale, this.invScale );
-
-            // My shapes
-            var shapes = [];
-
-            //if( typeof type === 'string' ) type = [type];// single shape
-
-            var n;
-            for(var i=0; i<type.length; i++){
-                n = i*3;
-                switch(type[i]){
-                    case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
-                    case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
-                    case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
-                }
-                body.addShape( shapes[i] );
-                if( i > 0 ){
-                    if( p[n] ) shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
-                    if( r[n] ) {
-                        var q = new Quat().setFromEuler( r[n], r[n+1], r[n+2] );
-                        shapes[i].relativeRotation = new Mat33().setQuat(q);
-                    }
-                }
-            } 
-            
-            // I'm static or i move
-            if( move ){
-                if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
-                else body.setupMass( BODY_DYNAMIC, true );
-                if(noSleep) body.allowSleep = false;
-                else body.allowSleep = true;
-            } else {
-                body.setupMass( BODY_STATIC );
-            }
-            
-            if( o.name !== undefined ) body.name = o.name;
-            else if( o.move ) body.name = this.rigidBodies.length;
-            
-            // finaly add to physics world
-            this.addRigidBody( body );
-
-            return body;
+        if(o.config !== undefined ){
+            if( o.config[0] !== undefined ) sc.density = o.config[0];
+            if( o.config[1] !== undefined ) sc.friction = o.config[1];
+            if( o.config[2] !== undefined ) sc.restitution = o.config[2];
+            if( o.config[3] !== undefined ) sc.belongsTo = o.config[3];
+            if( o.config[4] !== undefined ) sc.collidesWith = o.config[4];
         }
-    }
+
+
+        if(o.massPos){
+            o.massPos = o.massPos.map(function(x) { return x * invScale; });
+            sc.relativePosition.set( o.massPos[0], o.massPos[1], o.massPos[2] );
+        }
+        if(o.massRot){
+            o.massRot = o.massRot.map(function(x) { return x * degtorad; });
+            sc.relativeRotation = _Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
+        }
+
+        var position = new Vec3( p[0], p[1], p[2] );
+        var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
+        
+        // rigidbody
+        var body = new RigidBody( position, rotation, this.scale, this.invScale );
+
+        // shapes
+        var shapes = [];
+
+        var n;
+        for(var i=0; i<type.length; i++){
+            n = i*3;
+            switch(type[i]){
+                case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
+                case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
+                case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
+            }
+            body.addShape( shapes[i] );
+            if( i > 0 ){
+                if( p[n] ) shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
+                if( r[n] ) {
+                    var q = new Quat().setFromEuler( r[n], r[n+1], r[n+2] );
+                    shapes[i].relativeRotation = new Mat33().setQuat(q);
+                }
+            }
+        } 
+        
+        // body static or dynamic
+        if( move ){
+
+            if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
+            else body.setupMass( BODY_DYNAMIC, true );
+
+            // body can sleep or not
+            if( o.neverSleep ) body.allowSleep = false;
+            else body.allowSleep = true;
+
+        } else {
+
+            body.setupMass( BODY_STATIC );
+
+        }
+        
+        if( o.name !== undefined ) body.name = o.name;
+        else if( o.move ) body.name = this.rigidBodies.length;
+        
+        // finaly add to physics world
+        this.addRigidBody( body );
+
+        // force sleep on not
+        if( move ){
+            if( o.sleep ) body.sleep();
+            else body.awake();
+        }
+
+        return body;
+
+    },
+
+    initJoint: function( type, o ){
+
+        var invScale = this.invScale;
+
+        var axe1 = o.axe1 || [1,0,0];
+        var axe2 = o.axe2 || [1,0,0];
+        var pos1 = o.pos1 || [0,0,0];
+        var pos2 = o.pos2 || [0,0,0];
+
+        pos1 = pos1.map( function ( x ) { return x * invScale; } );
+        pos2 = pos2.map( function ( x ) { return x * invScale; } );
+
+        var min, max;
+        if( type === "jointDistance" ){
+            min = o.min || 0;
+            max = o.max || 10;
+            min = min * invScale;
+            max = max * invScale;
+        }else{
+            min = o.min || 57.29578;
+            max = o.max || 0;
+            min = min * _Math.degtorad;
+            max = max * _Math.degtorad;
+        }
+
+        var limit = o.limit || null;
+        var spring = o.spring || null;
+        var motor = o.motor || null;
+
+        // joint setting
+        var jc = new JointConfig();
+        jc.scale = this.scale;
+        jc.invScale = this.invScale;
+        jc.allowCollision = o.collision || false;
+        jc.localAxis1.set( axe1[0], axe1[1], axe1[2] );
+        jc.localAxis2.set( axe2[0], axe2[1], axe2[2] );
+        jc.localAnchorPoint1.set( pos1[0], pos1[1], pos1[2] );
+        jc.localAnchorPoint2.set( pos2[0], pos2[1], pos2[2] );
+
+        var b1 = null;
+        var b2 = null;
+
+        if( o.body1 === undefined || o.body2 === undefined ) return Error('World', "Can't add joint if attach rigidbodys not define !" );
+
+        if ( o.body1.constructor === String ) { b1 = this.getByName( o.body1 ); }
+        else if ( o.body1.constructor === Number ) { b1 = this.getByName( o.body1 ); }
+        else if ( o.body1.constructor === RigidBody ) { b1 = o.body1; }
+
+        if ( o.body2.constructor === String ) { b2 = this.getByName( o.body2 ); }
+        else if ( o.body2.constructor === Number ) { b2 = this.getByName( o.body2 ); }
+        else if ( o.body2.constructor === RigidBody ) { b2 = o.body2; }
+
+        if( b1 === null || b2 === null ) return Error('World', "Can't add joint attach rigidbodys not find !" );
+
+        jc.body1 = b1;
+        jc.body2 = b2;
+
+        var joint;
+        switch( type ){
+            case "jointDistance": joint = new DistanceJoint(jc, min, max); 
+                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
+                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+            break;
+            case "jointHinge": case "joint": joint = new HingeJoint(jc, min, max);
+                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+            break;
+            case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
+            case "jointSlide": joint = new SliderJoint(jc, min, max); break;
+            case "jointBall": joint = new BallAndSocketJoint(jc); break;
+            case "jointWheel": joint = new WheelJoint(jc);  
+                if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+                if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+                if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
+            break;
+        }
+
+        joint.name = o.name || '';
+        // finaly add to physics world
+        this.addJoint( joint );
+
+        return joint;
+
+    },
 
 
 } );

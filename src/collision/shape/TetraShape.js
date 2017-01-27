@@ -19,15 +19,29 @@ function TetraShape ( config, p1, p2, p3, p4 ){
 TetraShape.prototype = Object.create( Shape.prototype );
 TetraShape.prototype.constructor = TetraShape;
 
-TetraShape.prototype.calculateMassInfo = function(){
-  // I guess you could calculate box mass and split it
-  // in half for the tetra...
+TetraShape.prototype.calculateMassInfo = function( out ){
+    // I guess you could calculate box mass and split it
+    // in half for the tetra...
+    this.aabb.setFromPoints(this.verts);
+    var p = this.aabb.elements;
+    var x = p[3] - p[0];
+    var y = p[4] - p[1];
+    var z = p[5] - p[2];
+    var mass = x * y * z * this.density;
+    var divid = 1/12;
+    out.mass = mass;
+    out.inertia.set(
+        mass * ( 2*y*2*y + 2*z*2*z ) * divid, 0, 0,
+        0, mass * ( 2*x*2*x + 2*z*2*z ) * divid, 0,
+        0, 0, mass * ( 2*y*2*y + 2*x*2*x ) * divid
+    );
+
 };
 
-TetraShape.prototype.updateProxy = function(){
+TetraShape.prototype.updateProxy = function () {
 
     this.aabb.setFromPoints(this.verts);
-    this.aabb.expandByScalar(OIMO.AABB_PROX);
+    this.aabb.expandByScalar(AABB_PROX);
 
     if(this.proxy !== null) this.proxy.update();
 

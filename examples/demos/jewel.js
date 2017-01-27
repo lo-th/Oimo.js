@@ -11,7 +11,7 @@ function demo() {
         info:true // display statistique
     });
 
-   
+    
 
     // basic geometry body
 
@@ -34,7 +34,7 @@ function demo() {
 
     }
 
-     var ground = world.add({size:[1000, 10, 1000], pos:[0,-5,0], density:1 });
+    var ground = world.add({size:[1000, 10, 1000], pos:[0,-5,0], density:1 });
 
     
     

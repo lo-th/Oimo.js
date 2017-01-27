@@ -48,7 +48,7 @@ Object.assign( AngularConstraint.prototype, {
 
         v = new Mat33().add(this.ii1, this.ii2).elements;
         inv = 1/( v[0]*(v[4]*v[8]-v[7]*v[5])  +  v[3]*(v[7]*v[2]-v[1]*v[8])  +  v[6]*(v[1]*v[5]-v[4]*v[2]) );
-        this.dd = new Mat33(
+        this.dd = new Mat33().set(
             v[4]*v[8]-v[5]*v[7], v[2]*v[7]-v[1]*v[8], v[1]*v[5]-v[2]*v[4],
             v[5]*v[6]-v[3]*v[8], v[0]*v[8]-v[2]*v[6], v[2]*v[3]-v[0]*v[5],
             v[3]*v[7]-v[4]*v[6], v[1]*v[6]-v[0]*v[7], v[0]*v[4]-v[1]*v[3]
@@ -67,7 +67,7 @@ Object.assign( AngularConstraint.prototype, {
             len = (0.02-len)/len*invTimeStep*0.05;
             this.vel.scaleEqual(len);
         }else{
-            this.vel.init();
+            this.vel.set(0,0,0);
         }
 
         this.rn1.mulMat(this.ii1, this.imp);

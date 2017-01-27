@@ -81,9 +81,9 @@ PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
     var by=nz*tx-nx*tz;
     var bz=nx*ty-ny*tx;
 
-    this.nor.init(nx,ny,nz);
-    this.tan.init(tx,ty,tz);
-    this.bin.init(bx,by,bz);
+    this.nor.set(nx,ny,nz);
+    this.tan.set(tx,ty,tz);
+    this.bin.set(bx,by,bz);
     
     this.ac.preSolve(timeStep,invTimeStep);
     this.t3.preSolve(timeStep,invTimeStep);
