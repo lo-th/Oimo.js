@@ -15,23 +15,31 @@ function demo() {
 
     // basic geometry body
 
-    var i, x, y, z, s, b;
+    var i, j, n, x, y, z, s, b;
+    var px, pz;
+    var num = 10;
+    var mx = 28;
+    var r = 8;
+    var a = (360/mx) * Math.torad;
 
-    var mx = 250;
+    for( i = 0; i < num; i++){
 
-    for( i = 0; i < mx; i++){
+        n = i*mx;
+        px = Math.rand(-40, 40);
+        pz = Math.rand(-40, 40);
 
-        x = Math.sin(i*0.025) * 40;
-        y = 60 + Math.sin(i*0.5) * 15;
-        z = Math.cos(i*0.025) * 40;
+        for( j = 0; j < mx; j++){
 
-        add({ type:'sphere', size:[1], pos:[x, y, z], move:true });
+            x = (Math.sin(j*a) * r) + px;
+            y = (60 + (i*10)); //+ Math.sin(j*0.5);
+            z = (Math.cos(j*a) * r) + pz;
 
-       
+            add({ type:'sphere', size:[1], pos:[x, y, z], move:1 });
 
-        if( i > 0 ) world.add({ type:'jointHinge', body1:(i-1), body2:i, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
-        if( i === mx-1 ) world.add({ type:'jointHinge', body1:0, body2:mx-1, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
+            if( j > 0 ) world.add({ type:'jointHinge', body1:n+(j-1), body2:n+j, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
+            if( j === mx-1 ) world.add({ type:'jointHinge', body1:n+(mx-1), body2:n, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
 
+        }
     }
 
      var ground = world.add({size:[1000, 10, 1000], pos:[0,-5,0], density:1 });

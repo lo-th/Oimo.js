@@ -17,20 +17,22 @@ function demo() {
 
     var i, x, y, z, s, b;
 
-    var mx = 250;
+    var mx = 150;
+    var r = 50;
+    var a = (360/mx) * Math.torad;
 
     for( i = 0; i < mx; i++){
 
-        x = Math.sin(i*0.025) * 40;
-        y = 60 + Math.sin(i*0.5) * 15;
-        z = Math.cos(i*0.025) * 40;
+        x = Math.sin(i*a) * r;
+        y = 60 + Math.sin(i*0.5) * 2;
+        z = Math.cos(i*a) * r;
 
-        add({ type:'sphere', size:[1], pos:[x, y, z], move:true });
+        add({ type:'sphere', size:[1], pos:[x, y, z], move:1 });
 
        
 
         if( i > 0 ) world.add({ type:'jointHinge', body1:(i-1), body2:i, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
-        if( i === mx-1 ) world.add({ type:'jointHinge', body1:0, body2:mx-1, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
+        if( i === mx-1 ) world.add({ type:'jointHinge', body1:mx-1, body2:0, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
 
     }
 
