@@ -1,6 +1,7 @@
 {
+    "logo": "../examples/assets/img/logo-docs.png",
     "options": {
-        "outdir" : "docs",
-        "paths" : ["./src/"]
+        "outdir": "docs",
+        "paths": ["./src/"]
     }
 }

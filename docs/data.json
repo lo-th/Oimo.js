@@ -1,5 +1,6 @@
 {
     "project": {
+        "logo": "../examples/assets/img/logo-docs.png",
         "name": "oimo",
         "description": "JavaScript 3D library",
         "version": "1.0.4"
