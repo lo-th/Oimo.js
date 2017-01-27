@@ -1,4 +1,4 @@
-import { Error } from '../../core/Utils';
+import { printError } from '../../core/utils';
 
 var count = 0;
 function ProxyIdCount() { return count++; }

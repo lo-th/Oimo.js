@@ -1,10 +1,11 @@
 {
   "name": "oimo",
   "version": "1.0.4",
-  "description": "JavaScript 3D library",
+  "description": "JavaScript 3D physics engine.",
   "main": "build/oimo.js",
   "repository": "lo-th/oimo",
   "jsnext:main": "build/oimo.module.js",
+  "main": "build/oimo.min.js",
   "module": "build/oimo.module.js",
   "files": [
     "package.json",
@@ -22,9 +23,6 @@
     "example": "examples",
     "test": "test"
   },
-  "bin": {
-    "yuidoc": "node_modules/yuidocjs"
-  },
   "eslintConfig": {
     "extends": "mdcs"
   },
@@ -32,7 +30,7 @@
     "build": "rollup -c",
     "build-uglify": "rollup -c && uglifyjs build/oimo.js -cm --preamble \"// lo-th.github.io/Oimo.js/license\" > build/oimo.min.js",
     "build-closure": "rollup -c && java -jar utils/build/compiler/closure-compiler-v20160713.jar --warning_level=VERBOSE --jscomp_off=globalThis --jscomp_off=checkTypes --externs utils/build/externs.js --language_in=ECMASCRIPT5_STRICT --js build/oimo.js --js_output_file build/oimo.min.js",
-    "dev": "rollup -c -w",
+    "active-dev": "rollup -c -w",
     "lint": "eslint src",
     "build-docs": "node node_modules/yuidocjs/lib/cli.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -45,10 +43,10 @@
   ],
   "author": "lo-th",
   "license": "MIT",
+  "homepage": "http://lo-th.github.io/Oimo.js/",
   "bugs": {
     "url": "https://github.com/lo-th/Oimo.js/issues"
   },
-  "homepage": "http://lo-th.github.io/Oimo.js/",
   "devDependencies": {
     "eslint": "latest",
     "eslint-config-mdcs": "latest",

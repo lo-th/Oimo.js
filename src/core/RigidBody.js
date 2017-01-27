@@ -1,5 +1,5 @@
 import { BODY_NULL, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { Error } from './Utils';
+import { printError } from './utils';
 
 import { MassInfo } from '../collision/shape/MassInfo';
 import { ShapeConfig } from '../collision/shape/ShapeConfig';
@@ -124,16 +124,16 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
 
 Object.assign( RigidBody.prototype, {
 
-    RigidBody: true,
-
     /**
-    * I'll add a shape to rigid body.
-    * If you add a shape, please call the setupMass method to step up to the start of the next.
-    * @param   shape shape to Add
-    */
+     * I'll add a shape to rigid body.
+     * If you add a shape, please call the setupMass method to step up to the start of the next.
+     * @param   shape shape to Add
+     */
     addShape:function(shape){
 
-        if(shape.parent) Error("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
+        if(shape.parent){
+			printError("RigidBody", "It is not possible that you add a shape which already has an associated body.");
+		}
 
         if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
         this.shapes = shape;
@@ -143,10 +143,11 @@ Object.assign( RigidBody.prototype, {
 
     },
     /**
-    * I will delete the shape from the rigid body.
-    * If you delete a shape, please call the setupMass method to step up to the start of the next.
-    * @param   shape shape to Delete
-    */
+     * I will delete the shape from the rigid body.
+     * If you delete a shape, please call the setupMass method to step up to the start of the next.
+     * @param shape {Shape} to delete
+     * @return void
+     */
     removeShape:function(shape){
 
         var remove = shape;
@@ -183,13 +184,14 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-    * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
-    * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
-    * If the parameter adjustPosition is set to true, the shapes' relative positions and
-    * the rigid body's position will be adjusted to the center of gravity.
-    * @param   type
-    * @param   adjustPosition
-    */
+     * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
+     * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
+     * If the parameter adjustPosition is set to true, the shapes' relative positions and
+     * the rigid body's position will be adjusted to the center of gravity.
+     * @param type
+     * @param adjustPosition
+     * @return void
+     */
     setupMass: function ( type, AdjustPosition ) {
 
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
@@ -247,8 +249,8 @@ Object.assign( RigidBody.prototype, {
 
     },
     /**
-    * Awake the rigid body.
-    */
+     * Awake the rigid body.
+     */
     awake:function(){
 
         if( !this.allowSleep || !this.sleeping ) return;
@@ -273,8 +275,8 @@ Object.assign( RigidBody.prototype, {
 
     },
     /**
-    * Sleep the rigid body.
-    */
+     * Sleep the rigid body.
+     */
     sleep:function(){
 
         if( !this.allowSleep || this.sleeping ) return;
@@ -298,20 +300,20 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-    * Get whether the rigid body has not any connection with others.
-    * @return {void}
-    */
+     * Get whether the rigid body has not any connection with others.
+     * @return {void}
+     */
     isLonely: function () {
         return this.numJoints==0 && this.numContacts==0;
     },
 
     /**
-    * The time integration of the motion of a rigid body, you can update the information such as the shape.
-    * This method is invoked automatically when calling the step of the World,
-    * There is no need to call from outside usually.
-    * @param  timeStep time
-    * @return {void}
-    */
+     * The time integration of the motion of a rigid body, you can update the information such as the shape.
+     * This method is invoked automatically when calling the step of the World,
+     * There is no need to call from outside usually.
+     * @param  timeStep time
+     * @return {void}
+     */
 
     updatePosition: function ( timeStep ) {
         switch(this.type){
@@ -397,17 +399,17 @@ Object.assign( RigidBody.prototype, {
     },
 
 
-    //---------------------------------------------
-    // APPLY IMPULSE FORCE
-    //---------------------------------------------
-
-    applyImpulse: function ( position, force ) {
-
+    /**
+     * Apply impulse force.
+     *
+     * @method applyImpulse
+     * @return void
+     */
+    applyImpulse: function(position, force){
         this.linearVelocity.addScale(force, this.inverseMass);
         var rel = new Vec3();
-        rel.sub( position, this.position ).cross( rel, force ).mulMat( this.inverseInertia, rel );
-        this.angularVelocity.addEqual( rel );
-
+        rel.sub(position, this.position).cross(rel, force).mulMat(this.inverseInertia, rel);
+        this.angularVelocity.addEqual(rel);
     },
 
 
@@ -415,19 +417,14 @@ Object.assign( RigidBody.prototype, {
     // SET DYNAMIQUE POSITION AND ROTATION
     //---------------------------------------------
 
-    setPosition: function ( pos ) {
-
+    setPosition: function(pos){
         this.newPosition.copy( pos ).multiplyScalar( this.invScale );
         this.controlPos = true;
-
     },
 
-    setQuaternion: function ( q ) {
-        //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
-
-        this.newOrientation.set( q.x, q.y, q.z, q.w );
+    setQuaternion: function(q){
+        this.newOrientation.set(q.x, q.y, q.z, q.w);
         this.controlRot = true;
-
     },
 
     setRotation: function ( rot ) {

@@ -1,4 +1,4 @@
-import { Error } from '../../core/Utils';
+import { Error } from '../../core/utils';
 
 function CollisionDetector (){
 
@@ -11,8 +11,8 @@ Object.assign( CollisionDetector.prototype, {
     CollisionDetector: true,
 
     detectCollision: function ( shape1, shape2, manifold ) {
-        
-        Error("CollisionDetector", "Inheritance error.");
+
+        printError("CollisionDetector", "Inheritance error.");
 
     }
 

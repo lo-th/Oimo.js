@@ -1,5 +1,5 @@
 import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { Performance, Error } from './Utils';
+import { InfoDisplay, printError } from './utils';
 
 
 import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPhase';
@@ -37,7 +37,7 @@ import { WheelJoint } from '../constraint/joint/WheelJoint';
 import { RigidBody } from './RigidBody';
 
 /**
- * The class of physical computing world. 
+ * The class of physical computing world.
  * You must be added to the world physical all computing objects
  * @author saharan
  * @author lo-th
@@ -68,16 +68,18 @@ function World ( o ) {
     this.Btypes = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
     this.broadPhaseType = this.Btypes[ o.broadphase || 2 ];
 
-    // This is the detailed information of the performance. 
+    // This is the detailed information of the performance.
     this.performance = null;
     this.isStat = o.info === undefined ? false : o.info;
-    if( this.isStat ) this.performance = new Performance( this );
+    if( this.isStat ) this.performance = new InfoDisplay( this );
 
-    // Whether the constraints randomizer is enabled or not.
+    /**
+     * Whether the constraints randomizer is enabled or not.
+     *
+     * @property enableRandomizer
+     * @type {Boolean}
+     */
     this.enableRandomizer = o.random !== undefined ? o.random : true;
-
-    
-
 
     // The rigid body list
     this.rigidBodies=null;
@@ -96,13 +98,13 @@ function World ( o ) {
     this.numJoints=0;
     // The number of simulation islands.
     this.numIslands=0;
-    
-   
+
+
     // The gravity in the world.
     this.gravity = new Vec3(0,-9.8,0);
     if( o.gravity !== undefined ) this.gravity.fromArray( o.gravity );
 
-    
+
 
     var numShapeTypes = 5;//4;//3;
     this.detectors=[];
@@ -130,7 +132,7 @@ function World ( o ) {
     // TETRA add
     //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
 
- 
+
     this.randX = 65535;
     this.randA = 98765;
     this.randB = 123456789;
@@ -170,7 +172,7 @@ Object.assign( World.prototype, {
 
     },
     /**
-    * I'll add a rigid body to the world. 
+    * I'll add a rigid body to the world.
     * Rigid body that has been added will be the operands of each step.
     * @param  rigidBody  Rigid body that you want to add
     */
@@ -192,7 +194,7 @@ Object.assign( World.prototype, {
 
     },
     /**
-    * I will remove the rigid body from the world. 
+    * I will remove the rigid body from the world.
     * Rigid body that has been deleted is excluded from the calculation on a step-by-step basis.
     * @param  rigidBody  Rigid body to be removed
     */
@@ -242,7 +244,7 @@ Object.assign( World.prototype, {
 
     /**
     * I'll add a shape to the world..
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world,
     * Shape will be added to the world automatically, please do not call from outside this method.
     * @param  shape  Shape you want to add
     */
@@ -260,7 +262,7 @@ Object.assign( World.prototype, {
 
     /**
     * I will remove the shape from the world.
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world,
     * Shape will be added to the world automatically, please do not call from outside this method.
     * @param  shape  Shape you want to delete
     */
@@ -272,7 +274,7 @@ Object.assign( World.prototype, {
     },
 
     /**
-    * I'll add a joint to the world. 
+    * I'll add a joint to the world.
     * Joint that has been added will be the operands of each step.
     * @param  shape Joint to be added
     */
@@ -291,7 +293,7 @@ Object.assign( World.prototype, {
     },
 
     /**
-    * I will remove the joint from the world. 
+    * I will remove the joint from the world.
     * Joint that has been added will be the operands of each step.
     * @param  shape Joint to be deleted
     */
@@ -389,12 +391,12 @@ Object.assign( World.prototype, {
 
         }
 
-        
+
 
         //------------------------------------------------------
         //   UPDATE BROADPHASE CONTACT
         //------------------------------------------------------
-        
+
         if( stat ) this.performance.setTime( 1 );
 
         this.broadPhase.detectPairs();
@@ -419,7 +421,7 @@ Object.assign( World.prototype, {
             var link;
             if( s1.numContacts < s2.numContacts ) link = s1.contactLink;
             else link = s2.contactLink;
-            
+
             var exists = false;
             while(link){
                 var contact = link.contact;
@@ -464,7 +466,7 @@ Object.assign( World.prototype, {
             var b2 = contact.body2;
 
             if( b1.isDynamic && !b1.sleeping || b2.isDynamic && !b2.sleeping ) contact.updateManifold();
-            
+
             this.numContactPoints += contact.manifold.numPoints;
             contact.persisting = false;
             contact.constraint.addedToIsland = false;
@@ -501,7 +503,7 @@ Object.assign( World.prototype, {
         for( var base = this.rigidBodies; base !== null; base = base.next ){
 
             if( base.addedToIsland || base.isStatic || base.sleeping ) continue;// ignore
-            
+
             if( base.isLonely() ){// update single body
                 if( base.isDynamic ){
                     base.linearVelocity.addTime( this.gravity, this.timeStep );
@@ -537,20 +539,20 @@ Object.assign( World.prototype, {
                 // add rigid body to the island
                 this.islandRigidBodies[islandNumRigidBodies++] = body;
                 if(body.isStatic) continue;
-                
+
                 // search connections
                 for( var cs = body.contactLink; cs !== null; cs = cs.next ) {
                     var contact = cs.contact;
                     constraint = contact.constraint;
                     if( constraint.addedToIsland || !contact.touching ) continue;// ignore
-                    
+
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
                     var next = cs.body;
 
                     if(next.addedToIsland) continue;
-                    
+
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
@@ -559,13 +561,13 @@ Object.assign( World.prototype, {
                     constraint = js.joint;
 
                     if(constraint.addedToIsland) continue;// ignore
-                    
+
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
                     next = js.body;
                     if( next.addedToIsland || !next.isDynamic ) continue;
-                    
+
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
@@ -593,7 +595,7 @@ Object.assign( World.prototype, {
             if(this.enableRandomizer){
                 //for(var j=1, l=islandNumConstraints; j<l; j++){
                 j = islandNumConstraints;
-                while(j--){ if(j!==0){     
+                while(j--){ if(j!==0){
                         var swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                         constraint = this.islandConstraints[j];
                         this.islandConstraints[j] = this.islandConstraints[swap];
@@ -675,7 +677,7 @@ Object.assign( World.prototype, {
     */
 
     add: function( o ){
-        
+
         o = o || {};
 
         var type = o.type || "box";
@@ -698,7 +700,7 @@ Object.assign( World.prototype, {
         var p = o.pos || [0,0,0];
         p = p.map(function(x) { return x * invScale; });
 
-        // body size 
+        // body size
         var s = o.size === undefined ? [1,1,1] : o.size;
         if( s.length === 1 ){ s[1] = s[0]; }
         if( s.length === 2 ){ s[2] = s[0]; }
@@ -742,7 +744,7 @@ Object.assign( World.prototype, {
 
         var position = new Vec3( p[0], p[1], p[2] );
         var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
-        
+
         // rigidbody
         var body = new RigidBody( position, rotation, this.scale, this.invScale );
         //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
@@ -769,8 +771,8 @@ Object.assign( World.prototype, {
                     shapes[i].relativeRotation = new Mat33().setQuat( q );
                 }
             }
-        } 
-        
+        }
+
         // body static or dynamic
         if( move ){
 
@@ -786,7 +788,7 @@ Object.assign( World.prototype, {
             body.setupMass( BODY_STATIC );
 
         }
-        
+
         if( o.name !== undefined ) body.name = o.name;
         else if( move ) body.name = this.numRigidBodies;
 
@@ -864,7 +866,7 @@ Object.assign( World.prototype, {
 
         var joint;
         switch( type ){
-            case "jointDistance": joint = new DistanceJoint(jc, min, max); 
+            case "jointDistance": joint = new DistanceJoint(jc, min, max);
                 if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
                 if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
             break;
@@ -875,7 +877,7 @@ Object.assign( World.prototype, {
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
             case "jointSlide": joint = new SliderJoint(jc, min, max); break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
-            case "jointWheel": joint = new WheelJoint(jc);  
+            case "jointWheel": joint = new WheelJoint(jc);
                 if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
                 if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
                 if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);

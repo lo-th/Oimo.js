@@ -1,26 +1,36 @@
 import { _Math } from '../math/Math';
 import { REVISION } from '../constants';
 
-
-function Error( Class, Msg ){ 
-
-    console.error( Class, Msg );
-
+/**
+ * Logs an error.
+ *
+ * @method printError
+ * @param clazz The class that reported the error.
+ * @param msg The message describing the error.
+ */
+function printError(clazz, msg){
+    console.error("[OIMO] " + clazz + ": " + msg);
 }
 
-export { Error };
+export { printError };
 
 
-function Performance ( world ){
+function InfoDisplay(world){
 
+	/**
+	 * The world it belongs to.
+	 *
+	 * @property parent
+	 * @type World
+	 */
     this.parent = world;
+
     this.infos = new Float32Array( 13 );
     this.f = [0,0,0];
 
     this.times = [0,0,0,0];
 
-    //this.types = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
-    this.broadPhase = this.parent.broadPhaseType;//this.types[ this.parent.broadPhase.types ];
+    this.broadPhase = this.parent.broadPhaseType;
 
     this.version = REVISION;
 
@@ -39,17 +49,12 @@ function Performance ( world ){
     this.MaxSolvingTime = 0;
     this.MaxTotalTime = 0;
     this.MaxUpdateTime = 0;
-
 };
 
-Object.assign( Performance.prototype, {
+Object.assign(InfoDisplay.prototype, {
 
-    Performance: true,
-
-    setTime: function ( n ) {
-
+    setTime: function(n){
         this.times[ n || 0 ] = performance.now();
-
     },
 
     resetMax: function(){
@@ -92,25 +97,22 @@ Object.assign( Performance.prototype, {
             if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
             if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
         }
-        
+
 
         this.upfps();
 
         this.tt ++;
         if(this.tt > 500) this.tt = 0;
-        
+
     },
 
 
     upfps : function(){
-
         this.f[1] = Date.now();
         if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
-
     },
 
-    show : function(){
-
+    show: function(){
         var info =[
             "Oimo.js "+this.version+"<br>",
             this.broadPhase + "<br><br>",
@@ -120,7 +122,7 @@ Object.assign( Performance.prototype, {
             "ct-point &nbsp;"+this.parent.numContactPoints+"<br>",
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
-            "Time in milliseconde<br><br>",
+            "Time in milliseconds<br><br>",
             "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
             "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
             "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
@@ -128,11 +130,9 @@ Object.assign( Performance.prototype, {
             "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
         ].join("\n");
         return info;
-
     },
 
-    toArray : function(){
-
+    toArray: function(){
         this.infos[0] = this.parent.broadPhase.types;
         this.infos[1] = this.parent.numRigidBodies;
         this.infos[2] = this.parent.numContacts;
@@ -146,9 +146,7 @@ Object.assign( Performance.prototype, {
         this.infos[10] = this.totalTime;
         this.infos[11] = this.fps;
         return this.infos;
-
     }
+});
 
-} );
-
-export { Performance };
+export { InfoDisplay };

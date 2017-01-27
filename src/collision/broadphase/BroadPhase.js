@@ -1,5 +1,5 @@
 import { BR_NULL } from '../../constants';
-import { Error } from '../../core/Utils';
+import { printError } from '../../core/utils';
 import { Pair } from './Pair';
 
 /**

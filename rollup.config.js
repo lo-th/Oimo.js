@@ -1,7 +1,6 @@
 export default {
-	entry: 'src/Oimo.js',
+	entry: 'src/main.js',
 	indent: '\t',
-	// sourceMap: true,
 	targets: [
 		{
 			format: 'umd',

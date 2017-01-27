@@ -1,5 +1,5 @@
 import { SHAPE_NULL } from '../../constants';
-import { Error } from '../../core/Utils';
+import { printError } from '../../core/utils';
 import { _Math } from '../../math/Math';
 import { Vec3 } from '../../math/Vec3';
 import { Mat33 } from '../../math/Mat33';
@@ -16,7 +16,7 @@ function ShapeIdCount() { return count++; }
  * @author saharan
  * @author lo-th
  */
-function Shape (config){
+function Shape(config){
 
     this.type = SHAPE_NULL;
 
@@ -160,7 +160,7 @@ function Shape (config){
 
 };
 
-Object.assign( Shape.prototype, {
+Object.assign(Shape.prototype, {
 
     Shape: true,
 
@@ -170,10 +170,8 @@ Object.assign( Shape.prototype, {
      * @method calculateMassInfo
      * @return void
      */
-    calculateMassInfo: function ( out ) {
-
-        Error("Shape", "Inheritance error.");
-
+    calculateMassInfo: function(out){
+        printError("Shape", "Inheritance error.");
     },
 
     /**
@@ -182,12 +180,9 @@ Object.assign( Shape.prototype, {
      * @method updateProxy
      * @return void
      */
-    updateProxy: function () {
-
-        Error("Shape", "Inheritance error.");
-
+    updateProxy: function(){
+        printError("Shape", "Inheritance error.");
     }
-
-} );
+});
 
 export { Shape };
