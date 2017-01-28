@@ -25,11 +25,9 @@ Object.assign( Mat33.prototype, {
     set: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
         var te = this.elements;
-
         te[0] = e00; te[1] = e01; te[2] = e02;
         te[3] = e10; te[4] = e11; te[5] = e12;
         te[6] = e20; te[7] = e21; te[8] = e22;
-
         return this;
 
     },
@@ -85,11 +83,13 @@ Object.assign( Mat33.prototype, {
     },
 
     scale: function ( m, s ) {
+
         var te = this.elements, tm = m.elements;
         te[0] = tm[0] * s; te[1] = tm[1] * s; te[2] = tm[2] * s;
         te[3] = tm[3] * s; te[4] = tm[4] * s; te[5] = tm[5] * s;
         te[6] = tm[6] * s; te[7] = tm[7] * s; te[8] = tm[8] * s;
         return this;
+
     },
 
     scaleEqual: function ( s ){
@@ -154,9 +154,9 @@ Object.assign( Mat33.prototype, {
         }
         return this;
 
-    },*/
+    },
 
-    /*transpose: function ( m ) {
+    transpose: function ( m ) {
 
         var te = this.elements, tm = m.elements;
         te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
@@ -234,6 +234,7 @@ Object.assign( Mat33.prototype, {
         te[6] -= yz;
         te[5] -= zx;
         te[7] -= zx;
+        return this;
 
     },
 
@@ -256,47 +257,9 @@ Object.assign( Mat33.prototype, {
         te[6] += yz;
         te[5] += zx;
         te[7] += zx;
+        return this;
 
     },
-
-    /*toEuler: function(){ // not work !!
-
-        function clamp( x ) {
-            return _Math.min( _Math.max( x, -1 ), 1 );
-        }
-        var te = this.elements;
-        var m11 = te[0], m12 = te[3], m13 = te[6];
-        var m22 = te[4], m23 = te[7];
-        var m32 = te[5], m33 = te[8];
-        //var m21 = te[1], m22 = te[4], m23 = te[7];
-        //var m31 = te[2], m32 = te[5], m33 = te[8];
-
-        var p = new Vec3();
-        //var d = new Quat();
-        //var s;
-
-        p.y = _Math.asin( clamp( m13 ) );
-
-        if ( _Math.abs( m13 ) < 0.99999 ) {
-            p.x = _Math.atan2( - m23, m33 );
-            p.z = _Math.atan2( - m12, m11 );
-        } else {
-            p.x = _Math.atan2( m32, m22 );
-            p.z = 0;
-        }
-        
-        return p;
-
-    },*/
-
-    /*toString: function(){
-        var te = this.elements;
-        var text=
-        "Mat33|"+te[0].toFixed(4)+", "+te[1].toFixed(4)+", "+te[2].toFixed(4)+"|\n"+
-        "     |"+te[3].toFixed(4)+", "+te[4].toFixed(4)+", "+te[5].toFixed(4)+"|\n"+
-        "     |"+te[6].toFixed(4)+", "+te[7].toFixed(4)+", "+te[8].toFixed(4)+"|" ;
-        return text;
-    },*/
 
     // OK 
 
@@ -311,8 +274,6 @@ Object.assign( Mat33.prototype, {
         return this;
 
     },
-
-    
 
     identity: function () {
 
@@ -331,17 +292,6 @@ Object.assign( Mat33.prototype, {
     copy: function ( m ) {
 
         this.elements.set( m.elements );
-
-        /*var me = m.elements;
-
-        this.set(
-
-            me[ 0 ], me[ 3 ], me[ 6 ],
-            me[ 1 ], me[ 4 ], me[ 7 ],
-            me[ 2 ], me[ 5 ], me[ 8 ]
-
-        );*/
-
         return this;
 
     },

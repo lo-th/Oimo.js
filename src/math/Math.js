@@ -1,6 +1,3 @@
-import { Mat33 } from './Mat33';
-import { Quat } from './Quat';
-
 var _Math = {
 
     sqrt   : Math.sqrt,

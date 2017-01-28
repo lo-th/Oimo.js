@@ -39,6 +39,7 @@ import { RigidBody } from './RigidBody';
 /**
  * The class of physical computing world.
  * You must be added to the world physical all computing objects
+ *
  * @author saharan
  * @author lo-th
  */

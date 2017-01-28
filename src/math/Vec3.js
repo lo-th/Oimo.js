@@ -13,62 +13,86 @@ Object.assign( Vec3.prototype, {
     Vec3: true,
 
     set: function(x,y,z){
+
         this.x = x;
         this.y = y;
         this.z = z;
         return this;
+
     },
+
     add: function(v1,v2){
+
         this.x = v1.x + v2.x;
         this.y = v1.y + v2.y;
         this.z = v1.z + v2.z;
         return this;
+
     },
-    addEqual: function(v){
+
+    addEqual: function ( v ) {
+
         this.x+=v.x;
         this.y+=v.y;
         this.z+=v.z;
         return this;
+
     },
-    addTime: function(v, t){
+
+    addTime: function ( v, t ) {
+
         this.x+=v.x*t;
         this.y+=v.y*t;
         this.z+=v.z*t;
         return this;
+
     },
-    sub: function(v1,v2){
+
+    sub: function ( v1, v2 ) {
+
         this.x=v1.x-v2.x;
         this.y=v1.y-v2.y;
         this.z=v1.z-v2.z;
         return this;
+
     },
-    subEqual: function(v){
+
+    subEqual: function ( v ) {
+
         this.x-=v.x;
         this.y-=v.y;
         this.z-=v.z;
         return this;
+
     },
-    addScale: function(v,s){
+
+    addScale: function ( v, s ) {
+
         this.x+=v.x*s;
         this.y+=v.y*s;
         this.z+=v.z*s;
         return this;
+
     },
-    scale: function(v,s){
+
+    scale: function ( v, s ) {
+
         this.x=v.x*s;
         this.y=v.y*s;
         this.z=v.z*s;
         return this;
+
     },
-    scaleEqual: function(s){
+
+    scaleEqual: function( s ){
+
         this.x*=s;
         this.y*=s;
         this.z*=s;
         return this;
+
     },
-    /*dot: function(v){
-        return this.x*v.x+this.y*v.y+this.z*v.z;
-    },*/
+   
     cross: function( v1, v2 ) {
 
         var ax = v1.x, ay = v1.y, az = v1.z, 
@@ -110,7 +134,8 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    normalize: function(v){
+    normalize: function ( v ) {
+
         var x = v.x, y = v.y, z = v.z;
         var l = x*x + y*y + z*z;
         if (l > 0) {
@@ -120,6 +145,7 @@ Object.assign( Vec3.prototype, {
             this.z = z*l;
         }
         return this;
+
     },
     /*norm: function(){
         var x = this.x, y = this.y, z = this.z;
@@ -132,11 +158,13 @@ Object.assign( Vec3.prototype, {
         }
         return this;
     },*/
-    invert: function(v){
+    invert: function ( v ) {
+
         this.x=-v.x;
         this.y=-v.y;
         this.z=-v.z;
         return this;
+
     },
     /*length: function(){
         var x = this.x, y = this.y, z = this.z;
@@ -213,10 +241,12 @@ Object.assign( Vec3.prototype, {
 
     },
     testZero: function () {
+
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;
+
     },
-    testDiff: function(v){
+    testDiff: function( v ){
 
         return ( ( v.x !== this.x ) || ( v.y !== this.y ) || ( v.z !== this.z ) );
         //if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
@@ -236,7 +266,9 @@ Object.assign( Vec3.prototype, {
     },
 
     toString: function(){
+
         return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
+        
     },
 
     multiplyScalar: function ( scalar ) {

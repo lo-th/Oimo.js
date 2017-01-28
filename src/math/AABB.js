@@ -3,30 +3,34 @@ import { _Math } from './Math';
 
 /**
  * An axis-aligned bounding box.
+ *
  * @author saharan
  * @author lo-th
  */
-function AABB( minX, maxX, minY, maxY, minZ, maxZ){
+
+function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
+
     this.elements = new Float32Array( 6 );
     var te = this.elements;
 
     te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
     te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
+
 };
 
 Object.assign( AABB.prototype, {
+
 	AABB: true,
 
 	set: function(minX, maxX, minY, maxY, minZ, maxZ){
-		var te = this.elements;
 
+		var te = this.elements;
 		te[0] = minX;
 		te[3] = maxX;
 		te[1] = minY;
 		te[4] = maxY;
 		te[2] = minZ;
 		te[5] = maxZ;
-
 		return this;
 	},
 
@@ -34,7 +38,7 @@ Object.assign( AABB.prototype, {
 
 		var te = this.elements;
 		var ue = aabb.elements;
-		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2];
+		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2]  ? false : true;
 
 	},
 
@@ -42,7 +46,7 @@ Object.assign( AABB.prototype, {
 
 		var te = this.elements;
 		var ue = aabb.elements;
-		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5];
+		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5]  ? false : true;
 
 	},
 
@@ -138,8 +142,8 @@ Object.assign( AABB.prototype, {
 	},
 
 	expandByScalar: function(s){
-		var te = this.elements;
 
+		var te = this.elements;
 		te[0] += -s;
 		te[1] += -s;
 		te[2] += -s;

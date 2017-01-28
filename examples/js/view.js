@@ -16,12 +16,10 @@ Math.Pi = 3.141592653589793;
 Math.TwoPI = 6.283185307179586;
 Math.PI90 = 1.570796326794896;
 Math.PI270 = 4.712388980384689;
-Math.lerp = function (a, b, percent) { return a + (b - a) * percent; };
-Math.rand = function (a, b) { return Math.lerp(a, b, Math.random()); };
-Math.randInt = function (a, b, n) { return Math.lerp(a, b, Math.random()).toFixed(n || 0)*1; };
-Math.int = function(x) { return ~~x; };
-
-
+Math.int = function(x) { return Math.floor(x); };
+Math.lerp = function ( x, y, t ) { return ( 1 - t ) * x + t * y; };
+Math.rand = function ( low, high ) { return low + Math.random() * ( high - low ); };
+Math.randInt = function ( low, high ) { return low + Math.floor( Math.random() * ( high - low + 1 ) ); };
 
 
 var view = ( function () {

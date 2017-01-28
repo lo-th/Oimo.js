@@ -129,6 +129,214 @@
 	// AABB aproximation
 	var AABB_PROX = 0.005;
 
+	var _Math = {
+
+	    sqrt   : Math.sqrt,
+	    abs    : Math.abs,
+	    floor  : Math.floor,
+	    cos    : Math.cos,
+	    sin    : Math.sin,
+	    acos   : Math.acos,
+	    asin   : Math.asin,
+	    atan2  : Math.atan2,
+	    round  : Math.round,
+	    pow    : Math.pow,
+	    max    : Math.max,
+	    min    : Math.min,
+	    random : Math.random,
+
+	    lerp: function ( x, y, t ) { return ( 1 - t ) * x + t * y; },
+	    randInt: function ( low, high ) { return low + _Math.floor( _Math.random() * ( high - low + 1 ) ); },
+	    rand: function ( low, high ) { return low + _Math.random() * ( high - low ); },
+	    //lerp : function ( a, b, percent ) { return a + (b - a) * percent; },
+	    //rand: function ( a, b ) { return _Math.lerp(a, b, _Math.random()); },
+	    //randInt: function ( a, b, n ) { return _Math.lerp(a, b, _Math.random()).toFixed(n || 0)*1;},
+
+	    int: function( x ) { return _Math.floor(x); },
+	    fix: function( x, n ) { return x.toFixed(n || 3, 10); },
+
+	    clamp: function ( value, min, max ) { return _Math.max( min, _Math.min( max, value ) ); },
+	    //clamp: function ( x, a, b ) { return ( x < a ) ? a : ( ( x > b ) ? b : x ); },
+
+	    degtorad : 0.0174532925199432957,
+	    radtodeg : 57.295779513082320876,
+	    PI     : 3.141592653589793,
+	    TwoPI  : 6.283185307179586,
+	    PI90   : 1.570796326794896,
+	    PI270  : 4.712388980384689,
+
+	    distance: function( p1, p2 ){
+
+	        var xd = p2[0]-p1[0];
+	        var yd = p2[1]-p1[1];
+	        var zd = p2[2]-p1[2];
+	        return _Math.sqrt(xd*xd + yd*yd + zd*zd);
+
+	    },
+
+	    /*unwrapDegrees: function ( r ) {
+
+	        r = r % 360;
+	        if (r > 180) r -= 360;
+	        if (r < -180) r += 360;
+	        return r;
+
+	    },
+
+	    unwrapRadian: function( r ){
+
+	        r = r % _Math.TwoPI;
+	        if (r > _Math.PI) r -= _Math.TwoPI;
+	        if (r < -_Math.PI) r += _Math.TwoPI;
+	        return r;
+
+	    },*/
+
+	    acosClamp: function ( cos ) {
+
+	        if(cos>1)return 0;
+	        else if(cos<-1)return _Math.PI;
+	        else return _Math.acos(cos);
+
+	    },
+
+	};
+
+	function printError( clazz, msg ){
+	    console.error("[OIMO] " + clazz + ": " + msg);
+	}
+
+	// A performance evaluator
+
+	function InfoDisplay(world){
+
+	    this.parent = world;
+
+	    this.infos = new Float32Array( 13 );
+	    this.f = [0,0,0];
+
+	    this.times = [0,0,0,0];
+
+	    this.broadPhase = this.parent.broadPhaseType;
+
+	    this.version = REVISION;
+
+	    this.fps = 0;
+
+	    this.tt = 0;
+
+	    this.broadPhaseTime = 0;
+	    this.narrowPhaseTime = 0;
+	    this.solvingTime = 0;
+	    this.totalTime = 0;
+	    this.updateTime = 0;
+
+	    this.MaxBroadPhaseTime = 0;
+	    this.MaxNarrowPhaseTime = 0;
+	    this.MaxSolvingTime = 0;
+	    this.MaxTotalTime = 0;
+	    this.MaxUpdateTime = 0;
+	}
+
+	Object.assign( InfoDisplay.prototype, {
+
+	    setTime: function(n){
+	        this.times[ n || 0 ] = performance.now();
+	    },
+
+	    resetMax: function(){
+
+	        this.MaxBroadPhaseTime = 0;
+	        this.MaxNarrowPhaseTime = 0;
+	        this.MaxSolvingTime = 0;
+	        this.MaxTotalTime = 0;
+	        this.MaxUpdateTime = 0;
+
+	    },
+
+	    calcBroadPhase: function () {
+
+	        this.setTime( 2 );
+	        this.broadPhaseTime = this.times[ 2 ] - this.times[ 1 ];
+
+	    },
+
+	    calcNarrowPhase: function () {
+
+	        this.setTime( 3 );
+	        this.narrowPhaseTime = this.times[ 3 ] - this.times[ 2 ];
+
+	    },
+
+	    calcEnd: function () {
+
+	        this.setTime( 2 );
+	        this.solvingTime = this.times[ 2 ] - this.times[ 1 ];
+	        this.totalTime = this.times[ 2 ] - this.times[ 0 ];
+	        this.updateTime = this.totalTime - ( this.broadPhaseTime + this.narrowPhaseTime + this.solvingTime );
+
+	        if( this.tt === 100 ) this.resetMax();
+
+	        if( this.tt > 100 ){
+	            if( this.broadPhaseTime > this.MaxBroadPhaseTime ) this.MaxBroadPhaseTime = this.broadPhaseTime;
+	            if( this.narrowPhaseTime > this.MaxNarrowPhaseTime ) this.MaxNarrowPhaseTime = this.narrowPhaseTime;
+	            if( this.solvingTime > this.MaxSolvingTime ) this.MaxSolvingTime = this.solvingTime;
+	            if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
+	            if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
+	        }
+
+
+	        this.upfps();
+
+	        this.tt ++;
+	        if(this.tt > 500) this.tt = 0;
+
+	    },
+
+
+	    upfps : function(){
+	        this.f[1] = Date.now();
+	        if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
+	    },
+
+	    show: function(){
+	        var info =[
+	            "Oimo.js "+this.version+"<br>",
+	            this.broadPhase + "<br><br>",
+	            "FPS: " + this.fps +" fps<br><br>",
+	            "rigidbody "+this.parent.numRigidBodies+"<br>",
+	            "contact &nbsp;&nbsp;"+this.parent.numContacts+"<br>",
+	            "ct-point &nbsp;"+this.parent.numContactPoints+"<br>",
+	            "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
+	            "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
+	            "Time in milliseconds<br><br>",
+	            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
+	            "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
+	            "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
+	            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime) + " | " + _Math.fix(this.MaxTotalTime) + "<br>",
+	            "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
+	        ].join("\n");
+	        return info;
+	    },
+
+	    toArray: function(){
+	        this.infos[0] = this.parent.broadPhase.types;
+	        this.infos[1] = this.parent.numRigidBodies;
+	        this.infos[2] = this.parent.numContacts;
+	        this.infos[3] = this.parent.broadPhase.numPairChecks;
+	        this.infos[4] = this.parent.numContactPoints;
+	        this.infos[5] = this.parent.numIslands;
+	        this.infos[6] = this.broadPhaseTime;
+	        this.infos[7] = this.narrowPhaseTime;
+	        this.infos[8] = this.solvingTime;
+	        this.infos[9] = this.updateTime;
+	        this.infos[10] = this.totalTime;
+	        this.infos[11] = this.fps;
+	        return this.infos;
+	    }
+	    
+	});
+
 	function Vec3 ( x, y, z ) {
 
 	    this.x = x || 0;
@@ -142,62 +350,86 @@
 	    Vec3: true,
 
 	    set: function(x,y,z){
+
 	        this.x = x;
 	        this.y = y;
 	        this.z = z;
 	        return this;
+
 	    },
+
 	    add: function(v1,v2){
+
 	        this.x = v1.x + v2.x;
 	        this.y = v1.y + v2.y;
 	        this.z = v1.z + v2.z;
 	        return this;
+
 	    },
-	    addEqual: function(v){
+
+	    addEqual: function ( v ) {
+
 	        this.x+=v.x;
 	        this.y+=v.y;
 	        this.z+=v.z;
 	        return this;
+
 	    },
-	    addTime: function(v, t){
+
+	    addTime: function ( v, t ) {
+
 	        this.x+=v.x*t;
 	        this.y+=v.y*t;
 	        this.z+=v.z*t;
 	        return this;
+
 	    },
-	    sub: function(v1,v2){
+
+	    sub: function ( v1, v2 ) {
+
 	        this.x=v1.x-v2.x;
 	        this.y=v1.y-v2.y;
 	        this.z=v1.z-v2.z;
 	        return this;
+
 	    },
-	    subEqual: function(v){
+
+	    subEqual: function ( v ) {
+
 	        this.x-=v.x;
 	        this.y-=v.y;
 	        this.z-=v.z;
 	        return this;
+
 	    },
-	    addScale: function(v,s){
+
+	    addScale: function ( v, s ) {
+
 	        this.x+=v.x*s;
 	        this.y+=v.y*s;
 	        this.z+=v.z*s;
 	        return this;
+
 	    },
-	    scale: function(v,s){
+
+	    scale: function ( v, s ) {
+
 	        this.x=v.x*s;
 	        this.y=v.y*s;
 	        this.z=v.z*s;
 	        return this;
+
 	    },
-	    scaleEqual: function(s){
+
+	    scaleEqual: function( s ){
+
 	        this.x*=s;
 	        this.y*=s;
 	        this.z*=s;
 	        return this;
+
 	    },
-	    /*dot: function(v){
-	        return this.x*v.x+this.y*v.y+this.z*v.z;
-	    },*/
+	   
 	    cross: function( v1, v2 ) {
 
 	        var ax = v1.x, ay = v1.y, az = v1.z, 
@@ -239,7 +471,8 @@
 
 	    },
 
-	    normalize: function(v){
+	    normalize: function ( v ) {
+
 	        var x = v.x, y = v.y, z = v.z;
 	        var l = x*x + y*y + z*z;
 	        if (l > 0) {
@@ -249,6 +482,7 @@
 	            this.z = z*l;
 	        }
 	        return this;
+
 	    },
 	    /*norm: function(){
 	        var x = this.x, y = this.y, z = this.z;
@@ -261,11 +495,13 @@
 	        }
 	        return this;
 	    },*/
-	    invert: function(v){
+	    invert: function ( v ) {
+
 	        this.x=-v.x;
 	        this.y=-v.y;
 	        this.z=-v.z;
 	        return this;
+
 	    },
 	    /*length: function(){
 	        var x = this.x, y = this.y, z = this.z;
@@ -342,10 +578,12 @@
 
 	    },
 	    testZero: function () {
+
 	        if(this.x!==0 || this.y!==0 || this.z!==0) return true;
 	        else return false;
+
 	    },
-	    testDiff: function(v){
+	    testDiff: function( v ){
 
 	        return ( ( v.x !== this.x ) || ( v.y !== this.y ) || ( v.z !== this.z ) );
 	        //if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
@@ -365,7 +603,9 @@
 	    },
 
 	    toString: function(){
+
 	        return"Vec3["+this.x.toFixed(4)+", "+this.y.toFixed(4)+", "+this.z.toFixed(4)+"]";
+	        
 	    },
 
 	    multiplyScalar: function ( scalar ) {
@@ -423,10 +663,10 @@
 
 	function Quat ( x, y, z, w ){
 
-	    this.x=x || 0;
-	    this.y=y || 0;
-	    this.z=z || 0;
-	    this.w=( w !== undefined ) ? w : 1;
+	    this.x = x || 0;
+	    this.y = y || 0;
+	    this.z = z || 0;
+	    this.w = ( w !== undefined ) ? w : 1;
 
 	}
 
@@ -446,21 +686,18 @@
 
 	    },
 
-	    init: function( w, x, y, z ){
-	        this.w=( w !== undefined ) ? w : 1;
-	        this.x=x || 0;
-	        this.y=y || 0;
-	        this.z=z || 0;
-	        return this;
-	    },
-	    add: function(q1,q2){
+	    add: function( q1, q2 ){
+
 	        this.w=q1.w+q2.w;
 	        this.x=q1.x+q2.x;
 	        this.y=q1.y+q2.y;
 	        this.z=q1.z+q2.z;
 	        return this;
+
 	    },
-	    addTime: function(v,t){
+
+	    addTime: function( v, t ){
+
 	        var x = v.x;
 	        var y = v.y;
 	        var z = v.z;
@@ -483,22 +720,30 @@
 	        this.y=qy*s;
 	        this.z=qz*s;
 	        return this;
+
 	    },
-	    sub: function(q1,q2){
+
+	    sub: function( q1, q2 ){
+
 	        this.w=q1.w-q2.w;
 	        this.x=q1.x-q2.x;
 	        this.y=q1.y-q2.y;
 	        this.z=q1.z-q2.z;
 	        return this;
+
 	    },
-	    scale: function(q,s){
+
+	    scale: function( q, s ){
+
 	        this.w=q.w*s;
 	        this.x=q.x*s;
 	        this.y=q.y*s;
 	        this.z=q.z*s;
 	        return this;
+
 	    },
 	    mul: function( q1, q2 ){
+
 	        var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,
 	        bx = q2.x, by = q2.y, bz = q2.z, bs = q2.w;
 	        this.x = ax * bs + as * bx + ay * bz - az * by;
@@ -506,8 +751,11 @@
 	        this.z = az * bs + as * bz + ax * by - ay * bx;
 	        this.w = as * bs - ax * bx - ay * by - az * bz;
 	        return this;
+
 	    },
-	    arc: function(v1,v2){
+
+	    arc: function( v1, v2 ){
+
 	        var x1=v1.x;
 	        var y1=v1.y;
 	        var z1=v1.z;
@@ -535,8 +783,11 @@
 	        this.y=cy*d;
 	        this.z=cz*d;
 	        return this;
+
 	    },
+
 	    normalize: function(q){
+
 	        var len=_Math.sqrt(q.w*q.w+q.x*q.x+q.y*q.y+q.z*q.z);
 	        if(len>0){len=1/len;}
 	        this.w=q.w*len;
@@ -544,34 +795,45 @@
 	        this.y=q.y*len;
 	        this.z=q.z*len;
 	        return this;
+
 	    },
+
 	    invert: function(q){
+
 	        this.w=q.w;
 	        this.x=-q.x;
 	        this.y=-q.y;
 	        this.z=-q.z;
 	        return this;
+
 	    },
+
 	    length: function(){
 	        return _Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
 	    },
 	    
-	    copy: function(q){
+	    copy: function( q ){
 	        this.w=q.w;
 	        this.x=q.x;
 	        this.y=q.y;
 	        this.z=q.z;
 	        return this;
 	    },
+
 	    testDiff: function(q){
 	        if( this.w!==q.w || this.x!==q.x || this.y!==q.y || this.z!==q.z ) return true;
 	        else return false;
 	    },
-	    clone: function(q){
+	    clone: function( q ){
+
 	        return new Quat( this.x, this.y, this.z, this.w );
+
 	    },
+
 	    toString: function(){
+
 	        return"Quat["+this.x.toFixed(4)+", ("+this.y.toFixed(4)+", "+this.z.toFixed(4)+", "+this.w.toFixed(4)+")]";
+	        
 	    },
 
 	    setFromEuler: function ( x, y, z ){
@@ -715,11 +977,9 @@
 	    set: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
 	        var te = this.elements;
-
 	        te[0] = e00; te[1] = e01; te[2] = e02;
 	        te[3] = e10; te[4] = e11; te[5] = e12;
 	        te[6] = e20; te[7] = e21; te[8] = e22;
-
 	        return this;
 
 	    },
@@ -775,11 +1035,13 @@
 	    },
 
 	    scale: function ( m, s ) {
+
 	        var te = this.elements, tm = m.elements;
 	        te[0] = tm[0] * s; te[1] = tm[1] * s; te[2] = tm[2] * s;
 	        te[3] = tm[3] * s; te[4] = tm[4] * s; te[5] = tm[5] * s;
 	        te[6] = tm[6] * s; te[7] = tm[7] * s; te[8] = tm[8] * s;
 	        return this;
+
 	    },
 
 	    scaleEqual: function ( s ){
@@ -844,9 +1106,9 @@
 	        }
 	        return this;
 
-	    },*/
+	    },
 
-	    /*transpose: function ( m ) {
+	    transpose: function ( m ) {
 
 	        var te = this.elements, tm = m.elements;
 	        te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
@@ -924,6 +1186,7 @@
 	        te[6] -= yz;
 	        te[5] -= zx;
 	        te[7] -= zx;
+	        return this;
 
 	    },
 
@@ -946,47 +1209,9 @@
 	        te[6] += yz;
 	        te[5] += zx;
 	        te[7] += zx;
+	        return this;
 
 	    },
-
-	    /*toEuler: function(){ // not work !!
-
-	        function clamp( x ) {
-	            return _Math.min( _Math.max( x, -1 ), 1 );
-	        }
-	        var te = this.elements;
-	        var m11 = te[0], m12 = te[3], m13 = te[6];
-	        var m22 = te[4], m23 = te[7];
-	        var m32 = te[5], m33 = te[8];
-	        //var m21 = te[1], m22 = te[4], m23 = te[7];
-	        //var m31 = te[2], m32 = te[5], m33 = te[8];
-
-	        var p = new Vec3();
-	        //var d = new Quat();
-	        //var s;
-
-	        p.y = _Math.asin( clamp( m13 ) );
-
-	        if ( _Math.abs( m13 ) < 0.99999 ) {
-	            p.x = _Math.atan2( - m23, m33 );
-	            p.z = _Math.atan2( - m12, m11 );
-	        } else {
-	            p.x = _Math.atan2( m32, m22 );
-	            p.z = 0;
-	        }
-	        
-	        return p;
-
-	    },*/
-
-	    /*toString: function(){
-	        var te = this.elements;
-	        var text=
-	        "Mat33|"+te[0].toFixed(4)+", "+te[1].toFixed(4)+", "+te[2].toFixed(4)+"|\n"+
-	        "     |"+te[3].toFixed(4)+", "+te[4].toFixed(4)+", "+te[5].toFixed(4)+"|\n"+
-	        "     |"+te[6].toFixed(4)+", "+te[7].toFixed(4)+", "+te[8].toFixed(4)+"|" ;
-	        return text;
-	    },*/
 
 	    // OK 
 
@@ -1001,8 +1226,6 @@
 	        return this;
 
 	    },
-
-	    
 
 	    identity: function () {
 
@@ -1021,17 +1244,6 @@
 	    copy: function ( m ) {
 
 	        this.elements.set( m.elements );
-
-	        /*var me = m.elements;
-
-	        this.set(
-
-	            me[ 0 ], me[ 3 ], me[ 6 ],
-	            me[ 1 ], me[ 4 ], me[ 7 ],
-	            me[ 2 ], me[ 5 ], me[ 8 ]
-
-	        );*/
-
 	        return this;
 
 	    },
@@ -1076,261 +1288,36 @@
 
 	} );
 
-	var _Math = {
-
-	    sqrt   : Math.sqrt,
-	    abs    : Math.abs,
-	    floor  : Math.floor,
-	    cos    : Math.cos,
-	    sin    : Math.sin,
-	    acos   : Math.acos,
-	    asin   : Math.asin,
-	    atan2  : Math.atan2,
-	    round  : Math.round,
-	    pow    : Math.pow,
-	    max    : Math.max,
-	    min    : Math.min,
-	    random : Math.random,
-
-	    lerp: function ( x, y, t ) { return ( 1 - t ) * x + t * y; },
-	    randInt: function ( low, high ) { return low + _Math.floor( _Math.random() * ( high - low + 1 ) ); },
-	    rand: function ( low, high ) { return low + _Math.random() * ( high - low ); },
-	    //lerp : function ( a, b, percent ) { return a + (b - a) * percent; },
-	    //rand: function ( a, b ) { return _Math.lerp(a, b, _Math.random()); },
-	    //randInt: function ( a, b, n ) { return _Math.lerp(a, b, _Math.random()).toFixed(n || 0)*1;},
-
-	    int: function( x ) { return _Math.floor(x); },
-	    fix: function( x, n ) { return x.toFixed(n || 3, 10); },
-
-	    clamp: function ( value, min, max ) { return _Math.max( min, _Math.min( max, value ) ); },
-	    //clamp: function ( x, a, b ) { return ( x < a ) ? a : ( ( x > b ) ? b : x ); },
-
-	    degtorad : 0.0174532925199432957,
-	    radtodeg : 57.295779513082320876,
-	    PI     : 3.141592653589793,
-	    TwoPI  : 6.283185307179586,
-	    PI90   : 1.570796326794896,
-	    PI270  : 4.712388980384689,
-
-	    distance: function( p1, p2 ){
-
-	        var xd = p2[0]-p1[0];
-	        var yd = p2[1]-p1[1];
-	        var zd = p2[2]-p1[2];
-	        return _Math.sqrt(xd*xd + yd*yd + zd*zd);
-
-	    },
-
-	    /*unwrapDegrees: function ( r ) {
-
-	        r = r % 360;
-	        if (r > 180) r -= 360;
-	        if (r < -180) r += 360;
-	        return r;
-
-	    },
-
-	    unwrapRadian: function( r ){
-
-	        r = r % _Math.TwoPI;
-	        if (r > _Math.PI) r -= _Math.TwoPI;
-	        if (r < -_Math.PI) r += _Math.TwoPI;
-	        return r;
-
-	    },*/
-
-	    acosClamp: function ( cos ) {
-
-	        if(cos>1)return 0;
-	        else if(cos<-1)return _Math.PI;
-	        else return _Math.acos(cos);
-
-	    },
-
-	};
-
-	/**
-	 * Logs an error.
-	 *
-	 * @method printError
-	 * @param clazz {String} The class name that reported the error.
-	 * @param msg {String} The message describing the error.
-	 */
-	function printError(clazz, msg){
-	    console.error("[OIMO] " + clazz + ": " + msg);
-	}
-
-	/**
-	 * A performance evaluator. Calculates
-	 * speed of physics pipeline.
-	 *
-	 * @class InfoDisplay
-	 * @constructor
-	 * @param world {World} The attached world.
-	 */
-	function InfoDisplay(world){
-
-		/**
-		 * The world it belongs to.
-		 *
-		 * @name InfoDisplay#parent
-		 * @type {World}
-		 */
-	    this.parent = world;
-
-	    this.infos = new Float32Array( 13 );
-	    this.f = [0,0,0];
-
-	    this.times = [0,0,0,0];
-
-	    this.broadPhase = this.parent.broadPhaseType;
-
-	    this.version = REVISION;
-
-	    this.fps = 0;
-
-	    this.tt = 0;
-
-	    this.broadPhaseTime = 0;
-	    this.narrowPhaseTime = 0;
-	    this.solvingTime = 0;
-	    this.totalTime = 0;
-	    this.updateTime = 0;
-
-	    this.MaxBroadPhaseTime = 0;
-	    this.MaxNarrowPhaseTime = 0;
-	    this.MaxSolvingTime = 0;
-	    this.MaxTotalTime = 0;
-	    this.MaxUpdateTime = 0;
-	}
-
-	Object.assign(InfoDisplay.prototype,
-
-	/** @lends InfoDisplay.prototype */
-	{
-
-	    setTime: function(n){
-	        this.times[ n || 0 ] = performance.now();
-	    },
-
-	    resetMax: function(){
-
-	        this.MaxBroadPhaseTime = 0;
-	        this.MaxNarrowPhaseTime = 0;
-	        this.MaxSolvingTime = 0;
-	        this.MaxTotalTime = 0;
-	        this.MaxUpdateTime = 0;
-
-	    },
-
-	    calcBroadPhase: function () {
-
-	        this.setTime( 2 );
-	        this.broadPhaseTime = this.times[ 2 ] - this.times[ 1 ];
-
-	    },
-
-	    calcNarrowPhase: function () {
-
-	        this.setTime( 3 );
-	        this.narrowPhaseTime = this.times[ 3 ] - this.times[ 2 ];
-
-	    },
-
-	    calcEnd: function () {
-
-	        this.setTime( 2 );
-	        this.solvingTime = this.times[ 2 ] - this.times[ 1 ];
-	        this.totalTime = this.times[ 2 ] - this.times[ 0 ];
-	        this.updateTime = this.totalTime - ( this.broadPhaseTime + this.narrowPhaseTime + this.solvingTime );
-
-	        if( this.tt === 100 ) this.resetMax();
-
-	        if( this.tt > 100 ){
-	            if( this.broadPhaseTime > this.MaxBroadPhaseTime ) this.MaxBroadPhaseTime = this.broadPhaseTime;
-	            if( this.narrowPhaseTime > this.MaxNarrowPhaseTime ) this.MaxNarrowPhaseTime = this.narrowPhaseTime;
-	            if( this.solvingTime > this.MaxSolvingTime ) this.MaxSolvingTime = this.solvingTime;
-	            if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
-	            if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
-	        }
-
-
-	        this.upfps();
-
-	        this.tt ++;
-	        if(this.tt > 500) this.tt = 0;
-
-	    },
-
-
-	    upfps : function(){
-	        this.f[1] = Date.now();
-	        if (this.f[1]-1000>this.f[0]){ this.f[0] = this.f[1]; this.fps = this.f[2]; this.f[2] = 0; } this.f[2]++;
-	    },
-
-	    show: function(){
-	        var info =[
-	            "Oimo.js "+this.version+"<br>",
-	            this.broadPhase + "<br><br>",
-	            "FPS: " + this.fps +" fps<br><br>",
-	            "rigidbody "+this.parent.numRigidBodies+"<br>",
-	            "contact &nbsp;&nbsp;"+this.parent.numContacts+"<br>",
-	            "ct-point &nbsp;"+this.parent.numContactPoints+"<br>",
-	            "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
-	            "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
-	            "Time in milliseconds<br><br>",
-	            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
-	            "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
-	            "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
-	            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime) + " | " + _Math.fix(this.MaxTotalTime) + "<br>",
-	            "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
-	        ].join("\n");
-	        return info;
-	    },
-
-	    toArray: function(){
-	        this.infos[0] = this.parent.broadPhase.types;
-	        this.infos[1] = this.parent.numRigidBodies;
-	        this.infos[2] = this.parent.numContacts;
-	        this.infos[3] = this.parent.broadPhase.numPairChecks;
-	        this.infos[4] = this.parent.numContactPoints;
-	        this.infos[5] = this.parent.numIslands;
-	        this.infos[6] = this.broadPhaseTime;
-	        this.infos[7] = this.narrowPhaseTime;
-	        this.infos[8] = this.solvingTime;
-	        this.infos[9] = this.updateTime;
-	        this.infos[10] = this.totalTime;
-	        this.infos[11] = this.fps;
-	        return this.infos;
-	    }
-	});
-
 	/**
 	 * An axis-aligned bounding box.
+	 *
 	 * @author saharan
 	 * @author lo-th
 	 */
-	function AABB( minX, maxX, minY, maxY, minZ, maxZ){
+
+	function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
+
 	    this.elements = new Float32Array( 6 );
 	    var te = this.elements;
 
 	    te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
 	    te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
+
 	}
 
 	Object.assign( AABB.prototype, {
+
 		AABB: true,
 
 		set: function(minX, maxX, minY, maxY, minZ, maxZ){
-			var te = this.elements;
 
+			var te = this.elements;
 			te[0] = minX;
 			te[3] = maxX;
 			te[1] = minY;
 			te[4] = maxY;
 			te[2] = minZ;
 			te[5] = maxZ;
-
 			return this;
 		},
 
@@ -1338,7 +1325,7 @@
 
 			var te = this.elements;
 			var ue = aabb.elements;
-			return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2];
+			return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2]  ? false : true;
 
 		},
 
@@ -1346,7 +1333,7 @@
 
 			var te = this.elements;
 			var ue = aabb.elements;
-			return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5];
+			return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5]  ? false : true;
 
 		},
 
@@ -1442,8 +1429,8 @@
 		},
 
 		expandByScalar: function(s){
-			var te = this.elements;
 
+			var te = this.elements;
 			te[0] += -s;
 			te[1] += -s;
 			te[2] += -s;
@@ -1994,10 +1981,9 @@
 
 	}
 
-	//import { Mat44 } from '../../math/Mat44';
-
 	/**
 	 * Joints are used to constrain the motion between two rigid bodies.
+	 *
 	 * @author saharan
 	 * @author lo-th
 	 */
@@ -2008,7 +1994,6 @@
 
 	    this.scale = config.scale;
 	    this.invScale = config.invScale;
-
 
 	    // joint name
 	    this.name = "";
@@ -2023,153 +2008,157 @@
 	    this.body1 = config.body1;
 	    this.body2 = config.body2;
 
-	    // The anchor point on the first rigid body in local coordinate system.
+	    // anchor point on the first rigid body in local coordinate system.
 	    this.localAnchorPoint1 = new Vec3().copy(config.localAnchorPoint1);
-	    // The anchor point on the second rigid body in local coordinate system.
+	    // anchor point on the second rigid body in local coordinate system.
 	    this.localAnchorPoint2 = new Vec3().copy(config.localAnchorPoint2);
-	    // The anchor point on the first rigid body in world coordinate system relative to the body's origin.
+	    // anchor point on the first rigid body in world coordinate system relative to the body's origin.
 	    this.relativeAnchorPoint1 = new Vec3();
-	    // The anchor point on the second rigid body in world coordinate system relative to the body's origin.
+	    // anchor point on the second rigid body in world coordinate system relative to the body's origin.
 	    this.relativeAnchorPoint2 = new Vec3();
-	    //  The anchor point on the first rigid body in world coordinate system.
+	    //  anchor point on the first rigid body in world coordinate system.
 	    this.anchorPoint1 = new Vec3();
-	    // The anchor point on the second rigid body in world coordinate system.
+	    // anchor point on the second rigid body in world coordinate system.
 	    this.anchorPoint2 = new Vec3();
-	    //  Whether allow collision between connected rigid bodies or not.
+	    // Whether allow collision between connected rigid bodies or not.
 	    this.allowCollision = config.allowCollision;
 
 	    this.b1Link = new JointLink( this );
 	    this.b2Link = new JointLink( this );
 
-	    //this.matrix = new Mat44();
-
 	}
 
-	Joint.prototype = Object.create( Constraint.prototype );
-	Joint.prototype.constructor = Joint;
+	Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
-	// Update all the anchor points.
+	    constructor: Joint,
 
-	Joint.prototype.updateAnchorPoints = function () {
+	    // Update all the anchor points.
 
-	    this.relativeAnchorPoint1.mulMat(this.body1.rotation, this.localAnchorPoint1);
-	    this.relativeAnchorPoint2.mulMat(this.body2.rotation, this.localAnchorPoint2);
+	    updateAnchorPoints: function () {
 
-	    this.anchorPoint1.add(this.relativeAnchorPoint1, this.body1.position);
-	    this.anchorPoint2.add(this.relativeAnchorPoint2, this.body2.position);
+	        this.relativeAnchorPoint1.mulMat(this.body1.rotation, this.localAnchorPoint1);
+	        this.relativeAnchorPoint2.mulMat(this.body2.rotation, this.localAnchorPoint2);
 
-	};
+	        this.anchorPoint1.add(this.relativeAnchorPoint1, this.body1.position);
+	        this.anchorPoint2.add(this.relativeAnchorPoint2, this.body2.position);
 
-	// Attach the joint from the bodies.
+	    },
 
-	Joint.prototype.attach = function ( isX ) {
+	    // Attach the joint from the bodies.
 
-	    this.b1Link.body = this.body2;
-	    this.b2Link.body = this.body1;
+	    attach: function ( isX ) {
 
-	    if(isX){
+	        this.b1Link.body = this.body2;
+	        this.b2Link.body = this.body1;
 
-	        this.body1.jointLink.push( this.b1Link );
-	        this.body2.jointLink.push( this.b2Link );
+	        if(isX){
 
-	    } else {
+	            this.body1.jointLink.push( this.b1Link );
+	            this.body2.jointLink.push( this.b2Link );
 
-	        if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
-	        else this.b1Link.next = null;
-	        this.body1.jointLink = this.b1Link;
-	        this.body1.numJoints++;
-	        if(this.body2.jointLink != null) (this.b2Link.next=this.body2.jointLink).prev = this.b2Link;
-	        else this.b2Link.next = null;
-	        this.body2.jointLink = this.b2Link;
-	        this.body2.numJoints++;
+	        } else {
 
-	    }
+	            if(this.body1.jointLink != null) (this.b1Link.next=this.body1.jointLink).prev = this.b1Link;
+	            else this.b1Link.next = null;
+	            this.body1.jointLink = this.b1Link;
+	            this.body1.numJoints++;
+	            if(this.body2.jointLink != null) (this.b2Link.next=this.body2.jointLink).prev = this.b2Link;
+	            else this.b2Link.next = null;
+	            this.body2.jointLink = this.b2Link;
+	            this.body2.numJoints++;
 
-	};
+	        }
 
-	// Detach the joint from the bodies.
+	    },
 
-	Joint.prototype.detach = function ( isX ) {
+	    // Detach the joint from the bodies.
 
-	    if(isX){
+	    detach: function ( isX ) {
 
-	        this.body1.jointLink.splice( this.body1.jointLink.indexOf( this.b1Link ), 1 );
-	        this.body2.jointLink.splice( this.body2.jointLink.indexOf( this.b2Link ), 1 );
+	        if( isX ){
 
-	    } else {
+	            this.body1.jointLink.splice( this.body1.jointLink.indexOf( this.b1Link ), 1 );
+	            this.body2.jointLink.splice( this.body2.jointLink.indexOf( this.b2Link ), 1 );
 
-	        var prev = this.b1Link.prev;
-	        var next = this.b1Link.next;
-	        if(prev != null) prev.next = next;
-	        if(next != null) next.prev = prev;
-	        if(this.body1.jointLink == this.b1Link) this.body1.jointLink = next;
-	        this.b1Link.prev = null;
-	        this.b1Link.next = null;
+	        } else {
+
+	            var prev = this.b1Link.prev;
+	            var next = this.b1Link.next;
+	            if(prev != null) prev.next = next;
+	            if(next != null) next.prev = prev;
+	            if(this.body1.jointLink == this.b1Link) this.body1.jointLink = next;
+	            this.b1Link.prev = null;
+	            this.b1Link.next = null;
+	            this.b1Link.body = null;
+	            this.body1.numJoints--;
+
+	            prev = this.b2Link.prev;
+	            next = this.b2Link.next;
+	            if(prev != null) prev.next = next;
+	            if(next != null) next.prev = prev;
+	            if(this.body2.jointLink==this.b2Link) this.body2.jointLink = next;
+	            this.b2Link.prev = null;
+	            this.b2Link.next = null;
+	            this.b2Link.body = null;
+	            this.body2.numJoints--;
+
+	        }
+
 	        this.b1Link.body = null;
-	        this.body1.numJoints--;
-
-	        prev = this.b2Link.prev;
-	        next = this.b2Link.next;
-	        if(prev != null) prev.next = next;
-	        if(next != null) next.prev = prev;
-	        if(this.body2.jointLink==this.b2Link) this.body2.jointLink = next;
-	        this.b2Link.prev = null;
-	        this.b2Link.next = null;
 	        this.b2Link.body = null;
-	        this.body2.numJoints--;
+
+	    },
+
+
+	    // Awake the bodies.
+
+	    awake: function () {
+
+	        this.body1.awake();
+	        this.body2.awake();
+
+	    },
+
+	    // calculation function
+
+	    preSolve: function ( timeStep, invTimeStep ) {
+
+	    },
+
+	    solve: function () {
+
+	    },
+
+	    postSolve: function () {
+
+	    },
+
+	    // Delete process
+
+	    remove: function () {
+
+	        this.dispose();
+
+	    },
+
+	    dispose: function () {
+
+	        this.parent.removeJoint(this);
+
+	    },
+
+
+	    // Three js add
+
+	    getPosition: function () {
+
+	        var p1 = new Vec3().scale( this.anchorPoint1, this.scale );
+	        var p2 = new Vec3().scale( this.anchorPoint2, this.scale );
+	        return [ p1, p2 ];
 
 	    }
 
-	    this.b1Link.body = null;
-	    this.b2Link.body = null;
-
-	};
-
-
-	// Awake the bodies.
-
-	Joint.prototype.awake = function () {
-
-	    this.body1.awake();
-	    this.body2.awake();
-
-	};
-
-	// calculation function
-
-	Joint.prototype.preSolve = function (timeStep,invTimeStep) {
-	};
-
-	Joint.prototype.solve = function () {
-	};
-
-	Joint.prototype.postSolve = function () {
-	};
-
-	// Delete process
-
-	Joint.prototype.remove = function () {
-
-	    this.dispose();
-
-	};
-
-	Joint.prototype.dispose = function () {
-
-	    this.parent.removeJoint(this);
-
-	};
-
-
-	// Three js add
-
-	Joint.prototype.getPosition = function () {
-
-	    var p1 = new Vec3().scale(this.anchorPoint1, this.scale);
-	    var p2 = new Vec3().scale(this.anchorPoint2, this.scale);
-	    return [p1, p2];
-
-	};
+	});
 
 	/**
 	* A linear constraint for all axes for various joints.
@@ -4686,13 +4675,13 @@
 	 * @author lo-th
 	 * @author saharan
 	 */
-	 
+
 	function MassInfo (){
 
 	    // Mass of the shape.
 	    this.mass = 0;
 
-	    //The moment inertia of the shape.
+	    // The moment inertia of the shape.
 	    this.inertia = new Mat33();
 
 	}

@@ -2,10 +2,10 @@ import { _Math } from './Math';
 
 function Quat ( x, y, z, w ){
 
-    this.x=x || 0;
-    this.y=y || 0;
-    this.z=z || 0;
-    this.w=( w !== undefined ) ? w : 1;
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
+    this.w = ( w !== undefined ) ? w : 1;
 
 }
 
@@ -25,21 +25,18 @@ Object.assign( Quat.prototype, {
 
     },
 
-    init: function( w, x, y, z ){
-        this.w=( w !== undefined ) ? w : 1;
-        this.x=x || 0;
-        this.y=y || 0;
-        this.z=z || 0;
-        return this;
-    },
-    add: function(q1,q2){
+    add: function( q1, q2 ){
+
         this.w=q1.w+q2.w;
         this.x=q1.x+q2.x;
         this.y=q1.y+q2.y;
         this.z=q1.z+q2.z;
         return this;
+
     },
-    addTime: function(v,t){
+
+    addTime: function( v, t ){
+
         var x = v.x;
         var y = v.y;
         var z = v.z;
@@ -62,22 +59,30 @@ Object.assign( Quat.prototype, {
         this.y=qy*s;
         this.z=qz*s;
         return this;
+
     },
-    sub: function(q1,q2){
+
+    sub: function( q1, q2 ){
+
         this.w=q1.w-q2.w;
         this.x=q1.x-q2.x;
         this.y=q1.y-q2.y;
         this.z=q1.z-q2.z;
         return this;
+
     },
-    scale: function(q,s){
+
+    scale: function( q, s ){
+
         this.w=q.w*s;
         this.x=q.x*s;
         this.y=q.y*s;
         this.z=q.z*s;
         return this;
+
     },
     mul: function( q1, q2 ){
+
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,
         bx = q2.x, by = q2.y, bz = q2.z, bs = q2.w;
         this.x = ax * bs + as * bx + ay * bz - az * by;
@@ -85,8 +90,11 @@ Object.assign( Quat.prototype, {
         this.z = az * bs + as * bz + ax * by - ay * bx;
         this.w = as * bs - ax * bx - ay * by - az * bz;
         return this;
+
     },
-    arc: function(v1,v2){
+
+    arc: function( v1, v2 ){
+
         var x1=v1.x;
         var y1=v1.y;
         var z1=v1.z;
@@ -114,8 +122,11 @@ Object.assign( Quat.prototype, {
         this.y=cy*d;
         this.z=cz*d;
         return this;
+
     },
+
     normalize: function(q){
+
         var len=_Math.sqrt(q.w*q.w+q.x*q.x+q.y*q.y+q.z*q.z);
         if(len>0){len=1/len;}
         this.w=q.w*len;
@@ -123,34 +134,45 @@ Object.assign( Quat.prototype, {
         this.y=q.y*len;
         this.z=q.z*len;
         return this;
+
     },
+
     invert: function(q){
+
         this.w=q.w;
         this.x=-q.x;
         this.y=-q.y;
         this.z=-q.z;
         return this;
+
     },
+
     length: function(){
         return _Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
     },
     
-    copy: function(q){
+    copy: function( q ){
         this.w=q.w;
         this.x=q.x;
         this.y=q.y;
         this.z=q.z;
         return this;
     },
+
     testDiff: function(q){
         if( this.w!==q.w || this.x!==q.x || this.y!==q.y || this.z!==q.z ) return true;
         else return false;
     },
-    clone: function(q){
+    clone: function( q ){
+
         return new Quat( this.x, this.y, this.z, this.w );
+
     },
+
     toString: function(){
+
         return"Quat["+this.x.toFixed(4)+", ("+this.y.toFixed(4)+", "+this.z.toFixed(4)+", "+this.w.toFixed(4)+")]";
+        
     },
 
     setFromEuler: function ( x, y, z ){
