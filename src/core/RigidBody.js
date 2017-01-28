@@ -361,7 +361,7 @@ Object.assign( RigidBody.prototype, {
                 this.orientation.addTime(this.angularVelocity, timeStep);
 
             break;
-            default: Error("RigidBody", "Invalid type.");
+            default: printError("RigidBody", "Invalid type.");
         }
 
         this.syncShapes();

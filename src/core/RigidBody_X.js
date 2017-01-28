@@ -1,5 +1,5 @@
 import { BODY_NULL, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { Error } from './Utils';
+import { printError } from './Utils';
 
 import { MassInfo } from '../collision/shape/MassInfo';
 import { ShapeConfig } from '../collision/shape/ShapeConfig';
@@ -136,7 +136,7 @@ Object.assign( RigidBody.prototype, {
     */
     addShape:function( shape ){
 
-        if(shape.parent) Error("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
+        if(shape.parent) printError("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
 
         //if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
         //this.shapes = shape;
@@ -383,7 +383,7 @@ Object.assign( RigidBody.prototype, {
                 this.orientation.addTime( this.angularVelocity, timeStep );
 
             break;
-            default: Error("RigidBody", "Invalid type.");
+            default: printError("RigidBody", "Invalid type.");
         }
 
         this.syncShapes();

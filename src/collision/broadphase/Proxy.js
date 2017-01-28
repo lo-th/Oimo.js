@@ -42,7 +42,7 @@ Object.assign( Proxy.prototype, {
 	 * @return any
 	 */
     update: function(){
-        Error("Proxy","Inheritance error.");
+        printError("Proxy","Inheritance error.");
     }
 });
 
