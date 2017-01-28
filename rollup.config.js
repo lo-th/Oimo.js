@@ -1,5 +1,5 @@
 export default {
-	entry: 'src/main.js',
+	entry: 'src/Oimo.js',
 	indent: '\t',
 	targets: [
 		{
