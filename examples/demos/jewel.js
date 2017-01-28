@@ -20,6 +20,7 @@ function demo() {
     var mx = 150;
     var r = 50;
     var a = (360/mx) * Math.torad;
+    var spring = [2, 0.3];// soften the joint ex: 100, 0.2
 
     for( i = 0; i < mx; i++){
 
@@ -29,10 +30,8 @@ function demo() {
 
         add({ type:'sphere', size:[1], pos:[x, y, z], move:1 });
 
-       
-
-        if( i > 0 ) world.add({ type:'jointHinge', body1:(i-1), body2:i, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
-        if( i === mx-1 ) world.add({ type:'jointHinge', body1:mx-1, body2:0, pos1:[0,-1,0], pos2:[0,1,0], collision:true });
+        if( i > 0 ) world.add({ type:'jointHinge', body1:(i-1), body2:i, pos1:[0,-1,0], pos2:[0,1,0], collision:true, spring:spring });
+        if( i === mx-1 ) world.add({ type:'jointHinge', body1:mx-1, body2:0, pos1:[0,-1,0], pos2:[0,1,0], collision:true, spring:spring });
 
     }
 

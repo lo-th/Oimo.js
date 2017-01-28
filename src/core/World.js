@@ -868,20 +868,20 @@ Object.assign( World.prototype, {
         var joint;
         switch( type ){
             case "jointDistance": joint = new DistanceJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );
+                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointHinge": case "joint": joint = new HingeJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
-                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
             case "jointSlide": joint = new SliderJoint(jc, min, max); break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
             case "jointWheel": joint = new WheelJoint(jc);
-                if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
-                if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
+                if(limit !== null) joint.rotationalLimitMotor1.setLimit( limit[0], limit[1] );
+                if(spring !== null) joint.rotationalLimitMotor1.setSpring( spring[0], spring[1] );
+                if(motor !== null) joint.rotationalLimitMotor1.setMotor( motor[0], motor[1] );
             break;
         }
 

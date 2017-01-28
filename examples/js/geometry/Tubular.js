@@ -216,7 +216,7 @@ THREE.Tubular.prototype.generateSegment = function ( i ) {
         this.colors[n + n2] = Math.abs(this.normal.x);
         this.colors[n + n2 +1] = Math.abs(this.normal.y);
         this.colors[n + n2 +2] = Math.abs(this.normal.z);
-       // } else {
+        //} //else {
             //console.log(n+n2)
         //}
 
@@ -272,7 +272,7 @@ THREE.Tubular.prototype.generateIndicesAndUv = function (  ) {
 
 THREE.Tubular.prototype.generatePath = function ( path ) {
 
-    for ( var i = 0; i < this.tubularSegments; i ++ ) {
+    for ( var i = 0; i <= this.tubularSegments; i ++ ) {
 
         this.generateSegment( i );
 
@@ -283,7 +283,10 @@ THREE.Tubular.prototype.generatePath = function ( path ) {
     //
     // if the geometry is closed, duplicate the first row of vertices and normals (uvs will differ)
 
-    this.generateSegment( ( this.closed === false ) ? this.tubularSegments : 0 );
+    //this.generateSegment( ( this.closed === false ) ? this.tubularSegments : 0 );
+    //this.generateSegment( this.tubularSegments );
+
+    //console.log(( this.closed === false ) ? this.tubularSegments : 0 )
 
     // uvs are generated in a separate function.
     // this makes it easy compute correct values for closed geometries
@@ -305,18 +308,21 @@ THREE.Tubular.prototype.updatePath = function ( F ) {
     this.colors = this.attributes.color.array;
     
 
-    for ( var i = 0; i < this.tubularSegments; i ++ ) {
+    for ( var i = 0; i <= this.tubularSegments; i ++ ) {
 
         this.generateSegment( i );
 
     }
+
+    //this.generateSegment( this.tubularSegments );
 
     // if the geometry is not closed, generate the last row of vertices and normals
     // at the regular position on the given path
     //
     // if the geometry is closed, duplicate the first row of vertices and normals (uvs will differ)
 
-    this.generateSegment( ( this.closed === false ) ? this.tubularSegments : 0 );
+    //this.generateSegment( ( this.closed === false ) ? this.tubularSegments : 0 );
+    //console.log(( this.closed === false ) ? this.tubularSegments : 0 )
 
     this.attributes.color.needsUpdate = true;
     this.attributes.position.needsUpdate = true;

@@ -2969,13 +2969,14 @@ Object.assign( Rotational3Constraint.prototype, {
 
 /**
  * A hinge joint allows only for relative rotation of rigid bodies along the axis.
+ *
  * @author saharan
  * @author lo-th
  */
 
 function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
-    Joint.call( this, config);
+    Joint.call( this, config );
 
     this.type = JOINT_HINGE;
 
@@ -2992,8 +2993,8 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     ).norm();
 
     // make angle axis 2
-    var arc = new Mat33().setQuat(new Quat().arc(this.localAxis1,this.localAxis2));
-    this.localAngle2 = new Vec3().mulMat(arc, this.localAngle1);
+    var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
 
     this.nor = new Vec3();
     this.tan = new Vec3();
@@ -3005,7 +3006,7 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     this.an2 = new Vec3();
 
     // The rotational limit and motor information of the joint.
-    this.limitMotor = new LimitMotor(this.nor,false);
+    this.limitMotor = new LimitMotor( this.nor, false );
     this.limitMotor.lowerLimit = lowerAngleLimit;
     this.limitMotor.upperLimit = upperAngleLimit;
 
@@ -3013,75 +3014,79 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     this.r3 = new Rotational3Constraint(this,this.limitMotor,new LimitMotor(this.tan,true),new LimitMotor(this.bin,true));
 }
 
-HingeJoint.prototype = Object.create( Joint.prototype );
-HingeJoint.prototype.constructor = HingeJoint;
+HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
+
+    constructor: HingeJoint,
 
 
-HingeJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
+        var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
 
-    this.updateAnchorPoints();
+        this.updateAnchorPoints();
 
-    this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-    this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
 
-    this.an1.mulMat( this.body1.rotation, this.localAngle1 );
-    this.an2.mulMat( this.body2.rotation, this.localAngle2 );
+        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
+        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
 
-    this.nor.set(
-        this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
-        this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
-        this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
-    ).norm();
+        this.nor.set(
+            this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
+            this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
+            this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
+        ).norm();
 
-    this.tan.set(
-        this.nor.y*this.nor.x - this.nor.z*this.nor.z,
-        -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
-        this.nor.x*this.nor.z + this.nor.y*this.nor.y
-    ).norm();
+        this.tan.set(
+            this.nor.y*this.nor.x - this.nor.z*this.nor.z,
+            -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
+            this.nor.x*this.nor.z + this.nor.y*this.nor.y
+        ).norm();
 
-    this.bin.set(
-        this.nor.y*this.tan.z - this.nor.z*this.tan.y,
-        this.nor.z*this.tan.x - this.nor.x*this.tan.z,
-        this.nor.x*this.tan.y - this.nor.y*this.tan.x
-    );
+        this.bin.set(
+            this.nor.y*this.tan.z - this.nor.z*this.tan.y,
+            this.nor.z*this.tan.x - this.nor.x*this.tan.z,
+            this.nor.x*this.tan.y - this.nor.y*this.tan.x
+        );
 
-    // calculate hinge angle
+        // calculate hinge angle
 
-    limite = _Math.acosClamp(this.an1.x*this.an2.x + this.an1.y*this.an2.y + this.an1.z*this.an2.z);
+        limite = _Math.acosClamp(this.an1.x*this.an2.x + this.an1.y*this.an2.y + this.an1.z*this.an2.z);
 
-    if(
-        this.nor.x*(this.an1.y*this.an2.z - this.an1.z*this.an2.y)+
-        this.nor.y*(this.an1.z*this.an2.x - this.an1.x*this.an2.z)+
-        this.nor.z*(this.an1.x*this.an2.y - this.an1.y*this.an2.x)<0
-    ){
-        this.limitMotor.angle = -limite;
-    }else{
-        this.limitMotor.angle = limite;
+        if(
+            this.nor.x*(this.an1.y*this.an2.z - this.an1.z*this.an2.y)+
+            this.nor.y*(this.an1.z*this.an2.x - this.an1.x*this.an2.z)+
+            this.nor.z*(this.an1.x*this.an2.y - this.an1.y*this.an2.x)<0
+        ){
+            this.limitMotor.angle = -limite;
+        }else{
+            this.limitMotor.angle = limite;
+        }
+
+        tmp1X = this.ax1.y*this.ax2.z - this.ax1.z*this.ax2.y;
+        tmp1Y = this.ax1.z*this.ax2.x - this.ax1.x*this.ax2.z;
+        tmp1Z = this.ax1.x*this.ax2.y - this.ax1.y*this.ax2.x;
+
+        this.r3.limitMotor2.angle = this.tan.x*tmp1X + this.tan.y*tmp1Y + this.tan.z*tmp1Z;
+        this.r3.limitMotor3.angle = this.bin.x*tmp1X + this.bin.y*tmp1Y + this.bin.z*tmp1Z;
+        
+        this.r3.preSolve( timeStep, invTimeStep );
+        this.lc.preSolve( timeStep, invTimeStep );
+
+    },
+
+    solve: function () {
+
+        this.r3.solve();
+        this.lc.solve();
+
+    },
+
+    postSolve: function () {
+
     }
 
-    tmp1X = this.ax1.y*this.ax2.z - this.ax1.z*this.ax2.y;
-    tmp1Y = this.ax1.z*this.ax2.x - this.ax1.x*this.ax2.z;
-    tmp1Z = this.ax1.x*this.ax2.y - this.ax1.y*this.ax2.x;
-
-    this.r3.limitMotor2.angle = this.tan.x*tmp1X + this.tan.y*tmp1Y + this.tan.z*tmp1Z;
-    this.r3.limitMotor3.angle = this.bin.x*tmp1X + this.bin.y*tmp1Y + this.bin.z*tmp1Z;
-    
-    this.r3.preSolve(timeStep,invTimeStep);
-    this.lc.preSolve(timeStep,invTimeStep);
-
-};
-
-HingeJoint.prototype.solve = function () {
-
-    this.r3.solve();
-    this.lc.solve();
-
-};
-
-HingeJoint.prototype.postSolve = function () {
-};
+});
 
 /**
  * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
@@ -10966,6 +10971,7 @@ SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,shape2
 /**
  * The class of physical computing world.
  * You must be added to the world physical all computing objects
+ *
  * @author saharan
  * @author lo-th
  */
@@ -11794,20 +11800,20 @@ Object.assign( World.prototype, {
         var joint;
         switch( type ){
             case "jointDistance": joint = new DistanceJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );
+                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointHinge": case "joint": joint = new HingeJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
-                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
             case "jointSlide": joint = new SliderJoint(jc, min, max); break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
             case "jointWheel": joint = new WheelJoint(jc);
-                if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
-                if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
+                if(limit !== null) joint.rotationalLimitMotor1.setLimit( limit[0], limit[1] );
+                if(spring !== null) joint.rotationalLimitMotor1.setSpring( spring[0], spring[1] );
+                if(motor !== null) joint.rotationalLimitMotor1.setMotor( motor[0], motor[1] );
             break;
         }
 
