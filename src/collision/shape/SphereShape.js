@@ -5,33 +5,23 @@ import { _Math } from '../../math/Math';
 /**
  * A sphere shape.
  *
- * @class SphereShape
- * @constructor
- * @extends Shape
  * @author saharan
  * @author lo-th
  */
+
 function SphereShape( config, radius ) {
 
     Shape.call( this, config );
 
     this.type = SHAPE_SPHERE;
 
-    /**
-     * The radius of the shape.
-     *
-     * @name SphereShape#radius
-     * @type {Number}
-     */
+    // radius of the shape.
     this.radius = radius;
 
 };
 
-SphereShape.prototype = Object.create( Shape.prototype );
-Object.assign(SphereShape.prototype,
+SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-/** @lends SphereShape.prototype */
-{
 	constructor: SphereShape,
 
 	calculateMassInfo: function ( out ) {
@@ -56,6 +46,7 @@ Object.assign(SphereShape.prototype,
 		if ( this.proxy != null ) this.proxy.update();
 
 	}
+
 });
 
 export { SphereShape };

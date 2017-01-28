@@ -2,28 +2,16 @@ import { Mat33 } from '../../math/Mat33';
 
 /**
  * This class holds mass information of a shape.
- *
- * @class MassInfo
- * @constructor
  * @author lo-th
  * @author saharan
  */
+
 function MassInfo (){
 
-    /**
-     * Mass of the shape.
-     *
-     * @property mass
-     * @type {Number}
-     */
+    // Mass of the shape.
     this.mass = 0;
 
-    /**
-     * The moment inertia of the shape.
-     *
-     * @property inertia
-     * @type {Mat33}
-     */
+    // The moment inertia of the shape.
     this.inertia = new Mat33();
 
 };

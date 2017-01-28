@@ -4,64 +4,23 @@ import { Shape } from './Shape';
 /**
  * A box shape.
  *
- * @class BoxShape
- * @constructor
  * @extends Shape
  * @author saharan
  * @author lo-th
  */
+ 
 function BoxShape( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
 
     this.type = SHAPE_BOX;
 
-    /**
-     * The width of the box.
-     *
-     * @name BoxShape#width
-     * @type {Number}
-     */
     this.width = Width;
-
-    /**
-     * The height of the box.
-     *
-     * @name BoxShape#height
-     * @type {Number}
-     */
     this.height = Height;
-
-    /**
-     * The depth of the box.
-     *
-     * @name BoxShape#depth
-     * @type {Number}
-     */
     this.depth = Depth;
 
-    /**
-     * The half-width of the box.
-     *
-     * @name BoxShape#halfWidth
-     * @type {Number}
-     */
     this.halfWidth = Width * 0.5;
-
-    /**
-     * The half-height of the box.
-     *
-     * @name BoxShape#halfHeight
-     * @type {Number}
-     */
     this.halfHeight = Height * 0.5;
-
-    /**
-     * The half-depth of the box.
-     *
-     * @name BoxShape#halfDepth
-     * @type {Number}
-     */
     this.halfDepth = Depth * 0.5;
 
     this.dimentions = new Float32Array( 18 );
@@ -69,11 +28,8 @@ function BoxShape( config, Width, Height, Depth ) {
 
 };
 
-BoxShape.prototype = Object.create(Shape.prototype);
-Object.assign(BoxShape.prototype,
+BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-/** @lends BoxShape.prototype */
-{
 	constructor: BoxShape,
 
 	calculateMassInfo: function ( out ) {

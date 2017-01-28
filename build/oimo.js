@@ -1460,241 +1460,107 @@
 	/**
 	 * A shape is used to detect collisions of rigid bodies.
 	 *
-	 * @class Shape
-	 * @constructor
 	 * @author saharan
 	 * @author lo-th
 	 */
-	function Shape(config){
+
+	function Shape ( config ) {
 
 	    this.type = SHAPE_NULL;
 
-	    /**
-	     * The global identification of the shape should be unique to the shape.
-	     *
-	     * @name Shape#id
-	     * @type {Number}
-	     */
+	    // global identification of the shape should be unique to the shape.
 	    this.id = ShapeIdCount();
 
-	    /**
-	     * The previous shape in parent rigid body. Used
-	     * for fast interations.
-	     *
-	     * @name Shape#prev
-	     * @type {Shape}
-	     */
+	    // previous shape in parent rigid body. Used for fast interations.
 	    this.prev = null;
 
-	    /**
-	     * The next shape in parent rigid body. Used
-	     * for fast interations.
-	     *
-	     * @name Shape#next
-	     * @type {Shape}
-	     */
+	    // next shape in parent rigid body. Used for fast interations.
 	    this.next = null;
 
-	    /**
-	     * The proxy of the shape used for broad-phase collision detection.
-	     *
-	     * @name Shape#proxy
-	     * @type {Proxy}
-	     */
+	    // proxy of the shape used for broad-phase collision detection.
 	    this.proxy = null;
 
-	    /**
-	     * The parent rigid body of the shape.
-	     *
-	     * @name Shape#parent
-	     * @type {RigidBody}
-	     */
+	    // parent rigid body of the shape.
 	    this.parent = null;
 
-	    /**
-	     * The linked list of the contacts with the shape.
-	     *
-	     * @name Shape#contactLink
-	     * @type {ContactLink}
-	     */
+	    // linked list of the contacts with the shape.
 	    this.contactLink = null;
 
-	    /**
-	     * The number of the contacts with the shape.
-	     *
-	     * @name Shape#numContacts
-	     * @type {Number}
-	     */
+	    // number of the contacts with the shape.
 	    this.numContacts = 0;
 
-	    /**
-	     * The center of gravity of the shape in world coordinate system.
-	     *
-	     * @name Shape#position
-	     * @type {Vec3}
-	     */
+	    // center of gravity of the shape in world coordinate system.
 	    this.position = new Vec3();
 
-	    /**
-	     * The rotation matrix of the shape in world coordinate system.
-	     *
-	     * @name Shape#rotation
-	     * @type {Mat33}
-	     */
+	    // rotation matrix of the shape in world coordinate system.
 	    this.rotation = new Mat33();
 
-	    /**
-	     * The position of the shape in parent's coordinate system.
-	     *
-	     * @name Shape#relativePosition
-	     * @type {Vec3}
-	     */
-	    this.relativePosition = new Vec3().copy(config.relativePosition);
+	    // position of the shape in parent's coordinate system.
+	    this.relativePosition = new Vec3().copy( config.relativePosition );
 
-	    /**
-	     * The rotation matrix of the shape in parent's coordinate system.
-	     *
-	     * @name Shape#relativeRotation
-	     * @type {Mat33}
-	     */
-	    this.relativeRotation = new Mat33().copy(config.relativeRotation);
+	    // rotation matrix of the shape in parent's coordinate system.
+	    this.relativeRotation = new Mat33().copy( config.relativeRotation );
 
-	    /**
-	     * The axis-aligned bounding box of the shape.
-	     *
-	     * @name Shape#aabb
-	     * @type {AABB}
-	     */
+	    // axis-aligned bounding box of the shape.
 	    this.aabb = new AABB();
 
-	    /**
-	     * The density of the shape.
-	     *
-	     * @name Shape#density
-	     * @type {Number}
-	     */
+	    // density of the shape.
 	    this.density = config.density;
 
-	    /**
-	     * The coefficient of friction of the shape.
-	     *
-	     * @name Shape#friction
-	     * @type {Number}
-	     */
+	    // coefficient of friction of the shape.
 	    this.friction = config.friction;
 
-	    /**
-	     * The coefficient of restitution of the shape.
-	     *
-	     * @name Shape#restitution
-	     * @type {Number}
-	     */
+	    // coefficient of restitution of the shape.
 	    this.restitution = config.restitution;
 
-	    /**
-	     * The bits of the collision groups to which the shape belongs.
-	     *
-	     * @name Shape#belongsTo
-	     * @type {Number}
-	     */
+	    // bits of the collision groups to which the shape belongs.
 	    this.belongsTo = config.belongsTo;
 
-	    /**
-	     * The bits of the collision groups with which the shape collides.
-	     *
-	     * @name Shape#collidesWith
-	     * @type {Number}
-	     */
+	    // bits of the collision groups with which the shape collides.
 	    this.collidesWith = config.collidesWith;
 
 	}
 
-	Object.assign(Shape.prototype,
+	Object.assign(Shape.prototype,{
 
-	/** @lends Shape.prototype */
-	{
+	    // Calculate the mass information of the shape.
 
-	    /**
-	     * Calculate the mass information of the shape.
-	     *
-	     * @param {Mat33} out - Output object for calculations.
-	     * @return void
-	     */
-	    calculateMassInfo: function(out){
+	    calculateMassInfo: function( out ){
+
 	        printError("Shape", "Inheritance error.");
+
 	    },
 
-	    /**
-	     * Update the proxy of the shape.
-	     *
-	     * @return void
-	     */
+	    // Update the proxy of the shape.
+
 	    updateProxy: function(){
+
 	        printError("Shape", "Inheritance error.");
+
 	    }
+
 	});
 
 	/**
 	 * A box shape.
 	 *
-	 * @class BoxShape
-	 * @constructor
 	 * @extends Shape
 	 * @author saharan
 	 * @author lo-th
 	 */
+	 
 	function BoxShape( config, Width, Height, Depth ) {
 
 	    Shape.call( this, config );
 
 	    this.type = SHAPE_BOX;
 
-	    /**
-	     * The width of the box.
-	     *
-	     * @name BoxShape#width
-	     * @type {Number}
-	     */
 	    this.width = Width;
-
-	    /**
-	     * The height of the box.
-	     *
-	     * @name BoxShape#height
-	     * @type {Number}
-	     */
 	    this.height = Height;
-
-	    /**
-	     * The depth of the box.
-	     *
-	     * @name BoxShape#depth
-	     * @type {Number}
-	     */
 	    this.depth = Depth;
 
-	    /**
-	     * The half-width of the box.
-	     *
-	     * @name BoxShape#halfWidth
-	     * @type {Number}
-	     */
 	    this.halfWidth = Width * 0.5;
-
-	    /**
-	     * The half-height of the box.
-	     *
-	     * @name BoxShape#halfHeight
-	     * @type {Number}
-	     */
 	    this.halfHeight = Height * 0.5;
-
-	    /**
-	     * The half-depth of the box.
-	     *
-	     * @name BoxShape#halfDepth
-	     * @type {Number}
-	     */
 	    this.halfDepth = Depth * 0.5;
 
 	    this.dimentions = new Float32Array( 18 );
@@ -1702,11 +1568,8 @@
 
 	}
 
-	BoxShape.prototype = Object.create(Shape.prototype);
-	Object.assign(BoxShape.prototype,
+	BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	/** @lends BoxShape.prototype */
-	{
 		constructor: BoxShape,
 
 		calculateMassInfo: function ( out ) {
@@ -1825,33 +1688,23 @@
 	/**
 	 * A sphere shape.
 	 *
-	 * @class SphereShape
-	 * @constructor
-	 * @extends Shape
 	 * @author saharan
 	 * @author lo-th
 	 */
+
 	function SphereShape( config, radius ) {
 
 	    Shape.call( this, config );
 
 	    this.type = SHAPE_SPHERE;
 
-	    /**
-	     * The radius of the shape.
-	     *
-	     * @name SphereShape#radius
-	     * @type {Number}
-	     */
+	    // radius of the shape.
 	    this.radius = radius;
 
 	}
 
-	SphereShape.prototype = Object.create( Shape.prototype );
-	Object.assign(SphereShape.prototype,
+	SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	/** @lends SphereShape.prototype */
-	{
 		constructor: SphereShape,
 
 		calculateMassInfo: function ( out ) {
@@ -1876,17 +1729,17 @@
 			if ( this.proxy != null ) this.proxy.update();
 
 		}
+
 	});
 
 	/**
 	 * A cylinder shape.
 	 *
-	 * @class CylinderShape
-	 * @constructor
 	 * @extends Shape
 	 * @author saharan
 	 * @author lo-th
 	 */
+
 	function CylinderShape( config, radius, height ) {
 
 	    Shape.call( this, config );
@@ -1902,94 +1755,90 @@
 
 	}
 
-	CylinderShape.prototype = Object.create( Shape.prototype );
-	CylinderShape.prototype.constructor = CylinderShape;
+	CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	CylinderShape.prototype.calculateMassInfo = function ( out ) {
+	    constructor: CylinderShape,
 
-	    var rsq = this.radius * this.radius;
-	    var mass = _Math.PI * rsq * this.height * this.density;
-	    var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
-	    var inertiaY = 0.5 * rsq;
-	    out.mass = mass;
-	    out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
+	    calculateMassInfo: function ( out ) {
 
-	};
+	        var rsq = this.radius * this.radius;
+	        var mass = _Math.PI * rsq * this.height * this.density;
+	        var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
+	        var inertiaY = 0.5 * rsq;
+	        out.mass = mass;
+	        out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
 
-	CylinderShape.prototype.updateProxy = function () {
+	    },
+	    updateProxy: function () {
 
-	    var te = this.rotation.elements;
-	    var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
+	        var te = this.rotation.elements;
+	        var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
-	    xx = te[1] * te[1];
-	    yy = te[4] * te[4];
-	    zz = te[7] * te[7];
+	        xx = te[1] * te[1];
+	        yy = te[4] * te[4];
+	        zz = te[7] * te[7];
 
-	    this.normalDirection.set( te[1], te[4], te[7] );
-	    this.halfDirection.scale( this.normalDirection, this.halfHeight );
+	        this.normalDirection.set( te[1], te[4], te[7] );
+	        this.halfDirection.scale( this.normalDirection, this.halfHeight );
 
-	    wx = 1 - xx;
-	    len = _Math.sqrt(wx*wx + xx*yy + xx*zz);
-	    if(len>0) len = this.radius/len;
-	    wx *= len;
-	    hy = 1 - yy;
-	    len = _Math.sqrt(yy*xx + hy*hy + yy*zz);
-	    if(len>0) len = this.radius/len;
-	    hy *= len;
-	    dz = 1 - zz;
-	    len = _Math.sqrt(zz*xx + zz*yy + dz*dz);
-	    if(len>0) len = this.radius/len;
-	    dz *= len;
+	        wx = 1 - xx;
+	        len = _Math.sqrt(wx*wx + xx*yy + xx*zz);
+	        if(len>0) len = this.radius/len;
+	        wx *= len;
+	        hy = 1 - yy;
+	        len = _Math.sqrt(yy*xx + hy*hy + yy*zz);
+	        if(len>0) len = this.radius/len;
+	        hy *= len;
+	        dz = 1 - zz;
+	        len = _Math.sqrt(zz*xx + zz*yy + dz*dz);
+	        if(len>0) len = this.radius/len;
+	        dz *= len;
 
-	    w = this.halfDirection.x < 0 ? -this.halfDirection.x : this.halfDirection.x;
-	    h = this.halfDirection.y < 0 ? -this.halfDirection.y : this.halfDirection.y;
-	    d = this.halfDirection.z < 0 ? -this.halfDirection.z : this.halfDirection.z;
+	        w = this.halfDirection.x < 0 ? -this.halfDirection.x : this.halfDirection.x;
+	        h = this.halfDirection.y < 0 ? -this.halfDirection.y : this.halfDirection.y;
+	        d = this.halfDirection.z < 0 ? -this.halfDirection.z : this.halfDirection.z;
 
-	    w = wx < 0 ? w - wx : w + wx;
-	    h = hy < 0 ? h - hy : h + hy;
-	    d = dz < 0 ? d - dz : d + dz;
+	        w = wx < 0 ? w - wx : w + wx;
+	        h = hy < 0 ? h - hy : h + hy;
+	        d = dz < 0 ? d - dz : d + dz;
 
-	    p = AABB_PROX;
+	        p = AABB_PROX;
 
-	    this.aabb.set(
-	        this.position.x - w - p, this.position.x + w + p,
-	        this.position.y - h - p, this.position.y + h + p,
-	        this.position.z - d - p, this.position.z + d + p
-	    );
+	        this.aabb.set(
+	            this.position.x - w - p, this.position.x + w + p,
+	            this.position.y - h - p, this.position.y + h + p,
+	            this.position.z - d - p, this.position.z + d + p
+	        );
 
-	    if ( this.proxy != null ) this.proxy.update();
+	        if ( this.proxy != null ) this.proxy.update();
 
-	};
+	    }
+
+	});
 
 	/**
 	 * A shape configuration holds common configuration data for constructing a shape.
 	 * These configurations can be reused safely.
 	 *
-	 * @class ShapeConfig
-	 * @constructor
 	 * @author saharan
 	 * @author lo-th
 	 */
+	 
 	function ShapeConfig(){
 
-	    /**
-	     * The position of the shape in parent's coordinate system.
-	     *
-	     * @property relativePosition
-	     * @type {Vec3}
-	     */
+	    // position of the shape in parent's coordinate system.
 	    this.relativePosition = new Vec3();
-	    // The rotation matrix of the shape in parent's coordinate system.
+	    // rotation matrix of the shape in parent's coordinate system.
 	    this.relativeRotation = new Mat33();
-	    // The coefficient of friction of the shape.
+	    // coefficient of friction of the shape.
 	    this.friction = 0.2; // 0.4
-	    // The coefficient of restitution of the shape.
+	    // coefficient of restitution of the shape.
 	    this.restitution = 0.2;
-	    // The density of the shape.
+	    // density of the shape.
 	    this.density = 1;
-	    // The bits of the collision groups to which the shape belongs.
+	    // bits of the collision groups to which the shape belongs.
 	    this.belongsTo = 1;
-	    // The bits of the collision groups with which the shape collides.
+	    // bits of the collision groups with which the shape collides.
 	    this.collidesWith = 0xffffffff;
 
 	}
@@ -4834,28 +4683,16 @@
 
 	/**
 	 * This class holds mass information of a shape.
-	 *
-	 * @class MassInfo
-	 * @constructor
 	 * @author lo-th
 	 * @author saharan
 	 */
+	 
 	function MassInfo (){
 
-	    /**
-	     * Mass of the shape.
-	     *
-	     * @property mass
-	     * @type {Number}
-	     */
+	    // Mass of the shape.
 	    this.mass = 0;
 
-	    /**
-	     * The moment inertia of the shape.
-	     *
-	     * @property inertia
-	     * @type {Mat33}
-	     */
+	    //The moment inertia of the shape.
 	    this.inertia = new Mat33();
 
 	}
