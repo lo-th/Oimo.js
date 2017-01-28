@@ -1,5 +1,5 @@
 import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { InfoDisplay, printError } from './utils';
+import { InfoDisplay, printError } from './Utils';
 
 
 import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPhase';

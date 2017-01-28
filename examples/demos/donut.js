@@ -62,7 +62,7 @@ function demo() {
 
     maxp = world.numRigidBodies;
 
-    console.log(maxp)
+    //console.log(maxp)
 
 
     var ground = world.add({size:[1000, 10, 1000], pos:[0,-5,0], density:1 });
@@ -132,7 +132,6 @@ function update () {
 
     donutsGeo.forEach( function ( b, id ) {
 
-        //b.positions = pos[id];
         b.updatePath();
 
     });

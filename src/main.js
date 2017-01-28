@@ -1,7 +1,7 @@
 import './polyfills.js';
 
 export * from './constants.js';
-export * from './core/utils.js';
+export * from './core/Utils.js';
 
 export { _Math as Math } from './math/Math.js';
 export { Vec3 } from './math/Vec3.js';

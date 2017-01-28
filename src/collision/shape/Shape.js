@@ -1,5 +1,5 @@
 import { SHAPE_NULL } from '../../constants';
-import { printError } from '../../core/utils';
+import { printError } from '../../core/Utils';
 import { _Math } from '../../math/Math';
 import { Vec3 } from '../../math/Vec3';
 import { Mat33 } from '../../math/Mat33';

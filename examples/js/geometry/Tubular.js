@@ -193,6 +193,10 @@ THREE.Tubular.prototype.generateSegment = function ( i ) {
         this.vertices[n + n2 +1] =  P.y + this.radius * this.normal.y * scale;
         this.vertices[n + n2 +2] =  P.z + this.radius * this.normal.z * scale;
         */
+
+        //if(this.vertices[n + n2]){
+
+
         
 
         this.normals[n + n2] =  this.normal.x;
@@ -212,6 +216,9 @@ THREE.Tubular.prototype.generateSegment = function ( i ) {
         this.colors[n + n2] = Math.abs(this.normal.x);
         this.colors[n + n2 +1] = Math.abs(this.normal.y);
         this.colors[n + n2 +2] = Math.abs(this.normal.z);
+       // } else {
+            //console.log(n+n2)
+        //}
 
     }
 

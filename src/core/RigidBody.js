@@ -1,5 +1,5 @@
 import { BODY_NULL, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { printError } from './utils';
+import { printError } from './Utils';
 
 import { MassInfo } from '../collision/shape/MassInfo';
 import { ShapeConfig } from '../collision/shape/ShapeConfig';

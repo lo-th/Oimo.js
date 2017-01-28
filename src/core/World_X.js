@@ -1,5 +1,5 @@
 import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { Performance, Error } from './Utils';
+import { Performance, printError } from './Utils';
 
 
 import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPhase_X';
@@ -182,7 +182,7 @@ Object.assign( World.prototype, {
     addRigidBody:function( rigidBody ){
 
         if( rigidBody.parent ){
-            Error("World", "It is not possible to be added to more than one world one of the rigid body");
+            printError("World", "It is not possible to be added to more than one world one of the rigid body");
         }
 
         rigidBody.setParent( this );
@@ -263,7 +263,7 @@ Object.assign( World.prototype, {
     addShape:function ( shape ){
 
         if(!shape.parent || !shape.parent.parent){
-            Error("World", "It is not possible to be added alone to shape world");
+            printError("World", "It is not possible to be added alone to shape world");
         }
 
         shape.proxy = this.broadPhase.createProxy(shape);
@@ -293,7 +293,7 @@ Object.assign( World.prototype, {
     addJoint: function ( joint ) {
 
         if(joint.parent){
-            Error("World", "It is not possible to be added to more than one world one of the joint");
+            printError("World", "It is not possible to be added to more than one world one of the joint");
         }
         //if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
         //this.joints=joint;
@@ -885,7 +885,7 @@ Object.assign( World.prototype, {
         var b1 = null;
         var b2 = null;
 
-        if( o.body1 === undefined || o.body2 === undefined ) return Error('World', "Can't add joint if attach rigidbodys not define !" );
+        if( o.body1 === undefined || o.body2 === undefined ) return printError('World', "Can't add joint if attach rigidbodys not define !" );
 
         if ( o.body1.constructor === String ) { b1 = this.getByName( o.body1 ); }
         else if ( o.body1.constructor === Number ) { b1 = this.getByName( o.body1 ); }
@@ -895,7 +895,7 @@ Object.assign( World.prototype, {
         else if ( o.body2.constructor === Number ) { b2 = this.getByName( o.body2 ); }
         else if ( o.body2.constructor === RigidBody ) { b2 = o.body2; }
 
-        if( b1 === null || b2 === null ) return Error('World', "Can't add joint attach rigidbodys not find !" );
+        if( b1 === null || b2 === null ) return printError('World', "Can't add joint attach rigidbodys not find !" );
 
         jc.body1 = b1;
         jc.body2 = b2;

@@ -4,7 +4,6 @@ import { Error } from './Utils';
 import { MassInfo } from '../collision/shape/MassInfo';
 import { ShapeConfig } from '../collision/shape/ShapeConfig';
 
-
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';

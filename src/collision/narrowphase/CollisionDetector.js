@@ -1,4 +1,4 @@
-import { printError } from '../../core/utils';
+import { printError } from '../../core/Utils';
 
 function CollisionDetector (){
 

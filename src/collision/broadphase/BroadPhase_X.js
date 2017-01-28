@@ -1,5 +1,5 @@
 import { BR_NULL } from '../../constants';
-import { Error } from '../../core/Utils';
+import { printError } from '../../core/Utils';
 import { Pair } from './Pair';
 
 /**
@@ -26,7 +26,7 @@ Object.assign( BroadPhase.prototype, {
     */
     createProxy: function ( shape ) {
 
-        Error("BroadPhase","Inheritance error.");
+        printError("BroadPhase","Inheritance error.");
 
     },
 
@@ -37,7 +37,7 @@ Object.assign( BroadPhase.prototype, {
     */
     addProxy: function ( proxy ) {
 
-        Error("BroadPhase","Inheritance error.");
+        printError("BroadPhase","Inheritance error.");
     },
 
     /**
@@ -47,7 +47,7 @@ Object.assign( BroadPhase.prototype, {
     */
     removeProxy: function ( proxy ) {
 
-        Error("BroadPhase","Inheritance error.");
+        printError("BroadPhase","Inheritance error.");
 
     },
 
@@ -94,7 +94,7 @@ Object.assign( BroadPhase.prototype, {
 
     collectPairs: function () {
 
-        Error("BroadPhase", "Inheritance error.");
+        printError("BroadPhase", "Inheritance error.");
 
     },
 
