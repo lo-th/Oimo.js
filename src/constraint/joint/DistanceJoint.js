@@ -8,6 +8,7 @@ import { TranslationalConstraint } from './base/TranslationalConstraint';
 
 /**
  * A distance joint limits the distance between two anchor points on rigid bodies.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -18,11 +19,10 @@ function DistanceJoint ( config, minDistance, maxDistance ){
 
     this.type = JOINT_DISTANCE;
     
-    this.normal = new Vec3();
-    //this.nr = new Vec3(); 
+    this.nor = new Vec3();
 
     // The limit and motor information of the joint.
-    this.limitMotor = new LimitMotor( this.normal, true );
+    this.limitMotor = new LimitMotor( this.nor, true );
     this.limitMotor.lowerLimit = minDistance;
     this.limitMotor.upperLimit = maxDistance;
 
@@ -30,38 +30,32 @@ function DistanceJoint ( config, minDistance, maxDistance ){
 
 };
 
-DistanceJoint.prototype = Object.create( Joint.prototype );
-DistanceJoint.prototype.constructor = DistanceJoint;
+DistanceJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
+    constructor: DistanceJoint,
 
-DistanceJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    this.updateAnchorPoints();
+        this.updateAnchorPoints();
 
-    //var nr = this.nr;
+        this.nor.sub( this.anchorPoint2, this.anchorPoint1 ).normalize();
 
-    //this.nr.sub( this.anchorPoint2, this.anchorPoint1 );
-    //var len = OIMO.sqrt( nr.x*nr.x + nr.y*nr.y + nr.z*nr.z );
-    //if(len>0) len = 1/len;
-    //this.normal.scale( nr, len );
+        // preSolve
 
-    //this.normal.normalize( this.nr );
+        this.t.preSolve( timeStep, invTimeStep );
 
-    this.normal.sub( this.anchorPoint2, this.anchorPoint1 ).normalize();
+    },
 
+    solve: function () {
 
+        this.t.solve();
 
-    this.t.preSolve( timeStep, invTimeStep );
+    },
 
-};
+    postSolve: function () {
 
-DistanceJoint.prototype.solve = function () {
+    }
 
-    this.t.solve();
-
-};
-
-DistanceJoint.prototype.postSolve = function () {
-};
+});
 
 export { DistanceJoint };

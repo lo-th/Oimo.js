@@ -125,17 +125,17 @@ Object.assign( Quat.prototype, {
 
     },
 
-    /*normalize: function(q){
+    normalize: function(){
 
-        var len=_Math.sqrt(q.w*q.w+q.x*q.x+q.y*q.y+q.z*q.z);
+        var len=_Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
         if(len>0){len=1/len;}
-        this.w=q.w*len;
-        this.x=q.x*len;
-        this.y=q.y*len;
-        this.z=q.z*len;
+        this.w=this.w*len;
+        this.x=this.x*len;
+        this.y=this.y*len;
+        this.z=this.z*len;
         return this;
 
-    },*/
+    },
 
     invert: function(q){
 

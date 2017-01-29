@@ -456,6 +456,18 @@ Object.assign( Vec3.prototype, {
 
     },
 
+    tangent: function ( a ) {
+
+        var ax = a.x, ay = a.y, az = a.z;
+
+        this.x = ay * ax - az * az;
+        this.y = - az * ay - ax * ax;
+        this.z = ax * az + ay * ay;
+
+        return this;
+
+    },
+
     mul: function( o, v, m ){
 
         var te = m.elements;
@@ -778,17 +790,17 @@ Object.assign( Quat.prototype, {
 
     },
 
-    /*normalize: function(q){
+    normalize: function(){
 
-        var len=_Math.sqrt(q.w*q.w+q.x*q.x+q.y*q.y+q.z*q.z);
+        var len=_Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
         if(len>0){len=1/len;}
-        this.w=q.w*len;
-        this.x=q.x*len;
-        this.y=q.y*len;
-        this.z=q.z*len;
+        this.w=this.w*len;
+        this.x=this.x*len;
+        this.y=this.y*len;
+        this.z=this.z*len;
         return this;
 
-    },*/
+    },
 
     invert: function(q){
 
@@ -2983,20 +2995,10 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     // The axis in the second body's coordinate system.
     this.localAxis2 = config.localAxis2.clone().normalize();
 
-    // make angle axis 1
-    this.localAngle1 = new Vec3(
-        this.localAxis1.y*this.localAxis1.x - this.localAxis1.z*this.localAxis1.z,
-        -this.localAxis1.z*this.localAxis1.y - this.localAxis1.x*this.localAxis1.x,
-        this.localAxis1.x*this.localAxis1.z + this.localAxis1.y*this.localAxis1.y
-    ).normalize();
-
-    // make angle axis 2
+    // make angle axis
     var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    this.localAngle1 = new Vec3().tangent( this.localAxis1 ).normalize();
     this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
-
-    this.nor = new Vec3();
-    this.tan = new Vec3();
-    this.bin = new Vec3();
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
@@ -3005,11 +3007,15 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
     this.tmp = new Vec3();
 
+    this.nor = new Vec3();
+    this.tan = new Vec3();
+    this.bin = new Vec3();
+
     // The rotational limit and motor information of the joint.
     this.limitMotor = new LimitMotor( this.nor, false );
     this.limitMotor.lowerLimit = lowerAngleLimit;
     this.limitMotor.upperLimit = upperAngleLimit;
-    
+
     this.lc = new LinearConstraint( this );
     this.r3 = new Rotational3Constraint( this, this.limitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 }
@@ -3021,8 +3027,6 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
     preSolve: function ( timeStep, invTimeStep ) {
 
-        //var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
-
         this.updateAnchorPoints();
 
         this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
@@ -3031,17 +3035,15 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
         this.an1.mulMat( this.body1.rotation, this.localAngle1 );
         this.an2.mulMat( this.body2.rotation, this.localAngle2 );
 
+        // normal tangent binormal
+
         this.nor.set(
             this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
             this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
             this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
         ).normalize();
 
-        this.tan.set(
-            this.nor.y*this.nor.x - this.nor.z*this.nor.z,
-            -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
-            this.nor.x*this.nor.z + this.nor.y*this.nor.y
-        ).normalize();
+        this.tan.tangent( this.nor ).normalize();
 
         this.bin.crossVectors( this.nor, this.tan );
 
@@ -3059,7 +3061,7 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
         this.r3.limitMotor2.angle = _Math.dotVectors( this.tan, this.tmp );
         this.r3.limitMotor3.angle = _Math.dotVectors( this.bin, this.tmp );
 
-        //
+        // preSolve
         
         this.r3.preSolve( timeStep, invTimeStep );
         this.lc.preSolve( timeStep, invTimeStep );
@@ -3081,6 +3083,7 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
 /**
  * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -3095,25 +3098,31 @@ function BallAndSocketJoint ( config ){
 
 }
 
-BallAndSocketJoint.prototype = Object.create( Joint.prototype );
-BallAndSocketJoint.prototype.constructor = BallAndSocketJoint;
+BallAndSocketJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
-BallAndSocketJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
+    constructor: BallAndSocketJoint,
 
-    this.updateAnchorPoints();
-    this.lc.preSolve(timeStep,invTimeStep);
+    preSolve: function ( timeStep, invTimeStep ) {
 
-};
+        this.updateAnchorPoints();
 
-BallAndSocketJoint.prototype.solve = function () {
+        // preSolve
 
-    this.lc.solve();
+        this.lc.preSolve( timeStep, invTimeStep );
 
-};
+    },
 
-BallAndSocketJoint.prototype.postSolve = function () {
+    solve: function () {
 
-};
+        this.lc.solve();
+
+    },
+
+    postSolve: function () {
+
+    }
+
+});
 
 /**
 * A translational constraint for various joints.
@@ -3400,6 +3409,7 @@ Object.assign( TranslationalConstraint.prototype, {
 
 /**
  * A distance joint limits the distance between two anchor points on rigid bodies.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -3410,11 +3420,10 @@ function DistanceJoint ( config, minDistance, maxDistance ){
 
     this.type = JOINT_DISTANCE;
     
-    this.normal = new Vec3();
-    //this.nr = new Vec3(); 
+    this.nor = new Vec3();
 
     // The limit and motor information of the joint.
-    this.limitMotor = new LimitMotor( this.normal, true );
+    this.limitMotor = new LimitMotor( this.nor, true );
     this.limitMotor.lowerLimit = minDistance;
     this.limitMotor.upperLimit = maxDistance;
 
@@ -3422,39 +3431,33 @@ function DistanceJoint ( config, minDistance, maxDistance ){
 
 }
 
-DistanceJoint.prototype = Object.create( Joint.prototype );
-DistanceJoint.prototype.constructor = DistanceJoint;
+DistanceJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
+    constructor: DistanceJoint,
 
-DistanceJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    this.updateAnchorPoints();
+        this.updateAnchorPoints();
 
-    //var nr = this.nr;
+        this.nor.sub( this.anchorPoint2, this.anchorPoint1 ).normalize();
 
-    //this.nr.sub( this.anchorPoint2, this.anchorPoint1 );
-    //var len = OIMO.sqrt( nr.x*nr.x + nr.y*nr.y + nr.z*nr.z );
-    //if(len>0) len = 1/len;
-    //this.normal.scale( nr, len );
+        // preSolve
 
-    //this.normal.normalize( this.nr );
+        this.t.preSolve( timeStep, invTimeStep );
 
-    this.normal.sub( this.anchorPoint2, this.anchorPoint1 ).normalize();
+    },
 
+    solve: function () {
 
+        this.t.solve();
 
-    this.t.preSolve( timeStep, invTimeStep );
+    },
 
-};
+    postSolve: function () {
 
-DistanceJoint.prototype.solve = function () {
+    }
 
-    this.t.solve();
-
-};
-
-DistanceJoint.prototype.postSolve = function () {
-};
+});
 
 /**
 * An angular constraint for all axes for various joints.
@@ -4270,7 +4273,6 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
-    this.tmpNor = new Vec3();
     
     this.nor = new Vec3();
     this.tan = new Vec3();
@@ -4279,55 +4281,57 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
     this.ac = new AngularConstraint( this, new Quat().arc( this.localAxis1, this.localAxis2 ) );
 
     // The translational limit and motor information of the joint.
-    this.limitMotor = new LimitMotor(this.nor,true);
+    this.limitMotor = new LimitMotor( this.nor, true );
     this.limitMotor.lowerLimit = lowerTranslation;
     this.limitMotor.upperLimit = upperTranslation;
-    this.t3 = new Translational3Constraint( this, this.limitMotor, new LimitMotor(this.tan,true), new LimitMotor(this.bin,true) );
+    this.t3 = new Translational3Constraint( this, this.limitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 
 }
 
-PrismaticJoint.prototype = Object.create( Joint.prototype );
-PrismaticJoint.prototype.constructor = PrismaticJoint;
+PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
-PrismaticJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
+    constructor: PrismaticJoint,
 
-    this.updateAnchorPoints();
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-    this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
-    this.nor.set(
-        this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
-        this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
-        this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
-    ).normalize();
+        this.updateAnchorPoints();
 
-    this.tan.set(
-        this.nor.y*this.nor.x - this.nor.z*this.nor.z,
-        -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
-        this.nor.x*this.nor.z + this.nor.y*this.nor.y
-    ).normalize();
+        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
 
-    this.bin.crossVectors( this.nor, this.tan );
+        // normal tangent binormal
 
-    //
+        this.nor.set(
+            this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
+            this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
+            this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
+        ).normalize();
+        this.tan.tangent( this.nor ).normalize();
+        this.bin.crossVectors( this.nor, this.tan );
 
-    this.ac.preSolve( timeStep, invTimeStep );
-    this.t3.preSolve( timeStep, invTimeStep );
+        // preSolve
 
-};
+        this.ac.preSolve( timeStep, invTimeStep );
+        this.t3.preSolve( timeStep, invTimeStep );
 
-PrismaticJoint.prototype.solve = function () {
+    },
 
-    this.ac.solve();
-    this.t3.solve();
-    
-};
+    solve: function () {
 
-PrismaticJoint.prototype.postSolve = function () {
-};
+        this.ac.solve();
+        this.t3.solve();
+        
+    },
+
+    postSolve: function () {
+
+    }
+
+});
 
 /**
  * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -4343,132 +4347,97 @@ function SliderJoint( config, lowerTranslation, upperTranslation ){
     // The axis in the second body's coordinate system.
     this.localAxis2 = config.localAxis2.clone().normalize();
 
-    var len;
-    this.localAxis1X = this.localAxis1.x;
-    this.localAxis1Y = this.localAxis1.y;
-    this.localAxis1Z = this.localAxis1.z;
+    // make angle axis
+    var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    this.localAngle1 = new Vec3().tangent( this.localAxis1 ).normalize();
+    this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
 
-    this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-    this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-    this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
+    this.ax1 = new Vec3();
+    this.ax2 = new Vec3();
+    this.an1 = new Vec3();
+    this.an2 = new Vec3();
 
-    len = 1/_Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-    this.localAngAxis1X *= len;
-    this.localAngAxis1Y *= len;
-    this.localAngAxis1Z *= len;
-
-    this.localAxis2X = this.localAxis2.x;
-    this.localAxis2Y = this.localAxis2.y;
-    this.localAxis2Z = this.localAxis2.z;
-
-    // make angle axis 2
-    var arc = new Mat33().setQuat(new Quat().arc(this.localAxis1,this.localAxis2));
-    var tarc = arc.elements;
-    this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-    this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-    this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+    this.tmp = new Vec3();
     
     this.nor = new Vec3();
     this.tan = new Vec3();
     this.bin = new Vec3();
+
     // The limit and motor for the rotation
-    this.rotationalLimitMotor = new LimitMotor(this.nor,false);
-    this.r3 = new Rotational3Constraint(this,this.rotationalLimitMotor,new LimitMotor(this.tan,true),new LimitMotor(this.bin,true));
+    this.rotationalLimitMotor = new LimitMotor( this.nor, false );
+    this.r3 = new Rotational3Constraint( this, this.rotationalLimitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
+
     // The limit and motor for the translation.
-    this.translationalLimitMotor = new LimitMotor(this.nor,true);
+    this.translationalLimitMotor = new LimitMotor( this.nor, true );
     this.translationalLimitMotor.lowerLimit = lowerTranslation;
     this.translationalLimitMotor.upperLimit = upperTranslation;
-    this.t3 = new Translational3Constraint(this,this.translationalLimitMotor,new LimitMotor(this.tan,true),new LimitMotor(this.bin,true));
+    this.t3 = new Translational3Constraint( this, this.translationalLimitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 
 }
 
-SliderJoint.prototype = Object.create( Joint.prototype );
-SliderJoint.prototype.constructor = SliderJoint;
+SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
-SliderJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+    constructor: SliderJoint,
 
-    var tmpM;
-    var tmp1X;
-    var tmp1Y;
-    var tmp1Z;
-    this.updateAnchorPoints();
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    tmpM=this.body1.rotation.elements;
-    var axis1X=this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
-    var axis1Y=this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
-    var axis1Z=this.localAxis1X*tmpM[6]+this.localAxis1Y*tmpM[7]+this.localAxis1Z*tmpM[8];
-    var angAxis1X=this.localAngAxis1X*tmpM[0]+this.localAngAxis1Y*tmpM[1]+this.localAngAxis1Z*tmpM[2];
-    var angAxis1Y=this.localAngAxis1X*tmpM[3]+this.localAngAxis1Y*tmpM[4]+this.localAngAxis1Z*tmpM[5];
-    var angAxis1Z=this.localAngAxis1X*tmpM[6]+this.localAngAxis1Y*tmpM[7]+this.localAngAxis1Z*tmpM[8];
-    tmpM=this.body2.rotation.elements;
-    var axis2X=this.localAxis2X*tmpM[0]+this.localAxis2Y*tmpM[1]+this.localAxis2Z*tmpM[2];
-    var axis2Y=this.localAxis2X*tmpM[3]+this.localAxis2Y*tmpM[4]+this.localAxis2Z*tmpM[5];
-    var axis2Z=this.localAxis2X*tmpM[6]+this.localAxis2Y*tmpM[7]+this.localAxis2Z*tmpM[8];
-    var angAxis2X=this.localAngAxis2X*tmpM[0]+this.localAngAxis2Y*tmpM[1]+this.localAngAxis2Z*tmpM[2];
-    var angAxis2Y=this.localAngAxis2X*tmpM[3]+this.localAngAxis2Y*tmpM[4]+this.localAngAxis2Z*tmpM[5];
-    var angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
+        this.updateAnchorPoints();
 
-    var nx=axis1X*this.body2.inverseMass+axis2X*this.body1.inverseMass;
-    var ny=axis1Y*this.body2.inverseMass+axis2Y*this.body1.inverseMass;
-    var nz=axis1Z*this.body2.inverseMass+axis2Z*this.body1.inverseMass;
-    tmp1X=_Math.sqrt(nx*nx+ny*ny+nz*nz);
-    if(tmp1X>0)tmp1X=1/tmp1X;
-    nx*=tmp1X;
-    ny*=tmp1X;
-    nz*=tmp1X;
-    var tx=ny*nx-nz*nz;
-    var ty=-nz*ny-nx*nx;
-    var tz=nx*nz+ny*ny;
-    tmp1X=1/_Math.sqrt(tx*tx+ty*ty+tz*tz);
-    tx*=tmp1X;
-    ty*=tmp1X;
-    tz*=tmp1X;
-    var bx=ny*tz-nz*ty;
-    var by=nz*tx-nx*tz;
-    var bz=nx*ty-ny*tx;
-    this.nor.set(nx,ny,nz);
-    this.tan.set(tx,ty,tz);
-    this.bin.set(bx,by,bz);
+        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
 
-    // ----------------------------------------------
-    //            calculate hinge angle
-    // ----------------------------------------------
+        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
 
-    if(
-        nx*(angAxis1Y*angAxis2Z-angAxis1Z*angAxis2Y)+
-        ny*(angAxis1Z*angAxis2X-angAxis1X*angAxis2Z)+
-        nz*(angAxis1X*angAxis2Y-angAxis1Y*angAxis2X)<0
-        ){
-        this.rotationalLimitMotor.angle=-_Math.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
-    }else{
-        this.rotationalLimitMotor.angle=_Math.acosClamp(angAxis1X*angAxis2X+angAxis1Y*angAxis2Y+angAxis1Z*angAxis2Z);
+        // normal tangent binormal
+
+        this.nor.set(
+            this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
+            this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
+            this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
+        ).normalize();
+        this.tan.tangent( this.nor ).normalize();
+        this.bin.crossVectors( this.nor, this.tan );
+
+        // calculate hinge angle
+
+        this.tmp.crossVectors( this.an1, this.an2 );
+
+        var limite = _Math.acosClamp( _Math.dotVectors( this.an1, this.an2 ) );
+
+        if( _Math.dotVectors( this.nor, this.tmp ) < 0 ) this.rotationalLimitMotor.angle = -limite;
+        else this.rotationalLimitMotor.angle = limite;
+
+        // angular error
+
+        this.tmp.crossVectors( this.ax1, this.ax2 );
+        this.r3.limitMotor2.angle = _Math.dotVectors( this.tan, this.tmp );
+        this.r3.limitMotor3.angle = _Math.dotVectors( this.bin, this.tmp );
+
+        // preSolve
+        
+        this.r3.preSolve( timeStep, invTimeStep );
+        this.t3.preSolve( timeStep, invTimeStep );
+
+    },
+
+    solve: function () {
+
+        this.r3.solve();
+        this.t3.solve();
+
+    },
+
+    postSolve: function () {
+
     }
 
-    // angular error
-    tmp1X=axis1Y*axis2Z-axis1Z*axis2Y;
-    tmp1Y=axis1Z*axis2X-axis1X*axis2Z;
-    tmp1Z=axis1X*axis2Y-axis1Y*axis2X;
-
-    this.r3.limitMotor2.angle=tx*tmp1X+ty*tmp1Y+tz*tmp1Z;
-    this.r3.limitMotor3.angle=bx*tmp1X+by*tmp1Y+bz*tmp1Z;
-    
-    this.r3.preSolve(timeStep,invTimeStep);
-    this.t3.preSolve(timeStep,invTimeStep);
-};
-
-SliderJoint.prototype.solve = function () {
-
-    this.r3.solve();
-    this.t3.solve();
-
-};
-
-SliderJoint.prototype.postSolve = function () {
-};
+});
 
 /**
  * A wheel joint allows for relative rotation between two rigid bodies along two axes.
  * The wheel joint also allows for relative translation for the suspension.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -4484,147 +4453,106 @@ function WheelJoint ( config ){
     // The axis in the second body's coordinate system.
     this.localAxis2 = config.localAxis2.clone().normalize();
 
-    var len;
-    this.localAxis1X = this.localAxis1.x;
-    this.localAxis1Y = this.localAxis1.y;
-    this.localAxis1Z = this.localAxis1.z;
-    this.localAxis2X = this.localAxis2.x;
-    this.localAxis2Y = this.localAxis2.y;
-    this.localAxis2Z = this.localAxis2.z;
-    var dot = this.localAxis1X*this.localAxis2X+this.localAxis1Y*this.localAxis2Y+this.localAxis1Z*this.localAxis2Z;
-    if(dot>-1&&dot<1){
-        this.localAngAxis1X = this.localAxis2X-dot*this.localAxis1X;
-        this.localAngAxis1Y = this.localAxis2Y-dot*this.localAxis1Y;
-        this.localAngAxis1Z = this.localAxis2Z-dot*this.localAxis1Z;
-        this.localAngAxis2X = this.localAxis1X-dot*this.localAxis2X;
-        this.localAngAxis2Y = this.localAxis1Y-dot*this.localAxis2Y;
-        this.localAngAxis2Z = this.localAxis1Z-dot*this.localAxis2Z;
-        len = 1/_Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-        this.localAngAxis1X *= len;
-        this.localAngAxis1Y *= len;
-        this.localAngAxis1Z *= len;
-        len = 1/_Math.sqrt(this.localAngAxis2X*this.localAngAxis2X+this.localAngAxis2Y*this.localAngAxis2Y+this.localAngAxis2Z*this.localAngAxis2Z);
-        this.localAngAxis2X *= len;
-        this.localAngAxis2Y *= len;
-        this.localAngAxis2Z *= len;
-    }else{
-        this.localAngAxis1X = this.localAxis1Y*this.localAxis1X-this.localAxis1Z*this.localAxis1Z;
-        this.localAngAxis1Y = -this.localAxis1Z*this.localAxis1Y-this.localAxis1X*this.localAxis1X;
-        this.localAngAxis1Z = this.localAxis1X*this.localAxis1Z+this.localAxis1Y*this.localAxis1Y;
-        len = 1/_Math.sqrt(this.localAngAxis1X*this.localAngAxis1X+this.localAngAxis1Y*this.localAngAxis1Y+this.localAngAxis1Z*this.localAngAxis1Z);
-        this.localAngAxis1X*=len;
-        this.localAngAxis1Y*=len;
-        this.localAngAxis1Z*=len;
-        var arc = new Mat33().setQuat(new Quat().arc(this.localAxis1,this.localAxis2));
-        var tarc = arc.elements;
-        this.localAngAxis2X = this.localAngAxis1X*tarc[0]+this.localAngAxis1Y*tarc[1]+this.localAngAxis1Z*tarc[2];
-        this.localAngAxis2Y = this.localAngAxis1X*tarc[3]+this.localAngAxis1Y*tarc[4]+this.localAngAxis1Z*tarc[5];
-        this.localAngAxis2Z = this.localAngAxis1X*tarc[6]+this.localAngAxis1Y*tarc[7]+this.localAngAxis1Z*tarc[8];
+    this.localAngle1 = new Vec3();
+    this.localAngle2 = new Vec3();
+
+    var dot = _Math.dotVectors( this.localAxis1, this.localAxis2 );
+
+    if( dot > -1 && dot < 1 ){
+
+        this.localAngle1.set(
+            this.localAxis2.x - dot*this.localAxis1.x,
+            this.localAxis2.y - dot*this.localAxis1.y,
+            this.localAxis2.z - dot*this.localAxis1.z
+        ).normalize();
+
+        this.localAngle2.set(
+            this.localAxis1.x - dot*this.localAxis2.x,
+            this.localAxis1.y - dot*this.localAxis2.y,
+            this.localAxis1.z - dot*this.localAxis2.z
+        ).normalize();
+
+    } else {
+
+        var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+        this.localAngle1.tangent( this.localAxis1 ).normalize();
+        this.localAngle2.mulMat( arc, this.localAngle1 );
+
     }
+
+    this.ax1 = new Vec3();
+    this.ax2 = new Vec3();
+    this.an1 = new Vec3();
+    this.an2 = new Vec3();
+
+    this.tmp = new Vec3();
 
     this.nor = new Vec3();
     this.tan = new Vec3();
     this.bin = new Vec3();
 
     // The translational limit and motor information of the joint.
-    this.translationalLimitMotor = new LimitMotor(this.tan,true);
+    this.translationalLimitMotor = new LimitMotor( this.tan,true );
     this.translationalLimitMotor.frequency = 8;
     this.translationalLimitMotor.dampingRatio = 1;
     // The first rotational limit and motor information of the joint.
-    this.rotationalLimitMotor1 = new LimitMotor(this.tan,false);
+    this.rotationalLimitMotor1 = new LimitMotor( this.tan, false );
     // The second rotational limit and motor information of the joint.
-    this.rotationalLimitMotor2 = new LimitMotor(this.bin,false);
+    this.rotationalLimitMotor2 = new LimitMotor( this.bin, false );
 
-    this.t3 = new Translational3Constraint(this,new LimitMotor(this.nor,true),this.translationalLimitMotor,new LimitMotor(this.bin,true));
+    this.t3 = new Translational3Constraint( this, new LimitMotor( this.nor, true ),this.translationalLimitMotor,new LimitMotor( this.bin, true ));
     this.t3.weight = 1;
-    this.r3 = new Rotational3Constraint(this,new LimitMotor(this.nor,true),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
+    this.r3 = new Rotational3Constraint(this,new LimitMotor( this.nor, true ),this.rotationalLimitMotor1,this.rotationalLimitMotor2);
 
 }
 
-WheelJoint.prototype = Object.create( Joint.prototype );
-WheelJoint.prototype.constructor = WheelJoint;
+WheelJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
-WheelJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+    constructor: WheelJoint,
 
-    var tmpM;
-    var tmp1X;
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    this.updateAnchorPoints();
-    tmpM=this.body1.rotation.elements;
-    var x1=this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
-    var y1=this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
-    var z1=this.localAxis1X*tmpM[6]+this.localAxis1Y*tmpM[7]+this.localAxis1Z*tmpM[8];
-    var angAxis1X=this.localAngAxis1X*tmpM[0]+this.localAngAxis1Y*tmpM[1]+this.localAngAxis1Z*tmpM[2];
-    var angAxis1Y=this.localAngAxis1X*tmpM[3]+this.localAngAxis1Y*tmpM[4]+this.localAngAxis1Z*tmpM[5];
-    var angAxis1Z=this.localAngAxis1X*tmpM[6]+this.localAngAxis1Y*tmpM[7]+this.localAngAxis1Z*tmpM[8];
-    tmpM=this.body2.rotation.elements;
-    var x2=this.localAxis2X*tmpM[0]+this.localAxis2Y*tmpM[1]+this.localAxis2Z*tmpM[2];
-    var y2=this.localAxis2X*tmpM[3]+this.localAxis2Y*tmpM[4]+this.localAxis2Z*tmpM[5];
-    var z2=this.localAxis2X*tmpM[6]+this.localAxis2Y*tmpM[7]+this.localAxis2Z*tmpM[8];
-    var angAxis2X=this.localAngAxis2X*tmpM[0]+this.localAngAxis2Y*tmpM[1]+this.localAngAxis2Z*tmpM[2];
-    var angAxis2Y=this.localAngAxis2X*tmpM[3]+this.localAngAxis2Y*tmpM[4]+this.localAngAxis2Z*tmpM[5];
-    var angAxis2Z=this.localAngAxis2X*tmpM[6]+this.localAngAxis2Y*tmpM[7]+this.localAngAxis2Z*tmpM[8];
-    
-    this.r3.limitMotor1.angle=x1*x2+y1*y2+z1*z2;
-    if( x1*(angAxis1Y*z2-angAxis1Z*y2)+ y1*(angAxis1Z*x2-angAxis1X*z2)+ z1*(angAxis1X*y2-angAxis1Y*x2)<0 ){
-        this.rotationalLimitMotor1.angle=-_Math.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
-    }else{
-        this.rotationalLimitMotor1.angle=_Math.acosClamp(angAxis1X*x2+angAxis1Y*y2+angAxis1Z*z2);
+        this.updateAnchorPoints();
+
+        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+
+        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
+        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
+
+        this.r3.limitMotor1.angle = _Math.dotVectors( this.ax1, this.ax2 );
+
+        var limite = _Math.dotVectors( this.an1, this.ax2 );
+
+        if( _Math.dotVectors( this.ax1, this.tmp.crossVectors( this.an1, this.ax2 ) ) < 0 ) this.rotationalLimitMotor1.angle = -limite;
+        else this.rotationalLimitMotor1.angle = limite;
+
+        limite = _Math.dotVectors( this.an2, this.ax1 );
+
+        if( _Math.dotVectors( this.ax2, this.tmp.crossVectors( this.an2, this.ax1 ) ) < 0 ) this.rotationalLimitMotor2.angle = -limite;
+        else this.rotationalLimitMotor2.angle = limite;
+
+        this.nor.crossVectors( this.ax1, this.ax2 ).normalize();
+        this.tan.crossVectors( this.nor, this.ax2 ).normalize();
+        this.bin.crossVectors( this.nor, this.ax1 ).normalize();
+        
+        this.r3.preSolve(timeStep,invTimeStep);
+        this.t3.preSolve(timeStep,invTimeStep);
+
+    },
+
+    solve: function () {
+
+        this.r3.solve();
+        this.t3.solve();
+
+    },
+
+    postSolve: function () {
+
     }
-    if( x2*(angAxis2Y*z1-angAxis2Z*y1)+ y2*(angAxis2Z*x1-angAxis2X*z1)+ z2*(angAxis2X*y1-angAxis2Y*x1)<0 ){
-        this.rotationalLimitMotor2.angle=_Math.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
-    }else{
-        this.rotationalLimitMotor2.angle=-_Math.acosClamp(angAxis2X*x1+angAxis2Y*y1+angAxis2Z*z1);
-    }
 
-    var nx=y2*z1-z2*y1;
-    var ny=z2*x1-x2*z1;
-    var nz=x2*y1-y2*x1;
-
-    tmp1X=_Math.sqrt(nx*nx+ny*ny+nz*nz);
-    if(tmp1X>0)tmp1X=1/tmp1X;
-    nx*=tmp1X;
-    ny*=tmp1X;
-    nz*=tmp1X;
-
-    var tx=ny*z2-nz*y2;
-    var ty=nz*x2-nx*z2;
-    var tz=nx*y2-ny*x2;
-
-    tmp1X=_Math.sqrt(tx*tx+ty*ty+tz*tz);
-    if(tmp1X>0)tmp1X=1/tmp1X;
-    tx*=tmp1X;
-    ty*=tmp1X;
-    tz*=tmp1X;
-
-    var bx=y1*nz-z1*ny;
-    var by=z1*nx-x1*nz;
-    var bz=x1*ny-y1*nx;
-
-    tmp1X=_Math.sqrt(bx*bx+by*by+bz*bz);
-    if(tmp1X>0)tmp1X=1/tmp1X;
-    bx*=tmp1X;
-    by*=tmp1X;
-    bz*=tmp1X;
-
-    this.nor.set(nx,ny,nz);
-    this.tan.set(tx,ty,tz);
-    this.bin.set(bx,by,bz);
-    
-    this.r3.preSolve(timeStep,invTimeStep);
-    this.t3.preSolve(timeStep,invTimeStep);
-
-};
-
-WheelJoint.prototype.solve = function () {
-
-    this.r3.solve();
-    this.t3.solve();
-
-};
-
-WheelJoint.prototype.postSolve = function () {
-};
+});
 
 function JointConfig(){
 

@@ -29,7 +29,6 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
-    this.tmpNor = new Vec3();
     
     this.nor = new Vec3();
     this.tan = new Vec3();
@@ -38,51 +37,52 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
     this.ac = new AngularConstraint( this, new Quat().arc( this.localAxis1, this.localAxis2 ) );
 
     // The translational limit and motor information of the joint.
-    this.limitMotor = new LimitMotor(this.nor,true);
+    this.limitMotor = new LimitMotor( this.nor, true );
     this.limitMotor.lowerLimit = lowerTranslation;
     this.limitMotor.upperLimit = upperTranslation;
-    this.t3 = new Translational3Constraint( this, this.limitMotor, new LimitMotor(this.tan,true), new LimitMotor(this.bin,true) );
+    this.t3 = new Translational3Constraint( this, this.limitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 
 };
 
-PrismaticJoint.prototype = Object.create( Joint.prototype );
-PrismaticJoint.prototype.constructor = PrismaticJoint;
+PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
-PrismaticJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
+    constructor: PrismaticJoint,
 
-    this.updateAnchorPoints();
+    preSolve: function ( timeStep, invTimeStep ) {
 
-    this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-    this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
-    this.nor.set(
-        this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
-        this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
-        this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
-    ).normalize();
+        this.updateAnchorPoints();
 
-    this.tan.set(
-        this.nor.y*this.nor.x - this.nor.z*this.nor.z,
-        -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
-        this.nor.x*this.nor.z + this.nor.y*this.nor.y
-    ).normalize();
+        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
 
-    this.bin.crossVectors( this.nor, this.tan );
+        // normal tangent binormal
 
-    //
+        this.nor.set(
+            this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
+            this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
+            this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
+        ).normalize();
+        this.tan.tangent( this.nor ).normalize();
+        this.bin.crossVectors( this.nor, this.tan );
 
-    this.ac.preSolve( timeStep, invTimeStep );
-    this.t3.preSolve( timeStep, invTimeStep );
+        // preSolve
 
-};
+        this.ac.preSolve( timeStep, invTimeStep );
+        this.t3.preSolve( timeStep, invTimeStep );
 
-PrismaticJoint.prototype.solve = function () {
+    },
 
-    this.ac.solve();
-    this.t3.solve();
-    
-};
+    solve: function () {
 
-PrismaticJoint.prototype.postSolve = function () {
-};
+        this.ac.solve();
+        this.t3.solve();
+        
+    },
+
+    postSolve: function () {
+
+    }
+
+});
 
 export { PrismaticJoint };

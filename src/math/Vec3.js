@@ -119,6 +119,18 @@ Object.assign( Vec3.prototype, {
 
     },
 
+    tangent: function ( a ) {
+
+        var ax = a.x, ay = a.y, az = a.z;
+
+        this.x = ay * ax - az * az;
+        this.y = - az * ay - ax * ax;
+        this.z = ax * az + ay * ay;
+
+        return this;
+
+    },
+
     mul: function( o, v, m ){
 
         var te = m.elements;

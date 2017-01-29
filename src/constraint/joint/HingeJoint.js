@@ -27,20 +27,10 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     // The axis in the second body's coordinate system.
     this.localAxis2 = config.localAxis2.clone().normalize();
 
-    // make angle axis 1
-    this.localAngle1 = new Vec3(
-        this.localAxis1.y*this.localAxis1.x - this.localAxis1.z*this.localAxis1.z,
-        -this.localAxis1.z*this.localAxis1.y - this.localAxis1.x*this.localAxis1.x,
-        this.localAxis1.x*this.localAxis1.z + this.localAxis1.y*this.localAxis1.y
-    ).normalize();
-
-    // make angle axis 2
+    // make angle axis
     var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    this.localAngle1 = new Vec3().tangent( this.localAxis1 ).normalize();
     this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
-
-    this.nor = new Vec3();
-    this.tan = new Vec3();
-    this.bin = new Vec3();
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
@@ -49,11 +39,15 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
     this.tmp = new Vec3();
 
+    this.nor = new Vec3();
+    this.tan = new Vec3();
+    this.bin = new Vec3();
+
     // The rotational limit and motor information of the joint.
     this.limitMotor = new LimitMotor( this.nor, false );
     this.limitMotor.lowerLimit = lowerAngleLimit;
     this.limitMotor.upperLimit = upperAngleLimit;
-    
+
     this.lc = new LinearConstraint( this );
     this.r3 = new Rotational3Constraint( this, this.limitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 };
@@ -65,8 +59,6 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
     preSolve: function ( timeStep, invTimeStep ) {
 
-        //var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
-
         this.updateAnchorPoints();
 
         this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
@@ -75,17 +67,15 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
         this.an1.mulMat( this.body1.rotation, this.localAngle1 );
         this.an2.mulMat( this.body2.rotation, this.localAngle2 );
 
+        // normal tangent binormal
+
         this.nor.set(
             this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
             this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
             this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
         ).normalize();
 
-        this.tan.set(
-            this.nor.y*this.nor.x - this.nor.z*this.nor.z,
-            -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
-            this.nor.x*this.nor.z + this.nor.y*this.nor.y
-        ).normalize();
+        this.tan.tangent( this.nor ).normalize();
 
         this.bin.crossVectors( this.nor, this.tan );
 
@@ -103,7 +93,7 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
         this.r3.limitMotor2.angle = _Math.dotVectors( this.tan, this.tmp );
         this.r3.limitMotor3.angle = _Math.dotVectors( this.bin, this.tmp );
 
-        //
+        // preSolve
         
         this.r3.preSolve( timeStep, invTimeStep );
         this.lc.preSolve( timeStep, invTimeStep );
