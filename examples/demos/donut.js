@@ -31,6 +31,7 @@ function demo() {
     var rayon = 8;
     var a = (360/mx) * Math.torad;
     var spring = [2, 0.3];// soften the joint ex: 100, 0.2
+    var isBall = true;
 
     for( i = 0; i < num; i++){
 
@@ -40,6 +41,8 @@ function demo() {
         py = (60 + (i*10));
         px = Math.rand(-40, 40);
         pz = Math.rand(-40, 40);
+
+        isBall = Math.randInt(0, 1);
 
         donutsGeo[i] = new THREE.Tubular({ start:[px,0,pz], end:[px,-40,pz+40], numSegment:mx }, (mx)*3, radius, 12, true );
         donuts[i] = new THREE.Mesh( donutsGeo[i], mat.donut );
@@ -55,8 +58,17 @@ function demo() {
 
             add({ type:'sphere', size:[radius], pos:[x, y, z], move:1 }, true);
 
-            if( j > 0 ) world.add({ type:'jointHinge', body1:n+(j-1), body2:n+j, pos1:[-(radius+margin),0, 0], pos2:[(radius+margin),0, 0], collision:false, spring:spring, min:90, max:-90  });
-            if( j === mx-1 ) world.add({ type:'jointHinge', body1:n+(mx-1), body2:n, pos1:[-(radius+margin),0, 0], pos2:[(radius+margin),0, 0], collision:false, spring:spring, min:90, max:-90  });
+            if(isBall){
+
+                if( j > 0 ) world.add({ type:'jointBall', body1:n+(j-1), body2:n+j, pos1:[-(radius+margin),0, 0], pos2:[(radius+margin),0, 0], collision:true  });
+                if( j === mx-1 ) world.add({ type:'jointBall', body1:n+(mx-1), body2:n, pos1:[-(radius+margin),0, 0], pos2:[(radius+margin),0, 0], collision:true  });
+
+            } else {
+
+                if( j > 0 ) world.add({ type:'jointHinge', body1:n+(j-1), body2:n+j, pos1:[-(radius+margin),0, 0], pos2:[(radius+margin),0, 0], collision:false, spring:spring, min:90, max:-90  });
+                if( j === mx-1 ) world.add({ type:'jointHinge', body1:n+(mx-1), body2:n, pos1:[-(radius+margin),0, 0], pos2:[(radius+margin),0, 0], collision:false, spring:spring, min:90, max:-90  });
+
+            }
 
         }
     }
