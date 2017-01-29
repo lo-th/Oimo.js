@@ -23,16 +23,16 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     this.type = JOINT_HINGE;
 
     // The axis in the first body's coordinate system.
-    this.localAxis1 = config.localAxis1.clone().norm();
+    this.localAxis1 = config.localAxis1.clone().normalize();
     // The axis in the second body's coordinate system.
-    this.localAxis2 = config.localAxis2.clone().norm();
+    this.localAxis2 = config.localAxis2.clone().normalize();
 
     // make angle axis 1
     this.localAngle1 = new Vec3(
         this.localAxis1.y*this.localAxis1.x - this.localAxis1.z*this.localAxis1.z,
         -this.localAxis1.z*this.localAxis1.y - this.localAxis1.x*this.localAxis1.x,
         this.localAxis1.x*this.localAxis1.z + this.localAxis1.y*this.localAxis1.y
-    ).norm();
+    ).normalize();
 
     // make angle axis 2
     var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
@@ -47,13 +47,15 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     this.an1 = new Vec3();
     this.an2 = new Vec3();
 
+    this.tmp = new Vec3();
+
     // The rotational limit and motor information of the joint.
     this.limitMotor = new LimitMotor( this.nor, false );
     this.limitMotor.lowerLimit = lowerAngleLimit;
     this.limitMotor.upperLimit = upperAngleLimit;
-
-    this.lc = new LinearConstraint(this);
-    this.r3 = new Rotational3Constraint(this,this.limitMotor,new LimitMotor(this.tan,true),new LimitMotor(this.bin,true));
+    
+    this.lc = new LinearConstraint( this );
+    this.r3 = new Rotational3Constraint( this, this.limitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 };
 
 HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
@@ -63,7 +65,7 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
     preSolve: function ( timeStep, invTimeStep ) {
 
-        var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
+        //var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
 
         this.updateAnchorPoints();
 
@@ -77,40 +79,31 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
             this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
             this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
             this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
-        ).norm();
+        ).normalize();
 
         this.tan.set(
             this.nor.y*this.nor.x - this.nor.z*this.nor.z,
             -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
             this.nor.x*this.nor.z + this.nor.y*this.nor.y
-        ).norm();
+        ).normalize();
 
-        this.bin.set(
-            this.nor.y*this.tan.z - this.nor.z*this.tan.y,
-            this.nor.z*this.tan.x - this.nor.x*this.tan.z,
-            this.nor.x*this.tan.y - this.nor.y*this.tan.x
-        );
+        this.bin.crossVectors( this.nor, this.tan );
 
         // calculate hinge angle
 
-        limite = _Math.acosClamp(this.an1.x*this.an2.x + this.an1.y*this.an2.y + this.an1.z*this.an2.z)
+        var limite = _Math.acosClamp( _Math.dotVectors( this.an1, this.an2 ) );
 
-        if(
-            this.nor.x*(this.an1.y*this.an2.z - this.an1.z*this.an2.y)+
-            this.nor.y*(this.an1.z*this.an2.x - this.an1.x*this.an2.z)+
-            this.nor.z*(this.an1.x*this.an2.y - this.an1.y*this.an2.x)<0
-        ){
-            this.limitMotor.angle = -limite;
-        }else{
-            this.limitMotor.angle = limite;
-        }
+        this.tmp.crossVectors( this.an1, this.an2 );
 
-        tmp1X = this.ax1.y*this.ax2.z - this.ax1.z*this.ax2.y;
-        tmp1Y = this.ax1.z*this.ax2.x - this.ax1.x*this.ax2.z;
-        tmp1Z = this.ax1.x*this.ax2.y - this.ax1.y*this.ax2.x;
+        if( _Math.dotVectors( this.nor, this.tmp ) < 0 ) this.limitMotor.angle = -limite;
+        else this.limitMotor.angle = limite;
 
-        this.r3.limitMotor2.angle = this.tan.x*tmp1X + this.tan.y*tmp1Y + this.tan.z*tmp1Z;
-        this.r3.limitMotor3.angle = this.bin.x*tmp1X + this.bin.y*tmp1Y + this.bin.z*tmp1Z;
+        this.tmp.crossVectors( this.ax1, this.ax2 );
+
+        this.r3.limitMotor2.angle = _Math.dotVectors( this.tan, this.tmp );
+        this.r3.limitMotor3.angle = _Math.dotVectors( this.bin, this.tmp );
+
+        //
         
         this.r3.preSolve( timeStep, invTimeStep );
         this.lc.preSolve( timeStep, invTimeStep );

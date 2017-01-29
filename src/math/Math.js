@@ -69,6 +69,12 @@ var _Math = {
 
     },
 
+    dotVectors: function ( a, b ) {
+
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+
+    },
+
 }
 
 export { _Math };

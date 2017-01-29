@@ -93,13 +93,28 @@ Object.assign( Vec3.prototype, {
 
     },
    
-    cross: function( v1, v2 ) {
+    cross: function( a, b ) {
 
-        var ax = v1.x, ay = v1.y, az = v1.z, 
-        bx = v2.x, by = v2.y, bz = v2.z;
+        var ax = a.x, ay = a.y, az = a.z;
+        var bx = b.x, by = b.y, bz = b.z;
+
         this.x = ay * bz - az * by;
         this.y = az * bx - ax * bz;
         this.z = ax * by - ay * bx;
+
+        return this;
+
+    },
+
+    crossVectors: function ( a, b ) {
+
+        var ax = a.x, ay = a.y, az = a.z;
+        var bx = b.x, by = b.y, bz = b.z;
+
+        this.x = ay * bz - az * by;
+        this.y = az * bx - ax * bz;
+        this.z = ax * by - ay * bx;
+
         return this;
 
     },
@@ -107,14 +122,14 @@ Object.assign( Vec3.prototype, {
     mul: function( o, v, m ){
 
         var te = m.elements;
-        this.x= o.x + v.x*te[0] + v.y*te[1] + v.z*te[2];
-        this.y= o.y + v.x*te[3] + v.y*te[4] + v.z*te[5];
-        this.z= o.z + v.x*te[6] + v.y*te[7] + v.z*te[8];
+        this.x = o.x + v.x*te[0] + v.y*te[1] + v.z*te[2];
+        this.y = o.y + v.x*te[3] + v.y*te[4] + v.z*te[5];
+        this.z = o.z + v.x*te[6] + v.y*te[7] + v.z*te[8];
         return this;
 
     },
 
-    mulMat: function(m,v){
+    mulMat: function( m, v ){
 
         var te = m.elements;
         this.x = te[0]*v.x + te[1]*v.y + te[2]*v.z;
@@ -134,30 +149,6 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    normalize: function ( v ) {
-
-        var x = v.x, y = v.y, z = v.z;
-        var l = x*x + y*y + z*z;
-        if (l > 0) {
-            l = 1 / _Math.sqrt(l);
-            this.x = x*l;
-            this.y = y*l;
-            this.z = z*l;
-        }
-        return this;
-
-    },
-    /*norm: function(){
-        var x = this.x, y = this.y, z = this.z;
-        var l = x*x + y*y + z*z;
-        if (l > 0) {
-            l = 1 / OIMO.sqrt(l);
-            this.x = x*l;
-            this.y = y*l;
-            this.z = z*l;
-        }
-        return this;
-    },*/
     invert: function ( v ) {
 
         this.x=-v.x;
@@ -186,6 +177,8 @@ Object.assign( Vec3.prototype, {
         return this.x * v.x + this.y * v.y + this.z * v.z;
 
     },
+
+    
 
     lengthSq: function () {
 
@@ -293,8 +286,7 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    // TODO rename to normalize
-    norm: function () {
+    normalize: function () {
 
         return this.divideScalar( this.length() );
 

@@ -200,6 +200,12 @@
 
 	    },
 
+	    dotVectors: function ( a, b ) {
+
+	        return a.x * b.x + a.y * b.y + a.z * b.z;
+
+	    },
+
 	};
 
 	function printError( clazz, msg ){
@@ -430,13 +436,28 @@
 
 	    },
 	   
-	    cross: function( v1, v2 ) {
+	    cross: function( a, b ) {
 
-	        var ax = v1.x, ay = v1.y, az = v1.z, 
-	        bx = v2.x, by = v2.y, bz = v2.z;
+	        var ax = a.x, ay = a.y, az = a.z;
+	        var bx = b.x, by = b.y, bz = b.z;
+
 	        this.x = ay * bz - az * by;
 	        this.y = az * bx - ax * bz;
 	        this.z = ax * by - ay * bx;
+
+	        return this;
+
+	    },
+
+	    crossVectors: function ( a, b ) {
+
+	        var ax = a.x, ay = a.y, az = a.z;
+	        var bx = b.x, by = b.y, bz = b.z;
+
+	        this.x = ay * bz - az * by;
+	        this.y = az * bx - ax * bz;
+	        this.z = ax * by - ay * bx;
+
 	        return this;
 
 	    },
@@ -444,14 +465,14 @@
 	    mul: function( o, v, m ){
 
 	        var te = m.elements;
-	        this.x= o.x + v.x*te[0] + v.y*te[1] + v.z*te[2];
-	        this.y= o.y + v.x*te[3] + v.y*te[4] + v.z*te[5];
-	        this.z= o.z + v.x*te[6] + v.y*te[7] + v.z*te[8];
+	        this.x = o.x + v.x*te[0] + v.y*te[1] + v.z*te[2];
+	        this.y = o.y + v.x*te[3] + v.y*te[4] + v.z*te[5];
+	        this.z = o.z + v.x*te[6] + v.y*te[7] + v.z*te[8];
 	        return this;
 
 	    },
 
-	    mulMat: function(m,v){
+	    mulMat: function( m, v ){
 
 	        var te = m.elements;
 	        this.x = te[0]*v.x + te[1]*v.y + te[2]*v.z;
@@ -471,30 +492,6 @@
 
 	    },
 
-	    normalize: function ( v ) {
-
-	        var x = v.x, y = v.y, z = v.z;
-	        var l = x*x + y*y + z*z;
-	        if (l > 0) {
-	            l = 1 / _Math.sqrt(l);
-	            this.x = x*l;
-	            this.y = y*l;
-	            this.z = z*l;
-	        }
-	        return this;
-
-	    },
-	    /*norm: function(){
-	        var x = this.x, y = this.y, z = this.z;
-	        var l = x*x + y*y + z*z;
-	        if (l > 0) {
-	            l = 1 / OIMO.sqrt(l);
-	            this.x = x*l;
-	            this.y = y*l;
-	            this.z = z*l;
-	        }
-	        return this;
-	    },*/
 	    invert: function ( v ) {
 
 	        this.x=-v.x;
@@ -523,6 +520,8 @@
 	        return this.x * v.x + this.y * v.y + this.z * v.z;
 
 	    },
+
+	    
 
 	    lengthSq: function () {
 
@@ -630,8 +629,7 @@
 
 	    },
 
-	    // TODO rename to normalize
-	    norm: function () {
+	    normalize: function () {
 
 	        return this.divideScalar( this.length() );
 
@@ -2009,9 +2007,9 @@
 	    this.body2 = config.body2;
 
 	    // anchor point on the first rigid body in local coordinate system.
-	    this.localAnchorPoint1 = new Vec3().copy(config.localAnchorPoint1);
+	    this.localAnchorPoint1 = new Vec3().copy( config.localAnchorPoint1 );
 	    // anchor point on the second rigid body in local coordinate system.
-	    this.localAnchorPoint2 = new Vec3().copy(config.localAnchorPoint2);
+	    this.localAnchorPoint2 = new Vec3().copy( config.localAnchorPoint2 );
 	    // anchor point on the first rigid body in world coordinate system relative to the body's origin.
 	    this.relativeAnchorPoint1 = new Vec3();
 	    // anchor point on the second rigid body in world coordinate system relative to the body's origin.
@@ -2036,11 +2034,11 @@
 
 	    updateAnchorPoints: function () {
 
-	        this.relativeAnchorPoint1.mulMat(this.body1.rotation, this.localAnchorPoint1);
-	        this.relativeAnchorPoint2.mulMat(this.body2.rotation, this.localAnchorPoint2);
+	        this.relativeAnchorPoint1.mulMat( this.body1.rotation, this.localAnchorPoint1 );
+	        this.relativeAnchorPoint2.mulMat( this.body2.rotation, this.localAnchorPoint2 );
 
-	        this.anchorPoint1.add(this.relativeAnchorPoint1, this.body1.position);
-	        this.anchorPoint2.add(this.relativeAnchorPoint2, this.body2.position);
+	        this.anchorPoint1.add( this.relativeAnchorPoint1, this.body1.position );
+	        this.anchorPoint2.add( this.relativeAnchorPoint2, this.body2.position );
 
 	    },
 
@@ -2143,7 +2141,7 @@
 
 	    dispose: function () {
 
-	        this.parent.removeJoint(this);
+	        this.parent.removeJoint( this );
 
 	    },
 
@@ -2987,16 +2985,16 @@
 	    this.type = JOINT_HINGE;
 
 	    // The axis in the first body's coordinate system.
-	    this.localAxis1 = config.localAxis1.clone().norm();
+	    this.localAxis1 = config.localAxis1.clone().normalize();
 	    // The axis in the second body's coordinate system.
-	    this.localAxis2 = config.localAxis2.clone().norm();
+	    this.localAxis2 = config.localAxis2.clone().normalize();
 
 	    // make angle axis 1
 	    this.localAngle1 = new Vec3(
 	        this.localAxis1.y*this.localAxis1.x - this.localAxis1.z*this.localAxis1.z,
 	        -this.localAxis1.z*this.localAxis1.y - this.localAxis1.x*this.localAxis1.x,
 	        this.localAxis1.x*this.localAxis1.z + this.localAxis1.y*this.localAxis1.y
-	    ).norm();
+	    ).normalize();
 
 	    // make angle axis 2
 	    var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
@@ -3011,13 +3009,15 @@
 	    this.an1 = new Vec3();
 	    this.an2 = new Vec3();
 
+	    this.tmp = new Vec3();
+
 	    // The rotational limit and motor information of the joint.
 	    this.limitMotor = new LimitMotor( this.nor, false );
 	    this.limitMotor.lowerLimit = lowerAngleLimit;
 	    this.limitMotor.upperLimit = upperAngleLimit;
-
-	    this.lc = new LinearConstraint(this);
-	    this.r3 = new Rotational3Constraint(this,this.limitMotor,new LimitMotor(this.tan,true),new LimitMotor(this.bin,true));
+	    
+	    this.lc = new LinearConstraint( this );
+	    this.r3 = new Rotational3Constraint( this, this.limitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 	}
 
 	HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
@@ -3027,7 +3027,7 @@
 
 	    preSolve: function ( timeStep, invTimeStep ) {
 
-	        var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
+	        //var tmp1X, tmp1Y, tmp1Z, limite;//, nx, ny, nz, tx, ty, tz, bx, by, bz;
 
 	        this.updateAnchorPoints();
 
@@ -3041,40 +3041,31 @@
 	            this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
 	            this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
 	            this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
-	        ).norm();
+	        ).normalize();
 
 	        this.tan.set(
 	            this.nor.y*this.nor.x - this.nor.z*this.nor.z,
 	            -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
 	            this.nor.x*this.nor.z + this.nor.y*this.nor.y
-	        ).norm();
+	        ).normalize();
 
-	        this.bin.set(
-	            this.nor.y*this.tan.z - this.nor.z*this.tan.y,
-	            this.nor.z*this.tan.x - this.nor.x*this.tan.z,
-	            this.nor.x*this.tan.y - this.nor.y*this.tan.x
-	        );
+	        this.bin.crossVectors( this.nor, this.tan );
 
 	        // calculate hinge angle
 
-	        limite = _Math.acosClamp(this.an1.x*this.an2.x + this.an1.y*this.an2.y + this.an1.z*this.an2.z);
+	        var limite = _Math.acosClamp( _Math.dotVectors( this.an1, this.an2 ) );
 
-	        if(
-	            this.nor.x*(this.an1.y*this.an2.z - this.an1.z*this.an2.y)+
-	            this.nor.y*(this.an1.z*this.an2.x - this.an1.x*this.an2.z)+
-	            this.nor.z*(this.an1.x*this.an2.y - this.an1.y*this.an2.x)<0
-	        ){
-	            this.limitMotor.angle = -limite;
-	        }else{
-	            this.limitMotor.angle = limite;
-	        }
+	        this.tmp.crossVectors( this.an1, this.an2 );
 
-	        tmp1X = this.ax1.y*this.ax2.z - this.ax1.z*this.ax2.y;
-	        tmp1Y = this.ax1.z*this.ax2.x - this.ax1.x*this.ax2.z;
-	        tmp1Z = this.ax1.x*this.ax2.y - this.ax1.y*this.ax2.x;
+	        if( _Math.dotVectors( this.nor, this.tmp ) < 0 ) this.limitMotor.angle = -limite;
+	        else this.limitMotor.angle = limite;
 
-	        this.r3.limitMotor2.angle = this.tan.x*tmp1X + this.tan.y*tmp1Y + this.tan.z*tmp1Z;
-	        this.r3.limitMotor3.angle = this.bin.x*tmp1X + this.bin.y*tmp1Y + this.bin.z*tmp1Z;
+	        this.tmp.crossVectors( this.ax1, this.ax2 );
+
+	        this.r3.limitMotor2.angle = _Math.dotVectors( this.tan, this.tmp );
+	        this.r3.limitMotor3.angle = _Math.dotVectors( this.bin, this.tmp );
+
+	        //
 	        
 	        this.r3.preSolve( timeStep, invTimeStep );
 	        this.lc.preSolve( timeStep, invTimeStep );
@@ -3446,12 +3437,12 @@
 
 	    //var nr = this.nr;
 
-	    this.nr.sub(this.anchorPoint2, this.anchorPoint1);
+	    this.nr.sub( this.anchorPoint2, this.anchorPoint1 );
 	    //var len = OIMO.sqrt( nr.x*nr.x + nr.y*nr.y + nr.z*nr.z );
 	    //if(len>0) len = 1/len;
 	    //this.normal.scale( nr, len );
 
-	    this.normal.normalize(this.nr);
+	    this.normal.normalize( this.nr );
 
 	    this.t.preSolve( timeStep, invTimeStep );
 
@@ -4262,6 +4253,7 @@
 
 	/**
 	 * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+	 *
 	 * @author saharan
 	 * @author lo-th
 	 */
@@ -4276,17 +4268,17 @@
 	    this.localAxis1 = new Vec3().normalize( config.localAxis1 );
 	    // The axis in the second body's coordinate system.
 	    this.localAxis2 = new Vec3().normalize( config.localAxis2 );
-	    this.localAxis1X = this.localAxis1.x;
-	    this.localAxis1Y = this.localAxis1.y;
-	    this.localAxis1Z = this.localAxis1.z;
-	    this.localAxis2X = this.localAxis2.x;
-	    this.localAxis2Y = this.localAxis2.y;
-	    this.localAxis2Z = this.localAxis2.z;
+
+	    this.ax1 = new Vec3();
+	    this.ax2 = new Vec3();
+	    this.tmpNor = new Vec3();
 	    
 	    this.nor = new Vec3();
 	    this.tan = new Vec3();
 	    this.bin = new Vec3();
-	    this.ac = new AngularConstraint(this,new Quat().arc( this.localAxis1, this.localAxis2 ));
+
+	    this.ac = new AngularConstraint( this, new Quat().arc( this.localAxis1, this.localAxis2 ) );
+
 	    // The translational limit and motor information of the joint.
 	    this.limitMotor = new LimitMotor(this.nor,true);
 	    this.limitMotor.lowerLimit = lowerTranslation;
@@ -4298,46 +4290,30 @@
 	PrismaticJoint.prototype = Object.create( Joint.prototype );
 	PrismaticJoint.prototype.constructor = PrismaticJoint;
 
-	PrismaticJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+	PrismaticJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
 
-	    var tmpM;
-	    var tmp1X;
 	    this.updateAnchorPoints();
 
-	    tmpM=this.body1.rotation.elements;
-	    var axis1X=this.localAxis1X*tmpM[0]+this.localAxis1Y*tmpM[1]+this.localAxis1Z*tmpM[2];
-	    var axis1Y=this.localAxis1X*tmpM[3]+this.localAxis1Y*tmpM[4]+this.localAxis1Z*tmpM[5];
-	    var axis1Z=this.localAxis1X*tmpM[6]+this.localAxis1Y*tmpM[7]+this.localAxis1Z*tmpM[8];
-	    tmpM=this.body2.rotation.elements;
-	    var axis2X=this.localAxis2X*tmpM[0]+this.localAxis2Y*tmpM[1]+this.localAxis2Z*tmpM[2];
-	    var axis2Y=this.localAxis2X*tmpM[3]+this.localAxis2Y*tmpM[4]+this.localAxis2Z*tmpM[5];
-	    var axis2Z=this.localAxis2X*tmpM[6]+this.localAxis2Y*tmpM[7]+this.localAxis2Z*tmpM[8];
+	    this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
+	    this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+	    this.nor.set(
+	        this.ax1.x*this.body2.inverseMass + this.ax2.x*this.body1.inverseMass,
+	        this.ax1.y*this.body2.inverseMass + this.ax2.y*this.body1.inverseMass,
+	        this.ax1.z*this.body2.inverseMass + this.ax2.z*this.body1.inverseMass
+	    ).normalize();
 
-	    var nx=axis1X*this.body2.inverseMass+axis2X*this.body1.inverseMass;
-	    var ny=axis1Y*this.body2.inverseMass+axis2Y*this.body1.inverseMass;
-	    var nz=axis1Z*this.body2.inverseMass+axis2Z*this.body1.inverseMass;
-	    tmp1X=_Math.sqrt(nx*nx+ny*ny+nz*nz);
-	    if(tmp1X>0)tmp1X=1/tmp1X;
-	    nx*=tmp1X;
-	    ny*=tmp1X;
-	    nz*=tmp1X;
-	    var tx=ny*nx-nz*nz;
-	    var ty=-nz*ny-nx*nx;
-	    var tz=nx*nz+ny*ny;
-	    tmp1X=1/_Math.sqrt(tx*tx+ty*ty+tz*tz);
-	    tx*=tmp1X;
-	    ty*=tmp1X;
-	    tz*=tmp1X;
-	    var bx=ny*tz-nz*ty;
-	    var by=nz*tx-nx*tz;
-	    var bz=nx*ty-ny*tx;
+	    this.tan.set(
+	        this.nor.y*this.nor.x - this.nor.z*this.nor.z,
+	        -this.nor.z*this.nor.y - this.nor.x*this.nor.x,
+	        this.nor.x*this.nor.z + this.nor.y*this.nor.y
+	    ).normalize();
 
-	    this.nor.set(nx,ny,nz);
-	    this.tan.set(tx,ty,tz);
-	    this.bin.set(bx,by,bz);
-	    
-	    this.ac.preSolve(timeStep,invTimeStep);
-	    this.t3.preSolve(timeStep,invTimeStep);
+	    this.bin.crossVectors( this.nor, this.tan );
+
+	    //
+
+	    this.ac.preSolve( timeStep, invTimeStep );
+	    this.t3.preSolve( timeStep, invTimeStep );
 
 	};
 

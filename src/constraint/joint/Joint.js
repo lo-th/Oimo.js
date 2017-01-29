@@ -31,9 +31,9 @@ function Joint ( config ){
     this.body2 = config.body2;
 
     // anchor point on the first rigid body in local coordinate system.
-    this.localAnchorPoint1 = new Vec3().copy(config.localAnchorPoint1);
+    this.localAnchorPoint1 = new Vec3().copy( config.localAnchorPoint1 );
     // anchor point on the second rigid body in local coordinate system.
-    this.localAnchorPoint2 = new Vec3().copy(config.localAnchorPoint2);
+    this.localAnchorPoint2 = new Vec3().copy( config.localAnchorPoint2 );
     // anchor point on the first rigid body in world coordinate system relative to the body's origin.
     this.relativeAnchorPoint1 = new Vec3();
     // anchor point on the second rigid body in world coordinate system relative to the body's origin.
@@ -58,11 +58,11 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
     updateAnchorPoints: function () {
 
-        this.relativeAnchorPoint1.mulMat(this.body1.rotation, this.localAnchorPoint1);
-        this.relativeAnchorPoint2.mulMat(this.body2.rotation, this.localAnchorPoint2);
+        this.relativeAnchorPoint1.mulMat( this.body1.rotation, this.localAnchorPoint1 );
+        this.relativeAnchorPoint2.mulMat( this.body2.rotation, this.localAnchorPoint2 );
 
-        this.anchorPoint1.add(this.relativeAnchorPoint1, this.body1.position);
-        this.anchorPoint2.add(this.relativeAnchorPoint2, this.body2.position);
+        this.anchorPoint1.add( this.relativeAnchorPoint1, this.body1.position );
+        this.anchorPoint2.add( this.relativeAnchorPoint2, this.body2.position );
 
     },
 
@@ -165,7 +165,7 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
     dispose: function () {
 
-        this.parent.removeJoint(this);
+        this.parent.removeJoint( this );
 
     },
 

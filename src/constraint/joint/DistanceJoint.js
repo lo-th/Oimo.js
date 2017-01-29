@@ -39,12 +39,12 @@ DistanceJoint.prototype.preSolve = function (timeStep,invTimeStep) {
 
     //var nr = this.nr;
 
-    this.nr.sub(this.anchorPoint2, this.anchorPoint1);
+    this.nr.sub( this.anchorPoint2, this.anchorPoint1 );
     //var len = OIMO.sqrt( nr.x*nr.x + nr.y*nr.y + nr.z*nr.z );
     //if(len>0) len = 1/len;
     //this.normal.scale( nr, len );
 
-    this.normal.normalize(this.nr);
+    this.normal.normalize( this.nr );
 
     this.t.preSolve( timeStep, invTimeStep );
 
