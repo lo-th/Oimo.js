@@ -59,8 +59,7 @@ CylinderCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos
     ny=v1z*v0x-v1x*v0z;
     nz=v1x*v0y-v1y*v0x;
     if(nx*nx+ny*ny+nz*nz==0){
-    sep.set( v1x-v0x, v1y-v0y, v1z-v0z );
-    sep.normalize(sep);
+    sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
     pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
     return true;
     }

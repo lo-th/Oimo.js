@@ -125,7 +125,7 @@ Object.assign( Quat.prototype, {
 
     },
 
-    normalize: function(q){
+    /*normalize: function(q){
 
         var len=_Math.sqrt(q.w*q.w+q.x*q.x+q.y*q.y+q.z*q.z);
         if(len>0){len=1/len;}
@@ -135,7 +135,7 @@ Object.assign( Quat.prototype, {
         this.z=q.z*len;
         return this;
 
-    },
+    },*/
 
     invert: function(q){
 

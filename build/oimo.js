@@ -784,7 +784,7 @@
 
 	    },
 
-	    normalize: function(q){
+	    /*normalize: function(q){
 
 	        var len=_Math.sqrt(q.w*q.w+q.x*q.x+q.y*q.y+q.z*q.z);
 	        if(len>0){len=1/len;}
@@ -794,7 +794,7 @@
 	        this.z=q.z*len;
 	        return this;
 
-	    },
+	    },*/
 
 	    invert: function(q){
 
@@ -3417,13 +3417,14 @@
 	    this.type = JOINT_DISTANCE;
 	    
 	    this.normal = new Vec3();
-	    this.nr = new Vec3(); 
+	    //this.nr = new Vec3(); 
 
 	    // The limit and motor information of the joint.
-	    this.limitMotor = new LimitMotor(this.normal,true);
+	    this.limitMotor = new LimitMotor( this.normal, true );
 	    this.limitMotor.lowerLimit = minDistance;
 	    this.limitMotor.upperLimit = maxDistance;
-	    this.t = new TranslationalConstraint(this,this.limitMotor);
+
+	    this.t = new TranslationalConstraint( this, this.limitMotor );
 
 	}
 
@@ -3431,18 +3432,22 @@
 	DistanceJoint.prototype.constructor = DistanceJoint;
 
 
-	DistanceJoint.prototype.preSolve = function (timeStep,invTimeStep) {
+	DistanceJoint.prototype.preSolve = function ( timeStep, invTimeStep ) {
 
 	    this.updateAnchorPoints();
 
 	    //var nr = this.nr;
 
-	    this.nr.sub( this.anchorPoint2, this.anchorPoint1 );
+	    //this.nr.sub( this.anchorPoint2, this.anchorPoint1 );
 	    //var len = OIMO.sqrt( nr.x*nr.x + nr.y*nr.y + nr.z*nr.z );
 	    //if(len>0) len = 1/len;
 	    //this.normal.scale( nr, len );
 
-	    this.normal.normalize( this.nr );
+	    //this.normal.normalize( this.nr );
+
+	    this.normal.sub( this.anchorPoint2, this.anchorPoint1 ).normalize();
+
+
 
 	    this.t.preSolve( timeStep, invTimeStep );
 
@@ -4265,9 +4270,9 @@
 	    this.type = JOINT_PRISMATIC;
 
 	    // The axis in the first body's coordinate system.
-	    this.localAxis1 = new Vec3().normalize( config.localAxis1 );
+	    this.localAxis1 = config.localAxis1.clone().normalize();
 	    // The axis in the second body's coordinate system.
-	    this.localAxis2 = new Vec3().normalize( config.localAxis2 );
+	    this.localAxis2 = config.localAxis2.clone().normalize();
 
 	    this.ax1 = new Vec3();
 	    this.ax2 = new Vec3();
@@ -4339,10 +4344,10 @@
 
 	    this.type = JOINT_SLIDER;
 
-	    // The first axis in local coordinate system.
-	    this.localAxis1 = new Vec3().normalize(config.localAxis1);
-	    // The second axis in local coordinate system.
-	    this.localAxis2 = new Vec3().normalize(config.localAxis2);
+	    // The axis in the first body's coordinate system.
+	    this.localAxis1 = config.localAxis1.clone().normalize();
+	    // The axis in the second body's coordinate system.
+	    this.localAxis2 = config.localAxis2.clone().normalize();
 
 	    var len;
 	    this.localAxis1X = this.localAxis1.x;
@@ -4480,10 +4485,10 @@
 
 	    this.type = JOINT_WHEEL;
 
-	    // The first axis in local coordinate system.
-	    this.localAxis1 = new Vec3().normalize(config.localAxis1);
-	    // The second axis in local coordinate system.
-	    this.localAxis2 = new Vec3().normalize(config.localAxis2);
+	    // The axis in the first body's coordinate system.
+	    this.localAxis1 = config.localAxis1.clone().normalize();
+	    // The axis in the second body's coordinate system.
+	    this.localAxis2 = config.localAxis2.clone().normalize();
 
 	    var len;
 	    this.localAxis1X = this.localAxis1.x;
@@ -8878,8 +8883,7 @@
 	    ny=v1z*v0x-v1x*v0z;
 	    nz=v1x*v0y-v1y*v0x;
 	    if(nx*nx+ny*ny+nz*nz==0){
-	    sep.set( v1x-v0x, v1y-v0y, v1z-v0z );
-	    sep.normalize(sep);
+	    sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
 	    pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
 	    return true;
 	    }
@@ -9910,8 +9914,7 @@
 	    ny=v1z*v0x-v1x*v0z;
 	    nz=v1x*v0y-v1y*v0x;
 	    if(nx*nx+ny*ny+nz*nz==0){
-	    sep.set( v1x-v0x, v1y-v0y, v1z-v0z );
-	    sep.normalize(sep);
+	    sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
 	    pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
 	    return true;
 	    }

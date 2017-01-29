@@ -23,9 +23,9 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
     this.type = JOINT_PRISMATIC;
 
     // The axis in the first body's coordinate system.
-    this.localAxis1 = new Vec3().normalize( config.localAxis1 );
+    this.localAxis1 = config.localAxis1.clone().normalize();
     // The axis in the second body's coordinate system.
-    this.localAxis2 = new Vec3().normalize( config.localAxis2 );
+    this.localAxis2 = config.localAxis2.clone().normalize();
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();

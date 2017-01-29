@@ -22,10 +22,10 @@ function WheelJoint ( config ){
 
     this.type = JOINT_WHEEL;
 
-    // The first axis in local coordinate system.
-    this.localAxis1 = new Vec3().normalize(config.localAxis1);
-    // The second axis in local coordinate system.
-    this.localAxis2 = new Vec3().normalize(config.localAxis2);
+    // The axis in the first body's coordinate system.
+    this.localAxis1 = config.localAxis1.clone().normalize();
+    // The axis in the second body's coordinate system.
+    this.localAxis2 = config.localAxis2.clone().normalize();
 
     var len;
     this.localAxis1X = this.localAxis1.x;
