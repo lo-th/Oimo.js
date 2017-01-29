@@ -1,5 +1,39 @@
+import { Vec3 } from '../../math/Vec3';
 
 function ContactPointDataBuffer (){
+
+    this.nor = new Vec3();
+    this.tan = new Vec3();
+    this.bin = new Vec3();
+
+    this.rp1 = new Vec3();
+    this.rp2 = new Vec3();
+
+    this.norU1 = new Vec3();
+    this.tanU1 = new Vec3();
+    this.binU1 = new Vec3();
+
+    this.norU2 = new Vec3();
+    this.tanU2 = new Vec3();
+    this.binU2 = new Vec3();
+
+    this.norT1 = new Vec3();
+    this.tanT1 = new Vec3();
+    this.binT1 = new Vec3();
+
+    this.norT2 = new Vec3();
+    this.tanT2 = new Vec3();
+    this.binT2 = new Vec3();
+
+    this.norTU1 = new Vec3();
+    this.tanTU1 = new Vec3();
+    this.binTU1 = new Vec3();
+
+    this.norTU2 = new Vec3();
+    this.tanTU2 = new Vec3();
+    this.binTU2 = new Vec3();
+
+/*
 
     this.norX=NaN;
     this.norY=NaN;
@@ -99,14 +133,16 @@ function ContactPointDataBuffer (){
 
     this.binTU2X=NaN;
     this.binTU2Y=NaN;
-    this.binTU2Z=NaN;
+    this.binTU2Z=NaN;*/
     
     this.norImp=NaN;
     this.tanImp=NaN;
     this.binImp=NaN;
+
     this.norDen=NaN;
     this.tanDen=NaN;
     this.binDen=NaN;
+
     this.norTar=NaN;
 
     this.next=null;
