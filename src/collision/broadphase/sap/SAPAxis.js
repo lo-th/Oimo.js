@@ -168,6 +168,6 @@ Object.assign( SAPAxis.prototype, {
 
     }
 
-} );
+});
 
 export { SAPAxis };

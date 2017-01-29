@@ -2,6 +2,7 @@ import { Proxy, ProxyIdCount } from './Proxy';
 
 /**
 * A basic implementation of proxies.
+*
 * @author saharan
 */
 
@@ -13,11 +14,14 @@ function BasicProxy ( shape ) {
 
 };
 
-BasicProxy.prototype = Object.create( Proxy.prototype );
-BasicProxy.prototype.constructor = BasicProxy;
+BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
-BasicProxy.prototype.update = function () {
+    constructor: BasicProxy,
 
-};
+    update: function () {
+
+    }
+
+});
 
 export { BasicProxy };

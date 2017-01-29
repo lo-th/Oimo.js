@@ -5,6 +5,7 @@ import { DBVTNode } from './DBVTNode';
 * A proxy for dynamic bounding volume tree broad-phase.
 * @author saharan
 */
+
 function DBVTProxy ( shape ) {
 
     Proxy.call( this, shape);
@@ -14,11 +15,14 @@ function DBVTProxy ( shape ) {
 
 };
 
-DBVTProxy.prototype = Object.create( Proxy.prototype );
-DBVTProxy.prototype.constructor = DBVTProxy;
+DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
-DBVTProxy.prototype.update = function () {
-    
-};
+    constructor: DBVTProxy,
+
+    update: function () {
+
+    }
+
+});
 
 export { DBVTProxy };

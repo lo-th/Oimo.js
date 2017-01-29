@@ -42,33 +42,36 @@ function SAPProxy ( sap, shape ){
 
 };
 
-SAPProxy.prototype = Object.create( Proxy.prototype );
-SAPProxy.prototype.constructor = SAPProxy;
+SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
-// Returns whether the proxy is dynamic or not.
+    constructor: SAPProxy,
 
-SAPProxy.prototype.isDynamic = function () {
 
-    var body = this.shape.parent;
-    return body.isDynamic && !body.sleeping;
+    // Returns whether the proxy is dynamic or not.
+    isDynamic: function () {
 
-};
+        var body = this.shape.parent;
+        return body.isDynamic && !body.sleeping;
 
-SAPProxy.prototype.update = function () {
+    },
 
-    var te = this.aabb.elements;
-    this.min[0].value = te[0];
-    this.min[1].value = te[1];
-    this.min[2].value = te[2];
-    this.max[0].value = te[3];
-    this.max[1].value = te[4];
-    this.max[2].value = te[5];
+    update: function () {
 
-    if( this.belongsTo == 1 && !this.isDynamic() || this.belongsTo == 2 && this.isDynamic() ){
-        this.sap.removeProxy(this);
-        this.sap.addProxy(this);
+        var te = this.aabb.elements;
+        this.min[0].value = te[0];
+        this.min[1].value = te[1];
+        this.min[2].value = te[2];
+        this.max[0].value = te[3];
+        this.max[1].value = te[4];
+        this.max[2].value = te[5];
+
+        if( this.belongsTo == 1 && !this.isDynamic() || this.belongsTo == 2 && this.isDynamic() ){
+            this.sap.removeProxy(this);
+            this.sap.addProxy(this);
+        }
+
     }
 
-};
+});
 
 export { SAPProxy };

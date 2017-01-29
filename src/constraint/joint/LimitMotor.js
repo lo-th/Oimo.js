@@ -1,7 +1,9 @@
 /**
 * An information of limit and motor.
+*
 * @author saharan
 */
+
 function LimitMotor ( axis, fixed ) {
 
     fixed = fixed || false;
@@ -12,8 +14,6 @@ function LimitMotor ( axis, fixed ) {
     // The lower limit. Set lower > upper to disable
     this.lowerLimit = fixed ? 0 : 1;
 
-    //if(fixed)this.lowerLimit = 0;
-    //else this.lowerLimit = 1;
     //  The upper limit. Set lower > upper to disable.
     this.upperLimit = 0;
     // The target motor speed.
@@ -27,42 +27,34 @@ function LimitMotor ( axis, fixed ) {
 
 };
 
-LimitMotor.prototype = {
+Object.assign( LimitMotor.prototype, {
 
-    constructor: LimitMotor,
-    /**
-    * Set limit data into this constraint.
-    * @param   lowerLimit
-    * @param   upperLimit
-    */
+    LimitMotor: true,
+
+    // Set limit data into this constraint.
     setLimit:function ( lowerLimit, upperLimit ) {
 
         this.lowerLimit = lowerLimit;
         this.upperLimit = upperLimit;
 
     },
-    /**
-    * Set motor data into this constraint.
-    * @param   motorSpeed
-    * @param   maxMotorForce
-    */
+
+    // Set motor data into this constraint.
     setMotor:function ( motorSpeed, maxMotorForce ) {
         
         this.motorSpeed = motorSpeed;
         this.maxMotorForce = maxMotorForce;
 
     },
-    /**
-    * Set spring data into this constraint.
-    * @param   frequency
-    * @param   dampingRatio
-    */
+
+    // Set spring data into this constraint.
     setSpring:function ( frequency, dampingRatio ) {
         
         this.frequency = frequency;
         this.dampingRatio = dampingRatio;
         
     }
-};
+
+});
 
 export { LimitMotor };

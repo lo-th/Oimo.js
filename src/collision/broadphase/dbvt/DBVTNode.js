@@ -4,6 +4,7 @@ import { AABB } from '../../../math/AABB';
 * A node of the dynamic bounding volume tree.
 * @author saharan
 */
+
 function DBVTNode(){
     
 	// The first child node of this node.

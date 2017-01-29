@@ -3,6 +3,7 @@ import { DBVTNode } from './DBVTNode';
 
 /**
  * A dynamic bounding volume tree for the broad-phase algorithm.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -21,10 +22,7 @@ function DBVT(){
 Object.assign( DBVT.prototype, {
 
     DBVT: true,
-    /**
-    * Move a leaf.
-    * @param   leaf
-    */
+
     moveLeaf: function( leaf ) {
 
         this.deleteLeaf( leaf );
@@ -32,10 +30,6 @@ Object.assign( DBVT.prototype, {
     
     },
 
-    /**
-    * Insert a leaf to the tree.
-    * @param   node
-    */
     insertLeaf: function ( leaf ) {
 
         if(this.root == null){
@@ -122,27 +116,14 @@ Object.assign( DBVT.prototype, {
             newParent = newParent.parent;
         }while(newParent != null);
     },
-    getBalance:function(node){
+
+    getBalance: function( node ) {
+
         if(node.proxy!=null)return 0;
         return node.child1.height-node.child2.height;
+
     },
 
-    /*print:function(node,indent,text){
-
-        var hasChild=node.proxy==null;
-        if(hasChild)text=this.print(node.child1,indent+1,text);
-        for(var i=indent*2;i>=0;i--){
-            text+=" ";
-        }
-        text+=(hasChild?this.getBalance(node):"["+node.proxy.aabb.minX+"]")+"\n";
-        if(hasChild)text=this.print(node.child2,indent+1,text);
-        return text;
-    },*/
-
-    /**
-    * Delete a leaf from the tree.
-    * @param   node
-    */
     deleteLeaf: function( leaf ) {
 
         if(leaf == this.root){
@@ -356,22 +337,15 @@ Object.assign( DBVT.prototype, {
         return node;
     },
 
-    fix:function(node){
+    fix: function ( node ) {
+
         var c1 = node.child1;
         var c2 = node.child2;
         node.aabb.combine( c1.aabb, c2.aabb );
-        //var h1 = c1.height;
-        //var h2 = c2.height;
-
         node.height = c1.height < c2.height ? c2.height+1 : c1.height+1; 
-        /*if( h1 < h2 ) {
-            node.height = h2+1;
-        }else{
-            node.height = h1+1;
-        }*/
 
     }
     
-} );
+});
 
 export { DBVT };

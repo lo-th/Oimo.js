@@ -19,44 +19,27 @@ Object.assign( BroadPhase.prototype, {
 
     BroadPhase: true,
 
-    /**
-    * Create a new proxy.
-    * @param   shape
-    * @return {void}
-    */
+    // Create a new proxy.
     createProxy: function ( shape ) {
 
         printError("BroadPhase","Inheritance error.");
 
     },
 
-    /**
-    * Add the proxy into the broad-phase.
-    * @param   proxy
-    * @return {void}
-    */
+    // Add the proxy into the broad-phase.
     addProxy: function ( proxy ) {
 
         printError("BroadPhase","Inheritance error.");
     },
 
-    /**
-    * Remove the proxy from the broad-phase.
-    * @param   proxy
-    * @return {void}
-    */
+    // Remove the proxy from the broad-phase.
     removeProxy: function ( proxy ) {
 
         printError("BroadPhase","Inheritance error.");
 
     },
 
-    /**
-    * Returns whether the pair is available or not.
-    * @param   s1
-    * @param   s2
-    * @return {void}
-    */
+    // Returns whether the pair is available or not.
     isAvailablePair: function ( s1, s2 ) {
 
         var b1 = s1.parent;
@@ -86,7 +69,6 @@ Object.assign( BroadPhase.prototype, {
         this.pairs = [];
         this.numPairs = 0;
         this.numPairChecks = 0;
-
         this.collectPairs();
 
     },
@@ -105,6 +87,6 @@ Object.assign( BroadPhase.prototype, {
 
     }
 
-} );
+});
 
 export { BroadPhase };

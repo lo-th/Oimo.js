@@ -89,7 +89,7 @@ if ( Object.assign === undefined ) {
  * the physics engine.
  */
 
-var REVISION = '1.0.4';
+var REVISION = '1.0.5';
 
 // BroadPhase
 var BR_NULL = 0;
@@ -1329,7 +1329,7 @@ Object.assign( AABB.prototype, {
 
 		var te = this.elements;
 		var ue = aabb.elements;
-		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2]  ? false : true;
+		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2] ? true : false;
 
 	},
 
@@ -1337,7 +1337,7 @@ Object.assign( AABB.prototype, {
 
 		var te = this.elements;
 		var ue = aabb.elements;
-		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5]  ? false : true;
+		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5] ? true : false;
 
 	},
 
@@ -1512,7 +1512,9 @@ function Shape ( config ) {
 
 }
 
-Object.assign(Shape.prototype,{
+Object.assign( Shape.prototype, {
+
+    Shape: true,
 
     // Calculate the mass information of the shape.
 
@@ -1836,8 +1838,10 @@ function ShapeConfig(){
 
 /**
 * An information of limit and motor.
+*
 * @author saharan
 */
+
 function LimitMotor ( axis, fixed ) {
 
     fixed = fixed || false;
@@ -1848,8 +1852,6 @@ function LimitMotor ( axis, fixed ) {
     // The lower limit. Set lower > upper to disable
     this.lowerLimit = fixed ? 0 : 1;
 
-    //if(fixed)this.lowerLimit = 0;
-    //else this.lowerLimit = 1;
     //  The upper limit. Set lower > upper to disable.
     this.upperLimit = 0;
     // The target motor speed.
@@ -1863,113 +1865,84 @@ function LimitMotor ( axis, fixed ) {
 
 }
 
-LimitMotor.prototype = {
+Object.assign( LimitMotor.prototype, {
 
-    constructor: LimitMotor,
-    /**
-    * Set limit data into this constraint.
-    * @param   lowerLimit
-    * @param   upperLimit
-    */
+    LimitMotor: true,
+
+    // Set limit data into this constraint.
     setLimit:function ( lowerLimit, upperLimit ) {
 
         this.lowerLimit = lowerLimit;
         this.upperLimit = upperLimit;
 
     },
-    /**
-    * Set motor data into this constraint.
-    * @param   motorSpeed
-    * @param   maxMotorForce
-    */
+
+    // Set motor data into this constraint.
     setMotor:function ( motorSpeed, maxMotorForce ) {
         
         this.motorSpeed = motorSpeed;
         this.maxMotorForce = maxMotorForce;
 
     },
-    /**
-    * Set spring data into this constraint.
-    * @param   frequency
-    * @param   dampingRatio
-    */
+
+    // Set spring data into this constraint.
     setSpring:function ( frequency, dampingRatio ) {
         
         this.frequency = frequency;
         this.dampingRatio = dampingRatio;
         
     }
-};
+
+});
 
 /**
  * The base class of all type of the constraints.
  *
- * @class Constraint
  * @author saharan
  * @author lo-th
  */
+
 function Constraint(){
 
-    /**
-     * The parent world of the constraint.
-     *
-     * @property parent
-     * @type {World}
-     */
+    // parent world of the constraint.
     this.parent = null;
 
-    /**
-     * The first body of the constraint.
-     *
-     * @property body1
-     * @type {RigidBody}
-     */
+    // first body of the constraint.
     this.body1 = null;
 
-    /**
-     * The second body of the constraint.
-     *
-     * @property body2
-     * @type {RigidBody}
-     */
+    // second body of the constraint.
     this.body2 = null;
 
     // Internal
     this.addedToIsland = false;
+    
 }
 
 Object.assign( Constraint.prototype, {
 
-    /**
-     * Prepare for solving the constraint.
-     * @param timeStep
-     * @param invTimeStep
-     * @return any
-     */
+    Constraint: true,
+
+    // Prepare for solving the constraint
     preSolve: function( timeStep, invTimeStep ){
+
         printError("Constraint", "Inheritance error.");
+
     },
 
-    /**
-     * Solve the constraint.
-     * This is usually called iteratively.
-     * @param timeStep
-     * @param invTimeStep
-     * @return any
-     */
+    // Solve the constraint. This is usually called iteratively.
     solve: function(){
+
         printError("Constraint", "Inheritance error.");
+
     },
 
-    /**
-     * Do the post-processing.
-     * @param timeStep
-     * @param invTimeStep
-     * @return any
-     */
+    // Do the post-processing.
     postSolve: function(){
+
         printError("Constraint", "Inheritance error.");
+
     }
+
 });
 
 function JointLink ( joint ){
@@ -6079,44 +6052,27 @@ Object.assign( BroadPhase.prototype, {
 
     BroadPhase: true,
 
-    /**
-    * Create a new proxy.
-    * @param   shape
-    * @return {void}
-    */
+    // Create a new proxy.
     createProxy: function ( shape ) {
 
         printError("BroadPhase","Inheritance error.");
 
     },
 
-    /**
-    * Add the proxy into the broad-phase.
-    * @param   proxy
-    * @return {void}
-    */
+    // Add the proxy into the broad-phase.
     addProxy: function ( proxy ) {
 
         printError("BroadPhase","Inheritance error.");
     },
 
-    /**
-    * Remove the proxy from the broad-phase.
-    * @param   proxy
-    * @return {void}
-    */
+    // Remove the proxy from the broad-phase.
     removeProxy: function ( proxy ) {
 
         printError("BroadPhase","Inheritance error.");
 
     },
 
-    /**
-    * Returns whether the pair is available or not.
-    * @param   s1
-    * @param   s2
-    * @return {void}
-    */
+    // Returns whether the pair is available or not.
     isAvailablePair: function ( s1, s2 ) {
 
         var b1 = s1.parent;
@@ -6146,7 +6102,6 @@ Object.assign( BroadPhase.prototype, {
         this.pairs = [];
         this.numPairs = 0;
         this.numPairChecks = 0;
-
         this.collectPairs();
 
     },
@@ -6165,7 +6120,7 @@ Object.assign( BroadPhase.prototype, {
 
     }
 
-} );
+});
 
 var count$1 = 0;
 function ProxyIdCount() { return count$1++; }
@@ -6173,26 +6128,15 @@ function ProxyIdCount() { return count$1++; }
 /**
  * A proxy is used for broad-phase collecting pairs that can be colliding.
  *
- * @class Proxy
- * @constructor
  * @author lo-th
  */
+
 function Proxy( shape ) {
 
-	/**
-	 * The parent shape.
-	 *
-	 * @property shape
-	 * @type {Shape}
-	 */
+	//The parent shape.
     this.shape = shape;
 
-    /**
-     * The axis-aligned bounding box.
-	 *
-	 * @property aabb
-	 * @type {AABB}
-	 */
+    //The axis-aligned bounding box.
     this.aabb = shape.aabb;
 
 }
@@ -6201,20 +6145,19 @@ Object.assign( Proxy.prototype, {
 
     Proxy: true,
 
-	/**
-	 * Update the proxy. Must be inherited
-	 * by a child.
-	 *
-	 * @method update
-	 * @return any
-	 */
+	// Update the proxy. Must be inherited by a child.
+
     update: function(){
+
         printError("Proxy","Inheritance error.");
+
     }
+
 });
 
 /**
 * A basic implementation of proxies.
+*
 * @author saharan
 */
 
@@ -6226,17 +6169,21 @@ function BasicProxy ( shape ) {
 
 }
 
-BasicProxy.prototype = Object.create( Proxy.prototype );
-BasicProxy.prototype.constructor = BasicProxy;
+BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
-BasicProxy.prototype.update = function () {
+    constructor: BasicProxy,
 
-};
+    update: function () {
+
+    }
+
+});
 
 /**
 * A broad-phase algorithm with brute-force search.
 * This always checks for all possible pairs.
 */
+
 function BruteForceBroadPhase(){
 
     BroadPhase.call( this );
@@ -6248,83 +6195,88 @@ function BruteForceBroadPhase(){
 
 }
 
-BruteForceBroadPhase.prototype = Object.create( BroadPhase.prototype );
-BruteForceBroadPhase.prototype.constructor = BruteForceBroadPhase;
 
-BruteForceBroadPhase.prototype.createProxy = function ( shape ) {
+BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), {
 
-    return new BasicProxy( shape );
+    constructor: BruteForceBroadPhase,
 
-};
+    createProxy: function ( shape ) {
 
-BruteForceBroadPhase.prototype.addProxy = function ( proxy ) {
-    /*if(this.numProxies==this.maxProxies){
-        //this.maxProxies<<=1;
-        this.maxProxies*=2;
-        var newProxies=[];
-        newProxies.length = this.maxProxies;
-        var i = this.numProxies;
+        return new BasicProxy( shape );
+
+    },
+
+    addProxy: function ( proxy ) {
+
+        /*if(this.numProxies==this.maxProxies){
+            //this.maxProxies<<=1;
+            this.maxProxies*=2;
+            var newProxies=[];
+            newProxies.length = this.maxProxies;
+            var i = this.numProxies;
+            while(i--){
+            //for(var i=0, l=this.numProxies;i<l;i++){
+                newProxies[i]=this.proxies[i];
+            }
+            this.proxies=newProxies;
+        }*/
+        //this.proxies[this.numProxies++] = proxy;
+        this.proxies.push( proxy );
+        //this.numProxies++;
+
+    },
+
+    removeProxy: function ( proxy ) {
+
+        var n = this.proxies.indexOf( proxy );
+        if ( n > -1 ){
+            this.proxies.splice( n, 1 );
+            //this.numProxies--;
+        }
+
+        /*var i = this.numProxies;
         while(i--){
         //for(var i=0, l=this.numProxies;i<l;i++){
-            newProxies[i]=this.proxies[i];
+            if(this.proxies[i] == proxy){
+                this.proxies[i] = this.proxies[--this.numProxies];
+                this.proxies[this.numProxies] = null;
+                return;
+            }
+        }*/
+
+    },
+
+    collectPairs: function () {
+
+        var i = 0, j, p1, p2;
+
+        var px = this.proxies;
+        var l = px.length;//this.numProxies;
+        //var ar1 = [];
+        //var ar2 = [];
+
+        //for( i = px.length ; i-- ; ar1[ i ] = px[ i ] ){};
+        //for( i = px.length ; i-- ; ar2[ i ] = px[ i ] ){};
+
+        //var ar1 = JSON.parse(JSON.stringify(this.proxies))
+        //var ar2 = JSON.parse(JSON.stringify(this.proxies))
+
+        this.numPairChecks = l*(l-1)>>1;
+        //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
+
+        while( i < l ){
+            p1 = px[i++];
+            j = i + 1;
+            while( j < l ){
+                p2 = px[j++];
+                if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
+                this.addPair( p1.shape, p2.shape );
+            }
         }
-        this.proxies=newProxies;
-    }*/
-    //this.proxies[this.numProxies++] = proxy;
-    this.proxies.push( proxy );
-    //this.numProxies++;
 
-};
-
-BruteForceBroadPhase.prototype.removeProxy = function ( proxy ) {
-
-    var n = this.proxies.indexOf( proxy );
-    if ( n > -1 ){
-        this.proxies.splice( n, 1 );
-        //this.numProxies--;
     }
 
-    /*var i = this.numProxies;
-    while(i--){
-    //for(var i=0, l=this.numProxies;i<l;i++){
-        if(this.proxies[i] == proxy){
-            this.proxies[i] = this.proxies[--this.numProxies];
-            this.proxies[this.numProxies] = null;
-            return;
-        }
-    }*/
-
-};
-
-BruteForceBroadPhase.prototype.collectPairs = function () {
-
-    var i = 0, j, p1, p2;
-
-    var px = this.proxies;
-    var l = px.length;//this.numProxies;
-    //var ar1 = [];
-    //var ar2 = [];
-
-    //for( i = px.length ; i-- ; ar1[ i ] = px[ i ] ){};
-    //for( i = px.length ; i-- ; ar2[ i ] = px[ i ] ){};
-
-    //var ar1 = JSON.parse(JSON.stringify(this.proxies))
-    //var ar2 = JSON.parse(JSON.stringify(this.proxies))
-
-    this.numPairChecks = l*(l-1)>>1;
-    //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
-
-    while( i < l ){
-        p1 = px[i++];
-        j = i + 1;
-        while( j < l ){
-            p2 = px[j++];
-            if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
-            this.addPair( p1.shape, p2.shape );
-        }
-    }
-
-};
+});
 
 /**
  * A projection axis for sweep and prune broad-phase.
@@ -6494,7 +6446,7 @@ Object.assign( SAPAxis.prototype, {
 
     }
 
-} );
+});
 
 /**
  * An element of proxies.
@@ -6563,34 +6515,37 @@ function SAPProxy ( sap, shape ){
 
 }
 
-SAPProxy.prototype = Object.create( Proxy.prototype );
-SAPProxy.prototype.constructor = SAPProxy;
+SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
-// Returns whether the proxy is dynamic or not.
+    constructor: SAPProxy,
 
-SAPProxy.prototype.isDynamic = function () {
 
-    var body = this.shape.parent;
-    return body.isDynamic && !body.sleeping;
+    // Returns whether the proxy is dynamic or not.
+    isDynamic: function () {
 
-};
+        var body = this.shape.parent;
+        return body.isDynamic && !body.sleeping;
 
-SAPProxy.prototype.update = function () {
+    },
 
-    var te = this.aabb.elements;
-    this.min[0].value = te[0];
-    this.min[1].value = te[1];
-    this.min[2].value = te[2];
-    this.max[0].value = te[3];
-    this.max[1].value = te[4];
-    this.max[2].value = te[5];
+    update: function () {
 
-    if( this.belongsTo == 1 && !this.isDynamic() || this.belongsTo == 2 && this.isDynamic() ){
-        this.sap.removeProxy(this);
-        this.sap.addProxy(this);
+        var te = this.aabb.elements;
+        this.min[0].value = te[0];
+        this.min[1].value = te[1];
+        this.min[2].value = te[2];
+        this.max[0].value = te[3];
+        this.max[1].value = te[4];
+        this.max[2].value = te[5];
+
+        if( this.belongsTo == 1 && !this.isDynamic() || this.belongsTo == 2 && this.isDynamic() ){
+            this.sap.removeProxy(this);
+            this.sap.addProxy(this);
+        }
+
     }
 
-};
+});
 
 /**
  * A broad-phase collision detection algorithm using sweep and prune.
@@ -6623,186 +6578,190 @@ function SAPBroadPhase () {
 
 }
 
-SAPBroadPhase.prototype = Object.create( BroadPhase.prototype );
-SAPBroadPhase.prototype.constructor = SAPBroadPhase;
+SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), {
 
-SAPBroadPhase.prototype.createProxy = function ( shape ) {
+    constructor: SAPBroadPhase,
 
-    return new SAPProxy( this, shape );
+    createProxy: function ( shape ) {
 
-};
+        return new SAPProxy( this, shape );
 
-SAPBroadPhase.prototype.addProxy = function ( proxy ) {
+    },
 
-    var p = proxy;
-    if(p.isDynamic()){
-        this.axesD[0].addElements( p.min[0], p.max[0] );
-        this.axesD[1].addElements( p.min[1], p.max[1] );
-        this.axesD[2].addElements( p.min[2], p.max[2] );
-        p.belongsTo = 1;
-        this.numElementsD += 2;
-    } else {
-        this.axesS[0].addElements( p.min[0], p.max[0] );
-        this.axesS[1].addElements( p.min[1], p.max[1] );
-        this.axesS[2].addElements( p.min[2], p.max[2] );
-        p.belongsTo = 2;
-        this.numElementsS += 2;
-    }
+    addProxy: function ( proxy ) {
 
-};
+        var p = proxy;
+        if(p.isDynamic()){
+            this.axesD[0].addElements( p.min[0], p.max[0] );
+            this.axesD[1].addElements( p.min[1], p.max[1] );
+            this.axesD[2].addElements( p.min[2], p.max[2] );
+            p.belongsTo = 1;
+            this.numElementsD += 2;
+        } else {
+            this.axesS[0].addElements( p.min[0], p.max[0] );
+            this.axesS[1].addElements( p.min[1], p.max[1] );
+            this.axesS[2].addElements( p.min[2], p.max[2] );
+            p.belongsTo = 2;
+            this.numElementsS += 2;
+        }
 
-SAPBroadPhase.prototype.removeProxy = function ( proxy ) {
+    },
 
-    var p = proxy;
-    if ( p.belongsTo == 0 ) return;
+    removeProxy: function ( proxy ) {
 
-    /*else if ( p.belongsTo == 1 ) {
-        this.axesD[0].removeElements( p.min[0], p.max[0] );
-        this.axesD[1].removeElements( p.min[1], p.max[1] );
-        this.axesD[2].removeElements( p.min[2], p.max[2] );
-        this.numElementsD -= 2;
-    } else if ( p.belongsTo == 2 ) {
-        this.axesS[0].removeElements( p.min[0], p.max[0] );
-        this.axesS[1].removeElements( p.min[1], p.max[1] );
-        this.axesS[2].removeElements( p.min[2], p.max[2] );
-        this.numElementsS -= 2;
-    }*/
+        var p = proxy;
+        if ( p.belongsTo == 0 ) return;
 
-    switch( p.belongsTo ){
-        case 1:
-        this.axesD[0].removeElements( p.min[0], p.max[0] );
-        this.axesD[1].removeElements( p.min[1], p.max[1] );
-        this.axesD[2].removeElements( p.min[2], p.max[2] );
-        this.numElementsD -= 2;
-        break;
-        case 2:
-        this.axesS[0].removeElements( p.min[0], p.max[0] );
-        this.axesS[1].removeElements( p.min[1], p.max[1] );
-        this.axesS[2].removeElements( p.min[2], p.max[2] );
-        this.numElementsS -= 2;
-        break;
-    }
+        /*else if ( p.belongsTo == 1 ) {
+            this.axesD[0].removeElements( p.min[0], p.max[0] );
+            this.axesD[1].removeElements( p.min[1], p.max[1] );
+            this.axesD[2].removeElements( p.min[2], p.max[2] );
+            this.numElementsD -= 2;
+        } else if ( p.belongsTo == 2 ) {
+            this.axesS[0].removeElements( p.min[0], p.max[0] );
+            this.axesS[1].removeElements( p.min[1], p.max[1] );
+            this.axesS[2].removeElements( p.min[2], p.max[2] );
+            this.numElementsS -= 2;
+        }*/
 
-    p.belongsTo = 0;
+        switch( p.belongsTo ){
+            case 1:
+            this.axesD[0].removeElements( p.min[0], p.max[0] );
+            this.axesD[1].removeElements( p.min[1], p.max[1] );
+            this.axesD[2].removeElements( p.min[2], p.max[2] );
+            this.numElementsD -= 2;
+            break;
+            case 2:
+            this.axesS[0].removeElements( p.min[0], p.max[0] );
+            this.axesS[1].removeElements( p.min[1], p.max[1] );
+            this.axesS[2].removeElements( p.min[2], p.max[2] );
+            this.numElementsS -= 2;
+            break;
+        }
 
-};
+        p.belongsTo = 0;
 
-SAPBroadPhase.prototype.collectPairs = function () {
+    },
 
-    if( this.numElementsD == 0 ) return;
+    collectPairs: function () {
 
-    var axis1 = this.axesD[this.index1];
-    var axis2 = this.axesD[this.index2];
+        if( this.numElementsD == 0 ) return;
 
-    axis1.sort();
-    axis2.sort();
+        var axis1 = this.axesD[this.index1];
+        var axis2 = this.axesD[this.index2];
 
-    var count1 = axis1.calculateTestCount();
-    var count2 = axis2.calculateTestCount();
-    var elementsD;
-    var elementsS;
-    if( count1 <= count2 ){// select the best axis
-        axis2 = this.axesS[this.index1];
-        axis2.sort();
-        elementsD = axis1.elements;
-        elementsS = axis2.elements;
-    }else{
-        axis1 = this.axesS[this.index2];
         axis1.sort();
-        elementsD = axis2.elements;
-        elementsS = axis1.elements;
-        this.index1 ^= this.index2;
-        this.index2 ^= this.index1;
-        this.index1 ^= this.index2;
-    }
-    var activeD;
-    var activeS;
-    var p = 0;
-    var q = 0;
-    while( p < this.numElementsD ){
-        var e1;
-        var dyn;
-        if (q == this.numElementsS ){
-            e1 = elementsD[p];
-            dyn = true;
-            p++;
+        axis2.sort();
+
+        var count1 = axis1.calculateTestCount();
+        var count2 = axis2.calculateTestCount();
+        var elementsD;
+        var elementsS;
+        if( count1 <= count2 ){// select the best axis
+            axis2 = this.axesS[this.index1];
+            axis2.sort();
+            elementsD = axis1.elements;
+            elementsS = axis2.elements;
         }else{
-            var d = elementsD[p];
-            var s = elementsS[q];
-            if( d.value < s.value ){
-                e1 = d;
+            axis1 = this.axesS[this.index2];
+            axis1.sort();
+            elementsD = axis2.elements;
+            elementsS = axis1.elements;
+            this.index1 ^= this.index2;
+            this.index2 ^= this.index1;
+            this.index1 ^= this.index2;
+        }
+        var activeD;
+        var activeS;
+        var p = 0;
+        var q = 0;
+        while( p < this.numElementsD ){
+            var e1;
+            var dyn;
+            if (q == this.numElementsS ){
+                e1 = elementsD[p];
                 dyn = true;
                 p++;
             }else{
-                e1 = s;
-                dyn = false;
-                q++;
+                var d = elementsD[p];
+                var s = elementsS[q];
+                if( d.value < s.value ){
+                    e1 = d;
+                    dyn = true;
+                    p++;
+                }else{
+                    e1 = s;
+                    dyn = false;
+                    q++;
+                }
             }
-        }
-        if( !e1.max ){
-            var s1 = e1.proxy.shape;
-            var min1 = e1.min1.value;
-            var max1 = e1.max1.value;
-            var min2 = e1.min2.value;
-            var max2 = e1.max2.value;
+            if( !e1.max ){
+                var s1 = e1.proxy.shape;
+                var min1 = e1.min1.value;
+                var max1 = e1.max1.value;
+                var min2 = e1.min2.value;
+                var max2 = e1.max2.value;
 
-            for( var e2 = activeD; e2 != null; e2 = e2.pair ) {// test for dynamic
-                var s2 = e2.proxy.shape;
-
-                this.numPairChecks++;
-                if( min1 > e2.max1.value || max1 < e2.min1.value || min2 > e2.max2.value || max2 < e2.min2.value || !this.isAvailablePair( s1, s2 ) ) continue;
-                this.addPair( s1, s2 );
-            }
-            if( dyn ){
-                for( e2 = activeS; e2 != null; e2 = e2.pair ) {// test for static
-                    s2 = e2.proxy.shape;
+                for( var e2 = activeD; e2 != null; e2 = e2.pair ) {// test for dynamic
+                    var s2 = e2.proxy.shape;
 
                     this.numPairChecks++;
-
-                    if( min1 > e2.max1.value || max1 < e2.min1.value|| min2 > e2.max2.value || max2 < e2.min2.value || !this.isAvailablePair(s1,s2) ) continue;
+                    if( min1 > e2.max1.value || max1 < e2.min1.value || min2 > e2.max2.value || max2 < e2.min2.value || !this.isAvailablePair( s1, s2 ) ) continue;
                     this.addPair( s1, s2 );
                 }
-                e1.pair = activeD;
-                activeD = e1;
-            }else{
-                e1.pair = activeS;
-                activeS = e1;
-            }
-        }else{
-            var min = e1.pair;
-            if( dyn ){
-                if( min == activeD ){
-                    activeD = activeD.pair;
-                    continue;
+                if( dyn ){
+                    for( e2 = activeS; e2 != null; e2 = e2.pair ) {// test for static
+                        s2 = e2.proxy.shape;
+
+                        this.numPairChecks++;
+
+                        if( min1 > e2.max1.value || max1 < e2.min1.value|| min2 > e2.max2.value || max2 < e2.min2.value || !this.isAvailablePair(s1,s2) ) continue;
+                        this.addPair( s1, s2 );
+                    }
+                    e1.pair = activeD;
+                    activeD = e1;
                 }else{
-                    e1 = activeD;
+                    e1.pair = activeS;
+                    activeS = e1;
                 }
             }else{
-                if( min == activeS ){
-                    activeS = activeS.pair;
-                    continue;
+                var min = e1.pair;
+                if( dyn ){
+                    if( min == activeD ){
+                        activeD = activeD.pair;
+                        continue;
+                    }else{
+                        e1 = activeD;
+                    }
                 }else{
-                    e1 = activeS;
+                    if( min == activeS ){
+                        activeS = activeS.pair;
+                        continue;
+                    }else{
+                        e1 = activeS;
+                    }
                 }
+                do{
+                    e2 = e1.pair;
+                    if( e2 == min ){
+                        e1.pair = e2.pair;
+                        break;
+                    }
+                    e1 = e2;
+                }while( e1 != null );
             }
-            do{
-                e2 = e1.pair;
-                if( e2 == min ){
-                    e1.pair = e2.pair;
-                    break;
-                }
-                e1 = e2;
-            }while( e1 != null );
         }
+        this.index2 = (this.index1|this.index2)^3;
+        
     }
-    this.index2 = (this.index1|this.index2)^3;
-    
-};
+
+});
 
 /**
 * A node of the dynamic bounding volume tree.
 * @author saharan
 */
+
 function DBVTNode(){
     
 	// The first child node of this node.
@@ -6822,6 +6781,7 @@ function DBVTNode(){
 
 /**
  * A dynamic bounding volume tree for the broad-phase algorithm.
+ *
  * @author saharan
  * @author lo-th
  */
@@ -6840,10 +6800,7 @@ function DBVT(){
 Object.assign( DBVT.prototype, {
 
     DBVT: true,
-    /**
-    * Move a leaf.
-    * @param   leaf
-    */
+
     moveLeaf: function( leaf ) {
 
         this.deleteLeaf( leaf );
@@ -6851,10 +6808,6 @@ Object.assign( DBVT.prototype, {
     
     },
 
-    /**
-    * Insert a leaf to the tree.
-    * @param   node
-    */
     insertLeaf: function ( leaf ) {
 
         if(this.root == null){
@@ -6941,27 +6894,14 @@ Object.assign( DBVT.prototype, {
             newParent = newParent.parent;
         }while(newParent != null);
     },
-    getBalance:function(node){
+
+    getBalance: function( node ) {
+
         if(node.proxy!=null)return 0;
         return node.child1.height-node.child2.height;
+
     },
 
-    /*print:function(node,indent,text){
-
-        var hasChild=node.proxy==null;
-        if(hasChild)text=this.print(node.child1,indent+1,text);
-        for(var i=indent*2;i>=0;i--){
-            text+=" ";
-        }
-        text+=(hasChild?this.getBalance(node):"["+node.proxy.aabb.minX+"]")+"\n";
-        if(hasChild)text=this.print(node.child2,indent+1,text);
-        return text;
-    },*/
-
-    /**
-    * Delete a leaf from the tree.
-    * @param   node
-    */
     deleteLeaf: function( leaf ) {
 
         if(leaf == this.root){
@@ -7175,28 +7115,22 @@ Object.assign( DBVT.prototype, {
         return node;
     },
 
-    fix:function(node){
+    fix: function ( node ) {
+
         var c1 = node.child1;
         var c2 = node.child2;
         node.aabb.combine( c1.aabb, c2.aabb );
-        //var h1 = c1.height;
-        //var h2 = c2.height;
-
         node.height = c1.height < c2.height ? c2.height+1 : c1.height+1; 
-        /*if( h1 < h2 ) {
-            node.height = h2+1;
-        }else{
-            node.height = h1+1;
-        }*/
 
     }
     
-} );
+});
 
 /**
 * A proxy for dynamic bounding volume tree broad-phase.
 * @author saharan
 */
+
 function DBVTProxy ( shape ) {
 
     Proxy.call( this, shape);
@@ -7206,22 +7140,27 @@ function DBVTProxy ( shape ) {
 
 }
 
-DBVTProxy.prototype = Object.create( Proxy.prototype );
-DBVTProxy.prototype.constructor = DBVTProxy;
+DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
-DBVTProxy.prototype.update = function () {
-    
-};
+    constructor: DBVTProxy,
+
+    update: function () {
+
+    }
+
+});
 
 /**
  * A broad-phase algorithm using dynamic bounding volume tree.
+ *
  * @author saharan
  * @author lo-th
  */
 
 function DBVTBroadPhase(){
 
-    BroadPhase.call( this);
+    BroadPhase.call( this );
+
     this.types = BR_BOUNDING_VOLUME_TREE;
 
     this.tree = new DBVT();
@@ -7231,109 +7170,112 @@ function DBVTBroadPhase(){
 
 }
 
-DBVTBroadPhase.prototype = Object.create( BroadPhase.prototype );
-DBVTBroadPhase.prototype.constructor = DBVTBroadPhase;
+DBVTBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), {
 
-DBVTBroadPhase.prototype.createProxy = function ( shape ) {
+    constructor: DBVTBroadPhase,
 
-    return new DBVTProxy(shape);
+    createProxy: function ( shape ) {
 
-};
+        return new DBVTProxy( shape );
 
-DBVTBroadPhase.prototype.addProxy = function ( proxy ) {
+    },
 
-    this.tree.insertLeaf( proxy.leaf );
-    this.leaves.push( proxy.leaf );
-    this.numLeaves++;
+    addProxy: function ( proxy ) {
 
-};
+        this.tree.insertLeaf( proxy.leaf );
+        this.leaves.push( proxy.leaf );
+        this.numLeaves++;
 
-DBVTBroadPhase.prototype.removeProxy = function ( proxy ) {
+    },
 
-    this.tree.deleteLeaf( proxy.leaf );
-    var n = this.leaves.indexOf( proxy.leaf );
-    if ( n > -1 ) {
-        this.leaves.splice(n,1);
-        this.numLeaves--;
-    }
+    removeProxy: function ( proxy ) {
 
-};
-
-DBVTBroadPhase.prototype.collectPairs = function () {
-
-    if ( this.numLeaves < 2 ) return;
-
-    var leaf, margin = 0.1, i = this.numLeaves;
-
-    while(i--){
-
-        leaf = this.leaves[i];
-
-        if ( leaf.proxy.aabb.intersectTestTwo( leaf.aabb ) ){
-
-            leaf.aabb.copy( leaf.proxy.aabb, margin );
-            this.tree.deleteLeaf( leaf );
-            this.tree.insertLeaf( leaf );
-            this.collide( leaf, this.tree.root );
-
+        this.tree.deleteLeaf( proxy.leaf );
+        var n = this.leaves.indexOf( proxy.leaf );
+        if ( n > -1 ) {
+            this.leaves.splice(n,1);
+            this.numLeaves--;
         }
-    }
 
-};
+    },
 
-DBVTBroadPhase.prototype.collide = function ( node1, node2 ) {
+    collectPairs: function () {
 
-    var stackCount = 2;
-    var s1, s2, n1, n2, l1, l2;
-    this.stack[0] = node1;
-    this.stack[1] = node2;
+        if ( this.numLeaves < 2 ) return;
 
-    while( stackCount > 0 ){
+        var leaf, margin = 0.1, i = this.numLeaves;
 
-        n1 = this.stack[--stackCount];
-        n2 = this.stack[--stackCount];
-        l1 = n1.proxy != null;
-        l2 = n2.proxy != null;
-        
-        this.numPairChecks++;
+        while(i--){
 
-        if( l1 && l2 ){
-            s1 = n1.proxy.shape;
-            s2 = n2.proxy.shape;
-            if ( s1 == s2 || s1.aabb.intersectTest( s2.aabb ) || !this.isAvailablePair( s1, s2 ) ) continue;
+            leaf = this.leaves[i];
 
-            this.addPair(s1,s2);
+            if ( leaf.proxy.aabb.intersectTestTwo( leaf.aabb ) ){
 
-        }else{
+                leaf.aabb.copy( leaf.proxy.aabb, margin );
+                this.tree.deleteLeaf( leaf );
+                this.tree.insertLeaf( leaf );
+                this.collide( leaf, this.tree.root );
 
-            if ( n1.aabb.intersectTest( n2.aabb ) ) continue;
-            
-            /*if(stackCount+4>=this.maxStack){// expand the stack
-                //this.maxStack<<=1;
-                this.maxStack*=2;
-                var newStack = [];// vector
-                newStack.length = this.maxStack;
-                for(var i=0;i<stackCount;i++){
-                    newStack[i] = this.stack[i];
-                }
-                this.stack = newStack;
-            }*/
-
-            if( l2 || !l1 && (n1.aabb.surfaceArea() > n2.aabb.surfaceArea()) ){
-                this.stack[stackCount++] = n1.child1;
-                this.stack[stackCount++] = n2;
-                this.stack[stackCount++] = n1.child2;
-                this.stack[stackCount++] = n2;
-            }else{
-                this.stack[stackCount++] = n1;
-                this.stack[stackCount++] = n2.child1;
-                this.stack[stackCount++] = n1;
-                this.stack[stackCount++] = n2.child2;
             }
         }
+
+    },
+
+    collide: function ( node1, node2 ) {
+
+        var stackCount = 2;
+        var s1, s2, n1, n2, l1, l2;
+        this.stack[0] = node1;
+        this.stack[1] = node2;
+
+        while( stackCount > 0 ){
+
+            n1 = this.stack[--stackCount];
+            n2 = this.stack[--stackCount];
+            l1 = n1.proxy != null;
+            l2 = n2.proxy != null;
+            
+            this.numPairChecks++;
+
+            if( l1 && l2 ){
+                s1 = n1.proxy.shape;
+                s2 = n2.proxy.shape;
+                if ( s1 == s2 || s1.aabb.intersectTest( s2.aabb ) || !this.isAvailablePair( s1, s2 ) ) continue;
+
+                this.addPair(s1,s2);
+
+            }else{
+
+                if ( n1.aabb.intersectTest( n2.aabb ) ) continue;
+                
+                /*if(stackCount+4>=this.maxStack){// expand the stack
+                    //this.maxStack<<=1;
+                    this.maxStack*=2;
+                    var newStack = [];// vector
+                    newStack.length = this.maxStack;
+                    for(var i=0;i<stackCount;i++){
+                        newStack[i] = this.stack[i];
+                    }
+                    this.stack = newStack;
+                }*/
+
+                if( l2 || !l1 && (n1.aabb.surfaceArea() > n2.aabb.surfaceArea()) ){
+                    this.stack[stackCount++] = n1.child1;
+                    this.stack[stackCount++] = n2;
+                    this.stack[stackCount++] = n1.child2;
+                    this.stack[stackCount++] = n2;
+                }else{
+                    this.stack[stackCount++] = n1;
+                    this.stack[stackCount++] = n2.child1;
+                    this.stack[stackCount++] = n1;
+                    this.stack[stackCount++] = n2.child2;
+                }
+            }
+        }
+
     }
 
-};
+});
 
 function CollisionDetector (){
 
@@ -7368,1385 +7310,1388 @@ function BoxBoxCollisionDetector() {
 
 }
 
-BoxBoxCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
-BoxBoxCollisionDetector.prototype.constructor = BoxBoxCollisionDetector;
+BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
-BoxBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
-    // What you are doing 
-    // · I to prepare a separate axis of the fifteen 
-    //-Six in each of three normal vectors of the xyz direction of the box both 
-    // · Remaining nine 3x3 a vector perpendicular to the side of the box 2 and the side of the box 1 
-    // · Calculate the depth to the separation axis 
+    constructor: BoxBoxCollisionDetector,
 
-    // Calculates the distance using the inner product and put the amount of embedment 
-    // · However a vertical separation axis and side to weight a little to avoid vibration 
-    // And end when there is a separate axis that is remote even one 
-    // · I look for separation axis with little to dent most 
-    // Men and if separation axis of the first six - end collision 
-    // Heng If it separate axis of nine other - side collision 
-    // Heng - case of a side collision 
-    // · Find points of two sides on which you made ​​the separation axis 
+    detectCollision: function ( shape1, shape2, manifold ) {
+        // What you are doing 
+        // · I to prepare a separate axis of the fifteen 
+        //-Six in each of three normal vectors of the xyz direction of the box both 
+        // · Remaining nine 3x3 a vector perpendicular to the side of the box 2 and the side of the box 1 
+        // · Calculate the depth to the separation axis 
 
-    // Calculates the point of closest approach of a straight line consisting of separate axis points obtained, and the collision point 
-    //-Surface - the case of the plane crash 
-    //-Box A, box B and the other a box of better made ​​a separate axis 
-    // • The surface A and the plane that made the separation axis of the box A, and B to the surface the face of the box B close in the opposite direction to the most isolated axis 
+        // Calculates the distance using the inner product and put the amount of embedment 
+        // · However a vertical separation axis and side to weight a little to avoid vibration 
+        // And end when there is a separate axis that is remote even one 
+        // · I look for separation axis with little to dent most 
+        // Men and if separation axis of the first six - end collision 
+        // Heng If it separate axis of nine other - side collision 
+        // Heng - case of a side collision 
+        // · Find points of two sides on which you made ​​the separation axis 
 
-    // When viewed from the front surface A, and the cut part exceeding the area of the surface A is a surface B 
-    //-Plane B becomes the 3-8 triangle, I a candidate for the collision point the vertex of surface B 
-    // • If more than one candidate 5 exists, scraping up to four 
+        // Calculates the point of closest approach of a straight line consisting of separate axis points obtained, and the collision point 
+        //-Surface - the case of the plane crash 
+        //-Box A, box B and the other a box of better made ​​a separate axis 
+        // • The surface A and the plane that made the separation axis of the box A, and B to the surface the face of the box B close in the opposite direction to the most isolated axis 
 
-    // For potential collision points of all, to examine the distance between the surface A 
-    // • If you were on the inside surface of A, and the collision point
+        // When viewed from the front surface A, and the cut part exceeding the area of the surface A is a surface B 
+        //-Plane B becomes the 3-8 triangle, I a candidate for the collision point the vertex of surface B 
+        // • If more than one candidate 5 exists, scraping up to four 
 
-    var b1;
-    var b2;
-    if(shape1.id<shape2.id){
-        b1=(shape1);
-        b2=(shape2);
-    }else{
-        b1=(shape2);
-        b2=(shape1);
-    }
-    var V1 = b1.elements;
-    var V2 = b2.elements;
+        // For potential collision points of all, to examine the distance between the surface A 
+        // • If you were on the inside surface of A, and the collision point
 
-    var D1 = b1.dimentions;
-    var D2 = b2.dimentions;
-
-    var p1=b1.position;
-    var p2=b2.position;
-    var p1x=p1.x;
-    var p1y=p1.y;
-    var p1z=p1.z;
-    var p2x=p2.x;
-    var p2y=p2.y;
-    var p2z=p2.z;
-    // diff
-    var dx=p2x-p1x;
-    var dy=p2y-p1y;
-    var dz=p2z-p1z;
-    // distance
-    var w1=b1.halfWidth;
-    var h1=b1.halfHeight;
-    var d1=b1.halfDepth;
-    var w2=b2.halfWidth;
-    var h2=b2.halfHeight;
-    var d2=b2.halfDepth;
-    // direction
-
-    // ----------------------------
-    // 15 separating axes
-    // 1~6: face
-    // 7~f: edge
-    // http://marupeke296.com/COL_3D_No13_OBBvsOBB.html
-    // ----------------------------
-    
-    var a1x=D1[0];
-    var a1y=D1[1];
-    var a1z=D1[2];
-    var a2x=D1[3];
-    var a2y=D1[4];
-    var a2z=D1[5];
-    var a3x=D1[6];
-    var a3y=D1[7];
-    var a3z=D1[8];
-    var d1x=D1[9];
-    var d1y=D1[10];
-    var d1z=D1[11];
-    var d2x=D1[12];
-    var d2y=D1[13];
-    var d2z=D1[14];
-    var d3x=D1[15];
-    var d3y=D1[16];
-    var d3z=D1[17];
-
-    var a4x=D2[0];
-    var a4y=D2[1];
-    var a4z=D2[2];
-    var a5x=D2[3];
-    var a5y=D2[4];
-    var a5z=D2[5];
-    var a6x=D2[6];
-    var a6y=D2[7];
-    var a6z=D2[8];
-    var d4x=D2[9];
-    var d4y=D2[10];
-    var d4z=D2[11];
-    var d5x=D2[12];
-    var d5y=D2[13];
-    var d5z=D2[14];
-    var d6x=D2[15];
-    var d6y=D2[16];
-    var d6z=D2[17];
-    
-    var a7x=a1y*a4z-a1z*a4y;
-    var a7y=a1z*a4x-a1x*a4z;
-    var a7z=a1x*a4y-a1y*a4x;
-    var a8x=a1y*a5z-a1z*a5y;
-    var a8y=a1z*a5x-a1x*a5z;
-    var a8z=a1x*a5y-a1y*a5x;
-    var a9x=a1y*a6z-a1z*a6y;
-    var a9y=a1z*a6x-a1x*a6z;
-    var a9z=a1x*a6y-a1y*a6x;
-    var aax=a2y*a4z-a2z*a4y;
-    var aay=a2z*a4x-a2x*a4z;
-    var aaz=a2x*a4y-a2y*a4x;
-    var abx=a2y*a5z-a2z*a5y;
-    var aby=a2z*a5x-a2x*a5z;
-    var abz=a2x*a5y-a2y*a5x;
-    var acx=a2y*a6z-a2z*a6y;
-    var acy=a2z*a6x-a2x*a6z;
-    var acz=a2x*a6y-a2y*a6x;
-    var adx=a3y*a4z-a3z*a4y;
-    var ady=a3z*a4x-a3x*a4z;
-    var adz=a3x*a4y-a3y*a4x;
-    var aex=a3y*a5z-a3z*a5y;
-    var aey=a3z*a5x-a3x*a5z;
-    var aez=a3x*a5y-a3y*a5x;
-    var afx=a3y*a6z-a3z*a6y;
-    var afy=a3z*a6x-a3x*a6z;
-    var afz=a3x*a6y-a3y*a6x;
-    // right or left flags
-    var right1;
-    var right2;
-    var right3;
-    var right4;
-    var right5;
-    var right6;
-    var right7;
-    var right8;
-    var right9;
-    var righta;
-    var rightb;
-    var rightc;
-    var rightd;
-    var righte;
-    var rightf;
-    // overlapping distances
-    var overlap1;
-    var overlap2;
-    var overlap3;
-    var overlap4;
-    var overlap5;
-    var overlap6;
-    var overlap7;
-    var overlap8;
-    var overlap9;
-    var overlapa;
-    var overlapb;
-    var overlapc;
-    var overlapd;
-    var overlape;
-    var overlapf;
-    // invalid flags
-    var invalid7=false;
-    var invalid8=false;
-    var invalid9=false;
-    var invalida=false;
-    var invalidb=false;
-    var invalidc=false;
-    var invalidd=false;
-    var invalide=false;
-    var invalidf=false;
-    // temporary variables
-    var len;
-    var len1;
-    var len2;
-    var dot1;
-    var dot2;
-    var dot3;
-    // try axis 1
-    len=a1x*dx+a1y*dy+a1z*dz;
-    right1=len>0;
-    if(!right1)len=-len;
-    len1=w1;
-    dot1=a1x*a4x+a1y*a4y+a1z*a4z;
-    dot2=a1x*a5x+a1y*a5y+a1z*a5z;
-    dot3=a1x*a6x+a1y*a6y+a1z*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    if(dot3<0)dot3=-dot3;
-    len2=dot1*w2+dot2*h2+dot3*d2;
-    overlap1=len-len1-len2;
-    if(overlap1>0)return;
-    // try axis 2
-    len=a2x*dx+a2y*dy+a2z*dz;
-    right2=len>0;
-    if(!right2)len=-len;
-    len1=h1;
-    dot1=a2x*a4x+a2y*a4y+a2z*a4z;
-    dot2=a2x*a5x+a2y*a5y+a2z*a5z;
-    dot3=a2x*a6x+a2y*a6y+a2z*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    if(dot3<0)dot3=-dot3;
-    len2=dot1*w2+dot2*h2+dot3*d2;
-    overlap2=len-len1-len2;
-    if(overlap2>0)return;
-    // try axis 3
-    len=a3x*dx+a3y*dy+a3z*dz;
-    right3=len>0;
-    if(!right3)len=-len;
-    len1=d1;
-    dot1=a3x*a4x+a3y*a4y+a3z*a4z;
-    dot2=a3x*a5x+a3y*a5y+a3z*a5z;
-    dot3=a3x*a6x+a3y*a6y+a3z*a6z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    if(dot3<0)dot3=-dot3;
-    len2=dot1*w2+dot2*h2+dot3*d2;
-    overlap3=len-len1-len2;
-    if(overlap3>0)return;
-    // try axis 4
-    len=a4x*dx+a4y*dy+a4z*dz;
-    right4=len>0;
-    if(!right4)len=-len;
-    dot1=a4x*a1x+a4y*a1y+a4z*a1z;
-    dot2=a4x*a2x+a4y*a2y+a4z*a2z;
-    dot3=a4x*a3x+a4y*a3y+a4z*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    if(dot3<0)dot3=-dot3;
-    len1=dot1*w1+dot2*h1+dot3*d1;
-    len2=w2;
-    overlap4=(len-len1-len2)*1.0;
-    if(overlap4>0)return;
-    // try axis 5
-    len=a5x*dx+a5y*dy+a5z*dz;
-    right5=len>0;
-    if(!right5)len=-len;
-    dot1=a5x*a1x+a5y*a1y+a5z*a1z;
-    dot2=a5x*a2x+a5y*a2y+a5z*a2z;
-    dot3=a5x*a3x+a5y*a3y+a5z*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    if(dot3<0)dot3=-dot3;
-    len1=dot1*w1+dot2*h1+dot3*d1;
-    len2=h2;
-    overlap5=(len-len1-len2)*1.0;
-    if(overlap5>0)return;
-    // try axis 6
-    len=a6x*dx+a6y*dy+a6z*dz;
-    right6=len>0;
-    if(!right6)len=-len;
-    dot1=a6x*a1x+a6y*a1y+a6z*a1z;
-    dot2=a6x*a2x+a6y*a2y+a6z*a2z;
-    dot3=a6x*a3x+a6y*a3y+a6z*a3z;
-    if(dot1<0)dot1=-dot1;
-    if(dot2<0)dot2=-dot2;
-    if(dot3<0)dot3=-dot3;
-    len1=dot1*w1+dot2*h1+dot3*d1;
-    len2=d2;
-    overlap6=(len-len1-len2)*1.0;
-    if(overlap6>0)return;
-    // try axis 7
-    len=a7x*a7x+a7y*a7y+a7z*a7z;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        a7x*=len;
-        a7y*=len;
-        a7z*=len;
-        len=a7x*dx+a7y*dy+a7z*dz;
-        right7=len>0;
-        if(!right7)len=-len;
-        dot1=a7x*a2x+a7y*a2y+a7z*a2z;
-        dot2=a7x*a3x+a7y*a3y+a7z*a3z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*h1+dot2*d1;
-        dot1=a7x*a5x+a7y*a5y+a7z*a5z;
-        dot2=a7x*a6x+a7y*a6y+a7z*a6z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*h2+dot2*d2;
-        overlap7=len-len1-len2;
-        if(overlap7>0)return;
-    }else{
-        right7=false;
-        overlap7=0;
-        invalid7=true;
-    }
-    // try axis 8
-    len=a8x*a8x+a8y*a8y+a8z*a8z;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        a8x*=len;
-        a8y*=len;
-        a8z*=len;
-        len=a8x*dx+a8y*dy+a8z*dz;
-        right8=len>0;
-        if(!right8)len=-len;
-        dot1=a8x*a2x+a8y*a2y+a8z*a2z;
-        dot2=a8x*a3x+a8y*a3y+a8z*a3z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*h1+dot2*d1;
-        dot1=a8x*a4x+a8y*a4y+a8z*a4z;
-        dot2=a8x*a6x+a8y*a6y+a8z*a6z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*w2+dot2*d2;
-        overlap8=len-len1-len2;
-        if(overlap8>0)return;
-    }else{
-        right8=false;
-        overlap8=0;
-        invalid8=true;
-    }
-    // try axis 9
-    len=a9x*a9x+a9y*a9y+a9z*a9z;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        a9x*=len;
-        a9y*=len;
-        a9z*=len;
-        len=a9x*dx+a9y*dy+a9z*dz;
-        right9=len>0;
-        if(!right9)len=-len;
-        dot1=a9x*a2x+a9y*a2y+a9z*a2z;
-        dot2=a9x*a3x+a9y*a3y+a9z*a3z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*h1+dot2*d1;
-        dot1=a9x*a4x+a9y*a4y+a9z*a4z;
-        dot2=a9x*a5x+a9y*a5y+a9z*a5z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*w2+dot2*h2;
-        overlap9=len-len1-len2;
-        if(overlap9>0)return;
-    }else{
-        right9=false;
-        overlap9=0;
-        invalid9=true;
-    }
-    // try axis 10
-    len=aax*aax+aay*aay+aaz*aaz;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        aax*=len;
-        aay*=len;
-        aaz*=len;
-        len=aax*dx+aay*dy+aaz*dz;
-        righta=len>0;
-        if(!righta)len=-len;
-        dot1=aax*a1x+aay*a1y+aaz*a1z;
-        dot2=aax*a3x+aay*a3y+aaz*a3z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*w1+dot2*d1;
-        dot1=aax*a5x+aay*a5y+aaz*a5z;
-        dot2=aax*a6x+aay*a6y+aaz*a6z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*h2+dot2*d2;
-        overlapa=len-len1-len2;
-        if(overlapa>0)return;
-    }else{
-        righta=false;
-        overlapa=0;
-        invalida=true;
-    }
-    // try axis 11
-    len=abx*abx+aby*aby+abz*abz;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        abx*=len;
-        aby*=len;
-        abz*=len;
-        len=abx*dx+aby*dy+abz*dz;
-        rightb=len>0;
-        if(!rightb)len=-len;
-        dot1=abx*a1x+aby*a1y+abz*a1z;
-        dot2=abx*a3x+aby*a3y+abz*a3z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*w1+dot2*d1;
-        dot1=abx*a4x+aby*a4y+abz*a4z;
-        dot2=abx*a6x+aby*a6y+abz*a6z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*w2+dot2*d2;
-        overlapb=len-len1-len2;
-        if(overlapb>0)return;
-    }else{
-        rightb=false;
-        overlapb=0;
-        invalidb=true;
-    }
-    // try axis 12
-    len=acx*acx+acy*acy+acz*acz;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        acx*=len;
-        acy*=len;
-        acz*=len;
-        len=acx*dx+acy*dy+acz*dz;
-        rightc=len>0;
-        if(!rightc)len=-len;
-        dot1=acx*a1x+acy*a1y+acz*a1z;
-        dot2=acx*a3x+acy*a3y+acz*a3z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*w1+dot2*d1;
-        dot1=acx*a4x+acy*a4y+acz*a4z;
-        dot2=acx*a5x+acy*a5y+acz*a5z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*w2+dot2*h2;
-        overlapc=len-len1-len2;
-        if(overlapc>0)return;
-    }else{
-        rightc=false;
-        overlapc=0;
-        invalidc=true;
-    }
-    // try axis 13
-    len=adx*adx+ady*ady+adz*adz;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        adx*=len;
-        ady*=len;
-        adz*=len;
-        len=adx*dx+ady*dy+adz*dz;
-        rightd=len>0;
-        if(!rightd)len=-len;
-        dot1=adx*a1x+ady*a1y+adz*a1z;
-        dot2=adx*a2x+ady*a2y+adz*a2z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*w1+dot2*h1;
-        dot1=adx*a5x+ady*a5y+adz*a5z;
-        dot2=adx*a6x+ady*a6y+adz*a6z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*h2+dot2*d2;
-        overlapd=len-len1-len2;
-        if(overlapd>0)return;
-    }else{
-        rightd=false;
-        overlapd=0;
-        invalidd=true;
-    }
-    // try axis 14
-    len=aex*aex+aey*aey+aez*aez;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        aex*=len;
-        aey*=len;
-        aez*=len;
-        len=aex*dx+aey*dy+aez*dz;
-        righte=len>0;
-        if(!righte)len=-len;
-        dot1=aex*a1x+aey*a1y+aez*a1z;
-        dot2=aex*a2x+aey*a2y+aez*a2z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*w1+dot2*h1;
-        dot1=aex*a4x+aey*a4y+aez*a4z;
-        dot2=aex*a6x+aey*a6y+aez*a6z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*w2+dot2*d2;
-        overlape=len-len1-len2;
-        if(overlape>0)return;
-    }else{
-        righte=false;
-        overlape=0;
-        invalide=true;
-    }
-    // try axis 15
-    len=afx*afx+afy*afy+afz*afz;
-    if(len>1e-5){
-        len=1/_Math.sqrt(len);
-        afx*=len;
-        afy*=len;
-        afz*=len;
-        len=afx*dx+afy*dy+afz*dz;
-        rightf=len>0;
-        if(!rightf)len=-len;
-        dot1=afx*a1x+afy*a1y+afz*a1z;
-        dot2=afx*a2x+afy*a2y+afz*a2z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len1=dot1*w1+dot2*h1;
-        dot1=afx*a4x+afy*a4y+afz*a4z;
-        dot2=afx*a5x+afy*a5y+afz*a5z;
-        if(dot1<0)dot1=-dot1;
-        if(dot2<0)dot2=-dot2;
-        len2=dot1*w2+dot2*h2;
-        overlapf=len-len1-len2;
-        if(overlapf>0)return;
-    }else{
-        rightf=false;
-        overlapf=0;
-        invalidf=true;
-    }
-    // boxes are overlapping
-    var depth=overlap1;
-    var depth2=overlap1;
-    var minIndex=0;
-    var right=right1;
-    if(overlap2>depth2){
-        depth=overlap2;
-        depth2=overlap2;
-        minIndex=1;
-        right=right2;
-    }
-    if(overlap3>depth2){
-        depth=overlap3;
-        depth2=overlap3;
-        minIndex=2;
-        right=right3;
-    }
-    if(overlap4>depth2){
-        depth=overlap4;
-        depth2=overlap4;
-        minIndex=3;
-        right=right4;
-    }
-    if(overlap5>depth2){
-        depth=overlap5;
-        depth2=overlap5;
-        minIndex=4;
-        right=right5;
-    }
-    if(overlap6>depth2){
-        depth=overlap6;
-        depth2=overlap6;
-        minIndex=5;
-        right=right6;
-    }
-    if(overlap7-0.01>depth2&&!invalid7){
-        depth=overlap7;
-        depth2=overlap7-0.01;
-        minIndex=6;
-        right=right7;
-    }
-    if(overlap8-0.01>depth2&&!invalid8){
-        depth=overlap8;
-        depth2=overlap8-0.01;
-        minIndex=7;
-        right=right8;
-    }
-    if(overlap9-0.01>depth2&&!invalid9){
-        depth=overlap9;
-        depth2=overlap9-0.01;
-        minIndex=8;
-        right=right9;
-    }
-    if(overlapa-0.01>depth2&&!invalida){
-        depth=overlapa;
-        depth2=overlapa-0.01;
-        minIndex=9;
-        right=righta;
-    }
-    if(overlapb-0.01>depth2&&!invalidb){
-        depth=overlapb;
-        depth2=overlapb-0.01;
-        minIndex=10;
-        right=rightb;
-    }
-    if(overlapc-0.01>depth2&&!invalidc){
-        depth=overlapc;
-        depth2=overlapc-0.01;
-        minIndex=11;
-        right=rightc;
-    }
-    if(overlapd-0.01>depth2&&!invalidd){
-        depth=overlapd;
-        depth2=overlapd-0.01;
-        minIndex=12;
-        right=rightd;
-    }
-    if(overlape-0.01>depth2&&!invalide){
-        depth=overlape;
-        depth2=overlape-0.01;
-        minIndex=13;
-        right=righte;
-    }
-    if(overlapf-0.01>depth2&&!invalidf){
-        depth=overlapf;
-        minIndex=14;
-        right=rightf;
-    }
-    // normal
-    var nx=0;
-    var ny=0;
-    var nz=0;
-    // edge line or face side normal
-    var n1x=0;
-    var n1y=0;
-    var n1z=0;
-    var n2x=0;
-    var n2y=0;
-    var n2z=0;
-    // center of current face
-    var cx=0;
-    var cy=0;
-    var cz=0;
-    // face side
-    var s1x=0;
-    var s1y=0;
-    var s1z=0;
-    var s2x=0;
-    var s2y=0;
-    var s2z=0;
-    // swap b1 b2
-    var swap=false;
-
-    //_______________________________________
-
-    if(minIndex==0){// b1.x * b2
-        if(right){
-            cx=p1x+d1x; cy=p1y+d1y;  cz=p1z+d1z;
-            nx=a1x; ny=a1y; nz=a1z;
+        var b1;
+        var b2;
+        if(shape1.id<shape2.id){
+            b1=(shape1);
+            b2=(shape2);
         }else{
-            cx=p1x-d1x; cy=p1y-d1y; cz=p1z-d1z;
-            nx=-a1x; ny=-a1y; nz=-a1z;
+            b1=(shape2);
+            b2=(shape1);
         }
-        s1x=d2x; s1y=d2y; s1z=d2z;
-        n1x=-a2x; n1y=-a2y; n1z=-a2z;
-        s2x=d3x; s2y=d3y; s2z=d3z;
-        n2x=-a3x; n2y=-a3y; n2z=-a3z;
-    }
-    else if(minIndex==1){// b1.y * b2
-        if(right){
-            cx=p1x+d2x; cy=p1y+d2y; cz=p1z+d2z;
-            nx=a2x; ny=a2y; nz=a2z;
+        var V1 = b1.elements;
+        var V2 = b2.elements;
+
+        var D1 = b1.dimentions;
+        var D2 = b2.dimentions;
+
+        var p1=b1.position;
+        var p2=b2.position;
+        var p1x=p1.x;
+        var p1y=p1.y;
+        var p1z=p1.z;
+        var p2x=p2.x;
+        var p2y=p2.y;
+        var p2z=p2.z;
+        // diff
+        var dx=p2x-p1x;
+        var dy=p2y-p1y;
+        var dz=p2z-p1z;
+        // distance
+        var w1=b1.halfWidth;
+        var h1=b1.halfHeight;
+        var d1=b1.halfDepth;
+        var w2=b2.halfWidth;
+        var h2=b2.halfHeight;
+        var d2=b2.halfDepth;
+        // direction
+
+        // ----------------------------
+        // 15 separating axes
+        // 1~6: face
+        // 7~f: edge
+        // http://marupeke296.com/COL_3D_No13_OBBvsOBB.html
+        // ----------------------------
+        
+        var a1x=D1[0];
+        var a1y=D1[1];
+        var a1z=D1[2];
+        var a2x=D1[3];
+        var a2y=D1[4];
+        var a2z=D1[5];
+        var a3x=D1[6];
+        var a3y=D1[7];
+        var a3z=D1[8];
+        var d1x=D1[9];
+        var d1y=D1[10];
+        var d1z=D1[11];
+        var d2x=D1[12];
+        var d2y=D1[13];
+        var d2z=D1[14];
+        var d3x=D1[15];
+        var d3y=D1[16];
+        var d3z=D1[17];
+
+        var a4x=D2[0];
+        var a4y=D2[1];
+        var a4z=D2[2];
+        var a5x=D2[3];
+        var a5y=D2[4];
+        var a5z=D2[5];
+        var a6x=D2[6];
+        var a6y=D2[7];
+        var a6z=D2[8];
+        var d4x=D2[9];
+        var d4y=D2[10];
+        var d4z=D2[11];
+        var d5x=D2[12];
+        var d5y=D2[13];
+        var d5z=D2[14];
+        var d6x=D2[15];
+        var d6y=D2[16];
+        var d6z=D2[17];
+        
+        var a7x=a1y*a4z-a1z*a4y;
+        var a7y=a1z*a4x-a1x*a4z;
+        var a7z=a1x*a4y-a1y*a4x;
+        var a8x=a1y*a5z-a1z*a5y;
+        var a8y=a1z*a5x-a1x*a5z;
+        var a8z=a1x*a5y-a1y*a5x;
+        var a9x=a1y*a6z-a1z*a6y;
+        var a9y=a1z*a6x-a1x*a6z;
+        var a9z=a1x*a6y-a1y*a6x;
+        var aax=a2y*a4z-a2z*a4y;
+        var aay=a2z*a4x-a2x*a4z;
+        var aaz=a2x*a4y-a2y*a4x;
+        var abx=a2y*a5z-a2z*a5y;
+        var aby=a2z*a5x-a2x*a5z;
+        var abz=a2x*a5y-a2y*a5x;
+        var acx=a2y*a6z-a2z*a6y;
+        var acy=a2z*a6x-a2x*a6z;
+        var acz=a2x*a6y-a2y*a6x;
+        var adx=a3y*a4z-a3z*a4y;
+        var ady=a3z*a4x-a3x*a4z;
+        var adz=a3x*a4y-a3y*a4x;
+        var aex=a3y*a5z-a3z*a5y;
+        var aey=a3z*a5x-a3x*a5z;
+        var aez=a3x*a5y-a3y*a5x;
+        var afx=a3y*a6z-a3z*a6y;
+        var afy=a3z*a6x-a3x*a6z;
+        var afz=a3x*a6y-a3y*a6x;
+        // right or left flags
+        var right1;
+        var right2;
+        var right3;
+        var right4;
+        var right5;
+        var right6;
+        var right7;
+        var right8;
+        var right9;
+        var righta;
+        var rightb;
+        var rightc;
+        var rightd;
+        var righte;
+        var rightf;
+        // overlapping distances
+        var overlap1;
+        var overlap2;
+        var overlap3;
+        var overlap4;
+        var overlap5;
+        var overlap6;
+        var overlap7;
+        var overlap8;
+        var overlap9;
+        var overlapa;
+        var overlapb;
+        var overlapc;
+        var overlapd;
+        var overlape;
+        var overlapf;
+        // invalid flags
+        var invalid7=false;
+        var invalid8=false;
+        var invalid9=false;
+        var invalida=false;
+        var invalidb=false;
+        var invalidc=false;
+        var invalidd=false;
+        var invalide=false;
+        var invalidf=false;
+        // temporary variables
+        var len;
+        var len1;
+        var len2;
+        var dot1;
+        var dot2;
+        var dot3;
+        // try axis 1
+        len=a1x*dx+a1y*dy+a1z*dz;
+        right1=len>0;
+        if(!right1)len=-len;
+        len1=w1;
+        dot1=a1x*a4x+a1y*a4y+a1z*a4z;
+        dot2=a1x*a5x+a1y*a5y+a1z*a5z;
+        dot3=a1x*a6x+a1y*a6y+a1z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len2=dot1*w2+dot2*h2+dot3*d2;
+        overlap1=len-len1-len2;
+        if(overlap1>0)return;
+        // try axis 2
+        len=a2x*dx+a2y*dy+a2z*dz;
+        right2=len>0;
+        if(!right2)len=-len;
+        len1=h1;
+        dot1=a2x*a4x+a2y*a4y+a2z*a4z;
+        dot2=a2x*a5x+a2y*a5y+a2z*a5z;
+        dot3=a2x*a6x+a2y*a6y+a2z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len2=dot1*w2+dot2*h2+dot3*d2;
+        overlap2=len-len1-len2;
+        if(overlap2>0)return;
+        // try axis 3
+        len=a3x*dx+a3y*dy+a3z*dz;
+        right3=len>0;
+        if(!right3)len=-len;
+        len1=d1;
+        dot1=a3x*a4x+a3y*a4y+a3z*a4z;
+        dot2=a3x*a5x+a3y*a5y+a3z*a5z;
+        dot3=a3x*a6x+a3y*a6y+a3z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len2=dot1*w2+dot2*h2+dot3*d2;
+        overlap3=len-len1-len2;
+        if(overlap3>0)return;
+        // try axis 4
+        len=a4x*dx+a4y*dy+a4z*dz;
+        right4=len>0;
+        if(!right4)len=-len;
+        dot1=a4x*a1x+a4y*a1y+a4z*a1z;
+        dot2=a4x*a2x+a4y*a2y+a4z*a2z;
+        dot3=a4x*a3x+a4y*a3y+a4z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len1=dot1*w1+dot2*h1+dot3*d1;
+        len2=w2;
+        overlap4=(len-len1-len2)*1.0;
+        if(overlap4>0)return;
+        // try axis 5
+        len=a5x*dx+a5y*dy+a5z*dz;
+        right5=len>0;
+        if(!right5)len=-len;
+        dot1=a5x*a1x+a5y*a1y+a5z*a1z;
+        dot2=a5x*a2x+a5y*a2y+a5z*a2z;
+        dot3=a5x*a3x+a5y*a3y+a5z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len1=dot1*w1+dot2*h1+dot3*d1;
+        len2=h2;
+        overlap5=(len-len1-len2)*1.0;
+        if(overlap5>0)return;
+        // try axis 6
+        len=a6x*dx+a6y*dy+a6z*dz;
+        right6=len>0;
+        if(!right6)len=-len;
+        dot1=a6x*a1x+a6y*a1y+a6z*a1z;
+        dot2=a6x*a2x+a6y*a2y+a6z*a2z;
+        dot3=a6x*a3x+a6y*a3y+a6z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len1=dot1*w1+dot2*h1+dot3*d1;
+        len2=d2;
+        overlap6=(len-len1-len2)*1.0;
+        if(overlap6>0)return;
+        // try axis 7
+        len=a7x*a7x+a7y*a7y+a7z*a7z;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            a7x*=len;
+            a7y*=len;
+            a7z*=len;
+            len=a7x*dx+a7y*dy+a7z*dz;
+            right7=len>0;
+            if(!right7)len=-len;
+            dot1=a7x*a2x+a7y*a2y+a7z*a2z;
+            dot2=a7x*a3x+a7y*a3y+a7z*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*h1+dot2*d1;
+            dot1=a7x*a5x+a7y*a5y+a7z*a5z;
+            dot2=a7x*a6x+a7y*a6y+a7z*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*h2+dot2*d2;
+            overlap7=len-len1-len2;
+            if(overlap7>0)return;
         }else{
-            cx=p1x-d2x; cy=p1y-d2y; cz=p1z-d2z;
-            nx=-a2x; ny=-a2y; nz=-a2z;
+            right7=false;
+            overlap7=0;
+            invalid7=true;
         }
-        s1x=d1x; s1y=d1y; s1z=d1z;
-        n1x=-a1x; n1y=-a1y; n1z=-a1z;
-        s2x=d3x; s2y=d3y; s2z=d3z;
-        n2x=-a3x; n2y=-a3y; n2z=-a3z;
-    }
-    else if(minIndex==2){// b1.z * b2
-        if(right){
-            cx=p1x+d3x; cy=p1y+d3y; cz=p1z+d3z;
-            nx=a3x; ny=a3y; nz=a3z;
+        // try axis 8
+        len=a8x*a8x+a8y*a8y+a8z*a8z;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            a8x*=len;
+            a8y*=len;
+            a8z*=len;
+            len=a8x*dx+a8y*dy+a8z*dz;
+            right8=len>0;
+            if(!right8)len=-len;
+            dot1=a8x*a2x+a8y*a2y+a8z*a2z;
+            dot2=a8x*a3x+a8y*a3y+a8z*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*h1+dot2*d1;
+            dot1=a8x*a4x+a8y*a4y+a8z*a4z;
+            dot2=a8x*a6x+a8y*a6y+a8z*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*d2;
+            overlap8=len-len1-len2;
+            if(overlap8>0)return;
         }else{
-            cx=p1x-d3x; cy=p1y-d3y; cz=p1z-d3z;
-            nx=-a3x; ny=-a3y; nz=-a3z;
+            right8=false;
+            overlap8=0;
+            invalid8=true;
         }
-        s1x=d1x; s1y=d1y; s1z=d1z;
-        n1x=-a1x; n1y=-a1y; n1z=-a1z;
-        s2x=d2x; s2y=d2y; s2z=d2z;
-        n2x=-a2x; n2y=-a2y; n2z=-a2z;
-    }
-    else if(minIndex==3){// b2.x * b1
-        swap=true;
-        if(!right){
-            cx=p2x+d4x; cy=p2y+d4y; cz=p2z+d4z;
-            nx=a4x; ny=a4y; nz=a4z;
+        // try axis 9
+        len=a9x*a9x+a9y*a9y+a9z*a9z;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            a9x*=len;
+            a9y*=len;
+            a9z*=len;
+            len=a9x*dx+a9y*dy+a9z*dz;
+            right9=len>0;
+            if(!right9)len=-len;
+            dot1=a9x*a2x+a9y*a2y+a9z*a2z;
+            dot2=a9x*a3x+a9y*a3y+a9z*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*h1+dot2*d1;
+            dot1=a9x*a4x+a9y*a4y+a9z*a4z;
+            dot2=a9x*a5x+a9y*a5y+a9z*a5z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*h2;
+            overlap9=len-len1-len2;
+            if(overlap9>0)return;
         }else{
-            cx=p2x-d4x; cy=p2y-d4y; cz=p2z-d4z;
-            nx=-a4x; ny=-a4y; nz=-a4z;
+            right9=false;
+            overlap9=0;
+            invalid9=true;
         }
-        s1x=d5x; s1y=d5y; s1z=d5z;
-        n1x=-a5x; n1y=-a5y; n1z=-a5z;
-        s2x=d6x; s2y=d6y; s2z=d6z;
-        n2x=-a6x; n2y=-a6y; n2z=-a6z;
-    }
-    else if(minIndex==4){// b2.y * b1
-        swap=true;
-        if(!right){
-            cx=p2x+d5x; cy=p2y+d5y; cz=p2z+d5z;
-            nx=a5x; ny=a5y; nz=a5z;
+        // try axis 10
+        len=aax*aax+aay*aay+aaz*aaz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            aax*=len;
+            aay*=len;
+            aaz*=len;
+            len=aax*dx+aay*dy+aaz*dz;
+            righta=len>0;
+            if(!righta)len=-len;
+            dot1=aax*a1x+aay*a1y+aaz*a1z;
+            dot2=aax*a3x+aay*a3y+aaz*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*d1;
+            dot1=aax*a5x+aay*a5y+aaz*a5z;
+            dot2=aax*a6x+aay*a6y+aaz*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*h2+dot2*d2;
+            overlapa=len-len1-len2;
+            if(overlapa>0)return;
         }else{
-            cx=p2x-d5x; cy=p2y-d5y; cz=p2z-d5z;
-            nx=-a5x; ny=-a5y; nz=-a5z;
+            righta=false;
+            overlapa=0;
+            invalida=true;
         }
-        s1x=d4x; s1y=d4y; s1z=d4z;
-        n1x=-a4x; n1y=-a4y; n1z=-a4z;
-        s2x=d6x; s2y=d6y; s2z=d6z;
-        n2x=-a6x; n2y=-a6y; n2z=-a6z;
-    }
-    else if(minIndex==5){// b2.z * b1
-        swap=true;
-        if(!right){
-            cx=p2x+d6x; cy=p2y+d6y; cz=p2z+d6z;
-            nx=a6x; ny=a6y; nz=a6z;
+        // try axis 11
+        len=abx*abx+aby*aby+abz*abz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            abx*=len;
+            aby*=len;
+            abz*=len;
+            len=abx*dx+aby*dy+abz*dz;
+            rightb=len>0;
+            if(!rightb)len=-len;
+            dot1=abx*a1x+aby*a1y+abz*a1z;
+            dot2=abx*a3x+aby*a3y+abz*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*d1;
+            dot1=abx*a4x+aby*a4y+abz*a4z;
+            dot2=abx*a6x+aby*a6y+abz*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*d2;
+            overlapb=len-len1-len2;
+            if(overlapb>0)return;
         }else{
-            cx=p2x-d6x; cy=p2y-d6y; cz=p2z-d6z;
-            nx=-a6x; ny=-a6y; nz=-a6z;
+            rightb=false;
+            overlapb=0;
+            invalidb=true;
         }
-        s1x=d4x; s1y=d4y; s1z=d4z;
-        n1x=-a4x; n1y=-a4y; n1z=-a4z;
-        s2x=d5x; s2y=d5y; s2z=d5z;
-        n2x=-a5x; n2y=-a5y; n2z=-a5z;
-    }
-    else if(minIndex==6){// b1.x * b2.x
-        nx=a7x; ny=a7y; nz=a7z;
-        n1x=a1x; n1y=a1y; n1z=a1z;
-        n2x=a4x; n2y=a4y; n2z=a4z;
-    }
-    else if(minIndex==7){// b1.x * b2.y
-        nx=a8x; ny=a8y; nz=a8z;
-        n1x=a1x; n1y=a1y; n1z=a1z;
-        n2x=a5x; n2y=a5y; n2z=a5z;
-    }
-    else if(minIndex==8){// b1.x * b2.z
-        nx=a9x; ny=a9y; nz=a9z;
-        n1x=a1x; n1y=a1y; n1z=a1z;
-        n2x=a6x; n2y=a6y; n2z=a6z;
-    }
-    else if(minIndex==9){// b1.y * b2.x
-        nx=aax; ny=aay; nz=aaz;
-        n1x=a2x; n1y=a2y; n1z=a2z;
-        n2x=a4x; n2y=a4y; n2z=a4z;
-    }
-    else if(minIndex==10){// b1.y * b2.y
-        nx=abx; ny=aby; nz=abz;
-        n1x=a2x; n1y=a2y; n1z=a2z;
-        n2x=a5x; n2y=a5y; n2z=a5z;
-    }
-    else if(minIndex==11){// b1.y * b2.z
-        nx=acx; ny=acy; nz=acz;
-        n1x=a2x; n1y=a2y; n1z=a2z;
-        n2x=a6x; n2y=a6y; n2z=a6z;
-    }
-    else if(minIndex==12){// b1.z * b2.x
-        nx=adx;  ny=ady; nz=adz;
-        n1x=a3x; n1y=a3y; n1z=a3z;
-        n2x=a4x; n2y=a4y; n2z=a4z;
-    }
-    else if(minIndex==13){// b1.z * b2.y
-        nx=aex; ny=aey; nz=aez;
-        n1x=a3x; n1y=a3y; n1z=a3z;
-        n2x=a5x; n2y=a5y; n2z=a5z;
-    }
-    else if(minIndex==14){// b1.z * b2.z
-        nx=afx; ny=afy; nz=afz;
-        n1x=a3x; n1y=a3y; n1z=a3z;
-        n2x=a6x; n2y=a6y; n2z=a6z;
-    }
+        // try axis 12
+        len=acx*acx+acy*acy+acz*acz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            acx*=len;
+            acy*=len;
+            acz*=len;
+            len=acx*dx+acy*dy+acz*dz;
+            rightc=len>0;
+            if(!rightc)len=-len;
+            dot1=acx*a1x+acy*a1y+acz*a1z;
+            dot2=acx*a3x+acy*a3y+acz*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*d1;
+            dot1=acx*a4x+acy*a4y+acz*a4z;
+            dot2=acx*a5x+acy*a5y+acz*a5z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*h2;
+            overlapc=len-len1-len2;
+            if(overlapc>0)return;
+        }else{
+            rightc=false;
+            overlapc=0;
+            invalidc=true;
+        }
+        // try axis 13
+        len=adx*adx+ady*ady+adz*adz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            adx*=len;
+            ady*=len;
+            adz*=len;
+            len=adx*dx+ady*dy+adz*dz;
+            rightd=len>0;
+            if(!rightd)len=-len;
+            dot1=adx*a1x+ady*a1y+adz*a1z;
+            dot2=adx*a2x+ady*a2y+adz*a2z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*h1;
+            dot1=adx*a5x+ady*a5y+adz*a5z;
+            dot2=adx*a6x+ady*a6y+adz*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*h2+dot2*d2;
+            overlapd=len-len1-len2;
+            if(overlapd>0)return;
+        }else{
+            rightd=false;
+            overlapd=0;
+            invalidd=true;
+        }
+        // try axis 14
+        len=aex*aex+aey*aey+aez*aez;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            aex*=len;
+            aey*=len;
+            aez*=len;
+            len=aex*dx+aey*dy+aez*dz;
+            righte=len>0;
+            if(!righte)len=-len;
+            dot1=aex*a1x+aey*a1y+aez*a1z;
+            dot2=aex*a2x+aey*a2y+aez*a2z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*h1;
+            dot1=aex*a4x+aey*a4y+aez*a4z;
+            dot2=aex*a6x+aey*a6y+aez*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*d2;
+            overlape=len-len1-len2;
+            if(overlape>0)return;
+        }else{
+            righte=false;
+            overlape=0;
+            invalide=true;
+        }
+        // try axis 15
+        len=afx*afx+afy*afy+afz*afz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            afx*=len;
+            afy*=len;
+            afz*=len;
+            len=afx*dx+afy*dy+afz*dz;
+            rightf=len>0;
+            if(!rightf)len=-len;
+            dot1=afx*a1x+afy*a1y+afz*a1z;
+            dot2=afx*a2x+afy*a2y+afz*a2z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*h1;
+            dot1=afx*a4x+afy*a4y+afz*a4z;
+            dot2=afx*a5x+afy*a5y+afz*a5z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*h2;
+            overlapf=len-len1-len2;
+            if(overlapf>0)return;
+        }else{
+            rightf=false;
+            overlapf=0;
+            invalidf=true;
+        }
+        // boxes are overlapping
+        var depth=overlap1;
+        var depth2=overlap1;
+        var minIndex=0;
+        var right=right1;
+        if(overlap2>depth2){
+            depth=overlap2;
+            depth2=overlap2;
+            minIndex=1;
+            right=right2;
+        }
+        if(overlap3>depth2){
+            depth=overlap3;
+            depth2=overlap3;
+            minIndex=2;
+            right=right3;
+        }
+        if(overlap4>depth2){
+            depth=overlap4;
+            depth2=overlap4;
+            minIndex=3;
+            right=right4;
+        }
+        if(overlap5>depth2){
+            depth=overlap5;
+            depth2=overlap5;
+            minIndex=4;
+            right=right5;
+        }
+        if(overlap6>depth2){
+            depth=overlap6;
+            depth2=overlap6;
+            minIndex=5;
+            right=right6;
+        }
+        if(overlap7-0.01>depth2&&!invalid7){
+            depth=overlap7;
+            depth2=overlap7-0.01;
+            minIndex=6;
+            right=right7;
+        }
+        if(overlap8-0.01>depth2&&!invalid8){
+            depth=overlap8;
+            depth2=overlap8-0.01;
+            minIndex=7;
+            right=right8;
+        }
+        if(overlap9-0.01>depth2&&!invalid9){
+            depth=overlap9;
+            depth2=overlap9-0.01;
+            minIndex=8;
+            right=right9;
+        }
+        if(overlapa-0.01>depth2&&!invalida){
+            depth=overlapa;
+            depth2=overlapa-0.01;
+            minIndex=9;
+            right=righta;
+        }
+        if(overlapb-0.01>depth2&&!invalidb){
+            depth=overlapb;
+            depth2=overlapb-0.01;
+            minIndex=10;
+            right=rightb;
+        }
+        if(overlapc-0.01>depth2&&!invalidc){
+            depth=overlapc;
+            depth2=overlapc-0.01;
+            minIndex=11;
+            right=rightc;
+        }
+        if(overlapd-0.01>depth2&&!invalidd){
+            depth=overlapd;
+            depth2=overlapd-0.01;
+            minIndex=12;
+            right=rightd;
+        }
+        if(overlape-0.01>depth2&&!invalide){
+            depth=overlape;
+            depth2=overlape-0.01;
+            minIndex=13;
+            right=righte;
+        }
+        if(overlapf-0.01>depth2&&!invalidf){
+            depth=overlapf;
+            minIndex=14;
+            right=rightf;
+        }
+        // normal
+        var nx=0;
+        var ny=0;
+        var nz=0;
+        // edge line or face side normal
+        var n1x=0;
+        var n1y=0;
+        var n1z=0;
+        var n2x=0;
+        var n2y=0;
+        var n2z=0;
+        // center of current face
+        var cx=0;
+        var cy=0;
+        var cz=0;
+        // face side
+        var s1x=0;
+        var s1y=0;
+        var s1z=0;
+        var s2x=0;
+        var s2y=0;
+        var s2z=0;
+        // swap b1 b2
+        var swap=false;
 
-    //__________________________________________
+        //_______________________________________
 
-    //var v;
-    if(minIndex>5){
-        if(!right){
-            nx=-nx; ny=-ny; nz=-nz;
-        }
-        var distance;
-        var maxDistance;
-        var vx;
-        var vy;
-        var vz;
-        var v1x;
-        var v1y;
-        var v1z;
-        var v2x;
-        var v2y;
-        var v2z;
-        //vertex1;
-        v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
-        maxDistance=nx*v1x+ny*v1y+nz*v1z;
-        //vertex2;
-        vx=V1[3]; vy=V1[4]; vz=V1[5];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex3;
-        vx=V1[6]; vy=V1[7]; vz=V1[8];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex4;
-        vx=V1[9]; vy=V1[10]; vz=V1[11];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex5;
-        vx=V1[12]; vy=V1[13]; vz=V1[14];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex6;
-        vx=V1[15]; vy=V1[16]; vz=V1[17];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex7;
-        vx=V1[18]; vy=V1[19]; vz=V1[20];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex8;
-        vx=V1[21]; vy=V1[22]; vz=V1[23];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance>maxDistance){
-            maxDistance=distance;
-            v1x=vx; v1y=vy; v1z=vz;
-        }
-        //vertex1;
-        v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
-        maxDistance=nx*v2x+ny*v2y+nz*v2z;
-        //vertex2;
-        vx=V2[3]; vy=V2[4]; vz=V2[5];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        //vertex3;
-        vx=V2[6]; vy=V2[7]; vz=V2[8];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        //vertex4;
-        vx=V2[9]; vy=V2[10]; vz=V2[11];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        //vertex5;
-        vx=V2[12]; vy=V2[13]; vz=V2[14];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        //vertex6;
-        vx=V2[15]; vy=V2[16]; vz=V2[17];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        //vertex7;
-        vx=V2[18]; vy=V2[19]; vz=V2[20];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        //vertex8;
-        vx=V2[21]; vy=V2[22]; vz=V2[23];
-        distance=nx*vx+ny*vy+nz*vz;
-        if(distance<maxDistance){
-            maxDistance=distance;
-            v2x=vx; v2y=vy; v2z=vz;
-        }
-        vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
-        dot1=n1x*n2x+n1y*n2y+n1z*n2z;
-        var t=(vx*(n1x-n2x*dot1)+vy*(n1y-n2y*dot1)+vz*(n1z-n2z*dot1))/(1-dot1*dot1);
-        manifold.addPoint(v1x+n1x*t+nx*depth*0.5,v1y+n1y*t+ny*depth*0.5,v1z+n1z*t+nz*depth*0.5,nx,ny,nz,depth,false);
-        return;
-    }
-    // now detect face-face collision...
-    // target quad
-    var q1x;
-    var q1y;
-    var q1z;
-    var q2x;
-    var q2y;
-    var q2z;
-    var q3x;
-    var q3y;
-    var q3z;
-    var q4x;
-    var q4y;
-    var q4z;
-    // search support face and vertex
-    var minDot=1;
-    var dot=0;
-    var minDotIndex=0;
-    if(swap){
-        dot=a1x*nx+a1y*ny+a1z*nz;
-        if(dot<minDot){
-            minDot=dot;
-            minDotIndex=0;
-        }
-        if(-dot<minDot){
-            minDot=-dot;
-            minDotIndex=1;
-        }
-        dot=a2x*nx+a2y*ny+a2z*nz;
-        if(dot<minDot){
-            minDot=dot;
-            minDotIndex=2;
-        }
-        if(-dot<minDot){
-            minDot=-dot;
-            minDotIndex=3;
-        }
-        dot=a3x*nx+a3y*ny+a3z*nz;
-        if(dot<minDot){
-            minDot=dot;
-            minDotIndex=4;
-        }
-        if(-dot<minDot){
-            minDot=-dot;
-            minDotIndex=5;
-        }
-
-        if(minDotIndex==0){// x+ face
-            q1x=V1[0]; q1y=V1[1]; q1z=V1[2];//vertex1
-            q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex3
-            q3x=V1[9]; q3y=V1[10]; q3z=V1[11];//vertex4
-            q4x=V1[3]; q4y=V1[4]; q4z=V1[5];//vertex2
-        }
-        else if(minDotIndex==1){// x- face
-            q1x=V1[15]; q1y=V1[16]; q1z=V1[17];//vertex6
-            q2x=V1[21]; q2y=V1[22]; q2z=V1[23];//vertex8
-            q3x=V1[18]; q3y=V1[19]; q3z=V1[20];//vertex7
-            q4x=V1[12]; q4y=V1[13]; q4z=V1[14];//vertex5
-        }
-        else if(minDotIndex==2){// y+ face
-            q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
-            q2x=V1[0]; q2y=V1[1]; q2z=V1[2];//vertex1
-            q3x=V1[3]; q3y=V1[4]; q3z=V1[5];//vertex2
-            q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
-        }
-        else if(minDotIndex==3){// y- face
-            q1x=V1[21]; q1y=V1[22]; q1z=V1[23];//vertex8
-            q2x=V1[9]; q2y=V1[10]; q2z=V1[11];//vertex4
-            q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
-            q4x=V1[18]; q4y=V1[19]; q4z=V1[20];//vertex7
-        }
-        else if(minDotIndex==4){// z+ face
-            q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
-            q2x=V1[18]; q2y=V1[19]; q2z=V1[20];//vertex7
-            q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
-            q4x=V1[0]; q4y=V1[1]; q4z=V1[2];//vertex1
-        }
-        else if(minDotIndex==5){// z- face
-            q1x=V1[3]; q1y=V1[4]; q1z=V1[5];//vertex2
-            q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4
-            q3x=V1[21]; q3y=V1[22]; q3z=V1[23];//vertex8
-            q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
-        }
-
-    }else{
-        dot=a4x*nx+a4y*ny+a4z*nz;
-        if(dot<minDot){
-            minDot=dot;
-            minDotIndex=0;
-        }
-        if(-dot<minDot){
-            minDot=-dot;
-            minDotIndex=1;
-        }
-        dot=a5x*nx+a5y*ny+a5z*nz;
-        if(dot<minDot){
-            minDot=dot;
-            minDotIndex=2;
-        }
-        if(-dot<minDot){
-            minDot=-dot;
-            minDotIndex=3;
-        }
-        dot=a6x*nx+a6y*ny+a6z*nz;
-        if(dot<minDot){
-            minDot=dot;
-            minDotIndex=4;
-        }
-        if(-dot<minDot){
-            minDot=-dot;
-            minDotIndex=5;
-        }
-
-        //______________________________________________________
-
-        if(minDotIndex==0){// x+ face
-            q1x=V2[0]; q1y=V2[1]; q1z=V2[2];//vertex1
-            q2x=V2[6]; q2y=V2[7]; q2z=V2[8];//vertex3
-            q3x=V2[9]; q3y=V2[10]; q3z=V2[11];//vertex4
-            q4x=V2[3]; q4y=V2[4]; q4z=V2[5];//vertex2
-        }
-        else if(minDotIndex==1){// x- face
-            q1x=V2[15]; q1y=V2[16]; q1z=V2[17];//vertex6
-            q2x=V2[21]; q2y=V2[22]; q2z=V2[23]; //vertex8
-            q3x=V2[18]; q3y=V2[19]; q3z=V2[20];//vertex7
-            q4x=V2[12]; q4y=V2[13]; q4z=V2[14];//vertex5
-        }
-        else if(minDotIndex==2){// y+ face
-            q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
-            q2x=V2[0]; q2y=V2[1]; q2z=V2[2];//vertex1
-            q3x=V2[3]; q3y=V2[4]; q3z=V2[5];//vertex2
-            q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
-        }
-        else if(minDotIndex==3){// y- face
-            q1x=V2[21]; q1y=V2[22]; q1z=V2[23];//vertex8
-            q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
-            q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
-            q4x=V2[18]; q4y=V2[19]; q4z=V2[20];//vertex7
-        }
-        else if(minDotIndex==4){// z+ face
-            q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
-            q2x=V2[18]; q2y=V2[19]; q2z=V2[20];//vertex7
-            q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
-            q4x=V2[0]; q4y=V2[1]; q4z=V2[2];//vertex1
-        }
-        else if(minDotIndex==5){// z- face
-            q1x=V2[3]; q1y=V2[4]; q1z=V2[5];//vertex2
-            q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
-            q3x=V2[21]; q3y=V2[22]; q3z=V2[23];//vertex8
-            q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
-        }
-  
-    }
-    // clip vertices
-    var numClipVertices;
-    var numAddedClipVertices;
-    var index;
-    var x1;
-    var y1;
-    var z1;
-    var x2;
-    var y2;
-    var z2;
-    this.clipVertices1[0]=q1x;
-    this.clipVertices1[1]=q1y;
-    this.clipVertices1[2]=q1z;
-    this.clipVertices1[3]=q2x;
-    this.clipVertices1[4]=q2y;
-    this.clipVertices1[5]=q2z;
-    this.clipVertices1[6]=q3x;
-    this.clipVertices1[7]=q3y;
-    this.clipVertices1[8]=q3z;
-    this.clipVertices1[9]=q4x;
-    this.clipVertices1[10]=q4y;
-    this.clipVertices1[11]=q4z;
-    numAddedClipVertices=0;
-    x1=this.clipVertices1[9];
-    y1=this.clipVertices1[10];
-    z1=this.clipVertices1[11];
-    dot1=(x1-cx-s1x)*n1x+(y1-cy-s1y)*n1y+(z1-cz-s1z)*n1z;
-
-    //var i = 4;
-    //while(i--){
-    for(var i=0;i<4;i++){
-        index=i*3;
-        x2=this.clipVertices1[index];
-        y2=this.clipVertices1[index+1];
-        z2=this.clipVertices1[index+2];
-        dot2=(x2-cx-s1x)*n1x+(y2-cy-s1y)*n1y+(z2-cz-s1z)*n1z;
-        if(dot1>0){
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices2[index]=x2;
-                this.clipVertices2[index+1]=y2;
-                this.clipVertices2[index+2]=z2;
+        if(minIndex==0){// b1.x * b2
+            if(right){
+                cx=p1x+d1x; cy=p1y+d1y;  cz=p1z+d1z;
+                nx=a1x; ny=a1y; nz=a1z;
             }else{
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices2[index]=x1+(x2-x1)*t;
-                this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                cx=p1x-d1x; cy=p1y-d1y; cz=p1z-d1z;
+                nx=-a1x; ny=-a1y; nz=-a1z;
             }
-        }else{
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices2[index]=x1+(x2-x1)*t;
-                this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                this.clipVertices2[index+2]=z1+(z2-z1)*t;
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices2[index]=x2;
-                this.clipVertices2[index+1]=y2;
-                this.clipVertices2[index+2]=z2;
-            }
+            s1x=d2x; s1y=d2y; s1z=d2z;
+            n1x=-a2x; n1y=-a2y; n1z=-a2z;
+            s2x=d3x; s2y=d3y; s2z=d3z;
+            n2x=-a3x; n2y=-a3y; n2z=-a3z;
         }
-        x1=x2;
-        y1=y2;
-        z1=z2;
-        dot1=dot2;
-    }
-
-    numClipVertices=numAddedClipVertices;
-    if(numClipVertices==0)return;
-    numAddedClipVertices=0;
-    index=(numClipVertices-1)*3;
-    x1=this.clipVertices2[index];
-    y1=this.clipVertices2[index+1];
-    z1=this.clipVertices2[index+2];
-    dot1=(x1-cx-s2x)*n2x+(y1-cy-s2y)*n2y+(z1-cz-s2z)*n2z;
-
-    //i = numClipVertices;
-    //while(i--){
-    for(i=0;i<numClipVertices;i++){
-        index=i*3;
-        x2=this.clipVertices2[index];
-        y2=this.clipVertices2[index+1];
-        z2=this.clipVertices2[index+2];
-        dot2=(x2-cx-s2x)*n2x+(y2-cy-s2y)*n2y+(z2-cz-s2z)*n2z;
-        if(dot1>0){
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices1[index]=x2;
-                this.clipVertices1[index+1]=y2;
-                this.clipVertices1[index+2]=z2;
+        else if(minIndex==1){// b1.y * b2
+            if(right){
+                cx=p1x+d2x; cy=p1y+d2y; cz=p1z+d2z;
+                nx=a2x; ny=a2y; nz=a2z;
             }else{
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices1[index]=x1+(x2-x1)*t;
-                this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                cx=p1x-d2x; cy=p1y-d2y; cz=p1z-d2z;
+                nx=-a2x; ny=-a2y; nz=-a2z;
             }
-        }else{
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices1[index]=x1+(x2-x1)*t;
-                this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                this.clipVertices1[index+2]=z1+(z2-z1)*t;
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices1[index]=x2;
-                this.clipVertices1[index+1]=y2;
-                this.clipVertices1[index+2]=z2;
-            }
+            s1x=d1x; s1y=d1y; s1z=d1z;
+            n1x=-a1x; n1y=-a1y; n1z=-a1z;
+            s2x=d3x; s2y=d3y; s2z=d3z;
+            n2x=-a3x; n2y=-a3y; n2z=-a3z;
         }
-        x1=x2;
-        y1=y2;
-        z1=z2;
-        dot1=dot2;
-    }
-
-    numClipVertices=numAddedClipVertices;
-    if(numClipVertices==0)return;
-    numAddedClipVertices=0;
-    index=(numClipVertices-1)*3;
-    x1=this.clipVertices1[index];
-    y1=this.clipVertices1[index+1];
-    z1=this.clipVertices1[index+2];
-    dot1=(x1-cx+s1x)*-n1x+(y1-cy+s1y)*-n1y+(z1-cz+s1z)*-n1z;
-
-    //i = numClipVertices;
-    //while(i--){
-    for(i=0;i<numClipVertices;i++){
-        index=i*3;
-        x2=this.clipVertices1[index];
-        y2=this.clipVertices1[index+1];
-        z2=this.clipVertices1[index+2];
-        dot2=(x2-cx+s1x)*-n1x+(y2-cy+s1y)*-n1y+(z2-cz+s1z)*-n1z;
-        if(dot1>0){
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices2[index]=x2;
-                this.clipVertices2[index+1]=y2;
-                this.clipVertices2[index+2]=z2;
+        else if(minIndex==2){// b1.z * b2
+            if(right){
+                cx=p1x+d3x; cy=p1y+d3y; cz=p1z+d3z;
+                nx=a3x; ny=a3y; nz=a3z;
             }else{
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices2[index]=x1+(x2-x1)*t;
-                this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                cx=p1x-d3x; cy=p1y-d3y; cz=p1z-d3z;
+                nx=-a3x; ny=-a3y; nz=-a3z;
             }
-        }else{
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices2[index]=x1+(x2-x1)*t;
-                this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                this.clipVertices2[index+2]=z1+(z2-z1)*t;
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices2[index]=x2;
-                this.clipVertices2[index+1]=y2;
-                this.clipVertices2[index+2]=z2;
-            }
+            s1x=d1x; s1y=d1y; s1z=d1z;
+            n1x=-a1x; n1y=-a1y; n1z=-a1z;
+            s2x=d2x; s2y=d2y; s2z=d2z;
+            n2x=-a2x; n2y=-a2y; n2z=-a2z;
         }
-        x1=x2;
-        y1=y2;
-        z1=z2;
-        dot1=dot2;
-    }
-
-    numClipVertices=numAddedClipVertices;
-    if(numClipVertices==0)return;
-    numAddedClipVertices=0;
-    index=(numClipVertices-1)*3;
-    x1=this.clipVertices2[index];
-    y1=this.clipVertices2[index+1];
-    z1=this.clipVertices2[index+2];
-    dot1=(x1-cx+s2x)*-n2x+(y1-cy+s2y)*-n2y+(z1-cz+s2z)*-n2z;
-
-    //i = numClipVertices;
-    //while(i--){
-    for(i=0;i<numClipVertices;i++){
-        index=i*3;
-        x2=this.clipVertices2[index];
-        y2=this.clipVertices2[index+1];
-        z2=this.clipVertices2[index+2];
-        dot2=(x2-cx+s2x)*-n2x+(y2-cy+s2y)*-n2y+(z2-cz+s2z)*-n2z;
-        if(dot1>0){
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices1[index]=x2;
-                this.clipVertices1[index+1]=y2;
-                this.clipVertices1[index+2]=z2;
+        else if(minIndex==3){// b2.x * b1
+            swap=true;
+            if(!right){
+                cx=p2x+d4x; cy=p2y+d4y; cz=p2z+d4z;
+                nx=a4x; ny=a4y; nz=a4z;
             }else{
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices1[index]=x1+(x2-x1)*t;
-                this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                cx=p2x-d4x; cy=p2y-d4y; cz=p2z-d4z;
+                nx=-a4x; ny=-a4y; nz=-a4z;
             }
-        }else{
-            if(dot2>0){
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                t=dot1/(dot1-dot2);
-                this.clipVertices1[index]=x1+(x2-x1)*t;
-                this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                this.clipVertices1[index+2]=z1+(z2-z1)*t;
-                index=numAddedClipVertices*3;
-                numAddedClipVertices++;
-                this.clipVertices1[index]=x2;
-                this.clipVertices1[index+1]=y2;
-                this.clipVertices1[index+2]=z2;
-            }
+            s1x=d5x; s1y=d5y; s1z=d5z;
+            n1x=-a5x; n1y=-a5y; n1z=-a5z;
+            s2x=d6x; s2y=d6y; s2z=d6z;
+            n2x=-a6x; n2y=-a6y; n2z=-a6z;
         }
-        x1=x2;
-        y1=y2;
-        z1=z2;
-        dot1=dot2;
-    }
+        else if(minIndex==4){// b2.y * b1
+            swap=true;
+            if(!right){
+                cx=p2x+d5x; cy=p2y+d5y; cz=p2z+d5z;
+                nx=a5x; ny=a5y; nz=a5z;
+            }else{
+                cx=p2x-d5x; cy=p2y-d5y; cz=p2z-d5z;
+                nx=-a5x; ny=-a5y; nz=-a5z;
+            }
+            s1x=d4x; s1y=d4y; s1z=d4z;
+            n1x=-a4x; n1y=-a4y; n1z=-a4z;
+            s2x=d6x; s2y=d6y; s2z=d6z;
+            n2x=-a6x; n2y=-a6y; n2z=-a6z;
+        }
+        else if(minIndex==5){// b2.z * b1
+            swap=true;
+            if(!right){
+                cx=p2x+d6x; cy=p2y+d6y; cz=p2z+d6z;
+                nx=a6x; ny=a6y; nz=a6z;
+            }else{
+                cx=p2x-d6x; cy=p2y-d6y; cz=p2z-d6z;
+                nx=-a6x; ny=-a6y; nz=-a6z;
+            }
+            s1x=d4x; s1y=d4y; s1z=d4z;
+            n1x=-a4x; n1y=-a4y; n1z=-a4z;
+            s2x=d5x; s2y=d5y; s2z=d5z;
+            n2x=-a5x; n2y=-a5y; n2z=-a5z;
+        }
+        else if(minIndex==6){// b1.x * b2.x
+            nx=a7x; ny=a7y; nz=a7z;
+            n1x=a1x; n1y=a1y; n1z=a1z;
+            n2x=a4x; n2y=a4y; n2z=a4z;
+        }
+        else if(minIndex==7){// b1.x * b2.y
+            nx=a8x; ny=a8y; nz=a8z;
+            n1x=a1x; n1y=a1y; n1z=a1z;
+            n2x=a5x; n2y=a5y; n2z=a5z;
+        }
+        else if(minIndex==8){// b1.x * b2.z
+            nx=a9x; ny=a9y; nz=a9z;
+            n1x=a1x; n1y=a1y; n1z=a1z;
+            n2x=a6x; n2y=a6y; n2z=a6z;
+        }
+        else if(minIndex==9){// b1.y * b2.x
+            nx=aax; ny=aay; nz=aaz;
+            n1x=a2x; n1y=a2y; n1z=a2z;
+            n2x=a4x; n2y=a4y; n2z=a4z;
+        }
+        else if(minIndex==10){// b1.y * b2.y
+            nx=abx; ny=aby; nz=abz;
+            n1x=a2x; n1y=a2y; n1z=a2z;
+            n2x=a5x; n2y=a5y; n2z=a5z;
+        }
+        else if(minIndex==11){// b1.y * b2.z
+            nx=acx; ny=acy; nz=acz;
+            n1x=a2x; n1y=a2y; n1z=a2z;
+            n2x=a6x; n2y=a6y; n2z=a6z;
+        }
+        else if(minIndex==12){// b1.z * b2.x
+            nx=adx;  ny=ady; nz=adz;
+            n1x=a3x; n1y=a3y; n1z=a3z;
+            n2x=a4x; n2y=a4y; n2z=a4z;
+        }
+        else if(minIndex==13){// b1.z * b2.y
+            nx=aex; ny=aey; nz=aez;
+            n1x=a3x; n1y=a3y; n1z=a3z;
+            n2x=a5x; n2y=a5y; n2z=a5z;
+        }
+        else if(minIndex==14){// b1.z * b2.z
+            nx=afx; ny=afy; nz=afz;
+            n1x=a3x; n1y=a3y; n1z=a3z;
+            n2x=a6x; n2y=a6y; n2z=a6z;
+        }
 
-    numClipVertices=numAddedClipVertices;
-    if(swap){
-        var tb=b1;
-        b1=b2;
-        b2=tb;
-    }
-    if(numClipVertices==0)return;
-    var flipped=b1!=shape1;
-    if(numClipVertices>4){
-        x1=(q1x+q2x+q3x+q4x)*0.25;
-        y1=(q1y+q2y+q3y+q4y)*0.25;
-        z1=(q1z+q2z+q3z+q4z)*0.25;
-        n1x=q1x-x1;
-        n1y=q1y-y1;
-        n1z=q1z-z1;
-        n2x=q2x-x1;
-        n2y=q2y-y1;
-        n2z=q2z-z1;
-        var index1=0;
-        var index2=0;
-        var index3=0;
-        var index4=0;
-        var maxDot=-this.INF;
-        minDot=this.INF;
+        //__________________________________________
 
-        //i = numClipVertices;
-        //while(i--){
-        for(i=0;i<numClipVertices;i++){
-            this.used[i]=false;
-            index=i*3;
-            x1=this.clipVertices1[index];
-            y1=this.clipVertices1[index+1];
-            z1=this.clipVertices1[index+2];
-            dot=x1*n1x+y1*n1y+z1*n1z;
+        //var v;
+        if(minIndex>5){
+            if(!right){
+                nx=-nx; ny=-ny; nz=-nz;
+            }
+            var distance;
+            var maxDistance;
+            var vx;
+            var vy;
+            var vz;
+            var v1x;
+            var v1y;
+            var v1z;
+            var v2x;
+            var v2y;
+            var v2z;
+            //vertex1;
+            v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
+            maxDistance=nx*v1x+ny*v1y+nz*v1z;
+            //vertex2;
+            vx=V1[3]; vy=V1[4]; vz=V1[5];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex3;
+            vx=V1[6]; vy=V1[7]; vz=V1[8];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex4;
+            vx=V1[9]; vy=V1[10]; vz=V1[11];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex5;
+            vx=V1[12]; vy=V1[13]; vz=V1[14];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex6;
+            vx=V1[15]; vy=V1[16]; vz=V1[17];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex7;
+            vx=V1[18]; vy=V1[19]; vz=V1[20];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex8;
+            vx=V1[21]; vy=V1[22]; vz=V1[23];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex1;
+            v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
+            maxDistance=nx*v2x+ny*v2y+nz*v2z;
+            //vertex2;
+            vx=V2[3]; vy=V2[4]; vz=V2[5];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex3;
+            vx=V2[6]; vy=V2[7]; vz=V2[8];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex4;
+            vx=V2[9]; vy=V2[10]; vz=V2[11];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex5;
+            vx=V2[12]; vy=V2[13]; vz=V2[14];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex6;
+            vx=V2[15]; vy=V2[16]; vz=V2[17];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex7;
+            vx=V2[18]; vy=V2[19]; vz=V2[20];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex8;
+            vx=V2[21]; vy=V2[22]; vz=V2[23];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
+            dot1=n1x*n2x+n1y*n2y+n1z*n2z;
+            var t=(vx*(n1x-n2x*dot1)+vy*(n1y-n2y*dot1)+vz*(n1z-n2z*dot1))/(1-dot1*dot1);
+            manifold.addPoint(v1x+n1x*t+nx*depth*0.5,v1y+n1y*t+ny*depth*0.5,v1z+n1z*t+nz*depth*0.5,nx,ny,nz,depth,false);
+            return;
+        }
+        // now detect face-face collision...
+        // target quad
+        var q1x;
+        var q1y;
+        var q1z;
+        var q2x;
+        var q2y;
+        var q2z;
+        var q3x;
+        var q3y;
+        var q3z;
+        var q4x;
+        var q4y;
+        var q4z;
+        // search support face and vertex
+        var minDot=1;
+        var dot=0;
+        var minDotIndex=0;
+        if(swap){
+            dot=a1x*nx+a1y*ny+a1z*nz;
             if(dot<minDot){
                 minDot=dot;
-                index1=i;
+                minDotIndex=0;
             }
-            if(dot>maxDot){
-                maxDot=dot;
-                index3=i;
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=1;
             }
-        }
-
-        this.used[index1]=true;
-        this.used[index3]=true;
-        maxDot=-this.INF;
-        minDot=this.INF;
-
-        //i = numClipVertices;
-        //while(i--){
-        for(i=0;i<numClipVertices;i++){
-            if(this.used[i])continue;
-            index=i*3;
-            x1=this.clipVertices1[index];
-            y1=this.clipVertices1[index+1];
-            z1=this.clipVertices1[index+2];
-            dot=x1*n2x+y1*n2y+z1*n2z;
+            dot=a2x*nx+a2y*ny+a2z*nz;
             if(dot<minDot){
                 minDot=dot;
-                index2=i;
+                minDotIndex=2;
             }
-            if(dot>maxDot){
-                maxDot=dot;
-                index4=i;
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=3;
             }
+            dot=a3x*nx+a3y*ny+a3z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=4;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=5;
+            }
+
+            if(minDotIndex==0){// x+ face
+                q1x=V1[0]; q1y=V1[1]; q1z=V1[2];//vertex1
+                q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex3
+                q3x=V1[9]; q3y=V1[10]; q3z=V1[11];//vertex4
+                q4x=V1[3]; q4y=V1[4]; q4z=V1[5];//vertex2
+            }
+            else if(minDotIndex==1){// x- face
+                q1x=V1[15]; q1y=V1[16]; q1z=V1[17];//vertex6
+                q2x=V1[21]; q2y=V1[22]; q2z=V1[23];//vertex8
+                q3x=V1[18]; q3y=V1[19]; q3z=V1[20];//vertex7
+                q4x=V1[12]; q4y=V1[13]; q4z=V1[14];//vertex5
+            }
+            else if(minDotIndex==2){// y+ face
+                q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
+                q2x=V1[0]; q2y=V1[1]; q2z=V1[2];//vertex1
+                q3x=V1[3]; q3y=V1[4]; q3z=V1[5];//vertex2
+                q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
+            }
+            else if(minDotIndex==3){// y- face
+                q1x=V1[21]; q1y=V1[22]; q1z=V1[23];//vertex8
+                q2x=V1[9]; q2y=V1[10]; q2z=V1[11];//vertex4
+                q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
+                q4x=V1[18]; q4y=V1[19]; q4z=V1[20];//vertex7
+            }
+            else if(minDotIndex==4){// z+ face
+                q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
+                q2x=V1[18]; q2y=V1[19]; q2z=V1[20];//vertex7
+                q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
+                q4x=V1[0]; q4y=V1[1]; q4z=V1[2];//vertex1
+            }
+            else if(minDotIndex==5){// z- face
+                q1x=V1[3]; q1y=V1[4]; q1z=V1[5];//vertex2
+                q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4
+                q3x=V1[21]; q3y=V1[22]; q3z=V1[23];//vertex8
+                q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
+            }
+
+        }else{
+            dot=a4x*nx+a4y*ny+a4z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=0;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=1;
+            }
+            dot=a5x*nx+a5y*ny+a5z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=2;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=3;
+            }
+            dot=a6x*nx+a6y*ny+a6z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=4;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=5;
+            }
+
+            //______________________________________________________
+
+            if(minDotIndex==0){// x+ face
+                q1x=V2[0]; q1y=V2[1]; q1z=V2[2];//vertex1
+                q2x=V2[6]; q2y=V2[7]; q2z=V2[8];//vertex3
+                q3x=V2[9]; q3y=V2[10]; q3z=V2[11];//vertex4
+                q4x=V2[3]; q4y=V2[4]; q4z=V2[5];//vertex2
+            }
+            else if(minDotIndex==1){// x- face
+                q1x=V2[15]; q1y=V2[16]; q1z=V2[17];//vertex6
+                q2x=V2[21]; q2y=V2[22]; q2z=V2[23]; //vertex8
+                q3x=V2[18]; q3y=V2[19]; q3z=V2[20];//vertex7
+                q4x=V2[12]; q4y=V2[13]; q4z=V2[14];//vertex5
+            }
+            else if(minDotIndex==2){// y+ face
+                q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
+                q2x=V2[0]; q2y=V2[1]; q2z=V2[2];//vertex1
+                q3x=V2[3]; q3y=V2[4]; q3z=V2[5];//vertex2
+                q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
+            }
+            else if(minDotIndex==3){// y- face
+                q1x=V2[21]; q1y=V2[22]; q1z=V2[23];//vertex8
+                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+                q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
+                q4x=V2[18]; q4y=V2[19]; q4z=V2[20];//vertex7
+            }
+            else if(minDotIndex==4){// z+ face
+                q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
+                q2x=V2[18]; q2y=V2[19]; q2z=V2[20];//vertex7
+                q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
+                q4x=V2[0]; q4y=V2[1]; q4z=V2[2];//vertex1
+            }
+            else if(minDotIndex==5){// z- face
+                q1x=V2[3]; q1y=V2[4]; q1z=V2[5];//vertex2
+                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+                q3x=V2[21]; q3y=V2[22]; q3z=V2[23];//vertex8
+                q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
+            }
+      
+        }
+        // clip vertices
+        var numClipVertices;
+        var numAddedClipVertices;
+        var index;
+        var x1;
+        var y1;
+        var z1;
+        var x2;
+        var y2;
+        var z2;
+        this.clipVertices1[0]=q1x;
+        this.clipVertices1[1]=q1y;
+        this.clipVertices1[2]=q1z;
+        this.clipVertices1[3]=q2x;
+        this.clipVertices1[4]=q2y;
+        this.clipVertices1[5]=q2z;
+        this.clipVertices1[6]=q3x;
+        this.clipVertices1[7]=q3y;
+        this.clipVertices1[8]=q3z;
+        this.clipVertices1[9]=q4x;
+        this.clipVertices1[10]=q4y;
+        this.clipVertices1[11]=q4z;
+        numAddedClipVertices=0;
+        x1=this.clipVertices1[9];
+        y1=this.clipVertices1[10];
+        z1=this.clipVertices1[11];
+        dot1=(x1-cx-s1x)*n1x+(y1-cy-s1y)*n1y+(z1-cz-s1z)*n1z;
+
+        //var i = 4;
+        //while(i--){
+        for(var i=0;i<4;i++){
+            index=i*3;
+            x2=this.clipVertices1[index];
+            y2=this.clipVertices1[index+1];
+            z2=this.clipVertices1[index+2];
+            dot2=(x2-cx-s1x)*n1x+(y2-cy-s1y)*n1y+(z2-cz-s1z)*n1z;
+            if(dot1>0){
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
+                }else{
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                }
+            }else{
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
+                }
+            }
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
         }
 
-        index=index1*3;
-        x1=this.clipVertices1[index];
-        y1=this.clipVertices1[index+1];
-        z1=this.clipVertices1[index+2];
-        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-        
-        index=index2*3;
-        x1=this.clipVertices1[index];
-        y1=this.clipVertices1[index+1];
-        z1=this.clipVertices1[index+2];
-        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-        
-        index=index3*3;
-        x1=this.clipVertices1[index];
-        y1=this.clipVertices1[index+1];
-        z1=this.clipVertices1[index+2];
-        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-        
-        index=index4*3;
-        x1=this.clipVertices1[index];
-        y1=this.clipVertices1[index+1];
-        z1=this.clipVertices1[index+2];
-        dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-        if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
-        
-    }else{
+        numClipVertices=numAddedClipVertices;
+        if(numClipVertices==0)return;
+        numAddedClipVertices=0;
+        index=(numClipVertices-1)*3;
+        x1=this.clipVertices2[index];
+        y1=this.clipVertices2[index+1];
+        z1=this.clipVertices2[index+2];
+        dot1=(x1-cx-s2x)*n2x+(y1-cy-s2y)*n2y+(z1-cz-s2z)*n2z;
+
         //i = numClipVertices;
         //while(i--){
         for(i=0;i<numClipVertices;i++){
             index=i*3;
+            x2=this.clipVertices2[index];
+            y2=this.clipVertices2[index+1];
+            z2=this.clipVertices2[index+2];
+            dot2=(x2-cx-s2x)*n2x+(y2-cy-s2y)*n2y+(z2-cz-s2z)*n2z;
+            if(dot1>0){
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
+                }else{
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                }
+            }else{
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
+                }
+            }
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
+        }
+
+        numClipVertices=numAddedClipVertices;
+        if(numClipVertices==0)return;
+        numAddedClipVertices=0;
+        index=(numClipVertices-1)*3;
+        x1=this.clipVertices1[index];
+        y1=this.clipVertices1[index+1];
+        z1=this.clipVertices1[index+2];
+        dot1=(x1-cx+s1x)*-n1x+(y1-cy+s1y)*-n1y+(z1-cz+s1z)*-n1z;
+
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            index=i*3;
+            x2=this.clipVertices1[index];
+            y2=this.clipVertices1[index+1];
+            z2=this.clipVertices1[index+2];
+            dot2=(x2-cx+s1x)*-n1x+(y2-cy+s1y)*-n1y+(z2-cz+s1z)*-n1z;
+            if(dot1>0){
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
+                }else{
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                }
+            }else{
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
+                }
+            }
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
+        }
+
+        numClipVertices=numAddedClipVertices;
+        if(numClipVertices==0)return;
+        numAddedClipVertices=0;
+        index=(numClipVertices-1)*3;
+        x1=this.clipVertices2[index];
+        y1=this.clipVertices2[index+1];
+        z1=this.clipVertices2[index+2];
+        dot1=(x1-cx+s2x)*-n2x+(y1-cy+s2y)*-n2y+(z1-cz+s2z)*-n2z;
+
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            index=i*3;
+            x2=this.clipVertices2[index];
+            y2=this.clipVertices2[index+1];
+            z2=this.clipVertices2[index+2];
+            dot2=(x2-cx+s2x)*-n2x+(y2-cy+s2y)*-n2y+(z2-cz+s2z)*-n2z;
+            if(dot1>0){
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
+                }else{
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                }
+            }else{
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
+                }
+            }
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
+        }
+
+        numClipVertices=numAddedClipVertices;
+        if(swap){
+            var tb=b1;
+            b1=b2;
+            b2=tb;
+        }
+        if(numClipVertices==0)return;
+        var flipped=b1!=shape1;
+        if(numClipVertices>4){
+            x1=(q1x+q2x+q3x+q4x)*0.25;
+            y1=(q1y+q2y+q3y+q4y)*0.25;
+            z1=(q1z+q2z+q3z+q4z)*0.25;
+            n1x=q1x-x1;
+            n1y=q1y-y1;
+            n1z=q1z-z1;
+            n2x=q2x-x1;
+            n2y=q2y-y1;
+            n2z=q2z-z1;
+            var index1=0;
+            var index2=0;
+            var index3=0;
+            var index4=0;
+            var maxDot=-this.INF;
+            minDot=this.INF;
+
+            //i = numClipVertices;
+            //while(i--){
+            for(i=0;i<numClipVertices;i++){
+                this.used[i]=false;
+                index=i*3;
+                x1=this.clipVertices1[index];
+                y1=this.clipVertices1[index+1];
+                z1=this.clipVertices1[index+2];
+                dot=x1*n1x+y1*n1y+z1*n1z;
+                if(dot<minDot){
+                    minDot=dot;
+                    index1=i;
+                }
+                if(dot>maxDot){
+                    maxDot=dot;
+                    index3=i;
+                }
+            }
+
+            this.used[index1]=true;
+            this.used[index3]=true;
+            maxDot=-this.INF;
+            minDot=this.INF;
+
+            //i = numClipVertices;
+            //while(i--){
+            for(i=0;i<numClipVertices;i++){
+                if(this.used[i])continue;
+                index=i*3;
+                x1=this.clipVertices1[index];
+                y1=this.clipVertices1[index+1];
+                z1=this.clipVertices1[index+2];
+                dot=x1*n2x+y1*n2y+z1*n2z;
+                if(dot<minDot){
+                    minDot=dot;
+                    index2=i;
+                }
+                if(dot>maxDot){
+                    maxDot=dot;
+                    index4=i;
+                }
+            }
+
+            index=index1*3;
             x1=this.clipVertices1[index];
             y1=this.clipVertices1[index+1];
             z1=this.clipVertices1[index+2];
             dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-            if(dot<0)manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+            
+            index=index2*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+            
+            index=index3*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+            
+            index=index4*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+            
+        }else{
+            //i = numClipVertices;
+            //while(i--){
+            for(i=0;i<numClipVertices;i++){
+                index=i*3;
+                x1=this.clipVertices1[index];
+                y1=this.clipVertices1[index+1];
+                z1=this.clipVertices1[index+2];
+                dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+                if(dot<0)manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+            }
         }
+
     }
 
-};
+});
 
 function BoxCylinderCollisionDetector (flip){
 
@@ -8755,1030 +8700,1033 @@ function BoxCylinderCollisionDetector (flip){
 
 }
 
-BoxCylinderCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
-BoxCylinderCollisionDetector.prototype.constructor = BoxCylinderCollisionDetector;
+BoxCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
-BoxCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep ) {
+    constructor: BoxCylinderCollisionDetector,
 
-    var t1x;
-    var t1y;
-    var t1z;
-    var t2x;
-    var t2y;
-    var t2z;
-    var sup=new Vec3();
-    var len;
-    var p1x;
-    var p1y;
-    var p1z;
-    var p2x;
-    var p2y;
-    var p2z;
-    var v01x=c1.position.x;
-    var v01y=c1.position.y;
-    var v01z=c1.position.z;
-    var v02x=c2.position.x;
-    var v02y=c2.position.y;
-    var v02z=c2.position.z;
-    var v0x=v02x-v01x;
-    var v0y=v02y-v01y;
-    var v0z=v02z-v01z;
-    if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
-    var nx=-v0x;
-    var ny=-v0y;
-    var nz=-v0z;
-    this.supportPointB(c1,-nx,-ny,-nz,sup);
-    var v11x=sup.x;
-    var v11y=sup.y;
-    var v11z=sup.z;
-    this.supportPointC(c2,nx,ny,nz,sup);
-    var v12x=sup.x;
-    var v12y=sup.y;
-    var v12z=sup.z;
-    var v1x=v12x-v11x;
-    var v1y=v12y-v11y;
-    var v1z=v12z-v11z;
-    if(v1x*nx+v1y*ny+v1z*nz<=0){
-    return false;
-    }
-    nx=v1y*v0z-v1z*v0y;
-    ny=v1z*v0x-v1x*v0z;
-    nz=v1x*v0y-v1y*v0x;
-    if(nx*nx+ny*ny+nz*nz==0){
-    sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
-    pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
-    return true;
-    }
-    this.supportPointB(c1,-nx,-ny,-nz,sup);
-    var v21x=sup.x;
-    var v21y=sup.y;
-    var v21z=sup.z;
-    this.supportPointC(c2,nx,ny,nz,sup);
-    var v22x=sup.x;
-    var v22y=sup.y;
-    var v22z=sup.z;
-    var v2x=v22x-v21x;
-    var v2y=v22y-v21y;
-    var v2z=v22z-v21z;
-    if(v2x*nx+v2y*ny+v2z*nz<=0){
-    return false;
-    }
-    t1x=v1x-v0x;
-    t1y=v1y-v0y;
-    t1z=v1z-v0z;
-    t2x=v2x-v0x;
-    t2y=v2y-v0y;
-    t2z=v2z-v0z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    if(nx*v0x+ny*v0y+nz*v0z>0){
-    t1x=v1x;
-    t1y=v1y;
-    t1z=v1z;
-    v1x=v2x;
-    v1y=v2y;
-    v1z=v2z;
-    v2x=t1x;
-    v2y=t1y;
-    v2z=t1z;
-    t1x=v11x;
-    t1y=v11y;
-    t1z=v11z;
-    v11x=v21x;
-    v11y=v21y;
-    v11z=v21z;
-    v21x=t1x;
-    v21y=t1y;
-    v21z=t1z;
-    t1x=v12x;
-    t1y=v12y;
-    t1z=v12z;
-    v12x=v22x;
-    v12y=v22y;
-    v12z=v22z;
-    v22x=t1x;
-    v22y=t1y;
-    v22z=t1z;
-    nx=-nx;
-    ny=-ny;
-    nz=-nz;
-    }
-    var iterations=0;
-    while(true){
-    if(++iterations>100){
-    return false;
-    }
-    this.supportPointB(c1,-nx,-ny,-nz,sup);
-    var v31x=sup.x;
-    var v31y=sup.y;
-    var v31z=sup.z;
-    this.supportPointC(c2,nx,ny,nz,sup);
-    var v32x=sup.x;
-    var v32y=sup.y;
-    var v32z=sup.z;
-    var v3x=v32x-v31x;
-    var v3y=v32y-v31y;
-    var v3z=v32z-v31z;
-    if(v3x*nx+v3y*ny+v3z*nz<=0){
-    return false;
-    }
-    if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
-    v2x=v3x;
-    v2y=v3y;
-    v2z=v3z;
-    v21x=v31x;
-    v21y=v31y;
-    v21z=v31z;
-    v22x=v32x;
-    v22y=v32y;
-    v22z=v32z;
-    t1x=v1x-v0x;
-    t1y=v1y-v0y;
-    t1z=v1z-v0z;
-    t2x=v3x-v0x;
-    t2y=v3y-v0y;
-    t2z=v3z-v0z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    continue;
-    }
-    if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
-    v1x=v3x;
-    v1y=v3y;
-    v1z=v3z;
-    v11x=v31x;
-    v11y=v31y;
-    v11z=v31z;
-    v12x=v32x;
-    v12y=v32y;
-    v12z=v32z;
-    t1x=v3x-v0x;
-    t1y=v3y-v0y;
-    t1z=v3z-v0z;
-    t2x=v2x-v0x;
-    t2y=v2y-v0y;
-    t2z=v2z-v0z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    continue;
-    }
-    var hit=false;
-    while(true){
-    t1x=v2x-v1x;
-    t1y=v2y-v1y;
-    t1z=v2z-v1z;
-    t2x=v3x-v1x;
-    t2y=v3y-v1y;
-    t2z=v3z-v1z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    len=1/_Math.sqrt(nx*nx+ny*ny+nz*nz);
-    nx*=len;
-    ny*=len;
-    nz*=len;
-    if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
-    var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
-    var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
-    var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
-    var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
-    var sum=b0+b1+b2+b3;
-    if(sum<=0){
-    b0=0;
-    b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
-    b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
-    b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
-    sum=b1+b2+b3;
-    }
-    var inv=1/sum;
-    p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
-    p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
-    p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
-    p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
-    p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
-    p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
-    hit=true;
-    }
-    this.supportPointB(c1,-nx,-ny,-nz,sup);
-    var v41x=sup.x;
-    var v41y=sup.y;
-    var v41z=sup.z;
-    this.supportPointC(c2,nx,ny,nz,sup);
-    var v42x=sup.x;
-    var v42y=sup.y;
-    var v42z=sup.z;
-    var v4x=v42x-v41x;
-    var v4y=v42y-v41y;
-    var v4z=v42z-v41z;
-    var separation=-(v4x*nx+v4y*ny+v4z*nz);
-    if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
-    if(hit){
-    sep.set( -nx, -ny, -nz );
-    pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
-    dep.x=separation;
-    return true;
-    }
-    return false;
-    }
-    if(
-    (v4y*v1z-v4z*v1y)*v0x+
-    (v4z*v1x-v4x*v1z)*v0y+
-    (v4x*v1y-v4y*v1x)*v0z<0
-    ){
-    if(
-    (v4y*v2z-v4z*v2y)*v0x+
-    (v4z*v2x-v4x*v2z)*v0y+
-    (v4x*v2y-v4y*v2x)*v0z<0
-    ){
-    v1x=v4x;
-    v1y=v4y;
-    v1z=v4z;
-    v11x=v41x;
-    v11y=v41y;
-    v11z=v41z;
-    v12x=v42x;
-    v12y=v42y;
-    v12z=v42z;
-    }else{
-    v3x=v4x;
-    v3y=v4y;
-    v3z=v4z;
-    v31x=v41x;
-    v31y=v41y;
-    v31z=v41z;
-    v32x=v42x;
-    v32y=v42y;
-    v32z=v42z;
-    }
-    }else{
-    if(
-    (v4y*v3z-v4z*v3y)*v0x+
-    (v4z*v3x-v4x*v3z)*v0y+
-    (v4x*v3y-v4y*v3x)*v0z<0
-    ){
-    v2x=v4x;
-    v2y=v4y;
-    v2z=v4z;
-    v21x=v41x;
-    v21y=v41y;
-    v21z=v41z;
-    v22x=v42x;
-    v22y=v42y;
-    v22z=v42z;
-    }else{
-    v1x=v4x;
-    v1y=v4y;
-    v1z=v4z;
-    v11x=v41x;
-    v11y=v41y;
-    v11z=v41z;
-    v12x=v42x;
-    v12y=v42y;
-    v12z=v42z;
-}
-}
-}
-}
-//return false;
-};
+    getSep: function ( c1, c2, sep, pos, dep ) {
 
-BoxCylinderCollisionDetector.prototype.supportPointB = function( c, dx, dy, dz, out ) {
+        var t1x;
+        var t1y;
+        var t1z;
+        var t2x;
+        var t2y;
+        var t2z;
+        var sup=new Vec3();
+        var len;
+        var p1x;
+        var p1y;
+        var p1z;
+        var p2x;
+        var p2y;
+        var p2z;
+        var v01x=c1.position.x;
+        var v01y=c1.position.y;
+        var v01z=c1.position.z;
+        var v02x=c2.position.x;
+        var v02y=c2.position.y;
+        var v02z=c2.position.z;
+        var v0x=v02x-v01x;
+        var v0y=v02y-v01y;
+        var v0z=v02z-v01z;
+        if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
+        var nx=-v0x;
+        var ny=-v0y;
+        var nz=-v0z;
+        this.supportPointB(c1,-nx,-ny,-nz,sup);
+        var v11x=sup.x;
+        var v11y=sup.y;
+        var v11z=sup.z;
+        this.supportPointC(c2,nx,ny,nz,sup);
+        var v12x=sup.x;
+        var v12y=sup.y;
+        var v12z=sup.z;
+        var v1x=v12x-v11x;
+        var v1y=v12y-v11y;
+        var v1z=v12z-v11z;
+        if(v1x*nx+v1y*ny+v1z*nz<=0){
+        return false;
+        }
+        nx=v1y*v0z-v1z*v0y;
+        ny=v1z*v0x-v1x*v0z;
+        nz=v1x*v0y-v1y*v0x;
+        if(nx*nx+ny*ny+nz*nz==0){
+        sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
+        pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
+        return true;
+        }
+        this.supportPointB(c1,-nx,-ny,-nz,sup);
+        var v21x=sup.x;
+        var v21y=sup.y;
+        var v21z=sup.z;
+        this.supportPointC(c2,nx,ny,nz,sup);
+        var v22x=sup.x;
+        var v22y=sup.y;
+        var v22z=sup.z;
+        var v2x=v22x-v21x;
+        var v2y=v22y-v21y;
+        var v2z=v22z-v21z;
+        if(v2x*nx+v2y*ny+v2z*nz<=0){
+        return false;
+        }
+        t1x=v1x-v0x;
+        t1y=v1y-v0y;
+        t1z=v1z-v0z;
+        t2x=v2x-v0x;
+        t2y=v2y-v0y;
+        t2z=v2z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        if(nx*v0x+ny*v0y+nz*v0z>0){
+        t1x=v1x;
+        t1y=v1y;
+        t1z=v1z;
+        v1x=v2x;
+        v1y=v2y;
+        v1z=v2z;
+        v2x=t1x;
+        v2y=t1y;
+        v2z=t1z;
+        t1x=v11x;
+        t1y=v11y;
+        t1z=v11z;
+        v11x=v21x;
+        v11y=v21y;
+        v11z=v21z;
+        v21x=t1x;
+        v21y=t1y;
+        v21z=t1z;
+        t1x=v12x;
+        t1y=v12y;
+        t1z=v12z;
+        v12x=v22x;
+        v12y=v22y;
+        v12z=v22z;
+        v22x=t1x;
+        v22y=t1y;
+        v22z=t1z;
+        nx=-nx;
+        ny=-ny;
+        nz=-nz;
+        }
+        var iterations=0;
+        while(true){
+        if(++iterations>100){
+        return false;
+        }
+        this.supportPointB(c1,-nx,-ny,-nz,sup);
+        var v31x=sup.x;
+        var v31y=sup.y;
+        var v31z=sup.z;
+        this.supportPointC(c2,nx,ny,nz,sup);
+        var v32x=sup.x;
+        var v32y=sup.y;
+        var v32z=sup.z;
+        var v3x=v32x-v31x;
+        var v3y=v32y-v31y;
+        var v3z=v32z-v31z;
+        if(v3x*nx+v3y*ny+v3z*nz<=0){
+        return false;
+        }
+        if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
+        v2x=v3x;
+        v2y=v3y;
+        v2z=v3z;
+        v21x=v31x;
+        v21y=v31y;
+        v21z=v31z;
+        v22x=v32x;
+        v22y=v32y;
+        v22z=v32z;
+        t1x=v1x-v0x;
+        t1y=v1y-v0y;
+        t1z=v1z-v0z;
+        t2x=v3x-v0x;
+        t2y=v3y-v0y;
+        t2z=v3z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        continue;
+        }
+        if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
+        v1x=v3x;
+        v1y=v3y;
+        v1z=v3z;
+        v11x=v31x;
+        v11y=v31y;
+        v11z=v31z;
+        v12x=v32x;
+        v12y=v32y;
+        v12z=v32z;
+        t1x=v3x-v0x;
+        t1y=v3y-v0y;
+        t1z=v3z-v0z;
+        t2x=v2x-v0x;
+        t2y=v2y-v0y;
+        t2z=v2z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        continue;
+        }
+        var hit=false;
+        while(true){
+        t1x=v2x-v1x;
+        t1y=v2y-v1y;
+        t1z=v2z-v1z;
+        t2x=v3x-v1x;
+        t2y=v3y-v1y;
+        t2z=v3z-v1z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        len=1/_Math.sqrt(nx*nx+ny*ny+nz*nz);
+        nx*=len;
+        ny*=len;
+        nz*=len;
+        if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
+        var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
+        var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
+        var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
+        var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
+        var sum=b0+b1+b2+b3;
+        if(sum<=0){
+        b0=0;
+        b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
+        b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
+        b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
+        sum=b1+b2+b3;
+        }
+        var inv=1/sum;
+        p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
+        p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
+        p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
+        p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
+        p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
+        p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
+        hit=true;
+        }
+        this.supportPointB(c1,-nx,-ny,-nz,sup);
+        var v41x=sup.x;
+        var v41y=sup.y;
+        var v41z=sup.z;
+        this.supportPointC(c2,nx,ny,nz,sup);
+        var v42x=sup.x;
+        var v42y=sup.y;
+        var v42z=sup.z;
+        var v4x=v42x-v41x;
+        var v4y=v42y-v41y;
+        var v4z=v42z-v41z;
+        var separation=-(v4x*nx+v4y*ny+v4z*nz);
+        if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
+        if(hit){
+        sep.set( -nx, -ny, -nz );
+        pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
+        dep.x=separation;
+        return true;
+        }
+        return false;
+        }
+        if(
+        (v4y*v1z-v4z*v1y)*v0x+
+        (v4z*v1x-v4x*v1z)*v0y+
+        (v4x*v1y-v4y*v1x)*v0z<0
+        ){
+        if(
+        (v4y*v2z-v4z*v2y)*v0x+
+        (v4z*v2x-v4x*v2z)*v0y+
+        (v4x*v2y-v4y*v2x)*v0z<0
+        ){
+        v1x=v4x;
+        v1y=v4y;
+        v1z=v4z;
+        v11x=v41x;
+        v11y=v41y;
+        v11z=v41z;
+        v12x=v42x;
+        v12y=v42y;
+        v12z=v42z;
+        }else{
+        v3x=v4x;
+        v3y=v4y;
+        v3z=v4z;
+        v31x=v41x;
+        v31y=v41y;
+        v31z=v41z;
+        v32x=v42x;
+        v32y=v42y;
+        v32z=v42z;
+        }
+        }else{
+        if(
+        (v4y*v3z-v4z*v3y)*v0x+
+        (v4z*v3x-v4x*v3z)*v0y+
+        (v4x*v3y-v4y*v3x)*v0z<0
+        ){
+        v2x=v4x;
+        v2y=v4y;
+        v2z=v4z;
+        v21x=v41x;
+        v21y=v41y;
+        v21z=v41z;
+        v22x=v42x;
+        v22y=v42y;
+        v22z=v42z;
+        }else{
+        v1x=v4x;
+        v1y=v4y;
+        v1z=v4z;
+        v11x=v41x;
+        v11y=v41y;
+        v11z=v41z;
+        v12x=v42x;
+        v12y=v42y;
+        v12z=v42z;
+    }
+    }
+    }
+    }
+    //return false;
+    },
 
-    var rot=c.rotation.elements;
-    var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-    var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-    var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
-    var w=c.halfWidth;
-    var h=c.halfHeight;
-    var d=c.halfDepth;
-    var ox;
-    var oy;
-    var oz;
-    if(ldx<0)ox=-w;
-    else ox=w;
-    if(ldy<0)oy=-h;
-    else oy=h;
-    if(ldz<0)oz=-d;
-    else oz=d;
-    ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-    ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-    ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
-    out.set( ldx, ldy, ldz );
+    supportPointB: function( c, dx, dy, dz, out ) {
 
-};
+        var rot=c.rotation.elements;
+        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var w=c.halfWidth;
+        var h=c.halfHeight;
+        var d=c.halfDepth;
+        var ox;
+        var oy;
+        var oz;
+        if(ldx<0)ox=-w;
+        else ox=w;
+        if(ldy<0)oy=-h;
+        else oy=h;
+        if(ldz<0)oz=-d;
+        else oz=d;
+        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        out.set( ldx, ldy, ldz );
 
-BoxCylinderCollisionDetector.prototype.supportPointC = function ( c, dx, dy, dz, out ) {
+    },
 
-    var rot=c.rotation.elements;
-    var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-    var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-    var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
-    var radx=ldx;
-    var radz=ldz;
-    var len=radx*radx+radz*radz;
-    var rad=c.radius;
-    var hh=c.halfHeight;
-    var ox;
-    var oy;
-    var oz;
-    if(len==0){
-    if(ldy<0){
-    ox=rad;
-    oy=-hh;
-    oz=0;
-    }else{
-    ox=rad;
-    oy=hh;
-    oz=0;
-    }
-    }else{
-    len=c.radius/_Math.sqrt(len);
-    if(ldy<0){
-    ox=radx*len;
-    oy=-hh;
-    oz=radz*len;
-    }else{
-    ox=radx*len;
-    oy=hh;
-    oz=radz*len;
-    }
-    }
-    ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-    ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-    ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
-    out.set( ldx, ldy, ldz );
+    supportPointC: function ( c, dx, dy, dz, out ) {
 
-};
+        var rot=c.rotation.elements;
+        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var radx=ldx;
+        var radz=ldz;
+        var len=radx*radx+radz*radz;
+        var rad=c.radius;
+        var hh=c.halfHeight;
+        var ox;
+        var oy;
+        var oz;
+        if(len==0){
+        if(ldy<0){
+        ox=rad;
+        oy=-hh;
+        oz=0;
+        }else{
+        ox=rad;
+        oy=hh;
+        oz=0;
+        }
+        }else{
+        len=c.radius/_Math.sqrt(len);
+        if(ldy<0){
+        ox=radx*len;
+        oy=-hh;
+        oz=radz*len;
+        }else{
+        ox=radx*len;
+        oy=hh;
+        oz=radz*len;
+        }
+        }
+        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        out.set( ldx, ldy, ldz );
 
-BoxCylinderCollisionDetector.prototype.detectCollision = function( shape1, shape2, manifold ) {
+    },
 
-    var b;
-    var c;
-    if(this.flip){
-    b=shape2;
-    c=shape1;
-    }else{
-    b=shape1;
-    c=shape2;
-    }
-    var sep=new Vec3();
-    var pos=new Vec3();
-    var dep=new Vec3();
+    detectCollision: function( shape1, shape2, manifold ) {
 
-    if(!this.getSep(b,c,sep,pos,dep))return;
-    var pbx=b.position.x;
-    var pby=b.position.y;
-    var pbz=b.position.z;
-    var pcx=c.position.x;
-    var pcy=c.position.y;
-    var pcz=c.position.z;
-    var bw=b.halfWidth;
-    var bh=b.halfHeight;
-    var bd=b.halfDepth;
-    var ch=c.halfHeight;
-    var r=c.radius;
+        var b;
+        var c;
+        if(this.flip){
+        b=shape2;
+        c=shape1;
+        }else{
+        b=shape1;
+        c=shape2;
+        }
+        var sep=new Vec3();
+        var pos=new Vec3();
+        var dep=new Vec3();
 
-    var D = b.dimentions;
+        if(!this.getSep(b,c,sep,pos,dep))return;
+        var pbx=b.position.x;
+        var pby=b.position.y;
+        var pbz=b.position.z;
+        var pcx=c.position.x;
+        var pcy=c.position.y;
+        var pcz=c.position.z;
+        var bw=b.halfWidth;
+        var bh=b.halfHeight;
+        var bd=b.halfDepth;
+        var ch=c.halfHeight;
+        var r=c.radius;
 
-    var nwx=D[0];//b.normalDirectionWidth.x;
-    var nwy=D[1];//b.normalDirectionWidth.y;
-    var nwz=D[2];//b.normalDirectionWidth.z;
-    var nhx=D[3];//b.normalDirectionHeight.x;
-    var nhy=D[4];//b.normalDirectionHeight.y;
-    var nhz=D[5];//b.normalDirectionHeight.z;
-    var ndx=D[6];//b.normalDirectionDepth.x;
-    var ndy=D[7];//b.normalDirectionDepth.y;
-    var ndz=D[8];//b.normalDirectionDepth.z;
+        var D = b.dimentions;
 
-    var dwx=D[9];//b.halfDirectionWidth.x;
-    var dwy=D[10];//b.halfDirectionWidth.y;
-    var dwz=D[11];//b.halfDirectionWidth.z;
-    var dhx=D[12];//b.halfDirectionHeight.x;
-    var dhy=D[13];//b.halfDirectionHeight.y;
-    var dhz=D[14];//b.halfDirectionHeight.z;
-    var ddx=D[15];//b.halfDirectionDepth.x;
-    var ddy=D[16];//b.halfDirectionDepth.y;
-    var ddz=D[17];//b.halfDirectionDepth.z;
+        var nwx=D[0];//b.normalDirectionWidth.x;
+        var nwy=D[1];//b.normalDirectionWidth.y;
+        var nwz=D[2];//b.normalDirectionWidth.z;
+        var nhx=D[3];//b.normalDirectionHeight.x;
+        var nhy=D[4];//b.normalDirectionHeight.y;
+        var nhz=D[5];//b.normalDirectionHeight.z;
+        var ndx=D[6];//b.normalDirectionDepth.x;
+        var ndy=D[7];//b.normalDirectionDepth.y;
+        var ndz=D[8];//b.normalDirectionDepth.z;
 
-    var ncx=c.normalDirection.x;
-    var ncy=c.normalDirection.y;
-    var ncz=c.normalDirection.z;
-    var dcx=c.halfDirection.x;
-    var dcy=c.halfDirection.y;
-    var dcz=c.halfDirection.z;
-    var nx=sep.x;
-    var ny=sep.y;
-    var nz=sep.z;
-    var dotw=nx*nwx+ny*nwy+nz*nwz;
-    var doth=nx*nhx+ny*nhy+nz*nhz;
-    var dotd=nx*ndx+ny*ndy+nz*ndz;
-    var dotc=nx*ncx+ny*ncy+nz*ncz;
-    var right1=dotw>0;
-    var right2=doth>0;
-    var right3=dotd>0;
-    var right4=dotc>0;
-    if(!right1)dotw=-dotw;
-    if(!right2)doth=-doth;
-    if(!right3)dotd=-dotd;
-    if(!right4)dotc=-dotc;
-    var state=0;
-    if(dotc>0.999){
-    if(dotw>0.999){
-    if(dotw>dotc)state=1;
-    else state=4;
-    }else if(doth>0.999){
-    if(doth>dotc)state=2;
-    else state=4;
-    }else if(dotd>0.999){
-    if(dotd>dotc)state=3;
-    else state=4;
-    }else state=4;
-    }else{
-    if(dotw>0.999)state=1;
-    else if(doth>0.999)state=2;
-    else if(dotd>0.999)state=3;
-    }
-    var cbx;
-    var cby;
-    var cbz;
-    var ccx;
-    var ccy;
-    var ccz;
-    var r00;
-    var r01;
-    var r02;
-    var r10;
-    var r11;
-    var r12;
-    var r20;
-    var r21;
-    var r22;
-    var px;
-    var py;
-    var pz;
-    var pd;
-    var dot;
-    var len;
-    var tx;
-    var ty;
-    var tz;
-    var td;
-    var dx;
-    var dy;
-    var dz;
-    var d1x;
-    var d1y;
-    var d1z;
-    var d2x;
-    var d2y;
-    var d2z;
-    var sx;
-    var sy;
-    var sz;
-    var sd;
-    var ex;
-    var ey;
-    var ez;
-    var ed;
-    var dot1;
-    var dot2;
-    var t1;
-    var dir1x;
-    var dir1y;
-    var dir1z;
-    var dir2x;
-    var dir2y;
-    var dir2z;
-    var dir1l;
-    var dir2l;
-    if(state==0){
-    //manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,dep.x,b,c,0,0,false);
-    manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,dep.x,this.flip);
-    }else if(state==4){
-    if(right4){
-    ccx=pcx-dcx;
-    ccy=pcy-dcy;
-    ccz=pcz-dcz;
-    nx=-ncx;
-    ny=-ncy;
-    nz=-ncz;
-    }else{
-    ccx=pcx+dcx;
-    ccy=pcy+dcy;
-    ccz=pcz+dcz;
-    nx=ncx;
-    ny=ncy;
-    nz=ncz;
-    }
-    var v1x;
-    var v1y;
-    var v1z;
-    var v2x;
-    var v2y;
-    var v2z;
-    var v3x;
-    var v3y;
-    var v3z;
-    var v4x;
-    var v4y;
-    var v4z;
-    
-    dot=1;
-    state=0;
-    dot1=nwx*nx+nwy*ny+nwz*nz;
-    if(dot1<dot){
-    dot=dot1;
-    state=0;
-    }
-    if(-dot1<dot){
-    dot=-dot1;
-    state=1;
-    }
-    dot1=nhx*nx+nhy*ny+nhz*nz;
-    if(dot1<dot){
-    dot=dot1;
-    state=2;
-    }
-    if(-dot1<dot){
-    dot=-dot1;
-    state=3;
-    }
-    dot1=ndx*nx+ndy*ny+ndz*nz;
-    if(dot1<dot){
-    dot=dot1;
-    state=4;
-    }
-    if(-dot1<dot){
-    dot=-dot1;
-    state=5;
-    }
-    var v = b.elements;
-    switch(state){
-    case 0:
-    //v=b.vertex1;
-    v1x=v[0];//v.x;
-    v1y=v[1];//v.y;
-    v1z=v[2];//v.z;
-    //v=b.vertex3;
-    v2x=v[6];//v.x;
-    v2y=v[7];//v.y;
-    v2z=v[8];//v.z;
-    //v=b.vertex4;
-    v3x=v[9];//v.x;
-    v3y=v[10];//v.y;
-    v3z=v[11];//v.z;
-    //v=b.vertex2;
-    v4x=v[3];//v.x;
-    v4y=v[4];//v.y;
-    v4z=v[5];//v.z;
-    break;
-    case 1:
-    //v=b.vertex6;
-    v1x=v[15];//v.x;
-    v1y=v[16];//v.y;
-    v1z=v[17];//v.z;
-    //v=b.vertex8;
-    v2x=v[21];//v.x;
-    v2y=v[22];//v.y;
-    v2z=v[23];//v.z;
-    //v=b.vertex7;
-    v3x=v[18];//v.x;
-    v3y=v[19];//v.y;
-    v3z=v[20];//v.z;
-    //v=b.vertex5;
-    v4x=v[12];//v.x;
-    v4y=v[13];//v.y;
-    v4z=v[14];//v.z;
-    break;
-    case 2:
-    //v=b.vertex5;
-    v1x=v[12];//v.x;
-    v1y=v[13];//v.y;
-    v1z=v[14];//v.z;
-    //v=b.vertex1;
-    v2x=v[0];//v.x;
-    v2y=v[1];//v.y;
-    v2z=v[2];//v.z;
-    //v=b.vertex2;
-    v3x=v[3];//v.x;
-    v3y=v[4];//v.y;
-    v3z=v[5];//v.z;
-    //v=b.vertex6;
-    v4x=v[15];//v.x;
-    v4y=v[16];//v.y;
-    v4z=v[17];//v.z;
-    break;
-    case 3:
-    //v=b.vertex8;
-    v1x=v[21];//v.x;
-    v1y=v[22];//v.y;
-    v1z=v[23];//v.z;
-    //v=b.vertex4;
-    v2x=v[9];//v.x;
-    v2y=v[10];//v.y;
-    v2z=v[11];//v.z;
-    //v=b.vertex3;
-    v3x=v[6];//v.x;
-    v3y=v[7];//v.y;
-    v3z=v[8];//v.z;
-    //v=b.vertex7;
-    v4x=v[18];//v.x;
-    v4y=v[19];//v.y;
-    v4z=v[20];//v.z;
-    break;
-    case 4:
-    //v=b.vertex5;
-    v1x=v[12];//v.x;
-    v1y=v[13];//v.y;
-    v1z=v[14];//v.z;
-    //v=b.vertex7;
-    v2x=v[18];//v.x;
-    v2y=v[19];//v.y;
-    v2z=v[20];//v.z;
-    //v=b.vertex3;
-    v3x=v[6];//v.x;
-    v3y=v[7];//v.y;
-    v3z=v[8];//v.z;
-    //v=b.vertex1;
-    v4x=v[0];//v.x;
-    v4y=v[1];//v.y;
-    v4z=v[2];//v.z;
-    break;
-    case 5:
-    //v=b.vertex2;
-    v1x=v[3];//v.x;
-    v1y=v[4];//v.y;
-    v1z=v[5];//v.z;
-    //v=b.vertex4;
-    v2x=v[9];//v.x;
-    v2y=v[10];//v.y;
-    v2z=v[11];//v.z;
-    //v=b.vertex8;
-    v3x=v[21];//v.x;
-    v3y=v[22];//v.y;
-    v3z=v[23];//v.z;
-    //v=b.vertex6;
-    v4x=v[15];//v.x;
-    v4y=v[16];//v.y;
-    v4z=v[17];//v.z;
-    break;
-    }
-    pd=nx*(v1x-ccx)+ny*(v1y-ccy)+nz*(v1z-ccz);
-    if(pd<=0)manifold.addPoint(v1x,v1y,v1z,-nx,-ny,-nz,pd,this.flip);
-    pd=nx*(v2x-ccx)+ny*(v2y-ccy)+nz*(v2z-ccz);
-    if(pd<=0)manifold.addPoint(v2x,v2y,v2z,-nx,-ny,-nz,pd,this.flip);
-    pd=nx*(v3x-ccx)+ny*(v3y-ccy)+nz*(v3z-ccz);
-    if(pd<=0)manifold.addPoint(v3x,v3y,v3z,-nx,-ny,-nz,pd,this.flip);
-    pd=nx*(v4x-ccx)+ny*(v4y-ccy)+nz*(v4z-ccz);
-    if(pd<=0)manifold.addPoint(v4x,v4y,v4z,-nx,-ny,-nz,pd,this.flip);
-    }else{
-    switch(state){
-    case 1:
-    if(right1){
-    cbx=pbx+dwx;
-    cby=pby+dwy;
-    cbz=pbz+dwz;
-    nx=nwx;
-    ny=nwy;
-    nz=nwz;
-    }else{
-    cbx=pbx-dwx;
-    cby=pby-dwy;
-    cbz=pbz-dwz;
-    nx=-nwx;
-    ny=-nwy;
-    nz=-nwz;
-    }
-    dir1x=nhx;
-    dir1y=nhy;
-    dir1z=nhz;
-    dir1l=bh;
-    dir2x=ndx;
-    dir2y=ndy;
-    dir2z=ndz;
-    dir2l=bd;
-    break;
-    case 2:
-    if(right2){
-    cbx=pbx+dhx;
-    cby=pby+dhy;
-    cbz=pbz+dhz;
-    nx=nhx;
-    ny=nhy;
-    nz=nhz;
-    }else{
-    cbx=pbx-dhx;
-    cby=pby-dhy;
-    cbz=pbz-dhz;
-    nx=-nhx;
-    ny=-nhy;
-    nz=-nhz;
-    }
-    dir1x=nwx;
-    dir1y=nwy;
-    dir1z=nwz;
-    dir1l=bw;
-    dir2x=ndx;
-    dir2y=ndy;
-    dir2z=ndz;
-    dir2l=bd;
-    break;
-    case 3:
-    if(right3){
-    cbx=pbx+ddx;
-    cby=pby+ddy;
-    cbz=pbz+ddz;
-    nx=ndx;
-    ny=ndy;
-    nz=ndz;
-    }else{
-    cbx=pbx-ddx;
-    cby=pby-ddy;
-    cbz=pbz-ddz;
-    nx=-ndx;
-    ny=-ndy;
-    nz=-ndz;
-    }
-    dir1x=nwx;
-    dir1y=nwy;
-    dir1z=nwz;
-    dir1l=bw;
-    dir2x=nhx;
-    dir2y=nhy;
-    dir2z=nhz;
-    dir2l=bh;
-    break;
-    }
-    dot=nx*ncx+ny*ncy+nz*ncz;
-    if(dot<0)len=ch;
-    else len=-ch;
-    ccx=pcx+len*ncx;
-    ccy=pcy+len*ncy;
-    ccz=pcz+len*ncz;
-    if(dotc>=0.999999){
-    tx=-ny;
-    ty=nz;
-    tz=nx;
-    }else{
-    tx=nx;
-    ty=ny;
-    tz=nz;
-    }
-    len=tx*ncx+ty*ncy+tz*ncz;
-    dx=len*ncx-tx;
-    dy=len*ncy-ty;
-    dz=len*ncz-tz;
-    len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
-    if(len==0)return;
-    len=r/len;
-    dx*=len;
-    dy*=len;
-    dz*=len;
-    tx=ccx+dx;
-    ty=ccy+dy;
-    tz=ccz+dz;
-    if(dot<-0.96||dot>0.96){
-    r00=ncx*ncx*1.5-0.5;
-    r01=ncx*ncy*1.5-ncz*0.866025403;
-    r02=ncx*ncz*1.5+ncy*0.866025403;
-    r10=ncy*ncx*1.5+ncz*0.866025403;
-    r11=ncy*ncy*1.5-0.5;
-    r12=ncy*ncz*1.5-ncx*0.866025403;
-    r20=ncz*ncx*1.5-ncy*0.866025403;
-    r21=ncz*ncy*1.5+ncx*0.866025403;
-    r22=ncz*ncz*1.5-0.5;
-    px=tx;
-    py=ty;
-    pz=tz;
-    pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
-    tx=px-pd*nx-cbx;
-    ty=py-pd*ny-cby;
-    tz=pz-pd*nz-cbz;
-    sd=dir1x*tx+dir1y*ty+dir1z*tz;
-    ed=dir2x*tx+dir2y*ty+dir2z*tz;
-    if(sd<-dir1l)sd=-dir1l;
-    else if(sd>dir1l)sd=dir1l;
-    if(ed<-dir2l)ed=-dir2l;
-    else if(ed>dir2l)ed=dir2l;
-    tx=sd*dir1x+ed*dir2x;
-    ty=sd*dir1y+ed*dir2y;
-    tz=sd*dir1z+ed*dir2z;
-    px=cbx+tx;
-    py=cby+ty;
-    pz=cbz+tz;
-    manifold.addPoint(px,py,pz,nx,ny,nz,pd,this.flip);
-    px=dx*r00+dy*r01+dz*r02;
-    py=dx*r10+dy*r11+dz*r12;
-    pz=dx*r20+dy*r21+dz*r22;
-    px=(dx=px)+ccx;
-    py=(dy=py)+ccy;
-    pz=(dz=pz)+ccz;
-    pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
-    if(pd<=0){
-    tx=px-pd*nx-cbx;
-    ty=py-pd*ny-cby;
-    tz=pz-pd*nz-cbz;
-    sd=dir1x*tx+dir1y*ty+dir1z*tz;
-    ed=dir2x*tx+dir2y*ty+dir2z*tz;
-    if(sd<-dir1l)sd=-dir1l;
-    else if(sd>dir1l)sd=dir1l;
-    if(ed<-dir2l)ed=-dir2l;
-    else if(ed>dir2l)ed=dir2l;
-    tx=sd*dir1x+ed*dir2x;
-    ty=sd*dir1y+ed*dir2y;
-    tz=sd*dir1z+ed*dir2z;
-    px=cbx+tx;
-    py=cby+ty;
-    pz=cbz+tz;
-    //manifold.addPoint(px,py,pz,nx,ny,nz,pd,b,c,2,0,false);
-    manifold.addPoint(px,py,pz,nx,ny,nz,pd,this.flip);
-    }
-    px=dx*r00+dy*r01+dz*r02;
-    py=dx*r10+dy*r11+dz*r12;
-    pz=dx*r20+dy*r21+dz*r22;
-    px=(dx=px)+ccx;
-    py=(dy=py)+ccy;
-    pz=(dz=pz)+ccz;
-    pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
-    if(pd<=0){
-    tx=px-pd*nx-cbx;
-    ty=py-pd*ny-cby;
-    tz=pz-pd*nz-cbz;
-    sd=dir1x*tx+dir1y*ty+dir1z*tz;
-    ed=dir2x*tx+dir2y*ty+dir2z*tz;
-    if(sd<-dir1l)sd=-dir1l;
-    else if(sd>dir1l)sd=dir1l;
-    if(ed<-dir2l)ed=-dir2l;
-    else if(ed>dir2l)ed=dir2l;
-    tx=sd*dir1x+ed*dir2x;
-    ty=sd*dir1y+ed*dir2y;
-    tz=sd*dir1z+ed*dir2z;
-    px=cbx+tx;
-    py=cby+ty;
-    pz=cbz+tz;
-    //manifold.addPoint(px,py,pz,nx,ny,nz,pd,b,c,3,0,false);
-    manifold.addPoint(px,py,pz,nx,ny,nz,pd,this.flip);
-    }
-    }else{
-    sx=tx;
-    sy=ty;
-    sz=tz;
-    sd=nx*(sx-cbx)+ny*(sy-cby)+nz*(sz-cbz);
-    sx-=sd*nx;
-    sy-=sd*ny;
-    sz-=sd*nz;
-    if(dot>0){
-    ex=tx+dcx*2;
-    ey=ty+dcy*2;
-    ez=tz+dcz*2;
-    }else{
-    ex=tx-dcx*2;
-    ey=ty-dcy*2;
-    ez=tz-dcz*2;
-    }
-    ed=nx*(ex-cbx)+ny*(ey-cby)+nz*(ez-cbz);
-    ex-=ed*nx;
-    ey-=ed*ny;
-    ez-=ed*nz;
-    d1x=sx-cbx;
-    d1y=sy-cby;
-    d1z=sz-cbz;
-    d2x=ex-cbx;
-    d2y=ey-cby;
-    d2z=ez-cbz;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    dotw=d1x*dir1x+d1y*dir1y+d1z*dir1z;
-    doth=d2x*dir1x+d2y*dir1y+d2z*dir1z;
-    dot1=dotw-dir1l;
-    dot2=doth-dir1l;
-    if(dot1>0){
-    if(dot2>0)return;
-    t1=dot1/(dot1-dot2);
-    sx=sx+tx*t1;
-    sy=sy+ty*t1;
-    sz=sz+tz*t1;
-    sd=sd+td*t1;
-    d1x=sx-cbx;
-    d1y=sy-cby;
-    d1z=sz-cbz;
-    dotw=d1x*dir1x+d1y*dir1y+d1z*dir1z;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    }else if(dot2>0){
-    t1=dot1/(dot1-dot2);
-    ex=sx+tx*t1;
-    ey=sy+ty*t1;
-    ez=sz+tz*t1;
-    ed=sd+td*t1;
-    d2x=ex-cbx;
-    d2y=ey-cby;
-    d2z=ez-cbz;
-    doth=d2x*dir1x+d2y*dir1y+d2z*dir1z;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    }
-    dot1=dotw+dir1l;
-    dot2=doth+dir1l;
-    if(dot1<0){
-    if(dot2<0)return;
-    t1=dot1/(dot1-dot2);
-    sx=sx+tx*t1;
-    sy=sy+ty*t1;
-    sz=sz+tz*t1;
-    sd=sd+td*t1;
-    d1x=sx-cbx;
-    d1y=sy-cby;
-    d1z=sz-cbz;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    }else if(dot2<0){
-    t1=dot1/(dot1-dot2);
-    ex=sx+tx*t1;
-    ey=sy+ty*t1;
-    ez=sz+tz*t1;
-    ed=sd+td*t1;
-    d2x=ex-cbx;
-    d2y=ey-cby;
-    d2z=ez-cbz;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    }
-    dotw=d1x*dir2x+d1y*dir2y+d1z*dir2z;
-    doth=d2x*dir2x+d2y*dir2y+d2z*dir2z;
-    dot1=dotw-dir2l;
-    dot2=doth-dir2l;
-    if(dot1>0){
-    if(dot2>0)return;
-    t1=dot1/(dot1-dot2);
-    sx=sx+tx*t1;
-    sy=sy+ty*t1;
-    sz=sz+tz*t1;
-    sd=sd+td*t1;
-    d1x=sx-cbx;
-    d1y=sy-cby;
-    d1z=sz-cbz;
-    dotw=d1x*dir2x+d1y*dir2y+d1z*dir2z;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    }else if(dot2>0){
-    t1=dot1/(dot1-dot2);
-    ex=sx+tx*t1;
-    ey=sy+ty*t1;
-    ez=sz+tz*t1;
-    ed=sd+td*t1;
-    d2x=ex-cbx;
-    d2y=ey-cby;
-    d2z=ez-cbz;
-    doth=d2x*dir2x+d2y*dir2y+d2z*dir2z;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    td=ed-sd;
-    }
-    dot1=dotw+dir2l;
-    dot2=doth+dir2l;
-    if(dot1<0){
-    if(dot2<0)return;
-    t1=dot1/(dot1-dot2);
-    sx=sx+tx*t1;
-    sy=sy+ty*t1;
-    sz=sz+tz*t1;
-    sd=sd+td*t1;
-    }else if(dot2<0){
-    t1=dot1/(dot1-dot2);
-    ex=sx+tx*t1;
-    ey=sy+ty*t1;
-    ez=sz+tz*t1;
-    ed=sd+td*t1;
-    }
-    if(sd<0){
-    //manifold.addPoint(sx,sy,sz,nx,ny,nz,sd,b,c,1,0,false);
-    manifold.addPoint(sx,sy,sz,nx,ny,nz,sd,this.flip);
-    }
-    if(ed<0){
-    //manifold.addPoint(ex,ey,ez,nx,ny,nz,ed,b,c,4,0,false);
-    manifold.addPoint(ex,ey,ez,nx,ny,nz,ed,this.flip);
-    }
-    }
+        var dwx=D[9];//b.halfDirectionWidth.x;
+        var dwy=D[10];//b.halfDirectionWidth.y;
+        var dwz=D[11];//b.halfDirectionWidth.z;
+        var dhx=D[12];//b.halfDirectionHeight.x;
+        var dhy=D[13];//b.halfDirectionHeight.y;
+        var dhz=D[14];//b.halfDirectionHeight.z;
+        var ddx=D[15];//b.halfDirectionDepth.x;
+        var ddy=D[16];//b.halfDirectionDepth.y;
+        var ddz=D[17];//b.halfDirectionDepth.z;
+
+        var ncx=c.normalDirection.x;
+        var ncy=c.normalDirection.y;
+        var ncz=c.normalDirection.z;
+        var dcx=c.halfDirection.x;
+        var dcy=c.halfDirection.y;
+        var dcz=c.halfDirection.z;
+        var nx=sep.x;
+        var ny=sep.y;
+        var nz=sep.z;
+        var dotw=nx*nwx+ny*nwy+nz*nwz;
+        var doth=nx*nhx+ny*nhy+nz*nhz;
+        var dotd=nx*ndx+ny*ndy+nz*ndz;
+        var dotc=nx*ncx+ny*ncy+nz*ncz;
+        var right1=dotw>0;
+        var right2=doth>0;
+        var right3=dotd>0;
+        var right4=dotc>0;
+        if(!right1)dotw=-dotw;
+        if(!right2)doth=-doth;
+        if(!right3)dotd=-dotd;
+        if(!right4)dotc=-dotc;
+        var state=0;
+        if(dotc>0.999){
+        if(dotw>0.999){
+        if(dotw>dotc)state=1;
+        else state=4;
+        }else if(doth>0.999){
+        if(doth>dotc)state=2;
+        else state=4;
+        }else if(dotd>0.999){
+        if(dotd>dotc)state=3;
+        else state=4;
+        }else state=4;
+        }else{
+        if(dotw>0.999)state=1;
+        else if(doth>0.999)state=2;
+        else if(dotd>0.999)state=3;
+        }
+        var cbx;
+        var cby;
+        var cbz;
+        var ccx;
+        var ccy;
+        var ccz;
+        var r00;
+        var r01;
+        var r02;
+        var r10;
+        var r11;
+        var r12;
+        var r20;
+        var r21;
+        var r22;
+        var px;
+        var py;
+        var pz;
+        var pd;
+        var dot;
+        var len;
+        var tx;
+        var ty;
+        var tz;
+        var td;
+        var dx;
+        var dy;
+        var dz;
+        var d1x;
+        var d1y;
+        var d1z;
+        var d2x;
+        var d2y;
+        var d2z;
+        var sx;
+        var sy;
+        var sz;
+        var sd;
+        var ex;
+        var ey;
+        var ez;
+        var ed;
+        var dot1;
+        var dot2;
+        var t1;
+        var dir1x;
+        var dir1y;
+        var dir1z;
+        var dir2x;
+        var dir2y;
+        var dir2z;
+        var dir1l;
+        var dir2l;
+        if(state==0){
+        //manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,dep.x,b,c,0,0,false);
+        manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,dep.x,this.flip);
+        }else if(state==4){
+        if(right4){
+        ccx=pcx-dcx;
+        ccy=pcy-dcy;
+        ccz=pcz-dcz;
+        nx=-ncx;
+        ny=-ncy;
+        nz=-ncz;
+        }else{
+        ccx=pcx+dcx;
+        ccy=pcy+dcy;
+        ccz=pcz+dcz;
+        nx=ncx;
+        ny=ncy;
+        nz=ncz;
+        }
+        var v1x;
+        var v1y;
+        var v1z;
+        var v2x;
+        var v2y;
+        var v2z;
+        var v3x;
+        var v3y;
+        var v3z;
+        var v4x;
+        var v4y;
+        var v4z;
+        
+        dot=1;
+        state=0;
+        dot1=nwx*nx+nwy*ny+nwz*nz;
+        if(dot1<dot){
+        dot=dot1;
+        state=0;
+        }
+        if(-dot1<dot){
+        dot=-dot1;
+        state=1;
+        }
+        dot1=nhx*nx+nhy*ny+nhz*nz;
+        if(dot1<dot){
+        dot=dot1;
+        state=2;
+        }
+        if(-dot1<dot){
+        dot=-dot1;
+        state=3;
+        }
+        dot1=ndx*nx+ndy*ny+ndz*nz;
+        if(dot1<dot){
+        dot=dot1;
+        state=4;
+        }
+        if(-dot1<dot){
+        dot=-dot1;
+        state=5;
+        }
+        var v = b.elements;
+        switch(state){
+        case 0:
+        //v=b.vertex1;
+        v1x=v[0];//v.x;
+        v1y=v[1];//v.y;
+        v1z=v[2];//v.z;
+        //v=b.vertex3;
+        v2x=v[6];//v.x;
+        v2y=v[7];//v.y;
+        v2z=v[8];//v.z;
+        //v=b.vertex4;
+        v3x=v[9];//v.x;
+        v3y=v[10];//v.y;
+        v3z=v[11];//v.z;
+        //v=b.vertex2;
+        v4x=v[3];//v.x;
+        v4y=v[4];//v.y;
+        v4z=v[5];//v.z;
+        break;
+        case 1:
+        //v=b.vertex6;
+        v1x=v[15];//v.x;
+        v1y=v[16];//v.y;
+        v1z=v[17];//v.z;
+        //v=b.vertex8;
+        v2x=v[21];//v.x;
+        v2y=v[22];//v.y;
+        v2z=v[23];//v.z;
+        //v=b.vertex7;
+        v3x=v[18];//v.x;
+        v3y=v[19];//v.y;
+        v3z=v[20];//v.z;
+        //v=b.vertex5;
+        v4x=v[12];//v.x;
+        v4y=v[13];//v.y;
+        v4z=v[14];//v.z;
+        break;
+        case 2:
+        //v=b.vertex5;
+        v1x=v[12];//v.x;
+        v1y=v[13];//v.y;
+        v1z=v[14];//v.z;
+        //v=b.vertex1;
+        v2x=v[0];//v.x;
+        v2y=v[1];//v.y;
+        v2z=v[2];//v.z;
+        //v=b.vertex2;
+        v3x=v[3];//v.x;
+        v3y=v[4];//v.y;
+        v3z=v[5];//v.z;
+        //v=b.vertex6;
+        v4x=v[15];//v.x;
+        v4y=v[16];//v.y;
+        v4z=v[17];//v.z;
+        break;
+        case 3:
+        //v=b.vertex8;
+        v1x=v[21];//v.x;
+        v1y=v[22];//v.y;
+        v1z=v[23];//v.z;
+        //v=b.vertex4;
+        v2x=v[9];//v.x;
+        v2y=v[10];//v.y;
+        v2z=v[11];//v.z;
+        //v=b.vertex3;
+        v3x=v[6];//v.x;
+        v3y=v[7];//v.y;
+        v3z=v[8];//v.z;
+        //v=b.vertex7;
+        v4x=v[18];//v.x;
+        v4y=v[19];//v.y;
+        v4z=v[20];//v.z;
+        break;
+        case 4:
+        //v=b.vertex5;
+        v1x=v[12];//v.x;
+        v1y=v[13];//v.y;
+        v1z=v[14];//v.z;
+        //v=b.vertex7;
+        v2x=v[18];//v.x;
+        v2y=v[19];//v.y;
+        v2z=v[20];//v.z;
+        //v=b.vertex3;
+        v3x=v[6];//v.x;
+        v3y=v[7];//v.y;
+        v3z=v[8];//v.z;
+        //v=b.vertex1;
+        v4x=v[0];//v.x;
+        v4y=v[1];//v.y;
+        v4z=v[2];//v.z;
+        break;
+        case 5:
+        //v=b.vertex2;
+        v1x=v[3];//v.x;
+        v1y=v[4];//v.y;
+        v1z=v[5];//v.z;
+        //v=b.vertex4;
+        v2x=v[9];//v.x;
+        v2y=v[10];//v.y;
+        v2z=v[11];//v.z;
+        //v=b.vertex8;
+        v3x=v[21];//v.x;
+        v3y=v[22];//v.y;
+        v3z=v[23];//v.z;
+        //v=b.vertex6;
+        v4x=v[15];//v.x;
+        v4y=v[16];//v.y;
+        v4z=v[17];//v.z;
+        break;
+        }
+        pd=nx*(v1x-ccx)+ny*(v1y-ccy)+nz*(v1z-ccz);
+        if(pd<=0)manifold.addPoint(v1x,v1y,v1z,-nx,-ny,-nz,pd,this.flip);
+        pd=nx*(v2x-ccx)+ny*(v2y-ccy)+nz*(v2z-ccz);
+        if(pd<=0)manifold.addPoint(v2x,v2y,v2z,-nx,-ny,-nz,pd,this.flip);
+        pd=nx*(v3x-ccx)+ny*(v3y-ccy)+nz*(v3z-ccz);
+        if(pd<=0)manifold.addPoint(v3x,v3y,v3z,-nx,-ny,-nz,pd,this.flip);
+        pd=nx*(v4x-ccx)+ny*(v4y-ccy)+nz*(v4z-ccz);
+        if(pd<=0)manifold.addPoint(v4x,v4y,v4z,-nx,-ny,-nz,pd,this.flip);
+        }else{
+        switch(state){
+        case 1:
+        if(right1){
+        cbx=pbx+dwx;
+        cby=pby+dwy;
+        cbz=pbz+dwz;
+        nx=nwx;
+        ny=nwy;
+        nz=nwz;
+        }else{
+        cbx=pbx-dwx;
+        cby=pby-dwy;
+        cbz=pbz-dwz;
+        nx=-nwx;
+        ny=-nwy;
+        nz=-nwz;
+        }
+        dir1x=nhx;
+        dir1y=nhy;
+        dir1z=nhz;
+        dir1l=bh;
+        dir2x=ndx;
+        dir2y=ndy;
+        dir2z=ndz;
+        dir2l=bd;
+        break;
+        case 2:
+        if(right2){
+        cbx=pbx+dhx;
+        cby=pby+dhy;
+        cbz=pbz+dhz;
+        nx=nhx;
+        ny=nhy;
+        nz=nhz;
+        }else{
+        cbx=pbx-dhx;
+        cby=pby-dhy;
+        cbz=pbz-dhz;
+        nx=-nhx;
+        ny=-nhy;
+        nz=-nhz;
+        }
+        dir1x=nwx;
+        dir1y=nwy;
+        dir1z=nwz;
+        dir1l=bw;
+        dir2x=ndx;
+        dir2y=ndy;
+        dir2z=ndz;
+        dir2l=bd;
+        break;
+        case 3:
+        if(right3){
+        cbx=pbx+ddx;
+        cby=pby+ddy;
+        cbz=pbz+ddz;
+        nx=ndx;
+        ny=ndy;
+        nz=ndz;
+        }else{
+        cbx=pbx-ddx;
+        cby=pby-ddy;
+        cbz=pbz-ddz;
+        nx=-ndx;
+        ny=-ndy;
+        nz=-ndz;
+        }
+        dir1x=nwx;
+        dir1y=nwy;
+        dir1z=nwz;
+        dir1l=bw;
+        dir2x=nhx;
+        dir2y=nhy;
+        dir2z=nhz;
+        dir2l=bh;
+        break;
+        }
+        dot=nx*ncx+ny*ncy+nz*ncz;
+        if(dot<0)len=ch;
+        else len=-ch;
+        ccx=pcx+len*ncx;
+        ccy=pcy+len*ncy;
+        ccz=pcz+len*ncz;
+        if(dotc>=0.999999){
+        tx=-ny;
+        ty=nz;
+        tz=nx;
+        }else{
+        tx=nx;
+        ty=ny;
+        tz=nz;
+        }
+        len=tx*ncx+ty*ncy+tz*ncz;
+        dx=len*ncx-tx;
+        dy=len*ncy-ty;
+        dz=len*ncz-tz;
+        len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(len==0)return;
+        len=r/len;
+        dx*=len;
+        dy*=len;
+        dz*=len;
+        tx=ccx+dx;
+        ty=ccy+dy;
+        tz=ccz+dz;
+        if(dot<-0.96||dot>0.96){
+        r00=ncx*ncx*1.5-0.5;
+        r01=ncx*ncy*1.5-ncz*0.866025403;
+        r02=ncx*ncz*1.5+ncy*0.866025403;
+        r10=ncy*ncx*1.5+ncz*0.866025403;
+        r11=ncy*ncy*1.5-0.5;
+        r12=ncy*ncz*1.5-ncx*0.866025403;
+        r20=ncz*ncx*1.5-ncy*0.866025403;
+        r21=ncz*ncy*1.5+ncx*0.866025403;
+        r22=ncz*ncz*1.5-0.5;
+        px=tx;
+        py=ty;
+        pz=tz;
+        pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
+        tx=px-pd*nx-cbx;
+        ty=py-pd*ny-cby;
+        tz=pz-pd*nz-cbz;
+        sd=dir1x*tx+dir1y*ty+dir1z*tz;
+        ed=dir2x*tx+dir2y*ty+dir2z*tz;
+        if(sd<-dir1l)sd=-dir1l;
+        else if(sd>dir1l)sd=dir1l;
+        if(ed<-dir2l)ed=-dir2l;
+        else if(ed>dir2l)ed=dir2l;
+        tx=sd*dir1x+ed*dir2x;
+        ty=sd*dir1y+ed*dir2y;
+        tz=sd*dir1z+ed*dir2z;
+        px=cbx+tx;
+        py=cby+ty;
+        pz=cbz+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,this.flip);
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+ccx;
+        py=(dy=py)+ccy;
+        pz=(dz=pz)+ccz;
+        pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
+        if(pd<=0){
+        tx=px-pd*nx-cbx;
+        ty=py-pd*ny-cby;
+        tz=pz-pd*nz-cbz;
+        sd=dir1x*tx+dir1y*ty+dir1z*tz;
+        ed=dir2x*tx+dir2y*ty+dir2z*tz;
+        if(sd<-dir1l)sd=-dir1l;
+        else if(sd>dir1l)sd=dir1l;
+        if(ed<-dir2l)ed=-dir2l;
+        else if(ed>dir2l)ed=dir2l;
+        tx=sd*dir1x+ed*dir2x;
+        ty=sd*dir1y+ed*dir2y;
+        tz=sd*dir1z+ed*dir2z;
+        px=cbx+tx;
+        py=cby+ty;
+        pz=cbz+tz;
+        //manifold.addPoint(px,py,pz,nx,ny,nz,pd,b,c,2,0,false);
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,this.flip);
+        }
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+ccx;
+        py=(dy=py)+ccy;
+        pz=(dz=pz)+ccz;
+        pd=nx*(px-cbx)+ny*(py-cby)+nz*(pz-cbz);
+        if(pd<=0){
+        tx=px-pd*nx-cbx;
+        ty=py-pd*ny-cby;
+        tz=pz-pd*nz-cbz;
+        sd=dir1x*tx+dir1y*ty+dir1z*tz;
+        ed=dir2x*tx+dir2y*ty+dir2z*tz;
+        if(sd<-dir1l)sd=-dir1l;
+        else if(sd>dir1l)sd=dir1l;
+        if(ed<-dir2l)ed=-dir2l;
+        else if(ed>dir2l)ed=dir2l;
+        tx=sd*dir1x+ed*dir2x;
+        ty=sd*dir1y+ed*dir2y;
+        tz=sd*dir1z+ed*dir2z;
+        px=cbx+tx;
+        py=cby+ty;
+        pz=cbz+tz;
+        //manifold.addPoint(px,py,pz,nx,ny,nz,pd,b,c,3,0,false);
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,this.flip);
+        }
+        }else{
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        sd=nx*(sx-cbx)+ny*(sy-cby)+nz*(sz-cbz);
+        sx-=sd*nx;
+        sy-=sd*ny;
+        sz-=sd*nz;
+        if(dot>0){
+        ex=tx+dcx*2;
+        ey=ty+dcy*2;
+        ez=tz+dcz*2;
+        }else{
+        ex=tx-dcx*2;
+        ey=ty-dcy*2;
+        ez=tz-dcz*2;
+        }
+        ed=nx*(ex-cbx)+ny*(ey-cby)+nz*(ez-cbz);
+        ex-=ed*nx;
+        ey-=ed*ny;
+        ez-=ed*nz;
+        d1x=sx-cbx;
+        d1y=sy-cby;
+        d1z=sz-cbz;
+        d2x=ex-cbx;
+        d2y=ey-cby;
+        d2z=ez-cbz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        dotw=d1x*dir1x+d1y*dir1y+d1z*dir1z;
+        doth=d2x*dir1x+d2y*dir1y+d2z*dir1z;
+        dot1=dotw-dir1l;
+        dot2=doth-dir1l;
+        if(dot1>0){
+        if(dot2>0)return;
+        t1=dot1/(dot1-dot2);
+        sx=sx+tx*t1;
+        sy=sy+ty*t1;
+        sz=sz+tz*t1;
+        sd=sd+td*t1;
+        d1x=sx-cbx;
+        d1y=sy-cby;
+        d1z=sz-cbz;
+        dotw=d1x*dir1x+d1y*dir1y+d1z*dir1z;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        }else if(dot2>0){
+        t1=dot1/(dot1-dot2);
+        ex=sx+tx*t1;
+        ey=sy+ty*t1;
+        ez=sz+tz*t1;
+        ed=sd+td*t1;
+        d2x=ex-cbx;
+        d2y=ey-cby;
+        d2z=ez-cbz;
+        doth=d2x*dir1x+d2y*dir1y+d2z*dir1z;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        }
+        dot1=dotw+dir1l;
+        dot2=doth+dir1l;
+        if(dot1<0){
+        if(dot2<0)return;
+        t1=dot1/(dot1-dot2);
+        sx=sx+tx*t1;
+        sy=sy+ty*t1;
+        sz=sz+tz*t1;
+        sd=sd+td*t1;
+        d1x=sx-cbx;
+        d1y=sy-cby;
+        d1z=sz-cbz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        }else if(dot2<0){
+        t1=dot1/(dot1-dot2);
+        ex=sx+tx*t1;
+        ey=sy+ty*t1;
+        ez=sz+tz*t1;
+        ed=sd+td*t1;
+        d2x=ex-cbx;
+        d2y=ey-cby;
+        d2z=ez-cbz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        }
+        dotw=d1x*dir2x+d1y*dir2y+d1z*dir2z;
+        doth=d2x*dir2x+d2y*dir2y+d2z*dir2z;
+        dot1=dotw-dir2l;
+        dot2=doth-dir2l;
+        if(dot1>0){
+        if(dot2>0)return;
+        t1=dot1/(dot1-dot2);
+        sx=sx+tx*t1;
+        sy=sy+ty*t1;
+        sz=sz+tz*t1;
+        sd=sd+td*t1;
+        d1x=sx-cbx;
+        d1y=sy-cby;
+        d1z=sz-cbz;
+        dotw=d1x*dir2x+d1y*dir2y+d1z*dir2z;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        }else if(dot2>0){
+        t1=dot1/(dot1-dot2);
+        ex=sx+tx*t1;
+        ey=sy+ty*t1;
+        ez=sz+tz*t1;
+        ed=sd+td*t1;
+        d2x=ex-cbx;
+        d2y=ey-cby;
+        d2z=ez-cbz;
+        doth=d2x*dir2x+d2y*dir2y+d2z*dir2z;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        td=ed-sd;
+        }
+        dot1=dotw+dir2l;
+        dot2=doth+dir2l;
+        if(dot1<0){
+        if(dot2<0)return;
+        t1=dot1/(dot1-dot2);
+        sx=sx+tx*t1;
+        sy=sy+ty*t1;
+        sz=sz+tz*t1;
+        sd=sd+td*t1;
+        }else if(dot2<0){
+        t1=dot1/(dot1-dot2);
+        ex=sx+tx*t1;
+        ey=sy+ty*t1;
+        ez=sz+tz*t1;
+        ed=sd+td*t1;
+        }
+        if(sd<0){
+        //manifold.addPoint(sx,sy,sz,nx,ny,nz,sd,b,c,1,0,false);
+        manifold.addPoint(sx,sy,sz,nx,ny,nz,sd,this.flip);
+        }
+        if(ed<0){
+        //manifold.addPoint(ex,ey,ez,nx,ny,nz,ed,b,c,4,0,false);
+        manifold.addPoint(ex,ey,ez,nx,ny,nz,ed,this.flip);
+        }
+        }
+        }
+
     }
 
-};
+    });
 
 function CylinderCylinderCollisionDetector() {
     
@@ -9786,805 +9734,809 @@ function CylinderCylinderCollisionDetector() {
 
 }
 
-CylinderCylinderCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
-CylinderCylinderCollisionDetector.prototype.constructor = CylinderCylinderCollisionDetector;
+CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
-CylinderCylinderCollisionDetector.prototype.getSep = function ( c1, c2, sep, pos, dep ) {
+    constructor: CylinderCylinderCollisionDetector,
 
-    var t1x;
-    var t1y;
-    var t1z;
-    var t2x;
-    var t2y;
-    var t2z;
-    var sup=new Vec3();
-    var len;
-    var p1x;
-    var p1y;
-    var p1z;
-    var p2x;
-    var p2y;
-    var p2z;
-    var v01x=c1.position.x;
-    var v01y=c1.position.y;
-    var v01z=c1.position.z;
-    var v02x=c2.position.x;
-    var v02y=c2.position.y;
-    var v02z=c2.position.z;
-    var v0x=v02x-v01x;
-    var v0y=v02y-v01y;
-    var v0z=v02z-v01z;
-    if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
-    var nx=-v0x;
-    var ny=-v0y;
-    var nz=-v0z;
-    this.supportPoint(c1,-nx,-ny,-nz,sup);
-    var v11x=sup.x;
-    var v11y=sup.y;
-    var v11z=sup.z;
-    this.supportPoint(c2,nx,ny,nz,sup);
-    var v12x=sup.x;
-    var v12y=sup.y;
-    var v12z=sup.z;
-    var v1x=v12x-v11x;
-    var v1y=v12y-v11y;
-    var v1z=v12z-v11z;
-    if(v1x*nx+v1y*ny+v1z*nz<=0){
-    return false;
-    }
-    nx=v1y*v0z-v1z*v0y;
-    ny=v1z*v0x-v1x*v0z;
-    nz=v1x*v0y-v1y*v0x;
-    if(nx*nx+ny*ny+nz*nz==0){
-    sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
-    pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
-    return true;
-    }
-    this.supportPoint(c1,-nx,-ny,-nz,sup);
-    var v21x=sup.x;
-    var v21y=sup.y;
-    var v21z=sup.z;
-    this.supportPoint(c2,nx,ny,nz,sup);
-    var v22x=sup.x;
-    var v22y=sup.y;
-    var v22z=sup.z;
-    var v2x=v22x-v21x;
-    var v2y=v22y-v21y;
-    var v2z=v22z-v21z;
-    if(v2x*nx+v2y*ny+v2z*nz<=0){
-    return false;
-    }
-    t1x=v1x-v0x;
-    t1y=v1y-v0y;
-    t1z=v1z-v0z;
-    t2x=v2x-v0x;
-    t2y=v2y-v0y;
-    t2z=v2z-v0z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    if(nx*v0x+ny*v0y+nz*v0z>0){
-    t1x=v1x;
-    t1y=v1y;
-    t1z=v1z;
-    v1x=v2x;
-    v1y=v2y;
-    v1z=v2z;
-    v2x=t1x;
-    v2y=t1y;
-    v2z=t1z;
-    t1x=v11x;
-    t1y=v11y;
-    t1z=v11z;
-    v11x=v21x;
-    v11y=v21y;
-    v11z=v21z;
-    v21x=t1x;
-    v21y=t1y;
-    v21z=t1z;
-    t1x=v12x;
-    t1y=v12y;
-    t1z=v12z;
-    v12x=v22x;
-    v12y=v22y;
-    v12z=v22z;
-    v22x=t1x;
-    v22y=t1y;
-    v22z=t1z;
-    nx=-nx;
-    ny=-ny;
-    nz=-nz;
-    }
-    var iterations=0;
-    while(true){
-    if(++iterations>100){
-    return false;
-    }
-    this.supportPoint(c1,-nx,-ny,-nz,sup);
-    var v31x=sup.x;
-    var v31y=sup.y;
-    var v31z=sup.z;
-    this.supportPoint(c2,nx,ny,nz,sup);
-    var v32x=sup.x;
-    var v32y=sup.y;
-    var v32z=sup.z;
-    var v3x=v32x-v31x;
-    var v3y=v32y-v31y;
-    var v3z=v32z-v31z;
-    if(v3x*nx+v3y*ny+v3z*nz<=0){
-    return false;
-    }
-    if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
-    v2x=v3x;
-    v2y=v3y;
-    v2z=v3z;
-    v21x=v31x;
-    v21y=v31y;
-    v21z=v31z;
-    v22x=v32x;
-    v22y=v32y;
-    v22z=v32z;
-    t1x=v1x-v0x;
-    t1y=v1y-v0y;
-    t1z=v1z-v0z;
-    t2x=v3x-v0x;
-    t2y=v3y-v0y;
-    t2z=v3z-v0z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    continue;
-    }
-    if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
-    v1x=v3x;
-    v1y=v3y;
-    v1z=v3z;
-    v11x=v31x;
-    v11y=v31y;
-    v11z=v31z;
-    v12x=v32x;
-    v12y=v32y;
-    v12z=v32z;
-    t1x=v3x-v0x;
-    t1y=v3y-v0y;
-    t1z=v3z-v0z;
-    t2x=v2x-v0x;
-    t2y=v2y-v0y;
-    t2z=v2z-v0z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    continue;
-    }
-    var hit=false;
-    while(true){
-    t1x=v2x-v1x;
-    t1y=v2y-v1y;
-    t1z=v2z-v1z;
-    t2x=v3x-v1x;
-    t2y=v3y-v1y;
-    t2z=v3z-v1z;
-    nx=t1y*t2z-t1z*t2y;
-    ny=t1z*t2x-t1x*t2z;
-    nz=t1x*t2y-t1y*t2x;
-    len=1/_Math.sqrt(nx*nx+ny*ny+nz*nz);
-    nx*=len;
-    ny*=len;
-    nz*=len;
-    if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
-    var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
-    var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
-    var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
-    var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
-    var sum=b0+b1+b2+b3;
-    if(sum<=0){
-    b0=0;
-    b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
-    b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
-    b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
-    sum=b1+b2+b3;
-    }
-    var inv=1/sum;
-    p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
-    p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
-    p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
-    p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
-    p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
-    p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
-    hit=true;
-    }
-    this.supportPoint(c1,-nx,-ny,-nz,sup);
-    var v41x=sup.x;
-    var v41y=sup.y;
-    var v41z=sup.z;
-    this.supportPoint(c2,nx,ny,nz,sup);
-    var v42x=sup.x;
-    var v42y=sup.y;
-    var v42z=sup.z;
-    var v4x=v42x-v41x;
-    var v4y=v42y-v41y;
-    var v4z=v42z-v41z;
-    var separation=-(v4x*nx+v4y*ny+v4z*nz);
-    if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
-    if(hit){
-    sep.set( -nx, -ny, -nz );
-    pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
-    dep.x=separation;
-    return true;
-    }
-    return false;
-    }
-    if(
-    (v4y*v1z-v4z*v1y)*v0x+
-    (v4z*v1x-v4x*v1z)*v0y+
-    (v4x*v1y-v4y*v1x)*v0z<0
-    ){
-    if(
-    (v4y*v2z-v4z*v2y)*v0x+
-    (v4z*v2x-v4x*v2z)*v0y+
-    (v4x*v2y-v4y*v2x)*v0z<0
-    ){
-    v1x=v4x;
-    v1y=v4y;
-    v1z=v4z;
-    v11x=v41x;
-    v11y=v41y;
-    v11z=v41z;
-    v12x=v42x;
-    v12y=v42y;
-    v12z=v42z;
-    }else{
-    v3x=v4x;
-    v3y=v4y;
-    v3z=v4z;
-    v31x=v41x;
-    v31y=v41y;
-    v31z=v41z;
-    v32x=v42x;
-    v32y=v42y;
-    v32z=v42z;
-    }
-    }else{
-    if(
-    (v4y*v3z-v4z*v3y)*v0x+
-    (v4z*v3x-v4x*v3z)*v0y+
-    (v4x*v3y-v4y*v3x)*v0z<0
-    ){
-    v2x=v4x;
-    v2y=v4y;
-    v2z=v4z;
-    v21x=v41x;
-    v21y=v41y;
-    v21z=v41z;
-    v22x=v42x;
-    v22y=v42y;
-    v22z=v42z;
-    }else{
-    v1x=v4x;
-    v1y=v4y;
-    v1z=v4z;
-    v11x=v41x;
-    v11y=v41y;
-    v11z=v41z;
-    v12x=v42x;
-    v12y=v42y;
-    v12z=v42z;
-    }
-    }
-    }
-    }
-    //return false;
-};
 
-CylinderCylinderCollisionDetector.prototype.supportPoint = function ( c, dx, dy, dz, out ) {
+    getSep: function ( c1, c2, sep, pos, dep ) {
 
-    var rot=c.rotation.elements;
-    var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-    var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-    var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
-    var radx=ldx;
-    var radz=ldz;
-    var len=radx*radx+radz*radz;
-    var rad=c.radius;
-    var hh=c.halfHeight;
-    var ox;
-    var oy;
-    var oz;
-    if(len==0){
-    if(ldy<0){
-    ox=rad;
-    oy=-hh;
-    oz=0;
-    }else{
-    ox=rad;
-    oy=hh;
-    oz=0;
-    }
-    }else{
-    len=c.radius/_Math.sqrt(len);
-    if(ldy<0){
-    ox=radx*len;
-    oy=-hh;
-    oz=radz*len;
-    }else{
-    ox=radx*len;
-    oy=hh;
-    oz=radz*len;
-    }
-    }
-    ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-    ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-    ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
-    out.set( ldx, ldy, ldz );
+        var t1x;
+        var t1y;
+        var t1z;
+        var t2x;
+        var t2y;
+        var t2z;
+        var sup=new Vec3();
+        var len;
+        var p1x;
+        var p1y;
+        var p1z;
+        var p2x;
+        var p2y;
+        var p2z;
+        var v01x=c1.position.x;
+        var v01y=c1.position.y;
+        var v01z=c1.position.z;
+        var v02x=c2.position.x;
+        var v02y=c2.position.y;
+        var v02z=c2.position.z;
+        var v0x=v02x-v01x;
+        var v0y=v02y-v01y;
+        var v0z=v02z-v01z;
+        if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
+        var nx=-v0x;
+        var ny=-v0y;
+        var nz=-v0z;
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v11x=sup.x;
+        var v11y=sup.y;
+        var v11z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v12x=sup.x;
+        var v12y=sup.y;
+        var v12z=sup.z;
+        var v1x=v12x-v11x;
+        var v1y=v12y-v11y;
+        var v1z=v12z-v11z;
+        if(v1x*nx+v1y*ny+v1z*nz<=0){
+        return false;
+        }
+        nx=v1y*v0z-v1z*v0y;
+        ny=v1z*v0x-v1x*v0z;
+        nz=v1x*v0y-v1y*v0x;
+        if(nx*nx+ny*ny+nz*nz==0){
+        sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
+        pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
+        return true;
+        }
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v21x=sup.x;
+        var v21y=sup.y;
+        var v21z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v22x=sup.x;
+        var v22y=sup.y;
+        var v22z=sup.z;
+        var v2x=v22x-v21x;
+        var v2y=v22y-v21y;
+        var v2z=v22z-v21z;
+        if(v2x*nx+v2y*ny+v2z*nz<=0){
+        return false;
+        }
+        t1x=v1x-v0x;
+        t1y=v1y-v0y;
+        t1z=v1z-v0z;
+        t2x=v2x-v0x;
+        t2y=v2y-v0y;
+        t2z=v2z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        if(nx*v0x+ny*v0y+nz*v0z>0){
+        t1x=v1x;
+        t1y=v1y;
+        t1z=v1z;
+        v1x=v2x;
+        v1y=v2y;
+        v1z=v2z;
+        v2x=t1x;
+        v2y=t1y;
+        v2z=t1z;
+        t1x=v11x;
+        t1y=v11y;
+        t1z=v11z;
+        v11x=v21x;
+        v11y=v21y;
+        v11z=v21z;
+        v21x=t1x;
+        v21y=t1y;
+        v21z=t1z;
+        t1x=v12x;
+        t1y=v12y;
+        t1z=v12z;
+        v12x=v22x;
+        v12y=v22y;
+        v12z=v22z;
+        v22x=t1x;
+        v22y=t1y;
+        v22z=t1z;
+        nx=-nx;
+        ny=-ny;
+        nz=-nz;
+        }
+        var iterations=0;
+        while(true){
+        if(++iterations>100){
+        return false;
+        }
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v31x=sup.x;
+        var v31y=sup.y;
+        var v31z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v32x=sup.x;
+        var v32y=sup.y;
+        var v32z=sup.z;
+        var v3x=v32x-v31x;
+        var v3y=v32y-v31y;
+        var v3z=v32z-v31z;
+        if(v3x*nx+v3y*ny+v3z*nz<=0){
+        return false;
+        }
+        if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
+        v2x=v3x;
+        v2y=v3y;
+        v2z=v3z;
+        v21x=v31x;
+        v21y=v31y;
+        v21z=v31z;
+        v22x=v32x;
+        v22y=v32y;
+        v22z=v32z;
+        t1x=v1x-v0x;
+        t1y=v1y-v0y;
+        t1z=v1z-v0z;
+        t2x=v3x-v0x;
+        t2y=v3y-v0y;
+        t2z=v3z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        continue;
+        }
+        if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
+        v1x=v3x;
+        v1y=v3y;
+        v1z=v3z;
+        v11x=v31x;
+        v11y=v31y;
+        v11z=v31z;
+        v12x=v32x;
+        v12y=v32y;
+        v12z=v32z;
+        t1x=v3x-v0x;
+        t1y=v3y-v0y;
+        t1z=v3z-v0z;
+        t2x=v2x-v0x;
+        t2y=v2y-v0y;
+        t2z=v2z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        continue;
+        }
+        var hit=false;
+        while(true){
+        t1x=v2x-v1x;
+        t1y=v2y-v1y;
+        t1z=v2z-v1z;
+        t2x=v3x-v1x;
+        t2y=v3y-v1y;
+        t2z=v3z-v1z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        len=1/_Math.sqrt(nx*nx+ny*ny+nz*nz);
+        nx*=len;
+        ny*=len;
+        nz*=len;
+        if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
+        var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
+        var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
+        var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
+        var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
+        var sum=b0+b1+b2+b3;
+        if(sum<=0){
+        b0=0;
+        b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
+        b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
+        b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
+        sum=b1+b2+b3;
+        }
+        var inv=1/sum;
+        p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
+        p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
+        p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
+        p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
+        p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
+        p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
+        hit=true;
+        }
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v41x=sup.x;
+        var v41y=sup.y;
+        var v41z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v42x=sup.x;
+        var v42y=sup.y;
+        var v42z=sup.z;
+        var v4x=v42x-v41x;
+        var v4y=v42y-v41y;
+        var v4z=v42z-v41z;
+        var separation=-(v4x*nx+v4y*ny+v4z*nz);
+        if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
+        if(hit){
+        sep.set( -nx, -ny, -nz );
+        pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
+        dep.x=separation;
+        return true;
+        }
+        return false;
+        }
+        if(
+        (v4y*v1z-v4z*v1y)*v0x+
+        (v4z*v1x-v4x*v1z)*v0y+
+        (v4x*v1y-v4y*v1x)*v0z<0
+        ){
+        if(
+        (v4y*v2z-v4z*v2y)*v0x+
+        (v4z*v2x-v4x*v2z)*v0y+
+        (v4x*v2y-v4y*v2x)*v0z<0
+        ){
+        v1x=v4x;
+        v1y=v4y;
+        v1z=v4z;
+        v11x=v41x;
+        v11y=v41y;
+        v11z=v41z;
+        v12x=v42x;
+        v12y=v42y;
+        v12z=v42z;
+        }else{
+        v3x=v4x;
+        v3y=v4y;
+        v3z=v4z;
+        v31x=v41x;
+        v31y=v41y;
+        v31z=v41z;
+        v32x=v42x;
+        v32y=v42y;
+        v32z=v42z;
+        }
+        }else{
+        if(
+        (v4y*v3z-v4z*v3y)*v0x+
+        (v4z*v3x-v4x*v3z)*v0y+
+        (v4x*v3y-v4y*v3x)*v0z<0
+        ){
+        v2x=v4x;
+        v2y=v4y;
+        v2z=v4z;
+        v21x=v41x;
+        v21y=v41y;
+        v21z=v41z;
+        v22x=v42x;
+        v22y=v42y;
+        v22z=v42z;
+        }else{
+        v1x=v4x;
+        v1y=v4y;
+        v1z=v4z;
+        v11x=v41x;
+        v11y=v41y;
+        v11z=v41z;
+        v12x=v42x;
+        v12y=v42y;
+        v12z=v42z;
+        }
+        }
+        }
+        }
+        //return false;
+    },
 
-};
+    supportPoint: function ( c, dx, dy, dz, out ) {
 
-CylinderCylinderCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
+        var rot=c.rotation.elements;
+        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var radx=ldx;
+        var radz=ldz;
+        var len=radx*radx+radz*radz;
+        var rad=c.radius;
+        var hh=c.halfHeight;
+        var ox;
+        var oy;
+        var oz;
+        if(len==0){
+        if(ldy<0){
+        ox=rad;
+        oy=-hh;
+        oz=0;
+        }else{
+        ox=rad;
+        oy=hh;
+        oz=0;
+        }
+        }else{
+        len=c.radius/_Math.sqrt(len);
+        if(ldy<0){
+        ox=radx*len;
+        oy=-hh;
+        oz=radz*len;
+        }else{
+        ox=radx*len;
+        oy=hh;
+        oz=radz*len;
+        }
+        }
+        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        out.set( ldx, ldy, ldz );
 
-    var c1;
-    var c2;
-    if(shape1.id<shape2.id){
-        c1=shape1;
-        c2=shape2;
-    }else{
-        c1=shape2;
-        c2=shape1;
-    }
-    var p1=c1.position;
-    var p2=c2.position;
-    var p1x=p1.x;
-    var p1y=p1.y;
-    var p1z=p1.z;
-    var p2x=p2.x;
-    var p2y=p2.y;
-    var p2z=p2.z;
-    var h1=c1.halfHeight;
-    var h2=c2.halfHeight;
-    var n1=c1.normalDirection;
-    var n2=c2.normalDirection;
-    var d1=c1.halfDirection;
-    var d2=c2.halfDirection;
-    var r1=c1.radius;
-    var r2=c2.radius;
-    var n1x=n1.x;
-    var n1y=n1.y;
-    var n1z=n1.z;
-    var n2x=n2.x;
-    var n2y=n2.y;
-    var n2z=n2.z;
-    var d1x=d1.x;
-    var d1y=d1.y;
-    var d1z=d1.z;
-    var d2x=d2.x;
-    var d2y=d2.y;
-    var d2z=d2.z;
-    var dx=p1x-p2x;
-    var dy=p1y-p2y;
-    var dz=p1z-p2z;
-    var len;
-    var c1x;
-    var c1y;
-    var c1z;
-    var c2x;
-    var c2y;
-    var c2z;
-    var tx;
-    var ty;
-    var tz;
-    var sx;
-    var sy;
-    var sz;
-    var ex;
-    var ey;
-    var ez;
-    var depth1;
-    var depth2;
-    var dot;
-    var t1;
-    var t2;
-    var sep=new Vec3();
-    var pos=new Vec3();
-    var dep=new Vec3();
-    if(!this.getSep(c1,c2,sep,pos,dep))return;
-    var dot1=sep.x*n1x+sep.y*n1y+sep.z*n1z;
-    var dot2=sep.x*n2x+sep.y*n2y+sep.z*n2z;
-    var right1=dot1>0;
-    var right2=dot2>0;
-    if(!right1)dot1=-dot1;
-    if(!right2)dot2=-dot2;
-    var state=0;
-    if(dot1>0.999||dot2>0.999){
-    if(dot1>dot2)state=1;
-    else state=2;
-    }
-    var nx;
-    var ny;
-    var nz;
-    var depth=dep.x;
-    var r00;
-    var r01;
-    var r02;
-    var r10;
-    var r11;
-    var r12;
-    var r20;
-    var r21;
-    var r22;
-    var px;
-    var py;
-    var pz;
-    var pd;
-    var a;
-    var b;
-    var e;
-    var f;
-    nx=sep.x;
-    ny=sep.y;
-    nz=sep.z;
-    switch(state){
-    case 0:
-    manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,depth,false);
-    break;
-    case 1:
-    if(right1){
-    c1x=p1x+d1x;
-    c1y=p1y+d1y;
-    c1z=p1z+d1z;
-    nx=n1x;
-    ny=n1y;
-    nz=n1z;
-    }else{
-    c1x=p1x-d1x;
-    c1y=p1y-d1y;
-    c1z=p1z-d1z;
-    nx=-n1x;
-    ny=-n1y;
-    nz=-n1z;
-    }
-    dot=nx*n2x+ny*n2y+nz*n2z;
-    if(dot<0)len=h2;
-    else len=-h2;
-    c2x=p2x+len*n2x;
-    c2y=p2y+len*n2y;
-    c2z=p2z+len*n2z;
-    if(dot2>=0.999999){
-    tx=-ny;
-    ty=nz;
-    tz=nx;
-    }else{
-    tx=nx;
-    ty=ny;
-    tz=nz;
-    }
-    len=tx*n2x+ty*n2y+tz*n2z;
-    dx=len*n2x-tx;
-    dy=len*n2y-ty;
-    dz=len*n2z-tz;
-    len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
-    if(len==0)break;
-    len=r2/len;
-    dx*=len;
-    dy*=len;
-    dz*=len;
-    tx=c2x+dx;
-    ty=c2y+dy;
-    tz=c2z+dz;
-    if(dot<-0.96||dot>0.96){
-    r00=n2x*n2x*1.5-0.5;
-    r01=n2x*n2y*1.5-n2z*0.866025403;
-    r02=n2x*n2z*1.5+n2y*0.866025403;
-    r10=n2y*n2x*1.5+n2z*0.866025403;
-    r11=n2y*n2y*1.5-0.5;
-    r12=n2y*n2z*1.5-n2x*0.866025403;
-    r20=n2z*n2x*1.5-n2y*0.866025403;
-    r21=n2z*n2y*1.5+n2x*0.866025403;
-    r22=n2z*n2z*1.5-0.5;
-    px=tx;
-    py=ty;
-    pz=tz;
-    pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
-    tx=px-pd*nx-c1x;
-    ty=py-pd*ny-c1y;
-    tz=pz-pd*nz-c1z;
-    len=tx*tx+ty*ty+tz*tz;
-    if(len>r1*r1){
-    len=r1/_Math.sqrt(len);
-    tx*=len;
-    ty*=len;
-    tz*=len;
-    }
-    px=c1x+tx;
-    py=c1y+ty;
-    pz=c1z+tz;
-    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
-    px=dx*r00+dy*r01+dz*r02;
-    py=dx*r10+dy*r11+dz*r12;
-    pz=dx*r20+dy*r21+dz*r22;
-    px=(dx=px)+c2x;
-    py=(dy=py)+c2y;
-    pz=(dz=pz)+c2z;
-    pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
-    if(pd<=0){
-    tx=px-pd*nx-c1x;
-    ty=py-pd*ny-c1y;
-    tz=pz-pd*nz-c1z;
-    len=tx*tx+ty*ty+tz*tz;
-    if(len>r1*r1){
-    len=r1/_Math.sqrt(len);
-    tx*=len;
-    ty*=len;
-    tz*=len;
-    }
-    px=c1x+tx;
-    py=c1y+ty;
-    pz=c1z+tz;
-    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
-    }
-    px=dx*r00+dy*r01+dz*r02;
-    py=dx*r10+dy*r11+dz*r12;
-    pz=dx*r20+dy*r21+dz*r22;
-    px=(dx=px)+c2x;
-    py=(dy=py)+c2y;
-    pz=(dz=pz)+c2z;
-    pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
-    if(pd<=0){
-    tx=px-pd*nx-c1x;
-    ty=py-pd*ny-c1y;
-    tz=pz-pd*nz-c1z;
-    len=tx*tx+ty*ty+tz*tz;
-    if(len>r1*r1){
-    len=r1/_Math.sqrt(len);
-    tx*=len;
-    ty*=len;
-    tz*=len;
-    }
-    px=c1x+tx;
-    py=c1y+ty;
-    pz=c1z+tz;
-    manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
-    }
-    }else{
-    sx=tx;
-    sy=ty;
-    sz=tz;
-    depth1=nx*(sx-c1x)+ny*(sy-c1y)+nz*(sz-c1z);
-    sx-=depth1*nx;
-    sy-=depth1*ny;
-    sz-=depth1*nz;
-    if(dot>0){
-    ex=tx+n2x*h2*2;
-    ey=ty+n2y*h2*2;
-    ez=tz+n2z*h2*2;
-    }else{
-    ex=tx-n2x*h2*2;
-    ey=ty-n2y*h2*2;
-    ez=tz-n2z*h2*2;
-    }
-    depth2=nx*(ex-c1x)+ny*(ey-c1y)+nz*(ez-c1z);
-    ex-=depth2*nx;
-    ey-=depth2*ny;
-    ez-=depth2*nz;
-    dx=c1x-sx;
-    dy=c1y-sy;
-    dz=c1z-sz;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    a=dx*dx+dy*dy+dz*dz;
-    b=dx*tx+dy*ty+dz*tz;
-    e=tx*tx+ty*ty+tz*tz;
-    f=b*b-e*(a-r1*r1);
-    if(f<0)break;
-    f=_Math.sqrt(f);
-    t1=(b+f)/e;
-    t2=(b-f)/e;
-    if(t2<t1){
-    len=t1;
-    t1=t2;
-    t2=len;
-    }
-    if(t2>1)t2=1;
-    if(t1<0)t1=0;
-    tx=sx+(ex-sx)*t1;
-    ty=sy+(ey-sy)*t1;
-    tz=sz+(ez-sz)*t1;
-    ex=sx+(ex-sx)*t2;
-    ey=sy+(ey-sy)*t2;
-    ez=sz+(ez-sz)*t2;
-    sx=tx;
-    sy=ty;
-    sz=tz;
-    len=depth1+(depth2-depth1)*t1;
-    depth2=depth1+(depth2-depth1)*t2;
-    depth1=len;
-    if(depth1<0) manifold.addPoint(sx,sy,sz,nx,ny,nz,pd,false);
-    if(depth2<0) manifold.addPoint(ex,ey,ez,nx,ny,nz,pd,false);
-    
-    }
-    break;
-    case 2:
-    if(right2){
-    c2x=p2x-d2x;
-    c2y=p2y-d2y;
-    c2z=p2z-d2z;
-    nx=-n2x;
-    ny=-n2y;
-    nz=-n2z;
-    }else{
-    c2x=p2x+d2x;
-    c2y=p2y+d2y;
-    c2z=p2z+d2z;
-    nx=n2x;
-    ny=n2y;
-    nz=n2z;
-    }
-    dot=nx*n1x+ny*n1y+nz*n1z;
-    if(dot<0)len=h1;
-    else len=-h1;
-    c1x=p1x+len*n1x;
-    c1y=p1y+len*n1y;
-    c1z=p1z+len*n1z;
-    if(dot1>=0.999999){
-    tx=-ny;
-    ty=nz;
-    tz=nx;
-    }else{
-    tx=nx;
-    ty=ny;
-    tz=nz;
-    }
-    len=tx*n1x+ty*n1y+tz*n1z;
-    dx=len*n1x-tx;
-    dy=len*n1y-ty;
-    dz=len*n1z-tz;
-    len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
-    if(len==0)break;
-    len=r1/len;
-    dx*=len;
-    dy*=len;
-    dz*=len;
-    tx=c1x+dx;
-    ty=c1y+dy;
-    tz=c1z+dz;
-    if(dot<-0.96||dot>0.96){
-    r00=n1x*n1x*1.5-0.5;
-    r01=n1x*n1y*1.5-n1z*0.866025403;
-    r02=n1x*n1z*1.5+n1y*0.866025403;
-    r10=n1y*n1x*1.5+n1z*0.866025403;
-    r11=n1y*n1y*1.5-0.5;
-    r12=n1y*n1z*1.5-n1x*0.866025403;
-    r20=n1z*n1x*1.5-n1y*0.866025403;
-    r21=n1z*n1y*1.5+n1x*0.866025403;
-    r22=n1z*n1z*1.5-0.5;
-    px=tx;
-    py=ty;
-    pz=tz;
-    pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
-    tx=px-pd*nx-c2x;
-    ty=py-pd*ny-c2y;
-    tz=pz-pd*nz-c2z;
-    len=tx*tx+ty*ty+tz*tz;
-    if(len>r2*r2){
-    len=r2/_Math.sqrt(len);
-    tx*=len;
-    ty*=len;
-    tz*=len;
-    }
-    px=c2x+tx;
-    py=c2y+ty;
-    pz=c2z+tz;
-    manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
-    px=dx*r00+dy*r01+dz*r02;
-    py=dx*r10+dy*r11+dz*r12;
-    pz=dx*r20+dy*r21+dz*r22;
-    px=(dx=px)+c1x;
-    py=(dy=py)+c1y;
-    pz=(dz=pz)+c1z;
-    pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
-    if(pd<=0){
-    tx=px-pd*nx-c2x;
-    ty=py-pd*ny-c2y;
-    tz=pz-pd*nz-c2z;
-    len=tx*tx+ty*ty+tz*tz;
-    if(len>r2*r2){
-    len=r2/_Math.sqrt(len);
-    tx*=len;
-    ty*=len;
-    tz*=len;
-    }
-    px=c2x+tx;
-    py=c2y+ty;
-    pz=c2z+tz;
-    manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
-    }
-    px=dx*r00+dy*r01+dz*r02;
-    py=dx*r10+dy*r11+dz*r12;
-    pz=dx*r20+dy*r21+dz*r22;
-    px=(dx=px)+c1x;
-    py=(dy=py)+c1y;
-    pz=(dz=pz)+c1z;
-    pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
-    if(pd<=0){
-    tx=px-pd*nx-c2x;
-    ty=py-pd*ny-c2y;
-    tz=pz-pd*nz-c2z;
-    len=tx*tx+ty*ty+tz*tz;
-    if(len>r2*r2){
-    len=r2/_Math.sqrt(len);
-    tx*=len;
-    ty*=len;
-    tz*=len;
-    }
-    px=c2x+tx;
-    py=c2y+ty;
-    pz=c2z+tz;
-    manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
-    }
-    }else{
-    sx=tx;
-    sy=ty;
-    sz=tz;
-    depth1=nx*(sx-c2x)+ny*(sy-c2y)+nz*(sz-c2z);
-    sx-=depth1*nx;
-    sy-=depth1*ny;
-    sz-=depth1*nz;
-    if(dot>0){
-    ex=tx+n1x*h1*2;
-    ey=ty+n1y*h1*2;
-    ez=tz+n1z*h1*2;
-    }else{
-    ex=tx-n1x*h1*2;
-    ey=ty-n1y*h1*2;
-    ez=tz-n1z*h1*2;
-    }
-    depth2=nx*(ex-c2x)+ny*(ey-c2y)+nz*(ez-c2z);
-    ex-=depth2*nx;
-    ey-=depth2*ny;
-    ez-=depth2*nz;
-    dx=c2x-sx;
-    dy=c2y-sy;
-    dz=c2z-sz;
-    tx=ex-sx;
-    ty=ey-sy;
-    tz=ez-sz;
-    a=dx*dx+dy*dy+dz*dz;
-    b=dx*tx+dy*ty+dz*tz;
-    e=tx*tx+ty*ty+tz*tz;
-    f=b*b-e*(a-r2*r2);
-    if(f<0)break;
-    f=_Math.sqrt(f);
-    t1=(b+f)/e;
-    t2=(b-f)/e;
-    if(t2<t1){
-    len=t1;
-    t1=t2;
-    t2=len;
-    }
-    if(t2>1)t2=1;
-    if(t1<0)t1=0;
-    tx=sx+(ex-sx)*t1;
-    ty=sy+(ey-sy)*t1;
-    tz=sz+(ez-sz)*t1;
-    ex=sx+(ex-sx)*t2;
-    ey=sy+(ey-sy)*t2;
-    ez=sz+(ez-sz)*t2;
-    sx=tx;
-    sy=ty;
-    sz=tz;
-    len=depth1+(depth2-depth1)*t1;
-    depth2=depth1+(depth2-depth1)*t2;
-    depth1=len;
-    if(depth1<0){
-    manifold.addPoint(sx,sy,sz,-nx,-ny,-nz,depth1,false);
-    }
-    if(depth2<0){
-    manifold.addPoint(ex,ey,ez,-nx,-ny,-nz,depth2,false);
-    }
-    }
-    break;
+    },
+
+    detectCollision: function ( shape1, shape2, manifold ) {
+
+        var c1;
+        var c2;
+        if(shape1.id<shape2.id){
+            c1=shape1;
+            c2=shape2;
+        }else{
+            c1=shape2;
+            c2=shape1;
+        }
+        var p1=c1.position;
+        var p2=c2.position;
+        var p1x=p1.x;
+        var p1y=p1.y;
+        var p1z=p1.z;
+        var p2x=p2.x;
+        var p2y=p2.y;
+        var p2z=p2.z;
+        var h1=c1.halfHeight;
+        var h2=c2.halfHeight;
+        var n1=c1.normalDirection;
+        var n2=c2.normalDirection;
+        var d1=c1.halfDirection;
+        var d2=c2.halfDirection;
+        var r1=c1.radius;
+        var r2=c2.radius;
+        var n1x=n1.x;
+        var n1y=n1.y;
+        var n1z=n1.z;
+        var n2x=n2.x;
+        var n2y=n2.y;
+        var n2z=n2.z;
+        var d1x=d1.x;
+        var d1y=d1.y;
+        var d1z=d1.z;
+        var d2x=d2.x;
+        var d2y=d2.y;
+        var d2z=d2.z;
+        var dx=p1x-p2x;
+        var dy=p1y-p2y;
+        var dz=p1z-p2z;
+        var len;
+        var c1x;
+        var c1y;
+        var c1z;
+        var c2x;
+        var c2y;
+        var c2z;
+        var tx;
+        var ty;
+        var tz;
+        var sx;
+        var sy;
+        var sz;
+        var ex;
+        var ey;
+        var ez;
+        var depth1;
+        var depth2;
+        var dot;
+        var t1;
+        var t2;
+        var sep=new Vec3();
+        var pos=new Vec3();
+        var dep=new Vec3();
+        if(!this.getSep(c1,c2,sep,pos,dep))return;
+        var dot1=sep.x*n1x+sep.y*n1y+sep.z*n1z;
+        var dot2=sep.x*n2x+sep.y*n2y+sep.z*n2z;
+        var right1=dot1>0;
+        var right2=dot2>0;
+        if(!right1)dot1=-dot1;
+        if(!right2)dot2=-dot2;
+        var state=0;
+        if(dot1>0.999||dot2>0.999){
+        if(dot1>dot2)state=1;
+        else state=2;
+        }
+        var nx;
+        var ny;
+        var nz;
+        var depth=dep.x;
+        var r00;
+        var r01;
+        var r02;
+        var r10;
+        var r11;
+        var r12;
+        var r20;
+        var r21;
+        var r22;
+        var px;
+        var py;
+        var pz;
+        var pd;
+        var a;
+        var b;
+        var e;
+        var f;
+        nx=sep.x;
+        ny=sep.y;
+        nz=sep.z;
+        switch(state){
+        case 0:
+        manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,depth,false);
+        break;
+        case 1:
+        if(right1){
+        c1x=p1x+d1x;
+        c1y=p1y+d1y;
+        c1z=p1z+d1z;
+        nx=n1x;
+        ny=n1y;
+        nz=n1z;
+        }else{
+        c1x=p1x-d1x;
+        c1y=p1y-d1y;
+        c1z=p1z-d1z;
+        nx=-n1x;
+        ny=-n1y;
+        nz=-n1z;
+        }
+        dot=nx*n2x+ny*n2y+nz*n2z;
+        if(dot<0)len=h2;
+        else len=-h2;
+        c2x=p2x+len*n2x;
+        c2y=p2y+len*n2y;
+        c2z=p2z+len*n2z;
+        if(dot2>=0.999999){
+        tx=-ny;
+        ty=nz;
+        tz=nx;
+        }else{
+        tx=nx;
+        ty=ny;
+        tz=nz;
+        }
+        len=tx*n2x+ty*n2y+tz*n2z;
+        dx=len*n2x-tx;
+        dy=len*n2y-ty;
+        dz=len*n2z-tz;
+        len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(len==0)break;
+        len=r2/len;
+        dx*=len;
+        dy*=len;
+        dz*=len;
+        tx=c2x+dx;
+        ty=c2y+dy;
+        tz=c2z+dz;
+        if(dot<-0.96||dot>0.96){
+        r00=n2x*n2x*1.5-0.5;
+        r01=n2x*n2y*1.5-n2z*0.866025403;
+        r02=n2x*n2z*1.5+n2y*0.866025403;
+        r10=n2y*n2x*1.5+n2z*0.866025403;
+        r11=n2y*n2y*1.5-0.5;
+        r12=n2y*n2z*1.5-n2x*0.866025403;
+        r20=n2z*n2x*1.5-n2y*0.866025403;
+        r21=n2z*n2y*1.5+n2x*0.866025403;
+        r22=n2z*n2z*1.5-0.5;
+        px=tx;
+        py=ty;
+        pz=tz;
+        pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+        tx=px-pd*nx-c1x;
+        ty=py-pd*ny-c1y;
+        tz=pz-pd*nz-c1z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r1*r1){
+        len=r1/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c1x+tx;
+        py=c1y+ty;
+        pz=c1z+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c2x;
+        py=(dy=py)+c2y;
+        pz=(dz=pz)+c2z;
+        pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+        if(pd<=0){
+        tx=px-pd*nx-c1x;
+        ty=py-pd*ny-c1y;
+        tz=pz-pd*nz-c1z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r1*r1){
+        len=r1/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c1x+tx;
+        py=c1y+ty;
+        pz=c1z+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+        }
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c2x;
+        py=(dy=py)+c2y;
+        pz=(dz=pz)+c2z;
+        pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+        if(pd<=0){
+        tx=px-pd*nx-c1x;
+        ty=py-pd*ny-c1y;
+        tz=pz-pd*nz-c1z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r1*r1){
+        len=r1/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c1x+tx;
+        py=c1y+ty;
+        pz=c1z+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+        }
+        }else{
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        depth1=nx*(sx-c1x)+ny*(sy-c1y)+nz*(sz-c1z);
+        sx-=depth1*nx;
+        sy-=depth1*ny;
+        sz-=depth1*nz;
+        if(dot>0){
+        ex=tx+n2x*h2*2;
+        ey=ty+n2y*h2*2;
+        ez=tz+n2z*h2*2;
+        }else{
+        ex=tx-n2x*h2*2;
+        ey=ty-n2y*h2*2;
+        ez=tz-n2z*h2*2;
+        }
+        depth2=nx*(ex-c1x)+ny*(ey-c1y)+nz*(ez-c1z);
+        ex-=depth2*nx;
+        ey-=depth2*ny;
+        ez-=depth2*nz;
+        dx=c1x-sx;
+        dy=c1y-sy;
+        dz=c1z-sz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        a=dx*dx+dy*dy+dz*dz;
+        b=dx*tx+dy*ty+dz*tz;
+        e=tx*tx+ty*ty+tz*tz;
+        f=b*b-e*(a-r1*r1);
+        if(f<0)break;
+        f=_Math.sqrt(f);
+        t1=(b+f)/e;
+        t2=(b-f)/e;
+        if(t2<t1){
+        len=t1;
+        t1=t2;
+        t2=len;
+        }
+        if(t2>1)t2=1;
+        if(t1<0)t1=0;
+        tx=sx+(ex-sx)*t1;
+        ty=sy+(ey-sy)*t1;
+        tz=sz+(ez-sz)*t1;
+        ex=sx+(ex-sx)*t2;
+        ey=sy+(ey-sy)*t2;
+        ez=sz+(ez-sz)*t2;
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        len=depth1+(depth2-depth1)*t1;
+        depth2=depth1+(depth2-depth1)*t2;
+        depth1=len;
+        if(depth1<0) manifold.addPoint(sx,sy,sz,nx,ny,nz,pd,false);
+        if(depth2<0) manifold.addPoint(ex,ey,ez,nx,ny,nz,pd,false);
+        
+        }
+        break;
+        case 2:
+        if(right2){
+        c2x=p2x-d2x;
+        c2y=p2y-d2y;
+        c2z=p2z-d2z;
+        nx=-n2x;
+        ny=-n2y;
+        nz=-n2z;
+        }else{
+        c2x=p2x+d2x;
+        c2y=p2y+d2y;
+        c2z=p2z+d2z;
+        nx=n2x;
+        ny=n2y;
+        nz=n2z;
+        }
+        dot=nx*n1x+ny*n1y+nz*n1z;
+        if(dot<0)len=h1;
+        else len=-h1;
+        c1x=p1x+len*n1x;
+        c1y=p1y+len*n1y;
+        c1z=p1z+len*n1z;
+        if(dot1>=0.999999){
+        tx=-ny;
+        ty=nz;
+        tz=nx;
+        }else{
+        tx=nx;
+        ty=ny;
+        tz=nz;
+        }
+        len=tx*n1x+ty*n1y+tz*n1z;
+        dx=len*n1x-tx;
+        dy=len*n1y-ty;
+        dz=len*n1z-tz;
+        len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(len==0)break;
+        len=r1/len;
+        dx*=len;
+        dy*=len;
+        dz*=len;
+        tx=c1x+dx;
+        ty=c1y+dy;
+        tz=c1z+dz;
+        if(dot<-0.96||dot>0.96){
+        r00=n1x*n1x*1.5-0.5;
+        r01=n1x*n1y*1.5-n1z*0.866025403;
+        r02=n1x*n1z*1.5+n1y*0.866025403;
+        r10=n1y*n1x*1.5+n1z*0.866025403;
+        r11=n1y*n1y*1.5-0.5;
+        r12=n1y*n1z*1.5-n1x*0.866025403;
+        r20=n1z*n1x*1.5-n1y*0.866025403;
+        r21=n1z*n1y*1.5+n1x*0.866025403;
+        r22=n1z*n1z*1.5-0.5;
+        px=tx;
+        py=ty;
+        pz=tz;
+        pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+        tx=px-pd*nx-c2x;
+        ty=py-pd*ny-c2y;
+        tz=pz-pd*nz-c2z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r2*r2){
+        len=r2/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c2x+tx;
+        py=c2y+ty;
+        pz=c2z+tz;
+        manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c1x;
+        py=(dy=py)+c1y;
+        pz=(dz=pz)+c1z;
+        pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+        if(pd<=0){
+        tx=px-pd*nx-c2x;
+        ty=py-pd*ny-c2y;
+        tz=pz-pd*nz-c2z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r2*r2){
+        len=r2/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c2x+tx;
+        py=c2y+ty;
+        pz=c2z+tz;
+        manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+        }
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c1x;
+        py=(dy=py)+c1y;
+        pz=(dz=pz)+c1z;
+        pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+        if(pd<=0){
+        tx=px-pd*nx-c2x;
+        ty=py-pd*ny-c2y;
+        tz=pz-pd*nz-c2z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r2*r2){
+        len=r2/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c2x+tx;
+        py=c2y+ty;
+        pz=c2z+tz;
+        manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+        }
+        }else{
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        depth1=nx*(sx-c2x)+ny*(sy-c2y)+nz*(sz-c2z);
+        sx-=depth1*nx;
+        sy-=depth1*ny;
+        sz-=depth1*nz;
+        if(dot>0){
+        ex=tx+n1x*h1*2;
+        ey=ty+n1y*h1*2;
+        ez=tz+n1z*h1*2;
+        }else{
+        ex=tx-n1x*h1*2;
+        ey=ty-n1y*h1*2;
+        ez=tz-n1z*h1*2;
+        }
+        depth2=nx*(ex-c2x)+ny*(ey-c2y)+nz*(ez-c2z);
+        ex-=depth2*nx;
+        ey-=depth2*ny;
+        ez-=depth2*nz;
+        dx=c2x-sx;
+        dy=c2y-sy;
+        dz=c2z-sz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        a=dx*dx+dy*dy+dz*dz;
+        b=dx*tx+dy*ty+dz*tz;
+        e=tx*tx+ty*ty+tz*tz;
+        f=b*b-e*(a-r2*r2);
+        if(f<0)break;
+        f=_Math.sqrt(f);
+        t1=(b+f)/e;
+        t2=(b-f)/e;
+        if(t2<t1){
+        len=t1;
+        t1=t2;
+        t2=len;
+        }
+        if(t2>1)t2=1;
+        if(t1<0)t1=0;
+        tx=sx+(ex-sx)*t1;
+        ty=sy+(ey-sy)*t1;
+        tz=sz+(ez-sz)*t1;
+        ex=sx+(ex-sx)*t2;
+        ey=sy+(ey-sy)*t2;
+        ez=sz+(ez-sz)*t2;
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        len=depth1+(depth2-depth1)*t1;
+        depth2=depth1+(depth2-depth1)*t2;
+        depth1=len;
+        if(depth1<0){
+        manifold.addPoint(sx,sy,sz,-nx,-ny,-nz,depth1,false);
+        }
+        if(depth2<0){
+        manifold.addPoint(ex,ey,ez,-nx,-ny,-nz,depth2,false);
+        }
+        }
+        break;
+        }
+
     }
 
-};
+});
 
 /**
  * A collision detector which detects collisions between sphere and box.
@@ -10597,128 +10549,101 @@ function SphereBoxCollisionDetector ( flip ) {
 
 }
 
-SphereBoxCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
-SphereBoxCollisionDetector.prototype.constructor = SphereBoxCollisionDetector;
+SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
-SphereBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
+    constructor: SphereBoxCollisionDetector,
 
-    var s;
-    var b;
-    if(this.flip){
-        s=(shape2);
-        b=(shape1);
-    }else{
-        s=(shape1);
-        b=(shape2);
-    }
+    detectCollision: function ( shape1, shape2, manifold ) {
 
-    var D = b.dimentions;
-
-    var ps=s.position;
-    var psx=ps.x;
-    var psy=ps.y;
-    var psz=ps.z;
-    var pb=b.position;
-    var pbx=pb.x;
-    var pby=pb.y;
-    var pbz=pb.z;
-    var rad=s.radius;
-
-    var hw=b.halfWidth;
-    var hh=b.halfHeight;
-    var hd=b.halfDepth;
-
-    var dx=psx-pbx;
-    var dy=psy-pby;
-    var dz=psz-pbz;
-    var sx=D[0]*dx+D[1]*dy+D[2]*dz;
-    var sy=D[3]*dx+D[4]*dy+D[5]*dz;
-    var sz=D[6]*dx+D[7]*dy+D[8]*dz;
-    var cx;
-    var cy;
-    var cz;
-    var len;
-    var invLen;
-    var overlap=0;
-    if(sx>hw){
-        sx=hw;
-    }else if(sx<-hw){
-        sx=-hw;
-    }else{
-        overlap=1;
-    }
-    if(sy>hh){
-        sy=hh;
-    }else if(sy<-hh){
-        sy=-hh;
-    }else{
-        overlap|=2;
-    }
-    if(sz>hd){
-        sz=hd;
-    }else if(sz<-hd){
-        sz=-hd;
-    }else{
-        overlap|=4;
-    }
-    if(overlap==7){
-        // center of sphere is in the box
-        if(sx<0){
-            dx=hw+sx;
+        var s;
+        var b;
+        if(this.flip){
+            s=(shape2);
+            b=(shape1);
         }else{
-            dx=hw-sx;
+            s=(shape1);
+            b=(shape2);
         }
-        if(sy<0){
-            dy=hh+sy;
+
+        var D = b.dimentions;
+
+        var ps=s.position;
+        var psx=ps.x;
+        var psy=ps.y;
+        var psz=ps.z;
+        var pb=b.position;
+        var pbx=pb.x;
+        var pby=pb.y;
+        var pbz=pb.z;
+        var rad=s.radius;
+
+        var hw=b.halfWidth;
+        var hh=b.halfHeight;
+        var hd=b.halfDepth;
+
+        var dx=psx-pbx;
+        var dy=psy-pby;
+        var dz=psz-pbz;
+        var sx=D[0]*dx+D[1]*dy+D[2]*dz;
+        var sy=D[3]*dx+D[4]*dy+D[5]*dz;
+        var sz=D[6]*dx+D[7]*dy+D[8]*dz;
+        var cx;
+        var cy;
+        var cz;
+        var len;
+        var invLen;
+        var overlap=0;
+        if(sx>hw){
+            sx=hw;
+        }else if(sx<-hw){
+            sx=-hw;
         }else{
-            dy=hh-sy;
+            overlap=1;
         }
-        if(sz<0){
-            dz=hd+sz;
+        if(sy>hh){
+            sy=hh;
+        }else if(sy<-hh){
+            sy=-hh;
         }else{
-            dz=hd-sz;
+            overlap|=2;
         }
-        if(dx<dy){
-            if(dx<dz){
-                len=dx-hw;
+        if(sz>hd){
+            sz=hd;
+        }else if(sz<-hd){
+            sz=-hd;
+        }else{
+            overlap|=4;
+        }
+        if(overlap==7){
+            // center of sphere is in the box
             if(sx<0){
-                sx=-hw;
-                dx=D[0];
-                dy=D[1];
-                dz=D[2];
+                dx=hw+sx;
             }else{
-                sx=hw;
-                dx=-D[0];
-                dy=-D[1];
-                dz=-D[2];
+                dx=hw-sx;
             }
-        }else{
-            len=dz-hd;
+            if(sy<0){
+                dy=hh+sy;
+            }else{
+                dy=hh-sy;
+            }
             if(sz<0){
-                sz=-hd;
-                dx=D[6];
-                dy=D[7];
-                dz=D[8];
+                dz=hd+sz;
             }else{
-                sz=hd;
-                dx=-D[6];
-                dy=-D[7];
-                dz=-D[8];
+                dz=hd-sz;
             }
-        }
-        }else{
-            if(dy<dz){
-                len=dy-hh;
-                if(sy<0){
-                    sy=-hh;
-                    dx=D[3];
-                    dy=D[4];
-                    dz=D[5];
+            if(dx<dy){
+                if(dx<dz){
+                    len=dx-hw;
+                if(sx<0){
+                    sx=-hw;
+                    dx=D[0];
+                    dy=D[1];
+                    dz=D[2];
                 }else{
-                    sy=hh;
-                    dx=-D[3];
-                    dy=-D[4];
-                    dz=-D[5];
+                    sx=hw;
+                    dx=-D[0];
+                    dy=-D[1];
+                    dz=-D[2];
                 }
             }else{
                 len=dz-hd;
@@ -10732,32 +10657,62 @@ SphereBoxCollisionDetector.prototype.detectCollision = function ( shape1, shape2
                     dx=-D[6];
                     dy=-D[7];
                     dz=-D[8];
+                }
+            }
+            }else{
+                if(dy<dz){
+                    len=dy-hh;
+                    if(sy<0){
+                        sy=-hh;
+                        dx=D[3];
+                        dy=D[4];
+                        dz=D[5];
+                    }else{
+                        sy=hh;
+                        dx=-D[3];
+                        dy=-D[4];
+                        dz=-D[5];
+                    }
+                }else{
+                    len=dz-hd;
+                    if(sz<0){
+                        sz=-hd;
+                        dx=D[6];
+                        dy=D[7];
+                        dz=D[8];
+                    }else{
+                        sz=hd;
+                        dx=-D[6];
+                        dy=-D[7];
+                        dz=-D[8];
+                }
             }
         }
-    }
-    cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
-    cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
-    cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
-    manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
-    }else{
         cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
         cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
         cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
-        dx=cx-ps.x;
-        dy=cy-ps.y;
-        dz=cz-ps.z;
-        len=dx*dx+dy*dy+dz*dz;
-        if(len>0&&len<rad*rad){
-            len=_Math.sqrt(len);
-            invLen=1/len;
-            dx*=invLen;
-            dy*=invLen;
-            dz*=invLen;
-            manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
+        manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
+        }else{
+            cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+            cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+            cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
+            dx=cx-ps.x;
+            dy=cy-ps.y;
+            dz=cz-ps.z;
+            len=dx*dx+dy*dy+dz*dz;
+            if(len>0&&len<rad*rad){
+                len=_Math.sqrt(len);
+                invLen=1/len;
+                dx*=invLen;
+                dy*=invLen;
+                dz*=invLen;
+                manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
+            }
         }
+
     }
 
-};
+});
 
 function SphereCylinderCollisionDetector ( flip ){
     
@@ -10766,112 +10721,119 @@ function SphereCylinderCollisionDetector ( flip ){
 
 }
 
-SphereCylinderCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
-SphereCylinderCollisionDetector.prototype.constructor = SphereCylinderCollisionDetector;
+SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
-SphereCylinderCollisionDetector.prototype.detectCollision = function ( shape1, shape2, manifold ) {
-    
-    var s;
-    var c;
-    if( this.flip ){
-        s = shape2;
-        c = shape1;
-    }else{
-        s = shape1;
-        c = shape2;
-    }
-    var ps = s.position;
-    var psx = ps.x;
-    var psy = ps.y;
-    var psz = ps.z;
-    var pc = c.position;
-    var pcx = pc.x;
-    var pcy = pc.y;
-    var pcz = pc.z;
-    var dirx = c.normalDirection.x;
-    var diry = c.normalDirection.y;
-    var dirz = c.normalDirection.z;
-    var rads = s.radius;
-    var radc = c.radius;
-    var rad2 = rads + radc;
-    var halfh = c.halfHeight;
-    var dx = psx - pcx;
-    var dy = psy - pcy;
-    var dz = psz - pcz;
-    var dot = dx * dirx + dy * diry + dz * dirz;
-    if ( dot < -halfh - rads || dot > halfh + rads )return;
-    var cx = pcx + dot * dirx;
-    var cy = pcy + dot * diry;
-    var cz = pcz + dot * dirz;
-    var d2x = psx - cx;
-    var d2y = psy - cy;
-    var d2z = psz - cz;
-    var len = d2x * d2x + d2y * d2y + d2z * d2z;
-    if ( len > rad2 * rad2 ) return;
-    if ( len > radc * radc ) {
-        len = radc / _Math.sqrt( len );
-        d2x *= len;
-        d2y *= len;
-        d2z *= len;
-    }
-    if( dot < -halfh ) dot = -halfh;
-    else if( dot > halfh ) dot = halfh;
-    cx = pcx + dot * dirx + d2x;
-    cy = pcy + dot * diry + d2y;
-    cz = pcz + dot * dirz + d2z;
-    dx = cx - psx;
-    dy = cy - psy;
-    dz = cz - psz;
-    len = dx * dx + dy * dy + dz * dz;
-    var invLen;
-    if ( len > 0 && len < rads * rads ) {
-        len = _Math.sqrt(len);
-        invLen = 1 / len;
-        dx *= invLen;
-        dy *= invLen;
-        dz *= invLen;
-        ///result.addContactInfo(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,s,c,0,0,false);
-        manifold.addPoint( psx + dx * rads, psy + dy * rads, psz + dz * rads, dx, dy, dz, len - rads, this.flip );
+    constructor: SphereCylinderCollisionDetector,
+
+    detectCollision: function ( shape1, shape2, manifold ) {
+        
+        var s;
+        var c;
+        if( this.flip ){
+            s = shape2;
+            c = shape1;
+        }else{
+            s = shape1;
+            c = shape2;
+        }
+        var ps = s.position;
+        var psx = ps.x;
+        var psy = ps.y;
+        var psz = ps.z;
+        var pc = c.position;
+        var pcx = pc.x;
+        var pcy = pc.y;
+        var pcz = pc.z;
+        var dirx = c.normalDirection.x;
+        var diry = c.normalDirection.y;
+        var dirz = c.normalDirection.z;
+        var rads = s.radius;
+        var radc = c.radius;
+        var rad2 = rads + radc;
+        var halfh = c.halfHeight;
+        var dx = psx - pcx;
+        var dy = psy - pcy;
+        var dz = psz - pcz;
+        var dot = dx * dirx + dy * diry + dz * dirz;
+        if ( dot < -halfh - rads || dot > halfh + rads ) return;
+        var cx = pcx + dot * dirx;
+        var cy = pcy + dot * diry;
+        var cz = pcz + dot * dirz;
+        var d2x = psx - cx;
+        var d2y = psy - cy;
+        var d2z = psz - cz;
+        var len = d2x * d2x + d2y * d2y + d2z * d2z;
+        if ( len > rad2 * rad2 ) return;
+        if ( len > radc * radc ) {
+            len = radc / _Math.sqrt( len );
+            d2x *= len;
+            d2y *= len;
+            d2z *= len;
+        }
+        if( dot < -halfh ) dot = -halfh;
+        else if( dot > halfh ) dot = halfh;
+        cx = pcx + dot * dirx + d2x;
+        cy = pcy + dot * diry + d2y;
+        cz = pcz + dot * dirz + d2z;
+        dx = cx - psx;
+        dy = cy - psy;
+        dz = cz - psz;
+        len = dx * dx + dy * dy + dz * dz;
+        var invLen;
+        if ( len > 0 && len < rads * rads ) {
+            len = _Math.sqrt(len);
+            invLen = 1 / len;
+            dx *= invLen;
+            dy *= invLen;
+            dz *= invLen;
+            ///result.addContactInfo(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,s,c,0,0,false);
+            manifold.addPoint( psx + dx * rads, psy + dy * rads, psz + dz * rads, dx, dy, dz, len - rads, this.flip );
+        }
+
     }
 
-};
+});
 
 /**
  * A collision detector which detects collisions between two spheres.
  * @author saharan
  */
+ 
 function SphereSphereCollisionDetector (){
 
     CollisionDetector.call( this );
 
 }
 
-SphereSphereCollisionDetector.prototype = Object.create( CollisionDetector.prototype );
-SphereSphereCollisionDetector.prototype.constructor = SphereSphereCollisionDetector;
+SphereSphereCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
-SphereSphereCollisionDetector.prototype.detectCollision = function(shape1,shape2,manifold){
+    constructor: SphereSphereCollisionDetector,
 
-    var s1 = shape1;
-    var s2 = shape2;
-    var p1 = s1.position;
-    var p2 = s2.position;
-    var dx = p2.x - p1.x;
-    var dy = p2.y - p1.y;
-    var dz = p2.z - p1.z;
-    var len = dx * dx + dy * dy + dz * dz;
-    var r1 = s1.radius;
-    var r2 = s2.radius;
-    var rad = r1 + r2;
-    if ( len > 0 && len < rad * rad ){
-        len = _Math.sqrt( len );
-        var invLen = 1 / len;
-        dx *= invLen;
-        dy *= invLen;
-        dz *= invLen;
-        manifold.addPoint( p1.x + dx * r1, p1.y + dy * r1, p1.z + dz * r1, dx, dy, dz, len - rad, false );
+    detectCollision: function ( shape1, shape2, manifold ) {
+
+        var s1 = shape1;
+        var s2 = shape2;
+        var p1 = s1.position;
+        var p2 = s2.position;
+        var dx = p2.x - p1.x;
+        var dy = p2.y - p1.y;
+        var dz = p2.z - p1.z;
+        var len = dx * dx + dy * dy + dz * dz;
+        var r1 = s1.radius;
+        var r2 = s2.radius;
+        var rad = r1 + r2;
+        if ( len > 0 && len < rad * rad ){
+            len = _Math.sqrt( len );
+            var invLen = 1 / len;
+            dx *= invLen;
+            dy *= invLen;
+            dz *= invLen;
+            manifold.addPoint( p1.x + dx * r1, p1.y + dy * r1, p1.z + dz * r1, dx, dy, dz, len - rad, false );
+        }
+
     }
 
-};
+});
 
 //import { TetraShape } from '../collision/shape/TetraShape';
 

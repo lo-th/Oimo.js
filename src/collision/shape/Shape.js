@@ -72,7 +72,9 @@ function Shape ( config ) {
 
 };
 
-Object.assign(Shape.prototype,{
+Object.assign( Shape.prototype, {
+
+    Shape: true,
 
     // Calculate the mass information of the shape.
 

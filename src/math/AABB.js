@@ -38,7 +38,7 @@ Object.assign( AABB.prototype, {
 
 		var te = this.elements;
 		var ue = aabb.elements;
-		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2]  ? false : true;
+		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2] ? true : false;
 
 	},
 
@@ -46,7 +46,7 @@ Object.assign( AABB.prototype, {
 
 		var te = this.elements;
 		var ue = aabb.elements;
-		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5]  ? false : true;
+		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5] ? true : false;
 
 	},
 

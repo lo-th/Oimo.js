@@ -6,26 +6,15 @@ function ProxyIdCount() { return count++; }
 /**
  * A proxy is used for broad-phase collecting pairs that can be colliding.
  *
- * @class Proxy
- * @constructor
  * @author lo-th
  */
+
 function Proxy( shape ) {
 
-	/**
-	 * The parent shape.
-	 *
-	 * @property shape
-	 * @type {Shape}
-	 */
+	//The parent shape.
     this.shape = shape;
 
-    /**
-     * The axis-aligned bounding box.
-	 *
-	 * @property aabb
-	 * @type {AABB}
-	 */
+    //The axis-aligned bounding box.
     this.aabb = shape.aabb;
 
 };
@@ -34,16 +23,14 @@ Object.assign( Proxy.prototype, {
 
     Proxy: true,
 
-	/**
-	 * Update the proxy. Must be inherited
-	 * by a child.
-	 *
-	 * @method update
-	 * @return any
-	 */
+	// Update the proxy. Must be inherited by a child.
+
     update: function(){
+
         printError("Proxy","Inheritance error.");
+
     }
+
 });
 
 export { ProxyIdCount, Proxy };
