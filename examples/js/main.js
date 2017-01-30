@@ -31,7 +31,7 @@ var demoName = 'basic';
 
 var direct = false;
 var isWithCode = false;
-var isBuffer = false;
+var isDocs = false;
 
 function init(){
 
@@ -62,7 +62,7 @@ function next(){
 
 function reset () {
 
-    while( meshs.length > 0 ) scene.remove( meshs.pop() );
+    //while( meshs.length > 0 ) scene.remove( meshs.pop() );
 
     view.reset();
 

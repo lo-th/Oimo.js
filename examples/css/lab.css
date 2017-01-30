@@ -27,7 +27,34 @@ html, body {
     pointer-events:none;
     /*text-shadow: 0.5px 0.5px 2px #000000;*/
 }
-
+a{
+    color: hotpink;
+    text-decoration: none;
+}
+h1{
+    font-size: 11px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    color:#DE5825;
+    margin-left: 10px;
+    display:inline;
+}
+h2{
+    font-size: 11px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    color:#79d62e;
+    margin-left: 10px;
+    display:inline;
+}
+h3{
+    font-size: 16px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+}
 
 @keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}
 #octo-arm{pointer-events:none;}
@@ -156,9 +183,6 @@ html, body {
     overflow: hidden;
 }
 
-
-
-
 .info {
     pointer-events:none; position:absolute;
     left:10px;
@@ -177,8 +201,6 @@ html, body {
     text-align:right;
 }
 
-
-
 .separator {
     position:absolute; background-color:none; pointer-events:auto; display:block; 
     border-left:1px solid #3f3f3f; 
@@ -195,6 +217,26 @@ html, body {
 }
 
 /* EDITOR */
+
+.docContent {
+    position:absolute;
+    background-color:none;
+    top:400px;
+    width:100%;
+    height:calc(100% - 400px);
+    padding:10px 10px;
+    line-height:16px;
+    overflow: auto;
+    pointer-events:auto;
+}
+
+.bigLine {
+    position:absolute;
+    background-color:#3f3f3f;
+    height: 1px;
+    width:calc(100% - 40px);
+    pointer-events:none;
+}
 
 .editor {
 	position:absolute;

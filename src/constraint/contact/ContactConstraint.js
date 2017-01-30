@@ -187,7 +187,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
                 c.norImp = norImp;
                 c.tanImp = 0;
                 c.binImp = 0;
-                rvn=0; // disable bouncing
+                rvn = 0; // disable bouncing
 
             } else {
 

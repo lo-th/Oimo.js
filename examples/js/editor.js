@@ -58,7 +58,7 @@ editor = {
         document.body.appendChild( bigmenu );
 
 
-        this.makeBigMenu();
+        if(!isDocs) this.makeBigMenu();
 
         // github logo
 
@@ -74,13 +74,13 @@ editor = {
 
         debug = document.createElement( 'div' );
         debug.className = 'debug';
-        document.body.appendChild( debug );
+        if(!isDocs) document.body.appendChild( debug );
 
         // title
 
         title = document.createElement( 'div' );
         title.className = 'title';
-        document.body.appendChild( title );
+         document.body.appendChild( title );
 
         // editor
 
@@ -90,7 +90,6 @@ editor = {
 
         codeContent = document.createElement('div');
         codeContent.className = 'codeContent';
-        //document.body.appendChild( codeContent );
         content.appendChild( codeContent );
 
         code = CodeMirror( codeContent, {
@@ -103,9 +102,12 @@ editor = {
         separator.className = 'separator';
         document.body.appendChild( separator );
 
+        
+
         menuCode = document.createElement('div');
         menuCode.className = 'menuCode';
-        content.appendChild( menuCode );
+        if(!isDocs) content.appendChild( menuCode );
+        //else document.body.appendChild( menuCode );
 
         content.style.display = 'none';
         separator.style.display = 'none';
@@ -117,14 +119,33 @@ editor = {
         code.on('dragstart', function () { isSelfDrag = true; } );
 
         if(isWithCode){
-            left = ~~ (window.innerWidth*0.4);
+            if( !isDocs) left = ~~ (window.innerWidth*0.4);
+            else left = ~~ (window.innerWidth*0.5);
             content.style.display = 'block';
             separator.style.display = 'block';
             this.addSeparatorEvent();
             this.resize();
         }
 
-        bigmenu.style.width =  window.innerWidth - left +'px';
+        bigmenu.style.width = window.innerWidth - left +'px';
+
+
+        if(isDocs){
+
+            menuCode.style.width = 'calc(100% - 40px)';
+            codeContent.style.top = '0px';
+            codeContent.style.height = '100%';
+            content.style.top = '0px';
+            //separator.style.top = '40px';
+            separator.style.height = '400px';
+
+            var b2 = document.createElement('div');
+            b2.className = 'bigLine';
+            b2.style.top = '400px';
+            b2.style.width = '100%';
+            document.body.appendChild( b2 );
+
+        }
 
     },
 
@@ -190,15 +211,20 @@ editor = {
 
         if( e ) left = e.clientX + 10;
 
-        if(view){
+        if( view ){
             view.setLeft( left );
             view.resize();
         }
+
         bigmenu.style.left = left +'px';
         title.style.left = left +'px';
         debug.style.left = left +'px';
         separator.style.left = (left-10) + 'px';
         content.style.width = (left-10) + 'px';
+
+        if( isDocs ){ 
+            content.style.height = 400 + 'px';
+        }
         code.refresh();
 
     },
@@ -392,7 +418,7 @@ editor = {
 
     // code
 
-    load: function ( url ) {
+    load: function ( url, cc ) {
 
         fileName = url.substring(url.lastIndexOf("/")+1, url.lastIndexOf("."));
 
@@ -401,7 +427,8 @@ editor = {
         xhr.open('GET', url, true);
         xhr.onload = function(){ 
 
-            code.setValue( xhr.responseText ); 
+            if( cc !== undefined ) cc( xhr.responseText );
+            else code.setValue( xhr.responseText ); 
 
         }
         

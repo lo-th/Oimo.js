@@ -148,15 +148,19 @@ Object.assign( World.prototype, {
 
     World: true,
 
-    getInfo: function(){
+    setGravity: function ( ar ) {
+
+        this.gravity.fromArray( ar );
+
+    },
+
+    getInfo: function () {
 
         return this.isStat ? this.performance.show() : '';
 
     },
 
-    /**
-    * Reset the randomizer and remove all rigid bodies, shapes, joints and any object from the world.
-	*/
+    // Reset the world and remove all rigid bodies, shapes, joints and any object from the world.
     clear:function(){
 
         this.randX = 65535;
@@ -672,11 +676,14 @@ Object.assign( World.prototype, {
 
     },
 
+    // remove someting to world
 
-    /**
-    * add someting to world
-    */
+    remove: function( obj ){
 
+    },
+
+    // add someting to world
+    
     add: function( o ){
 
         o = o || {};

@@ -8,6 +8,10 @@ Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for action
 
 - [oimo.js](http://lo-th.github.io/Oimo.js/index.html) (in progress)
 
+### Docs ###
+
+- [docs](http://lo-th.github.io/Oimo.js/docs.html) (in progress)
+
 ### Demo ###
 
 - [Basic test](http://lo-th.github.io/Oimo.js/examples/test_basic.html)

@@ -1,0 +1,14 @@
+<h3>Joint</h3><br>
+Is link between objects add to <a href="javascript:go('world')">world</a> physics simulation.<br><br>
+Attribute is a object with this options<br><br>
+<h1>type</h1> the type of joint 'jointDistance' 'jointHinge' 'jointPrisme' 'jointSlide' 'jointBall' 'jointWheel'<br>
+<h1>body1</h1> link attach can be object nane or id <br> 
+<h1>body2</h1> link attach can be object nane or id<br> 
+<h1>axe1</h1> array for body1 normal link axis [ x, y, z ]<br>
+<h1>axe2</h1> array for body2 normal link axis [ x, y, z ]<br>
+<h1>pos1</h1> array for position from center of body1 [ x, y, z ]<br>
+<h1>pos2</h1> array for position from center of body2 [ x, y, z ]<br>
+<h1>collision</h1> active collision between body1 and body2<br>
+<br>Functions<br><br>
+<h2>obj.remove()</h2> remove object from World<br>
+<h2>obj.getPosition()</h2> return array of vector joint points position [ pos1, pos2 ]<br>

@@ -39,24 +39,6 @@ var vs = { w:1, h:1, l:0, x:0 };
 
 var helper;
 
-/*var ranges = {
-    'heros' : 1,
-    'cars' : 2,
-    'bodys' : 3,
-    'solids' : 4,
-    'terrains' : 5,
-    'softs' : 6,
-    'joints' : 7, 
-};
-
-var heros = []; // 1
-var cars = []; // 2
-var bodys = []; // 3
-var solids = []; // 4
-var terrains = []; // 5
-var softs = []; // 6
-var joints = []; // 7
-*/
 var extraGeo = [];
 
 var byName = {};
@@ -145,30 +127,6 @@ view = {
 
         while( extraMesh.children.length > 0 ) scene.remove( extraMesh.children.pop() );
 
-        //var c, i;
-
-        /*while( bodys.length > 0 ) scene.remove( bodys.pop() );
-        while( solids.length > 0 ) scene.remove( solids.pop() );
-        while( terrains.length > 0 ) scene.remove( terrains.pop() );
-        while( softs.length > 0 ) scene.remove( softs.pop() );
-        while( heros.length > 0 ) scene.remove( heros.pop() );
-        while( extraGeo.length > 0 ) extraGeo.pop().dispose();
-        
-        while( cars.length > 0 ){
-            c = cars.pop();
-            if( c.userData.helper ){
-                c.remove( c.userData.helper );
-                c.userData.helper.dispose();
-            }
-            i = c.userData.w.length;
-            while( i-- ){
-                scene.remove( c.userData.w[i] );
-            }
-            scene.remove( c );
-        }
-
-        //bodys.length = 0;
-        perlin = null;*/
         byName = {};
 
     },
@@ -203,7 +161,7 @@ view = {
 
         if( intro !== null ) intro.clear();
 
-        renderer.setClearColor(0x252525, 1);
+        renderer.setClearColor( 0x252525, 1 );
         renderer.setPixelRatio( window.devicePixelRatio );
 
         // TONE MAPPING
@@ -285,8 +243,11 @@ view = {
         helper.material = new THREE.LineBasicMaterial( { vertexColors: THREE.VertexColors, transparent:true, opacity:0.1 } );
         scene.add( helper );
 
+        
+
+        if( !isDocs ) this.initEnv();
+
         this.resize();
-        this.initEnv();
 
         window.addEventListener( 'resize', _V.resize, false );
 
@@ -312,7 +273,7 @@ view = {
 
     resize: function () {
 
-        vs.h = window.innerHeight;
+        vs.h = isDocs ? 400 : window.innerHeight;
         vs.w = window.innerWidth - vs.x;
 
         canvas.style.left = vs.x +'px';
@@ -843,7 +804,7 @@ view = {
             //view.setName( o, mesh );
 
             if( o.parent !== undefined ) o.parent.add( mesh );
-            else scene.add( mesh );
+            else extraMesh.add( mesh );
 
             
         }

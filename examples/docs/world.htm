@@ -1,0 +1,16 @@
+<h3>World</h3><br>
+Is the container of physics simulation.<br><br>
+Attribute is a object with this options<br><br>
+<h1>timestep</h1> the time between each step default 1/60 is 60 frame second<br>
+<h1>iterations</h1> the number of iterations for constraint solvers.<br> 
+<h1>broadphase</h1> the simulation collision algorithm 1: brute force, 2: sweep & prune, 3: volume tree<br>
+<h1>worldscale</h1> world system units is 0.1 to 10 meters max for dynamic body can be multiplied by this number<br>
+<h1>random</h1> use extra random number in simulation<br>
+<h1>info</h1> enable timing for display accurate simulation statistic<br>
+<h1>gravity</h1> a array to define the start gravity [ x, y, z ]<br><br>
+Functions<br><br>
+<h2>world.step()</h2> Proceed only time step seconds time of World<br>
+<h2>world.clear()</h2> Reset the world and remove all rigid bodies, shapes, joints and any object from the world<br>
+<h2>world.getInfo()</h2> return string of simulation statistic if enable<br>
+<h2>world.setGravity( [ x, y, z ] )</h2> set array world gravity <br>
+<h2>world.add({})</h2> add someting to world, return <a href="javascript:go('rigidbody')">rigidbody</a> or <a href="javascript:go('joint')">joint</a><br>
