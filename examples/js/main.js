@@ -16,7 +16,7 @@ var meshs = [];
 var mat, geo;
 
 var demos = [ 
-    'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel', 'empty', 'tower', 'kinematic', 'kinematic2'
+    'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel', 'empty', 'tower', 'kinematic', 'kinematic2', 'kinematic3'
 ];
 
 demos.sort();

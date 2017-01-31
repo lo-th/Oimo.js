@@ -20,6 +20,14 @@ Math.int = function(x) { return Math.floor(x); };
 Math.lerp = function ( x, y, t ) { return ( 1 - t ) * x + t * y; };
 Math.rand = function ( low, high ) { return low + Math.random() * ( high - low ); };
 Math.randInt = function ( low, high ) { return low + Math.floor( Math.random() * ( high - low + 1 ) ); };
+Math.distanceVector = function ( a, b ) { 
+    var x = b.x-a.x;
+    var y = b.y-a.y;
+    var z = b.z-a.z;
+    var d = Math.sqrt( x*x + y*y + z*z );
+    //if(d <= 0 ) d = 0.1;
+    return d;
+}
 
 
 var view = ( function () {
