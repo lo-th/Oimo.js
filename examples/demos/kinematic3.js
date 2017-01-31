@@ -173,7 +173,7 @@ function update () {
 
     world.step();
 
-    if ( mixer ) mixer.update( 0.008 );
+    if ( mixer ) mixer.update( 0.003 );
     if ( loaded ){ 
 
         //skeletonHelper.update();
