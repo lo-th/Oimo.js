@@ -32,6 +32,9 @@ function RigidBody ( Position, Rotation ) {
     this.scale =1;
     this.invScale = 1;
 
+    // possible link to three Mesh;
+    this.mesh = null;
+
     this.name = "";
     // The maximum number of shapes that can be added to a one rigid.
     //this.MAX_SHAPES = 64;//64;
@@ -52,6 +55,9 @@ function RigidBody ( Position, Rotation ) {
     this.newOrientation = new Quat();
     this.controlPos = false;
     this.controlRot = false;
+
+    this.tmpPos = new Vec3();
+    this.tmpQuat = new Quat();
 
 
 
@@ -84,6 +90,8 @@ function RigidBody ( Position, Rotation ) {
     this.isStatic = false;
     // I indicates that this rigid body to determine whether it is a rigid body dynamic.
     this.isDynamic = false;
+
+    this.isKinematic = false;
     // It is a rotation matrix representing the orientation.
     this.rotation = new Mat33();
 
@@ -198,6 +206,7 @@ Object.assign( RigidBody.prototype, {
     * @param   type
     * @param   adjustPosition
     */
+
     setupMass: function ( type, AdjustPosition ) {
 
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
@@ -344,13 +353,23 @@ Object.assign( RigidBody.prototype, {
                 this.angularVelocity.set(0,0,0);
 
                 // ONLY FOR TEST
-                if(this.controlPos){
-                    this.position.copy( this.newPosition );
+               if(this.controlPos){
+                    this.tmpPos.sub( this.newPosition, this.position );
+                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
+                    //this.position.copy( this.newPosition );
+                    //this.tmpPos.sub( this.newPosition, this.position );
+                    //this.linearVelocity.scale(this.tmpPos, 1/timeStep)
+                    //this.position.addTime( this.linearVelocity, timeStep );
                     this.controlPos = false;
                 }
                 if(this.controlRot){
+
+                    this.angularVelocity.copy( this.getAxis() );
                     this.orientation.copy( this.newOrientation );
                     this.controlRot = false;
+
+                    this.orientation.addTime( this.angularVelocity, timeStep );
+
                 }
                 /*this.linearVelocity.x=0;
                 this.linearVelocity.y=0;
@@ -361,20 +380,58 @@ Object.assign( RigidBody.prototype, {
             break;
             case BODY_DYNAMIC:
 
+                if( this.controlPos || this.controlRot ){
+
+                    this.linearVelocity.set(0,0,0);
+                    this.angularVelocity.set(0,0,0);
+
+                }
+
                 if(this.controlPos){
 
-                    this.angularVelocity.set(0,0,0);
-                    this.linearVelocity.set(0,0,0);
-                    this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
-                    this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
-                    this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+
+
+                    //this.angularVelocity.set(0,0,0);
+                    //this.linearVelocity.set(0,0,0);
+
+                    this.tmpPos.sub( this.newPosition, this.position );
+                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
+
+                    //this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
+                    //this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
+                    //this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+                    
+                    //this.position.copy( this.newPosition );
                     this.controlPos = false;
 
                 }
                 if(this.controlRot){
 
-                    this.angularVelocity.set(0,0,0);
+                    //var e = this.rotation.elements;
+                    //this.angularVelocity.set(e[0],e[4],e[8]).normalize()
+
+                    this.angularVelocity.copy( this.getAxis() );
+
+                    //console.log(this.angularVelocity)
+
+                   // this.angularVelocity.set(0,1,0).applyQuaternion( this.orientation )
+
+                   // this.angularVelocity.set(0,1,0)//.applyQuaternion( this.newOrientation )
+                    //this.angularVelocity.set(0,1,0).applyQuaternion( new Quat() )
+                    //this.angularVelocity.set(0,1,0).applyQuaternion( this.orientation )
+
+                    //this.angularVelocity.set(0,1,0).applyMatrix3( this.tmpInertia );
+                    //this.angularVelocity.applyMatrix3( this.inverseLocalInertia );
+                    //this.tmpQuat.sub( this.newOrientation, this.orientation );
+
+                    //this.tmpQuat.mul( new Quat().invert( this.newOrientation ), this.orientation );
+
+                    //this.angularVelocity.subQuatTime( this.tmpQuat, (1/timeStep) );//.scaleEqual( *2 );
+
                     this.orientation.copy( this.newOrientation );
+
+                    //this.orientation.mul( this.orientation, this.tmpQuat );
+                    //timeStep = 0;
                     this.controlRot = false;
 
                 }
@@ -387,6 +444,17 @@ Object.assign( RigidBody.prototype, {
         }
 
         this.syncShapes();
+
+        this.updateMesh();
+
+    },
+
+    getAxis: function () {
+
+        //return new Vec3().mulMat( this.rotation, new Vec3(0,1,0) ).normalize();
+        return new Vec3().mulMat( this.inverseLocalInertia, new Vec3(0,1,0) ).normalize();
+
+        //return new Vec3().mulMat( this.rotation, this.position.normalize() ).normalize();
 
     },
 
@@ -403,15 +471,38 @@ Object.assign( RigidBody.prototype, {
         this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
 
         var i = this.shapes.length, shape;
+
         while(i--){
+
             shape = this.shapes[i];
-            shape.position.mul( this.position, shape.relativePosition, this.rotation );
+            //shape.position.mul( this.position, shape.relativePosition, this.rotation );
+
+            shape.position.mulMat( this.rotation, shape.relativePosition ).addEqual( this.position );
             // add by QuaziKb
             shape.rotation.mul( this.rotation, shape.relativeRotation );
             shape.updateProxy();
 
         }
     },
+
+    forceTransforme: function () {
+
+        this.linearVelocity.set( 0, 0, 0 );
+        this.angularVelocity.set( 0, 0, 0 );
+
+        if( this.controlPos ) this.position.copy( this.newPosition );
+        if( this.controlRot ) this.orientation.copy( this.newOrientation );
+
+        this.controlPos = false;
+        this.controlRot = false;
+
+        this.awake();
+
+        //this.setupMass(this.type, false)
+
+    },
+
+    
 
     //---------------------------------------------
     // APPLY IMPULSE FORCE
@@ -497,6 +588,19 @@ Object.assign( RigidBody.prototype, {
 
     },
 
-} );
+    //---------------------------------------------
+    // AUTO UPDATE THREE MESH
+    //---------------------------------------------
+
+    updateMesh: function(){
+
+        if( this.mesh === null ) return;
+
+        this.mesh.position.copy( this.getPosition() );
+        this.mesh.quaternion.copy( this.getQuaternion() );
+
+    },
+
+});
 
 export { RigidBody };

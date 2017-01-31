@@ -69,6 +69,15 @@ var _Math = {
 
     },
 
+    distanceVector: function( v1, v2 ){
+
+        var xd = v1.x - v2.x;
+        var yd = v1.y - v2.y;
+        var zd = v1.z - v2.z;
+        return xd * xd + yd * yd + zd * zd;
+
+    },
+
     dotVectors: function ( a, b ) {
 
         return a.x * b.x + a.y * b.y + a.z * b.z;

@@ -32,6 +32,9 @@ function ContactConstraint ( manifold ){
     this.tmpC1 = new Vec3();
     this.tmpC2 = new Vec3();
 
+    this.tmpP1 = new Vec3();
+    this.tmpP2 = new Vec3();
+
     this.tmplv1 = new Vec3();
     this.tmplv2 = new Vec3();
     this.tmpav1 = new Vec3();
@@ -96,17 +99,17 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             p = this.ps[i];
 
-            c.rp1.sub( p.position, this.p1 );
-            c.rp2.sub( p.position, this.p2 );
+            this.tmpP1.sub( p.position, this.p1 );
+            this.tmpP2.sub( p.position, this.p2 );
+
+            this.tmpC1.crossVectors( this.av1, this.tmpP1 );
+            this.tmpC2.crossVectors( this.av2, this.tmpP2 );
 
             c.norImp = p.normalImpulse;
             c.tanImp = p.tangentImpulse;
             c.binImp = p.binormalImpulse;
 
             c.nor.copy( p.normal );
-
-            this.tmpC1.crossVectors( this.av1, c.rp1 );
-            this.tmpC2.crossVectors( this.av2, c.rp2 );
 
             this.tmp.set(
 
@@ -119,14 +122,14 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             rvn = _Math.dotVectors( c.nor, this.tmp );
 
             c.tan.set(
-                this.tmp.x-rvn*c.nor.x,
-                this.tmp.y-rvn*c.nor.y,
-                this.tmp.z-rvn*c.nor.z
+                this.tmp.x - rvn * c.nor.x,
+                this.tmp.y - rvn * c.nor.y,
+                this.tmp.z - rvn * c.nor.z
             );
 
             len = _Math.dotVectors( c.tan, c.tan );
 
-            if(len<=0.04){
+            if( len <= 0.04 ) {
                 c.tan.tangent( c.nor );
             }
 
@@ -143,13 +146,13 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.binU1.scale( c.bin, this.m1 );
             c.binU2.scale( c.bin, this.m2 );
 
-            c.norT1.crossVectors( c.rp1, c.nor );
-            c.tanT1.crossVectors( c.rp1, c.tan );
-            c.binT1.crossVectors( c.rp1, c.bin );
+            c.norT1.crossVectors( this.tmpP1, c.nor );
+            c.tanT1.crossVectors( this.tmpP1, c.tan );
+            c.binT1.crossVectors( this.tmpP1, c.bin );
 
-            c.norT2.crossVectors( c.rp2, c.nor );
-            c.tanT2.crossVectors( c.rp2, c.tan );
-            c.binT2.crossVectors( c.rp2, c.bin );
+            c.norT2.crossVectors( this.tmpP2, c.nor );
+            c.tanT2.crossVectors( this.tmpP2, c.tan );
+            c.binT2.crossVectors( this.tmpP2, c.bin );
 
             c.norTU1.mulMat( this.i1, c.norT1 );
             c.tanTU1.mulMat( this.i1, c.tanT1 );
@@ -159,18 +162,18 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.tanTU2.mulMat( this.i2, c.tanT2 );
             c.binTU2.mulMat( this.i2, c.binT2 );
 
-            this.tmpC1.crossVectors( c.norTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.norTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.norTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.norTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.norDen = 1 / ( m1m2 +_Math.dotVectors( c.nor, this.tmp ));
 
-            this.tmpC1.crossVectors( c.tanTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.tanTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.tanTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.tanTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.tanDen = 1 / ( m1m2 +_Math.dotVectors( c.tan, this.tmp ));
 
-            this.tmpC1.crossVectors( c.binTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.binTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.binTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.binTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.binDen = 1 / ( m1m2 +_Math.dotVectors( c.bin, this.tmp ));
 
@@ -203,7 +206,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             norTar = this.restitution*-rvn;
             sepV = -(p.penetration+0.005)*invTimeStep*0.05; // allow 0.5cm error
             if(norTar<sepV) norTar=sepV;
-            c.norTar=norTar;
+            c.norTar = norTar;
             c.last = i==this.num-1;
             c = c.next;
         }

@@ -194,6 +194,15 @@ var _Math = {
 
     },
 
+    distanceVector: function( v1, v2 ){
+
+        var xd = v1.x - v2.x;
+        var yd = v1.y - v2.y;
+        var zd = v1.z - v2.z;
+        return xd * xd + yd * yd + zd * zd;
+
+    },
+
     dotVectors: function ( a, b ) {
 
         return a.x * b.x + a.y * b.y + a.z * b.z;
@@ -205,8 +214,6 @@ var _Math = {
 function printError( clazz, msg ){
     console.error("[OIMO] " + clazz + ": " + msg);
 }
-
-// A performance evaluator
 
 function InfoDisplay(world){
 
@@ -564,6 +571,134 @@ Object.assign( Vec3.prototype, {
 
     },
 
+    subQuatTime: function( q, t ){
+
+        //
+
+       /* var angle = _Math.acos(q.w);
+        var s = _Math.asin(angle);
+        var x = q.x / s;
+        var y = q.y / s;
+        var z = q.z / s;
+
+        q.normalize();
+
+        var angle = 2 * _Math.acos(q.w)
+        var len = _Math.sqrt(1-q.w*q.w)
+        if(len>0) {len = 0;console.log('out')}//{len=1/len;}
+var x = q.x / len
+var y = q.y / len
+var z = q.z / len*/
+
+      // this.set( x, y, z ).normalize();
+
+       // console.log(this)
+
+        //q.normalize();
+
+        /*var w = 2 * Math.acos( q.w );
+        var s = Math.sqrt( 1 - q.w * q.w );
+
+        if ( s < 0.0001 ) {
+
+             this.x = 1;
+             this.y = 0;
+             this.z = 0;
+
+        } else {
+
+             this.x = q.x / s;
+             this.y = q.y / s;
+             this.z = q.z / s;
+
+        }*/
+
+        //this.normalize()
+
+     /*   var angle = 2 * _Math.acos(q.w)
+var x = q.x / _Math.sqrt(1-q.w*q.w)
+var y = q.y / _Math.sqrt(1-q.w*q.w)
+var z = q.z / _Math.sqrt(1-q.w*q.w)
+
+var x = 2 * ( q.x * q.z - q.w * q.y )
+var y = 2 * ( q.y * q.z + q.w * q.x )
+var z = 1 - 2 * ( q.x * q.x + q.y * q.y )*/
+
+        //this.set(0.5,0.5,0)
+        //this.set(0,1,0)
+
+        //this.applyQuaternion( new Quat(0,0,0,1) )
+        //this.set(0,0,1)
+       // this.set(x,y,z);//.normalize()
+        this.applyQuaternion( q.scaleEqual(t).normalize() );
+       // this.applyQuaternion( q.scaleEqual(t) )
+        //this.scaleEqual( 1/t );
+
+        //var v = new Vec3().applyQuaternion( q  );
+        //console.log(this)
+        //this.scale( v, t );
+
+        /*q.normalize();
+
+        var v = new Vec3(1, 1,1)
+
+        var xx = q.x * q.x;
+        var yy = q.y * q.y;
+        var zz = q.z * q.z;
+        var xy = q.x * q.y;
+        var yz = q.y * q.z;
+        var xz = q.x * q.z;
+        var sx = q.w * q.x;
+        var sy = q.w * q.y;
+        var sz = q.w * q.z;
+        var tx = v.x * (0.5 - yy - zz) + v.y * (xy - sz) + v.z * (xz + sy);
+        var ty = v.x * (xy + sz) + v.y * (0.5 - xx - zz) + v.z * (yz - sx);
+        var tz = v.x * (xz - sy) + v.y * (yz + sx) + v.z * (0.5 - xx - yy);
+
+        this.x = tx * 2;
+        this.y = ty * 2;
+        this.z = tz * 2;*/
+
+        //var x = this.x;
+        //var y = this.y;
+        //var z = this.z;*/
+
+        //this.applyQuaternion( q ).scaleEqual( t )//.//.scaleEqual( t ) );//.normalize()
+        //
+
+
+       /* var qx = q.x;
+        var qy = q.y;
+        var qz = q.z;
+        var qw = q.w;
+
+        t*=0.5;
+        var iw=(-x*qx - y*qy - z*qz)*t;
+        var ix=( x*qw + y*qz - z*qy)*t;
+        var iy=(-x*qz + y*qw + z*qx)*t;
+        var iz=( x*qy - y*qx + z*qw)*t;
+
+        this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
+        this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
+        this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;*/
+
+        return this;
+
+    },
+
+    applyMatrix3: function ( m ) {
+
+        var x = this.x, y = this.y, z = this.z;
+        var e = m.elements;
+
+        this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+        this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+        this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+
+        return this;
+
+    },
+
     applyQuaternion: function ( q ) {
 
         var x = this.x;
@@ -711,27 +846,23 @@ Object.assign( Quat.prototype, {
 
     addTime: function( v, t ){
 
-        var x = v.x;
-        var y = v.y;
-        var z = v.z;
-        var qw=this.w;
-        var qx=this.x;
-        var qy=this.y;
-        var qz=this.z;
-        t*=0.5;
-        var ns=(-x*qx - y*qy - z*qz)*t;
-        var nx=( x*qw + y*qz - z*qy)*t;
-        var ny=(-x*qz + y*qw + z*qx)*t;
-        var nz=( x*qy - y*qx + z*qw)*t;
-        qw += ns;
-        qx += nx;
-        qy += ny;
-        qz += nz;
-        var s= 1 / _Math.sqrt( qw*qw+qx*qx+qy*qy+qz*qz );
-        this.w=qw*s;
-        this.x=qx*s;
-        this.y=qy*s;
-        this.z=qz*s;
+        var ax = v.x;
+        var ay = v.y;
+        var az = v.z;
+        var qw = this.w;
+        var qx = this.x;
+        var qy = this.y;
+        var qz = this.z;
+
+        t *= 0.5;
+        
+        this.x += t * (  ax*qw + ay*qz - az*qy );
+        this.y += t * (  ay*qw + az*qx - ax*qz );
+        this.z += t * (  az*qw + ax*qy - ay*qx );
+        this.w += t * ( -ax*qx - ay*qy - az*qz );
+
+        this.normalize();
+
         return this;
 
     },
@@ -755,6 +886,17 @@ Object.assign( Quat.prototype, {
         return this;
 
     },
+
+    scaleEqual: function( s ){
+
+        this.w*=s;
+        this.x*=s;
+        this.y*=s;
+        this.z*=s;
+        return this;
+
+    },
+
     mul: function( q1, q2 ){
 
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,
@@ -777,15 +919,15 @@ Object.assign( Quat.prototype, {
         var z2=v2.z;
         var d=x1*x2+y1*y2+z1*z2;
         if(d==-1){
-        x2=y1*x1-z1*z1;
-        y2=-z1*y1-x1*x1;
-        z2=x1*z1+y1*y1;
-        d=1/_Math.sqrt(x2*x2+y2*y2+z2*z2);
-        this.w=0;
-        this.x=x2*d;
-        this.y=y2*d;
-        this.z=z2*d;
-        return this;
+            x2=y1*x1-z1*z1;
+            y2=-z1*y1-x1*x1;
+            z2=x1*z1+y1*y1;
+            d=1/_Math.sqrt(x2*x2+y2*y2+z2*z2);
+            this.w=0;
+            this.x=x2*d;
+            this.y=y2*d;
+            this.z=z2*d;
+            return this;
         }
         var cx=y1*z2-z1*y2;
         var cy=z1*x2-x1*z2;
@@ -813,7 +955,7 @@ Object.assign( Quat.prototype, {
 
     invert: function(q){
 
-        this.w=q.w;
+        this.w = q.w;
         this.x=-q.x;
         this.y=-q.y;
         this.z=-q.z;
@@ -1301,13 +1443,6 @@ Object.assign( Mat33.prototype, {
 
 } );
 
-/**
- * An axis-aligned bounding box.
- *
- * @author saharan
- * @author lo-th
- */
-
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
     this.elements = new Float32Array( 6 );
@@ -1543,14 +1678,6 @@ Object.assign( Shape.prototype, {
 
 });
 
-/**
- * A box shape.
- *
- * @extends Shape
- * @author saharan
- * @author lo-th
- */
- 
 function BoxShape( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
@@ -1687,13 +1814,6 @@ BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 });
 
-/**
- * A sphere shape.
- *
- * @author saharan
- * @author lo-th
- */
-
 function SphereShape( config, radius ) {
 
     Shape.call( this, config );
@@ -1733,14 +1853,6 @@ SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 
 });
-
-/**
- * A cylinder shape.
- *
- * @extends Shape
- * @author saharan
- * @author lo-th
- */
 
 function CylinderShape( config, radius, height ) {
 
@@ -1818,14 +1930,6 @@ CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A shape configuration holds common configuration data for constructing a shape.
- * These configurations can be reused safely.
- *
- * @author saharan
- * @author lo-th
- */
- 
 function ShapeConfig(){
 
     // position of the shape in parent's coordinate system.
@@ -1904,13 +2008,6 @@ Object.assign( LimitMotor.prototype, {
 
 });
 
-/**
- * The base class of all type of the constraints.
- *
- * @author saharan
- * @author lo-th
- */
-
 function Constraint(){
 
     // parent world of the constraint.
@@ -1966,13 +2063,6 @@ function JointLink ( joint ){
     this.joint = joint;
 
 }
-
-/**
- * Joints are used to constrain the motion between two rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function Joint ( config ){
 
@@ -2146,10 +2236,6 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
 });
 
-/**
-* A linear constraint for all axes for various joints.
-* @author saharan
-*/
 function LinearConstraint ( joint ){
 
     this.m1=NaN;
@@ -2959,13 +3045,6 @@ Object.assign( Rotational3Constraint.prototype, {
     
 } );
 
-/**
- * A hinge joint allows only for relative rotation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
     Joint.call( this, config );
@@ -3062,13 +3141,6 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function BallAndSocketJoint ( config ){
 
@@ -3389,13 +3461,6 @@ Object.assign( TranslationalConstraint.prototype, {
     }
 } );
 
-/**
- * A distance joint limits the distance between two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
-
 function DistanceJoint ( config, minDistance, maxDistance ){
 
     Joint.call( this, config );
@@ -3440,11 +3505,6 @@ DistanceJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
-* An angular constraint for all axes for various joints.
-* @author saharan
-*/
 
 function AngularConstraint( joint, targetOrientation ) {
 
@@ -4235,13 +4295,6 @@ Object.assign( Translational3Constraint.prototype, {
     
 } );
 
-/**
- * A prismatic joint allows only for relative translation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
     Joint.call( this, config );
@@ -4310,13 +4363,6 @@ PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4415,14 +4461,6 @@ SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A wheel joint allows for relative rotation between two rigid bodies along two axes.
- * The wheel joint also allows for relative translation for the suspension.
- *
- * @author saharan
- * @author lo-th
- */
 
 function WheelJoint ( config ){
 
@@ -4560,12 +4598,6 @@ function JointConfig(){
 
 }
 
-/**
- * This class holds mass information of a shape.
- * @author lo-th
- * @author saharan
- */
-
 function MassInfo (){
 
     // Mass of the shape.
@@ -4597,20 +4629,11 @@ function ContactLink ( contact ){
 
 function ImpulseDataBuffer (){
 
-    this.lp1X = NaN;
-    this.lp1Y = NaN;
-    this.lp1Z = NaN;
-    this.lp2X = NaN;
-    this.lp2Y = NaN;
-    this.lp2Z = NaN;
+    this.lp1 = new Vec3();
+    this.lp2 = new Vec3();
     this.impulse = NaN;
 
 }
-
-/**
-* The class holds details of the contact point.
-* @author saharan
-*/
 
 function ManifoldPoint(){
 
@@ -4644,11 +4667,6 @@ function ManifoldPoint(){
     this.penetration = 0;
 
 }
-
-/**
-* A contact manifold between two shapes.
-* @author saharan
-*/
 
 function ContactManifold () {
 
@@ -4739,9 +4757,6 @@ function ContactPointDataBuffer (){
     this.tan = new Vec3();
     this.bin = new Vec3();
 
-    this.rp1 = new Vec3();
-    this.rp2 = new Vec3();
-
     this.norU1 = new Vec3();
     this.tanU1 = new Vec3();
     this.binU1 = new Vec3();
@@ -4766,166 +4781,69 @@ function ContactPointDataBuffer (){
     this.tanTU2 = new Vec3();
     this.binTU2 = new Vec3();
 
-/*
+    this.norImp = 0;
+    this.tanImp = 0;
+    this.binImp = 0;
 
-    this.norX=NaN;
-    this.norY=NaN;
-    this.norZ=NaN;
+    this.norDen = 0;
+    this.tanDen = 0;
+    this.binDen = 0;
 
-    this.tanX=NaN;
-    this.tanY=NaN;
-    this.tanZ=NaN;
+    this.norTar = 0;
 
-    this.binX=NaN;
-    this.binY=NaN;
-    this.binZ=NaN;
-
-    //
-    
-    this.rp1X=NaN;
-    this.rp1Y=NaN;
-    this.rp1Z=NaN;
-
-    this.rp2X=NaN;
-    this.rp2Y=NaN;
-    this.rp2Z=NaN;
-
-    //
-    
-    this.norU1X=NaN;
-    this.norU1Y=NaN;
-    this.norU1Z=NaN;
-
-    this.norU2X=NaN;
-    this.norU2Y=NaN;
-    this.norU2Z=NaN;
-
-    this.tanU1X=NaN;
-    this.tanU1Y=NaN;
-    this.tanU1Z=NaN;
-
-    this.tanU2X=NaN;
-    this.tanU2Y=NaN;
-    this.tanU2Z=NaN;
-
-    this.binU1X=NaN;
-    this.binU1Y=NaN;
-    this.binU1Z=NaN;
-
-    this.binU2X=NaN;
-    this.binU2Y=NaN;
-    this.binU2Z=NaN;
-
-    //
-    
-    this.norT1X=NaN;
-    this.norT1Y=NaN;
-    this.norT1Z=NaN;
-
-    this.norT2X=NaN;
-    this.norT2Y=NaN;
-    this.norT2Z=NaN;
-
-    this.tanT1X=NaN;
-    this.tanT1Y=NaN;
-    this.tanT1Z=NaN;
-
-    this.tanT2X=NaN;
-    this.tanT2Y=NaN;
-    this.tanT2Z=NaN;
-
-    this.binT1X=NaN;
-    this.binT1Y=NaN;
-    this.binT1Z=NaN;
-
-    this.binT2X=NaN;
-    this.binT2Y=NaN;
-    this.binT2Z=NaN;
-
-    //
-
-    this.norTU1X=NaN;
-    this.norTU1Y=NaN;
-    this.norTU1Z=NaN;
-
-    this.norTU2X=NaN;
-    this.norTU2Y=NaN;
-    this.norTU2Z=NaN;
-
-    this.tanTU1X=NaN;
-    this.tanTU1Y=NaN;
-    this.tanTU1Z=NaN;
-
-    this.tanTU2X=NaN;
-    this.tanTU2Y=NaN;
-    this.tanTU2Z=NaN;
-
-    this.binTU1X=NaN;
-    this.binTU1Y=NaN;
-    this.binTU1Z=NaN;
-
-    this.binTU2X=NaN;
-    this.binTU2Y=NaN;
-    this.binTU2Z=NaN;*/
-    
-    this.norImp=NaN;
-    this.tanImp=NaN;
-    this.binImp=NaN;
-
-    this.norDen=NaN;
-    this.tanDen=NaN;
-    this.binDen=NaN;
-
-    this.norTar=NaN;
-
-    this.next=null;
-    this.last=false;
+    this.next = null;
+    this.last = false;
 
 }
 
-/**
-* ...
-* @author saharan
-*/
 function ContactConstraint ( manifold ){
     
     Constraint.call( this );
     // The contact manifold of the constraint.
     this.manifold = manifold;
     // The coefficient of restitution of the constraint.
-    this.restitution=NaN;
+    this.restitution = 0;
     // The coefficient of friction of the constraint.
-    this.friction=NaN;
-    this.p1=null;
-    this.p2=null;
-    this.lv1=null;
-    this.lv2=null;
-    this.av1=null;
-    this.av2=null;
-    this.i1=null;
-    this.i2=null;
+    this.friction = 0;
 
-    //this.ii1 = null;
-    //this.ii2 = null;
+    this.shape1 = null;
+    this.shape2 = null;
+    this.body1 = null;
+    this.body2 = null;
 
     this.tmp = new Vec3();
     this.tmpC1 = new Vec3();
     this.tmpC2 = new Vec3();
+
+    this.tmpP1 = new Vec3();
+    this.tmpP2 = new Vec3();
 
     this.tmplv1 = new Vec3();
     this.tmplv2 = new Vec3();
     this.tmpav1 = new Vec3();
     this.tmpav2 = new Vec3();
 
-    this.m1=NaN;
-    this.m2=NaN;
-    this.num=0;
-    
+    //this.p1=null;
+    //this.p2=null;
+    this.lv1 = null;
+    this.lv2 = null;
+    this.av1 = null;
+    this.av2 = null;
+    //this.i1=null;
+    //this.i2=null;
+
+    this.m1 = 0;
+    this.m2 = 0;
+    this.num = 0;
+
     this.ps = manifold.points;
-    this.cs = new ContactPointDataBuffer();
-    this.cs.next = new ContactPointDataBuffer();
-    this.cs.next.next = new ContactPointDataBuffer();
-    this.cs.next.next.next = new ContactPointDataBuffer();
+    this.cs = [
+        new ContactPointDataBuffer(),
+        new ContactPointDataBuffer(),
+        new ContactPointDataBuffer(),
+        new ContactPointDataBuffer()
+    ];
+
 }
 
 ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype ), {
@@ -4933,34 +4851,59 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
     constructor: ContactConstraint,
 
     // Attach the constraint to the bodies.
-    attach: function(){
+    attach: function ( shape1, shape2 ) {
 
-        this.p1=this.body1.position;
-        this.p2=this.body2.position;
-        this.lv1=this.body1.linearVelocity;
-        this.av1=this.body1.angularVelocity;
-        this.lv2=this.body2.linearVelocity;
-        this.av2=this.body2.angularVelocity;
-        this.i1=this.body1.inverseInertia;
-        this.i2=this.body2.inverseInertia;
+        this.shape1 = shape1;
+        this.shape2 = shape2;
+        this.body1 = shape1.parent;
+        this.body2 = shape2.parent;
+
+        /*this.p1 = this.body1.position;
+        this.p2 = this.body2.position;
+        this.lv1 = this.body1.linearVelocity;
+        this.av1 = this.body1.angularVelocity;
+        this.lv2 = this.body2.linearVelocity;
+        this.av2 = this.body2.angularVelocity;
+        this.i1 = this.body1.inverseInertia;
+        this.i2 = this.body2.inverseInertia;*/
 
     },
 
     // Detach the constraint from the bodies.
     detach: function(){
 
-        this.p1=null;
-        this.p2=null;
-        this.lv1=null;
-        this.lv2=null;
-        this.av1=null;
-        this.av2=null;
-        this.i1=null;
-        this.i2=null;
+        /*this.p1 = null;
+        this.p2 = null;
+        this.lv1 = null;
+        this.lv2 = null;
+        this.av1 = null;
+        this.av2 = null;
+        this.i1 = null;
+        this.i2 = null;*/
+
+        this.shape1 = null;
+        this.shape2 = null;
+        this.body1 = null;
+        this.body2 = null;
 
     },
 
     preSolve: function( timeStep, invTimeStep ){
+
+        this.restitution = _Math.sqrt( this.shape1.restitution, this.shape2.restitution );
+        this.friction = _Math.sqrt( this.shape1.friction, this.shape2.friction );
+
+        /*this.p1 = this.body1.position;
+        this.p2 = this.body2.position;
+        this.i1 = this.body1.inverseInertia;
+        this.i2 = this.body2.inverseInertia;*/
+
+        this.lv1 = this.body1.linearVelocity;
+        this.av1 = this.body1.angularVelocity;
+        this.lv2 = this.body2.linearVelocity;
+        this.av2 = this.body2.angularVelocity;
+        
+
 
         this.m1 = this.body1.inverseMass;
         this.m2 = this.body2.inverseMass;
@@ -4969,24 +4912,30 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
         this.num = this.manifold.numPoints;
 
+        var i = this.num;
+
         var c = this.cs;
-        var p, rvn, len, norImp, norTar, sepV;
+        var p, rvn, len, norImp, norTar, sepV, i1, i2;
 
-        for( var i=0; i < this.num; i++ ){
+        while( i-- ) {
 
+            c = this.cs[i];
             p = this.ps[i];
 
-            c.rp1.sub( p.position, this.p1 );
-            c.rp2.sub( p.position, this.p2 );
+            this.i1 = this.body1.inverseInertia;
+            this.i2 = this.body2.inverseInertia;
+
+            this.tmpP1.sub( p.position, this.body1.position );
+            this.tmpP2.sub( p.position, this.body2.position );
+
+            this.tmpC1.crossVectors( this.av1, this.tmpP1 );
+            this.tmpC2.crossVectors( this.av2, this.tmpP2 );
 
             c.norImp = p.normalImpulse;
             c.tanImp = p.tangentImpulse;
             c.binImp = p.binormalImpulse;
 
             c.nor.copy( p.normal );
-
-            this.tmpC1.crossVectors( this.av1, c.rp1 );
-            this.tmpC2.crossVectors( this.av2, c.rp2 );
 
             this.tmp.set(
 
@@ -5006,9 +4955,8 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             len = _Math.dotVectors( c.tan, c.tan );
 
-            if(len<=0.04){
-                c.tan.tangent( c.nor );
-            }
+            if( len <= 0.04 ) c.tan.tangent( c.nor );
+            
 
             c.tan.normalize();
 
@@ -5023,34 +4971,37 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.binU1.scale( c.bin, this.m1 );
             c.binU2.scale( c.bin, this.m2 );
 
-            c.norT1.crossVectors( c.rp1, c.nor );
-            c.tanT1.crossVectors( c.rp1, c.tan );
-            c.binT1.crossVectors( c.rp1, c.bin );
+            c.norT1.crossVectors( this.tmpP1, c.nor );
+            c.tanT1.crossVectors( this.tmpP1, c.tan );
+            c.binT1.crossVectors( this.tmpP1, c.bin );
 
-            c.norT2.crossVectors( c.rp2, c.nor );
-            c.tanT2.crossVectors( c.rp2, c.tan );
-            c.binT2.crossVectors( c.rp2, c.bin );
+            c.norT2.crossVectors( this.tmpP2, c.nor );
+            c.tanT2.crossVectors( this.tmpP2, c.tan );
+            c.binT2.crossVectors( this.tmpP2, c.bin );
 
-            c.norTU1.mulMat( this.i1, c.norT1 );
-            c.tanTU1.mulMat( this.i1, c.tanT1 );
-            c.binTU1.mulMat( this.i1, c.binT1 );
+            i1 = this.body1.inverseInertia;
+            i2 = this.body2.inverseInertia;
 
-            c.norTU2.mulMat( this.i2, c.norT2 );
-            c.tanTU2.mulMat( this.i2, c.tanT2 );
-            c.binTU2.mulMat( this.i2, c.binT2 );
+            c.norTU1.mulMat( i1, c.norT1 );
+            c.tanTU1.mulMat( i1, c.tanT1 );
+            c.binTU1.mulMat( i1, c.binT1 );
 
-            this.tmpC1.crossVectors( c.norTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.norTU2, c.rp2 );
+            c.norTU2.mulMat( i2, c.norT2 );
+            c.tanTU2.mulMat( i2, c.tanT2 );
+            c.binTU2.mulMat( i2, c.binT2 );
+
+            this.tmpC1.crossVectors( c.norTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.norTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.norDen = 1 / ( m1m2 +_Math.dotVectors( c.nor, this.tmp ));
 
-            this.tmpC1.crossVectors( c.tanTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.tanTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.tanTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.tanTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.tanDen = 1 / ( m1m2 +_Math.dotVectors( c.tan, this.tmp ));
 
-            this.tmpC1.crossVectors( c.binTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.binTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.binTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.binTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.binDen = 1 / ( m1m2 +_Math.dotVectors( c.bin, this.tmp ));
 
@@ -5067,25 +5018,24 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
                 c.norImp = norImp;
                 c.tanImp = 0;
                 c.binImp = 0;
-                rvn=0; // disable bouncing
+                rvn = 0; // disable bouncing
 
             } else {
 
-                c.norImp=0;
-                c.tanImp=0;
-                c.binImp=0;
+                c.norImp = 0;
+                c.tanImp = 0;
+                c.binImp = 0;
 
             }
 
 
-            if(rvn>-1) rvn=0; // disable bouncing
+            if( rvn > -1 ) rvn = 0; // disable bouncing
             
             norTar = this.restitution*-rvn;
             sepV = -(p.penetration+0.005)*invTimeStep*0.05; // allow 0.5cm error
-            if(norTar<sepV) norTar=sepV;
-            c.norTar=norTar;
-            c.last = i==this.num-1;
-            c = c.next;
+            if( norTar < sepV ) norTar=sepV;
+            c.norTar = norTar;
+
         }
     },
 
@@ -5096,11 +5046,12 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.tmpav1.copy( this.av1 );
         this.tmpav2.copy( this.av2 );
 
-        var oldImp1, newImp1, oldImp2, newImp2, rvn, norImp, tanImp, binImp, max, len;
+        var oldImp1, newImp1, oldImp2, newImp2, rvn, norImp, tanImp, binImp, max, len, c;
+        var i = this.num;
 
-        var c = this.cs;
+        while( i-- ){
 
-        while(true){
+            c = this.cs[i];
 
             norImp = c.norImp;
             tanImp = c.tanImp;
@@ -5112,7 +5063,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             rvn = _Math.dotVectors( this.tmp, c.tan ) + _Math.dotVectors( this.tmpav2, c.tanT2 ) - _Math.dotVectors( this.tmpav1, c.tanT1 );
         
             oldImp1 = tanImp;
-            newImp1 = rvn*c.tanDen;
+            newImp1 = rvn * c.tanDen;
             tanImp += newImp1;
 
             rvn = _Math.dotVectors( this.tmp, c.bin ) + _Math.dotVectors( this.tmpav2, c.binT2 ) - _Math.dotVectors( this.tmpav1, c.binT1 );
@@ -5188,8 +5139,6 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.tanImp = tanImp;
             c.binImp = binImp;
 
-            if(c.last)break;
-            c = c.next;
         }
 
         this.lv1.copy( this.tmplv1 );
@@ -5201,11 +5150,13 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
     postSolve: function(){
 
-        var c = this.cs, p;
-        var i = this.num;
-        while(i--){
-        //for(var i=0;i<this.num;i++){
+        var i = this.num, c, p;
+
+        while( i-- ){
+
             p = this.ps[i];
+            c = this.cs[i];
+
             p.normal.copy( c.nor );
             p.tangent.copy( c.tan );
             p.binormal.copy( c.bin );
@@ -5216,16 +5167,11 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             p.normalDenominator = c.norDen;
             p.tangentDenominator = c.tanDen;
             p.binormalDenominator = c.binDen;
-            c=c.next;
+
         }
     }
 
 });
-
-/**
-* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
-* @author saharan
-*/
 
 function Contact(){
 
@@ -5237,10 +5183,6 @@ function Contact(){
     this.body1 = null;
     // The second rigid body.
     this.body2 = null;
-    // The previous contact in the world.
-    this.prev = null;
-    // The next contact in the world.
-    this.next = null;
     // Internal
     this.persisting = false;
     // Whether both the rigid bodies are sleeping or not.
@@ -5271,7 +5213,7 @@ function Contact(){
 
     this.points = this.manifold.points;
     this.constraint = new ContactConstraint( this.manifold );
-    
+
 }
 
 Object.assign( Contact.prototype, {
@@ -5280,203 +5222,162 @@ Object.assign( Contact.prototype, {
 
     mixRestitution: function ( restitution1, restitution2 ) {
 
-        return _Math.sqrt(restitution1*restitution2);
+        return _Math.sqrt( restitution1 * restitution2 );
 
     },
+
     mixFriction: function ( friction1, friction2 ) {
 
-        return _Math.sqrt(friction1*friction2);
+        return _Math.sqrt( friction1 * friction2 );
 
     },
 
-    /**
-    * Update the contact manifold.
-    */
+    // Update the contact manifold.
     updateManifold: function () {
-        this.constraint.restitution=this.mixRestitution(this.shape1.restitution,this.shape2.restitution);
-        this.constraint.friction=this.mixFriction(this.shape1.friction,this.shape2.friction);
-        var numBuffers=this.manifold.numPoints;
-        var i = numBuffers;
-        while(i--){
-        //for(var i=0;i<numBuffers;i++){
-            var b=this.buffer[i];
-            var p=this.points[i];
-            b.lp1X=p.localPoint1.x;
-            b.lp1Y=p.localPoint1.y;
-            b.lp1Z=p.localPoint1.z;
-            b.lp2X=p.localPoint2.x;
-            b.lp2Y=p.localPoint2.y;
-            b.lp2Z=p.localPoint2.z;
-            b.impulse=p.normalImpulse;
+
+        var i, j, b, p, num, numBuffers, distance1, distance2, index, minDistance, tmp;
+
+        this.constraint.restitution = this.mixRestitution( this.shape1.restitution, this.shape2.restitution );
+        this.constraint.friction = this.mixFriction( this.shape1.friction, this.shape2.friction );
+
+        numBuffers = this.manifold.numPoints;
+        
+        i = numBuffers;
+
+        while( i-- ){
+
+            b = this.buffer[i];
+            p = this.points[i];
+            b.lp1.copy( p.localPoint1 );
+            b.lp2.copy( p.localPoint2 );
+            b.impulse = p.normalImpulse;
+
         }
-        this.manifold.numPoints=0;
-        this.detector.detectCollision(this.shape1,this.shape2,this.manifold);
-        var num=this.manifold.numPoints;
-        if(num==0){
-            this.touching=false;
+
+        this.manifold.numPoints = 0;
+        this.detector.detectCollision( this.shape1, this.shape2, this.manifold );
+        var num = this.manifold.numPoints;
+        if( num === 0 ){
+            this.touching = false;
             return;
         }
-        this.touching=true;
+
+        this.touching = true;
+
         i = num;
-        while(i--){
-        //for(i=0; i<num; i++){
-            p=this.points[i];
-            var lp1x=p.localPoint1.x;
-            var lp1y=p.localPoint1.y;
-            var lp1z=p.localPoint1.z;
-            var lp2x=p.localPoint2.x;
-            var lp2y=p.localPoint2.y;
-            var lp2z=p.localPoint2.z;
-            var index=-1;
-            var minDistance=0.0004;
-            var j = numBuffers;
-            while(j--){
-            //for(var j=0;j<numBuffers;j++){
-                b=this.buffer[j];
-                var dx=b.lp1X-lp1x;
-                var dy=b.lp1Y-lp1y;
-                var dz=b.lp1Z-lp1z;
-                var distance1=dx*dx+dy*dy+dz*dz;
-                dx=b.lp2X-lp2x;
-                dy=b.lp2Y-lp2y;
-                dz=b.lp2Z-lp2z;
-                var distance2=dx*dx+dy*dy+dz*dz;
-                if(distance1<distance2){
-                    if(distance1<minDistance){
-                        minDistance=distance1;
-                        index=j;
+
+        while( i-- ){
+
+            p = this.points[i];
+
+            index = -1;
+            minDistance = 0.0004;
+
+            j = numBuffers;
+
+            while( j-- ){
+
+                b = this.buffer[j];
+
+                distance1 = _Math.distanceVector( b.lp1, p.localPoint1 );
+                distance2 = _Math.distanceVector( b.lp2, p.localPoint2 );
+
+                if( distance1 < distance2 ){
+                    if( distance1 < minDistance ){
+                        minDistance = distance1;
+                        index = j;
                     }
                 }else{
-                    if(distance2<minDistance){
-                        minDistance=distance2;
-                        index=j;
+                    if(distance2 < minDistance){
+                        minDistance = distance2;
+                        index = j;
                     }
                 }
             }
-            if(index!=-1){
-                var tmp=this.buffer[index];
-                this.buffer[index]=this.buffer[--numBuffers];
-                this.buffer[numBuffers]=tmp;
-                p.normalImpulse=tmp.impulse;
-                p.warmStarted=true;
+
+            if( index !== -1 ){
+
+                tmp = this.buffer[ index ];
+                this.buffer[ index ] = this.buffer[ --numBuffers ];
+                this.buffer[ numBuffers ] = tmp;
+                p.normalImpulse = tmp.impulse;
+                p.warmStarted = true;
+
             }else{
-                p.normalImpulse=0;
-                p.warmStarted=false;
+
+                p.normalImpulse = 0;
+                p.warmStarted = false;
+
             }
         }
+
     },
-    /**
-    * Attach the contact to the shapes.
-    * @param   shape1
-    * @param   shape2
-    */
-    attach:function(shape1,shape2){
-        this.shape1=shape1;
-        this.shape2=shape2;
-        this.body1=shape1.parent;
-        this.body2=shape2.parent;
 
-        this.manifold.body1=this.body1;
-        this.manifold.body2=this.body2;
-        this.constraint.body1=this.body1;
-        this.constraint.body2=this.body2;
-        this.constraint.attach();
+    // Attach the contact to the shapes.
+    attach:function( shape1, shape2 ){
 
-        this.s1Link.shape=shape2;
-        this.s1Link.body=this.body2;
-        this.s2Link.shape=shape1;
-        this.s2Link.body=this.body1;
+        this.shape1 = shape1;
+        this.shape2 = shape2;
+        this.body1 = shape1.parent;
+        this.body2 = shape2.parent;
 
-        if(shape1.contactLink!=null)(this.s1Link.next=shape1.contactLink).prev=this.s1Link;
-        else this.s1Link.next=null;
-        shape1.contactLink=this.s1Link;
-        shape1.numContacts++;
+        this.manifold.body1 = this.body1;
+        this.manifold.body2 = this.body2;
+        //this.constraint.body1 = this.body1;
+        //this.constraint.body2 = this.body2;
+        this.constraint.attach( shape1, shape2 );
 
-        if(shape2.contactLink!=null)(this.s2Link.next=shape2.contactLink).prev=this.s2Link;
-        else this.s2Link.next=null;
-        shape2.contactLink=this.s2Link;
-        shape2.numContacts++;
+        this.s1Link.shape = shape2;
+        this.s1Link.body = this.body2;
+        this.s2Link.shape = shape1;
+        this.s2Link.body = this.body1;
 
-        this.b1Link.shape=shape2;
-        this.b1Link.body=this.body2;
-        this.b2Link.shape=shape1;
-        this.b2Link.body=this.body1;
+        this.shape1.contactLink.push( this.s1Link );
+        this.shape2.contactLink.push( this.s2Link );
 
-        if(this.body1.contactLink!=null)(this.b1Link.next=this.body1.contactLink).prev=this.b1Link;
-        else this.b1Link.next=null;
-        this.body1.contactLink=this.b1Link;
-        this.body1.numContacts++;
+        this.b1Link.shape = shape2;
+        this.b1Link.body = this.body2;
+        this.b2Link.shape = shape1;
+        this.b2Link.body = this.body1;
 
-        if(this.body2.contactLink!=null)(this.b2Link.next=this.body2.contactLink).prev=this.b2Link;
-        else this.b2Link.next=null;
-        this.body2.contactLink=this.b2Link;
-        this.body2.numContacts++;
+        this.body1.contactLink.push( this.b1Link );
+        this.body2.contactLink.push( this.b2Link );
 
-        this.prev=null;
-        this.next=null;
+        this.persisting = true;
+        this.sleeping = this.body1.sleeping && this.body2.sleeping;
+        this.manifold.numPoints = 0;
 
-        this.persisting=true;
-        this.sleeping=this.body1.sleeping&&this.body2.sleeping;
-        this.manifold.numPoints=0;
     },
-    /**
-    * Detach the contact from the shapes.
-    */
+
+    // Detach the contact from the shapes.
     detach:function(){
-        var prev=this.s1Link.prev;
-        var next=this.s1Link.next;
-        if(prev!==null)prev.next=next;
-        if(next!==null)next.prev=prev;
-        if(this.shape1.contactLink==this.s1Link)this.shape1.contactLink=next;
-        this.s1Link.prev=null;
-        this.s1Link.next=null;
-        this.s1Link.shape=null;
-        this.s1Link.body=null;
-        this.shape1.numContacts--;
 
-        prev=this.s2Link.prev;
-        next=this.s2Link.next;
-        if(prev!==null)prev.next=next;
-        if(next!==null)next.prev=prev;
-        if(this.shape2.contactLink==this.s2Link)this.shape2.contactLink=next;
-        this.s2Link.prev=null;
-        this.s2Link.next=null;
-        this.s2Link.shape=null;
-        this.s2Link.body=null;
-        this.shape2.numContacts--;
+        this.shape1.contactLink.splice( this.shape1.contactLink.indexOf( this.s1Link ), 1 );
+        this.shape2.contactLink.splice( this.shape2.contactLink.indexOf( this.s2Link ), 1 );
 
-        prev=this.b1Link.prev;
-        next=this.b1Link.next;
-        if(prev!==null)prev.next=next;
-        if(next!==null)next.prev=prev;
-        if(this.body1.contactLink==this.b1Link)this.body1.contactLink=next;
-        this.b1Link.prev=null;
-        this.b1Link.next=null;
-        this.b1Link.shape=null;
-        this.b1Link.body=null;
-        this.body1.numContacts--;
+        this.body1.contactLink.splice( this.body1.contactLink.indexOf( this.b1Link ), 1 );
+        this.body2.contactLink.splice( this.body2.contactLink.indexOf( this.b2Link ), 1 );
 
-        prev=this.b2Link.prev;
-        next=this.b2Link.next;
-        if(prev!==null)prev.next=next;
-        if(next!==null)next.prev=prev;
-        if(this.body2.contactLink==this.b2Link)this.body2.contactLink=next;
-        this.b2Link.prev=null;
-        this.b2Link.next=null;
-        this.b2Link.shape=null;
-        this.b2Link.body=null;
-        this.body2.numContacts--;
+        this.s1Link.shape = null;
+        this.s1Link.body = null;
+        this.s2Link.shape = null;
+        this.s2Link.body = null;
+        this.b1Link.shape = null;
+        this.b1Link.body = null;
+        this.b2Link.shape = null;
+        this.b2Link.body = null;
 
-        this.manifold.body1=null;
-        this.manifold.body2=null;
-        this.constraint.body1=null;
-        this.constraint.body2=null;
+        this.manifold.body1 = null;
+        this.manifold.body2 = null;
+        //this.constraint.body1 = null;
+        //this.constraint.body2 = null;
         this.constraint.detach();
 
-        this.shape1=null;
-        this.shape2=null;
-        this.body1=null;
-        this.body2=null;
+        this.shape1 = null;
+        this.shape2 = null;
+        this.body1 = null;
+        this.body2 = null;
+        
     }
 
 } );
@@ -5488,23 +5389,25 @@ Object.assign( Contact.prototype, {
 * Rigid body has the shape of a single or multiple collision processing,
 * I can set the parameters individually.
 * @author saharan
-* @author lo-th
 */
 
-function RigidBody ( Position, Rotation, scale, invScale ) {
+function RigidBody ( Position, Rotation ) {
 
     this.position = Position || new Vec3();
     this.orientation = Rotation || new Quat();
 
-    this.scale = scale || 1;
-    this.invScale = invScale || 1;
+    this.scale =1;
+    this.invScale = 1;
+
+    // possible link to three Mesh;
+    this.mesh = null;
 
     this.name = "";
     // The maximum number of shapes that can be added to a one rigid.
     //this.MAX_SHAPES = 64;//64;
 
-    this.prev = null;
-    this.next = null;
+    //this.prev = null;
+    //this.next = null;
 
     // I represent the kind of rigid body.
     // Please do not change from the outside this variable.
@@ -5514,13 +5417,14 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
 
     this.massInfo = new MassInfo();
 
+
     this.newPosition = new Vec3();
-    this.controlPos = false;
     this.newOrientation = new Quat();
-    this.newRotation = new Vec3();
-    this.currentRotation = new Vec3();
+    this.controlPos = false;
     this.controlRot = false;
-    this.controlRotInTime = false;
+
+    this.tmpPos = new Vec3();
+    this.tmpQuat = new Quat();
 
 
 
@@ -5535,18 +5439,15 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
 
     // It is a world that rigid body has been added.
     this.parent = null;
-    this.contactLink = null;
-    this.numContacts = 0;
+
+    // An array of contact that are included in the rigid body.
+    this.contactLink = [];
 
     // An array of shapes that are included in the rigid body.
-    this.shapes = null;
-    // The number of shapes that are included in the rigid body.
-    this.numShapes = 0;
+    this.shapes = [];
 
     // It is the link array of joint that is connected to the rigid body.
-    this.jointLink = null;
-    // The number of joints that are connected to the rigid body.
-    this.numJoints = 0;
+    this.jointLink = [];
 
     // It is the world coordinate of the center of gravity in the sleep just before.
     this.sleepPosition = new Vec3();
@@ -5556,6 +5457,8 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     this.isStatic = false;
     // I indicates that this rigid body to determine whether it is a rigid body dynamic.
     this.isDynamic = false;
+
+    this.isKinematic = false;
     // It is a rotation matrix representing the orientation.
     this.rotation = new Mat33();
 
@@ -5564,9 +5467,10 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     //--------------------------------------------
 
     // This is the weight.
-    this.mass = NaN;
+    this.mass = 0;
     // It is the reciprocal of the mass.
-    this.inverseMass = NaN;
+    this.inverseMass = 0;
+
     // It is the inverse of the inertia tensor in the world system.
     this.inverseInertia = new Mat33();
     // It is the inertia tensor in the initial state.
@@ -5590,44 +5494,56 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
 
 Object.assign( RigidBody.prototype, {
 
+    RigidBody: true,
+
+    setParent: function ( world ) {
+
+        this.parent = world;
+        this.scale = this.parent.scale;
+        this.invScale = this.parent.invScale;
+
+    },
+
     /**
-     * I'll add a shape to rigid body.
-     * If you add a shape, please call the setupMass method to step up to the start of the next.
-     * @param   shape shape to Add
-     */
-    addShape:function(shape){
+    * I'll add a shape to rigid body.
+    * If you add a shape, please call the setupMass method to step up to the start of the next.
+    * @param   shape shape to Add
+    */
+    addShape:function( shape ){
 
-        if(shape.parent){
-			printError("RigidBody", "It is not possible that you add a shape which already has an associated body.");
-		}
+        if(shape.parent) printError("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
 
-        if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
-        this.shapes = shape;
+        //if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
+        //this.shapes = shape;
+
         shape.parent = this;
-        if(this.parent) this.parent.addShape( shape );
-        this.numShapes++;
+        shape.contactLink = [];
+        if( this.parent ) this.parent.addShape( shape );
+
+        this.shapes.push( shape );
 
     },
     /**
-     * I will delete the shape from the rigid body.
-     * If you delete a shape, please call the setupMass method to step up to the start of the next.
-     * @param shape {Shape} to delete
-     * @return void
-     */
-    removeShape:function(shape){
+    * I will delete the shape from the rigid body.
+    * If you delete a shape, please call the setupMass method to step up to the start of the next.
+    * @param   shape shape to Delete
+    */
+    removeShape:function( shape ){
 
-        var remove = shape;
-        if(remove.parent!=this)return;
-        var prev=remove.prev;
-        var next=remove.next;
-        if(prev!=null) prev.next=next;
-        if(next!=null) next.prev=prev;
-        if(this.shapes==remove)this.shapes=next;
-        remove.prev=null;
-        remove.next=null;
-        remove.parent=null;
-        if(this.parent)this.parent.removeShape(remove);
-        this.numShapes--;
+        this.shapes.splice( this.shapes.indexOf( shape ), 1 );
+
+        //var remove = shape;
+        if(shape.parent !== this) return;
+        //var prev=remove.prev;
+        //var next=remove.next;
+        //if(prev!=null) prev.next=next;
+        //if(next!=null) next.prev=prev;
+        //if(this.shapes==remove)this.shapes=next;
+        //remove.prev=null;
+        //remove.next=null;
+        shape.parent = null;
+        if( this.parent ) this.parent.removeShape( shape );
+        //this.numShapes--;
 
     },
 
@@ -5650,19 +5566,19 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-     * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
-     * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
-     * If the parameter adjustPosition is set to true, the shapes' relative positions and
-     * the rigid body's position will be adjusted to the center of gravity.
-     * @param type
-     * @param adjustPosition
-     * @return void
-     */
+    * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
+    * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
+    * If the parameter adjustPosition is set to true, the shapes' relative positions and
+    * the rigid body's position will be adjusted to the center of gravity.
+    * @param   type
+    * @param   adjustPosition
+    */
+
     setupMass: function ( type, AdjustPosition ) {
 
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
 
-        this.type = type || BODY_STATIC;
+        this.type = type || BODY_DYNAMIC;
         this.isDynamic = this.type === BODY_DYNAMIC;
         this.isStatic = this.type === BODY_STATIC;
 
@@ -5673,8 +5589,11 @@ Object.assign( RigidBody.prototype, {
         var tmpM = new Mat33();
         var tmpV = new Vec3();
 
-        for( var shape = this.shapes; shape !== null; shape = shape.next ){
+        var i = this.shapes.length, shape;
 
+        while(i--){
+
+            shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
             tmpV.addScale(shape.relativePosition, shapeMass);
@@ -5692,8 +5611,9 @@ Object.assign( RigidBody.prototype, {
 
         if( adjustPosition ){
             this.position.addEqual(tmpV);
-            for( shape=this.shapes; shape !== null; shape = shape.next ){
-                shape.relativePosition.subEqual(tmpV);
+            i = this.shapes.length;
+            while(i--){
+                this.shapes[i].relativePosition.subEqual( tmpV );
             }
 
             // subtract offset inertia
@@ -5715,34 +5635,40 @@ Object.assign( RigidBody.prototype, {
 
     },
     /**
-     * Awake the rigid body.
-     */
+    * Awake the rigid body.
+    */
     awake:function(){
 
         if( !this.allowSleep || !this.sleeping ) return;
         this.sleeping = false;
         this.sleepTime = 0;
+
+        var i, js, cs;
+
         // awake connected constraints
-        var cs = this.contactLink;
-        while(cs != null){
+        i = this.contactLink.length;
+        while(i--){
+            cs = this.contactLink[i];
             cs.body.sleepTime = 0;
             cs.body.sleeping = false;
-            cs = cs.next;
         }
-        var js = this.jointLink;
-        while(js != null){
+
+        i = this.jointLink.length;
+        while(i--){
+            js = this.jointLink[i];
             js.body.sleepTime = 0;
             js.body.sleeping = false;
-            js = js.next;
         }
-        for(var shape = this.shapes; shape!=null; shape = shape.next){
-            shape.updateProxy();
+
+        i = this.shapes.length;
+        while(i--){
+            this.shapes[i].updateProxy();
         }
 
     },
     /**
-     * Sleep the rigid body.
-     */
+    * Sleep the rigid body.
+    */
     sleep:function(){
 
         if( !this.allowSleep || this.sleeping ) return;
@@ -5754,8 +5680,10 @@ Object.assign( RigidBody.prototype, {
 
         this.sleepTime = 0;
         this.sleeping = true;
-        for( var shape = this.shapes; shape != null; shape = shape.next ) {
-            shape.updateProxy();
+
+        var i = this.shapes.length;
+        while(i--){
+            this.shapes[i].updateProxy();
         }
     },
 
@@ -5766,35 +5694,49 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-     * Get whether the rigid body has not any connection with others.
-     * @return {void}
-     */
+    * Get whether the rigid body has not any connection with others.
+    * @return {void}
+    */
     isLonely: function () {
-        return this.numJoints==0 && this.numContacts==0;
+        return this.jointLink.length===0 && this.contactLink.length===0;
+        //return this.numJoints==0 && this.numContacts==0;
     },
 
     /**
-     * The time integration of the motion of a rigid body, you can update the information such as the shape.
-     * This method is invoked automatically when calling the step of the World,
-     * There is no need to call from outside usually.
-     * @param  timeStep time
-     * @return {void}
-     */
+    * The time integration of the motion of a rigid body, you can update the information such as the shape.
+    * This method is invoked automatically when calling the step of the World,
+    * There is no need to call from outside usually.
+    * @param  timeStep time
+    * @return {void}
+    */
 
     updatePosition: function ( timeStep ) {
-        switch(this.type){
+
+        switch( this.type ){
+
             case BODY_STATIC:
+
                 this.linearVelocity.set(0,0,0);
                 this.angularVelocity.set(0,0,0);
 
                 // ONLY FOR TEST
-                if(this.controlPos){
-                    this.position.copy(this.newPosition);
+               if(this.controlPos){
+                    this.tmpPos.sub( this.newPosition, this.position );
+                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
+                    //this.position.copy( this.newPosition );
+                    //this.tmpPos.sub( this.newPosition, this.position );
+                    //this.linearVelocity.scale(this.tmpPos, 1/timeStep)
+                    //this.position.addTime( this.linearVelocity, timeStep );
                     this.controlPos = false;
                 }
                 if(this.controlRot){
-                    this.orientation.copy(this.newOrientation);
+
+                    this.angularVelocity.copy( this.getAxis() );
+                    this.orientation.copy( this.newOrientation );
                     this.controlRot = false;
+
+                    this.orientation.addTime( this.angularVelocity, timeStep );
+
                 }
                 /*this.linearVelocity.x=0;
                 this.linearVelocity.y=0;
@@ -5805,32 +5747,81 @@ Object.assign( RigidBody.prototype, {
             break;
             case BODY_DYNAMIC:
 
+                if( this.controlPos || this.controlRot ){
+
+                    this.linearVelocity.set(0,0,0);
+                    this.angularVelocity.set(0,0,0);
+
+                }
+
                 if(this.controlPos){
 
-                    this.angularVelocity.set(0,0,0);
-                    this.linearVelocity.set(0,0,0);
-                    this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
-                    this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
-                    this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+
+
+                    //this.angularVelocity.set(0,0,0);
+                    //this.linearVelocity.set(0,0,0);
+
+                    this.tmpPos.sub( this.newPosition, this.position );
+                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
+
+                    //this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
+                    //this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
+                    //this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
+                    
+                    //this.position.copy( this.newPosition );
                     this.controlPos = false;
 
                 }
                 if(this.controlRot){
 
-                    this.angularVelocity.set(0,0,0);
+                    //var e = this.rotation.elements;
+                    //this.angularVelocity.set(e[0],e[4],e[8]).normalize()
+
+                    this.angularVelocity.copy( this.getAxis() );
+
+                    //console.log(this.angularVelocity)
+
+                   // this.angularVelocity.set(0,1,0).applyQuaternion( this.orientation )
+
+                   // this.angularVelocity.set(0,1,0)//.applyQuaternion( this.newOrientation )
+                    //this.angularVelocity.set(0,1,0).applyQuaternion( new Quat() )
+                    //this.angularVelocity.set(0,1,0).applyQuaternion( this.orientation )
+
+                    //this.angularVelocity.set(0,1,0).applyMatrix3( this.tmpInertia );
+                    //this.angularVelocity.applyMatrix3( this.inverseLocalInertia );
+                    //this.tmpQuat.sub( this.newOrientation, this.orientation );
+
+                    //this.tmpQuat.mul( new Quat().invert( this.newOrientation ), this.orientation );
+
+                    //this.angularVelocity.subQuatTime( this.tmpQuat, (1/timeStep) );//.scaleEqual( *2 );
+
                     this.orientation.copy( this.newOrientation );
+
+                    //this.orientation.mul( this.orientation, this.tmpQuat );
+                    //timeStep = 0;
                     this.controlRot = false;
 
                 }
 
-                this.position.addTime(this.linearVelocity, timeStep);
-                this.orientation.addTime(this.angularVelocity, timeStep);
+                this.position.addTime( this.linearVelocity, timeStep );
+                this.orientation.addTime( this.angularVelocity, timeStep );
 
             break;
             default: printError("RigidBody", "Invalid type.");
         }
 
         this.syncShapes();
+
+        this.updateMesh();
+
+    },
+
+    getAxis: function () {
+
+        //return new Vec3().mulMat( this.rotation, new Vec3(0,1,0) ).normalize();
+        return new Vec3().mulMat( this.inverseLocalInertia, new Vec3(0,1,0) ).normalize();
+
+        //return new Vec3().mulMat( this.rotation, this.position.normalize() ).normalize();
 
     },
 
@@ -5845,52 +5836,71 @@ Object.assign( RigidBody.prototype, {
 
         this.rotation.setQuat( this.orientation );
         this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
-        for(var shape = this.shapes; shape!=null; shape = shape.next){
-            //var relPos=shape.relativePosition;
-            //var relRot=shape.relativeRotation;
-            //var rot=shape.rotation;
-            /*var lx=relPos.x;
-            var ly=relPos.y;
-            var lz=relPos.z;
-            shape.position.x=this.position.x+lx*tr[0]+ly*tr[1]+lz*tr[2];
-            shape.position.y=this.position.y+lx*tr[3]+ly*tr[4]+lz*tr[5];
-            shape.position.z=this.position.z+lx*tr[6]+ly*tr[7]+lz*tr[8];*/
 
-            shape.position.mul( this.position, shape.relativePosition, this.rotation );
-            //shape.rotation.mul(shape.relativeRotation,this.rotation);
+        var i = this.shapes.length, shape;
+
+        while(i--){
+
+            shape = this.shapes[i];
+            //shape.position.mul( this.position, shape.relativePosition, this.rotation );
+
+            shape.position.mulMat( this.rotation, shape.relativePosition ).addEqual( this.position );
             // add by QuaziKb
             shape.rotation.mul( this.rotation, shape.relativeRotation );
             shape.updateProxy();
+
         }
     },
 
+    forceTransforme: function () {
 
-    /**
-     * Apply impulse force.
-     *
-     * @method applyImpulse
-     * @return void
-     */
-    applyImpulse: function(position, force){
-        this.linearVelocity.addScale(force, this.inverseMass);
-        var rel = new Vec3();
-        rel.sub(position, this.position).cross(rel, force).mulMat(this.inverseInertia, rel);
-        this.angularVelocity.addEqual(rel);
+        this.linearVelocity.set( 0, 0, 0 );
+        this.angularVelocity.set( 0, 0, 0 );
+
+        if( this.controlPos ) this.position.copy( this.newPosition );
+        if( this.controlRot ) this.orientation.copy( this.newOrientation );
+
+        this.controlPos = false;
+        this.controlRot = false;
+
+        this.awake();
+
+        //this.setupMass(this.type, false)
+
     },
 
+    
+
+    //---------------------------------------------
+    // APPLY IMPULSE FORCE
+    //---------------------------------------------
+
+    applyImpulse: function ( position, force ) {
+
+        this.linearVelocity.addScale(force, this.inverseMass);
+        var rel = new Vec3();
+        rel.sub( position, this.position ).cross( rel, force ).mulMat( this.inverseInertia, rel );
+        this.angularVelocity.addEqual( rel );
+
+    },
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
     //---------------------------------------------
 
-    setPosition: function(pos){
+    setPosition: function ( pos ) {
+
         this.newPosition.copy( pos ).multiplyScalar( this.invScale );
         this.controlPos = true;
+
     },
 
-    setQuaternion: function(q){
-        this.newOrientation.set(q.x, q.y, q.z, q.w);
+    setQuaternion: function ( q ) {
+        //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
+
+        this.newOrientation.set( q.x, q.y, q.z, q.w );
         this.controlRot = true;
+
     },
 
     setRotation: function ( rot ) {
@@ -5945,7 +5955,20 @@ Object.assign( RigidBody.prototype, {
 
     },
 
-} );
+    //---------------------------------------------
+    // AUTO UPDATE THREE MESH
+    //---------------------------------------------
+
+    updateMesh: function(){
+
+        if( this.mesh === null ) return;
+
+        this.mesh.position.copy( this.getPosition() );
+        this.mesh.quaternion.copy( this.getQuaternion() );
+
+    },
+
+});
 
 /**
 * A pair of shapes that may collide.
@@ -5960,11 +5983,7 @@ function Pair ( s1, s2 ){
 
 }
 
-/**
-* The broad-phase is used for collecting all possible pairs for collision.
-*/
-
- function BroadPhase(){
+function BroadPhase(){
 
     this.types = BR_NULL;
     this.numPairChecks = 0;
@@ -6010,10 +6029,11 @@ Object.assign( BroadPhase.prototype, {
         var js;
         if(b1.numJoints<b2.numJoints) js = b1.jointLink;
         else js = b2.jointLink;
-        while(js!==null){
-           var joint = js.joint;
+        var i = js.length;
+        while(i--){
+           var joint = js[i].joint;
            if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
-           js = js.next;
+           //js = js.next;
         }
 
         return true;
@@ -6027,13 +6047,14 @@ Object.assign( BroadPhase.prototype, {
         this.pairs = [];
         this.numPairs = 0;
         this.numPairChecks = 0;
+
         this.collectPairs();
 
     },
 
     collectPairs: function () {
 
-        Error("BroadPhase", "Inheritance error.");
+        printError("BroadPhase", "Inheritance error.");
 
     },
 
@@ -6080,12 +6101,6 @@ Object.assign( Proxy.prototype, {
 
 });
 
-/**
-* A basic implementation of proxies.
-*
-* @author saharan
-*/
-
 function BasicProxy ( shape ) {
 
     Proxy.call( this, shape );
@@ -6104,22 +6119,14 @@ BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
 });
 
-/**
-* A broad-phase algorithm with brute-force search.
-* This always checks for all possible pairs.
-*/
-
 function BruteForceBroadPhase(){
 
     BroadPhase.call( this );
+
     this.types = BR_BRUTE_FORCE;
-    //this.numProxies=0;
-    ///this.maxProxies = 256;
     this.proxies = [];
-    //this.proxies.length = 256;
 
 }
-
 
 BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), {
 
@@ -6133,80 +6140,39 @@ BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.protot
 
     addProxy: function ( proxy ) {
 
-        /*if(this.numProxies==this.maxProxies){
-            //this.maxProxies<<=1;
-            this.maxProxies*=2;
-            var newProxies=[];
-            newProxies.length = this.maxProxies;
-            var i = this.numProxies;
-            while(i--){
-            //for(var i=0, l=this.numProxies;i<l;i++){
-                newProxies[i]=this.proxies[i];
-            }
-            this.proxies=newProxies;
-        }*/
-        //this.proxies[this.numProxies++] = proxy;
         this.proxies.push( proxy );
-        //this.numProxies++;
 
     },
 
     removeProxy: function ( proxy ) {
 
         var n = this.proxies.indexOf( proxy );
-        if ( n > -1 ){
-            this.proxies.splice( n, 1 );
-            //this.numProxies--;
-        }
-
-        /*var i = this.numProxies;
-        while(i--){
-        //for(var i=0, l=this.numProxies;i<l;i++){
-            if(this.proxies[i] == proxy){
-                this.proxies[i] = this.proxies[--this.numProxies];
-                this.proxies[this.numProxies] = null;
-                return;
-            }
-        }*/
+        if ( n > -1 )  this.proxies.splice( n, 1 );
 
     },
 
     collectPairs: function () {
-
+        
         var i = 0, j, p1, p2;
 
         var px = this.proxies;
-        var l = px.length;//this.numProxies;
-        //var ar1 = [];
-        //var ar2 = [];
-
-        //for( i = px.length ; i-- ; ar1[ i ] = px[ i ] ){};
-        //for( i = px.length ; i-- ; ar2[ i ] = px[ i ] ){};
-
-        //var ar1 = JSON.parse(JSON.stringify(this.proxies))
-        //var ar2 = JSON.parse(JSON.stringify(this.proxies))
+        var l = px.length;
 
         this.numPairChecks = l*(l-1)>>1;
-        //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
 
         while( i < l ){
             p1 = px[i++];
             j = i + 1;
-            while( j < l ){
+            while( j < l ){ 
                 p2 = px[j++];
                 if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
-                this.addPair( p1.shape, p2.shape );
-            }
+                this.addPair( p1.shape, p2.shape );        
+            }     
         }
 
     }
 
 });
-
-/**
- * A projection axis for sweep and prune broad-phase.
- * @author saharan
- */
 
 function SAPAxis (){
 
@@ -6399,12 +6365,6 @@ function SAPElement ( proxy, max ) {
 
 }
 
-/**
- * A proxy for sweep and prune broad-phase.
- * @author saharan
- * @author lo-th
- */
-
 function SAPProxy ( sap, shape ){
 
     Proxy.call( this, shape );
@@ -6472,12 +6432,6 @@ SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
 });
 
-/**
- * A broad-phase collision detection algorithm using sweep and prune.
- * @author saharan
- * @author lo-th
- */
-
 function SAPBroadPhase () {
 
     BroadPhase.call( this);
@@ -6485,12 +6439,14 @@ function SAPBroadPhase () {
 
     this.numElementsD = 0;
     this.numElementsS = 0;
+    
     // dynamic proxies
     this.axesD = [
        new SAPAxis(),
        new SAPAxis(),
        new SAPAxis()
     ];
+
     // static or sleeping proxies
     this.axesS = [
        new SAPAxis(),
@@ -6682,11 +6638,6 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
 
 });
 
-/**
-* A node of the dynamic bounding volume tree.
-* @author saharan
-*/
-
 function DBVTNode(){
     
 	// The first child node of this node.
@@ -6703,13 +6654,6 @@ function DBVTNode(){
     this.aabb = new AABB();
 
 }
-
-/**
- * A dynamic bounding volume tree for the broad-phase algorithm.
- *
- * @author saharan
- * @author lo-th
- */
 
 function DBVT(){
 
@@ -7051,11 +6995,6 @@ Object.assign( DBVT.prototype, {
     
 });
 
-/**
-* A proxy for dynamic bounding volume tree broad-phase.
-* @author saharan
-*/
-
 function DBVTProxy ( shape ) {
 
     Proxy.call( this, shape);
@@ -7075,17 +7014,9 @@ DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
 });
 
-/**
- * A broad-phase algorithm using dynamic bounding volume tree.
- *
- * @author saharan
- * @author lo-th
- */
-
 function DBVTBroadPhase(){
 
-    BroadPhase.call( this );
-
+    BroadPhase.call( this);
     this.types = BR_BOUNDING_VOLUME_TREE;
 
     this.tree = new DBVT();
@@ -7101,7 +7032,7 @@ DBVTBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ),
 
     createProxy: function ( shape ) {
 
-        return new DBVTProxy( shape );
+        return new DBVTProxy(shape);
 
     },
 
@@ -7220,10 +7151,6 @@ Object.assign( CollisionDetector.prototype, {
 
 } );
 
-/**
- * A collision detector which detects collisions between two boxes.
- * @author saharan
- */
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
@@ -10463,10 +10390,6 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
 });
 
-/**
- * A collision detector which detects collisions between sphere and box.
- * @author saharan
- */
 function SphereBoxCollisionDetector ( flip ) {
     
     CollisionDetector.call( this );
@@ -10719,11 +10642,6 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan
- */
- 
 function SphereSphereCollisionDetector (){
 
     CollisionDetector.call( this );
@@ -10760,18 +10678,6 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
 
 });
 
-//import { TetraShape } from '../collision/shape/TetraShape';
-
-/**
- * The class of physical computing world.
- * You must be added to the world physical all computing objects
- *
- * @author saharan
- * @author lo-th
- */
-
- // timestep, broadphase, iterations, worldscale, random, stat
-
 function World ( o ) {
 
     if( !(o instanceof Object) ) o = {};
@@ -10792,46 +10698,44 @@ function World ( o ) {
         case 3: this.broadPhase = new DBVTBroadPhase(); break;
     }
 
-    this.Btypes = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
+    this.Btypes = ['None','BruteForce X','Sweep & Prune X', 'Bounding Volume Tree X' ];
     this.broadPhaseType = this.Btypes[ o.broadphase || 2 ];
 
-    // This is the detailed information of the performance.
+    // This is the detailed information of the performance. 
     this.performance = null;
     this.isStat = o.info === undefined ? false : o.info;
     if( this.isStat ) this.performance = new InfoDisplay( this );
 
-    /**
-     * Whether the constraints randomizer is enabled or not.
-     *
-     * @property enableRandomizer
-     * @type {Boolean}
-     */
+    // Whether the constraints randomizer is enabled or not.
     this.enableRandomizer = o.random !== undefined ? o.random : true;
 
+    
+
+
     // The rigid body list
-    this.rigidBodies=null;
+    this.rigidBodies=[];//null;
     // number of rigid body
     this.numRigidBodies=0;
     // The contact list
-    this.contacts=null;
-    this.unusedContacts=null;
+    this.contacts=[];//null;
+    //this.unusedContacts=null;
     // The number of contact
     this.numContacts=0;
     // The number of contact points
     this.numContactPoints=0;
     //  The joint list
-    this.joints=null;
+    this.joints=[];//null;
     // The number of joints.
     this.numJoints=0;
     // The number of simulation islands.
     this.numIslands=0;
-
-
+    
+   
     // The gravity in the world.
     this.gravity = new Vec3(0,-9.8,0);
     if( o.gravity !== undefined ) this.gravity.fromArray( o.gravity );
 
-
+    
 
     var numShapeTypes = 5;//4;//3;
     this.detectors=[];
@@ -10859,7 +10763,7 @@ function World ( o ) {
     // TETRA add
     //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
 
-
+ 
     this.randX = 65535;
     this.randA = 98765;
     this.randB = 123456789;
@@ -10887,82 +10791,95 @@ Object.assign( World.prototype, {
 
         this.randX = 65535;
 
-        while(this.joints!==null){
+        /*while(this.joints!==null){
             this.removeJoint( this.joints );
         }
         while(this.contacts!==null){
             this.removeContact( this.contacts );
         }
-        while(this.rigidBodies!==null){
+        /*while(this.rigidBodies!==null){
             this.removeRigidBody( this.rigidBodies );
-        }
+        }*/
+
+        while( this.joints.length > 0 ) this.removeJoint( this.joints.pop() );
+        while( this.contacts.length > 0 ) this.removeContact( this.contacts.pop(), true );
+        while( this.rigidBodies.length > 0 ) this.removeRigidBody( this.rigidBodies.pop() );
 
     },
     /**
-    * I'll add a rigid body to the world.
+    * I'll add a rigid body to the world. 
     * Rigid body that has been added will be the operands of each step.
     * @param  rigidBody  Rigid body that you want to add
     */
     addRigidBody:function( rigidBody ){
 
-        if(rigidBody.parent){
+        if( rigidBody.parent ){
             printError("World", "It is not possible to be added to more than one world one of the rigid body");
         }
 
-        rigidBody.parent = this;
-        //rigidBody.awake();
+        rigidBody.setParent( this );
 
-        for(var shape = rigidBody.shapes; shape !== null; shape = shape.next){
-            this.addShape( shape );
+        var i = rigidBody.shapes.length;
+
+        while(i--){
+
+            this.addShape(rigidBody.shapes[i]);
+
         }
-        if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
-        this.rigidBodies = rigidBody;
-        this.numRigidBodies++;
+
+        this.rigidBodies.push( rigidBody );
+
+        this.numRigidBodies = this.rigidBodies.length;
 
     },
     /**
-    * I will remove the rigid body from the world.
+    * I will remove the rigid body from the world. 
     * Rigid body that has been deleted is excluded from the calculation on a step-by-step basis.
     * @param  rigidBody  Rigid body to be removed
     */
     removeRigidBody:function( rigidBody ){
 
-        var remove=rigidBody;
-        if(remove.parent!==this)return;
+        var remove = rigidBody;
+        if(remove.parent!==this) return;
         remove.awake();
-        var js=remove.jointLink;
-        while(js!=null){
-	        var joint=js.joint;
-	        js=js.next;
-	        this.removeJoint(joint);
+
+        var i = remove.jointLink.length;
+        while(i--){
+	        this.removeJoint(remove.jointLink[i]);
         }
-        for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
-            this.removeShape(shape);
+
+        i = remove.shapes.length;
+        while(i--){
+            this.removeShape(remove.shapes[i]);
         }
-        var prev=remove.prev;
+        /*var prev=remove.prev;
         var next=remove.next;
         if(prev!==null) prev.next=next;
         if(next!==null) next.prev=prev;
         if(this.rigidBodies==remove) this.rigidBodies=next;
         remove.prev=null;
-        remove.next=null;
-        remove.parent=null;
-        this.numRigidBodies--;
+        remove.next=null;*/
+        remove.parent = null;
+
+        this.numRigidBodies = this.rigidBodies.length;
+        //this.numRigidBodies--;
 
     },
 
     getByName: function( name ){
 
-        var body = this.rigidBodies;
-        while( body !== null ){
+        var i, body, joint;
+
+        i = this.rigidBodies.length;
+        while(i--){
+            body = this.rigidBodies[i];
             if( body.name === name ) return body;
-            body=body.next;
         }
 
-        var joint = this.joints;
-        while( joint !== null ){
+        i = this.joints.length;
+        while(i--){
+            joint = this.joints[i];
             if( joint.name === name ) return joint;
-            joint = joint.next;
         }
 
         return null;
@@ -10971,7 +10888,7 @@ Object.assign( World.prototype, {
 
     /**
     * I'll add a shape to the world..
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world,
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
     * Shape will be added to the world automatically, please do not call from outside this method.
     * @param  shape  Shape you want to add
     */
@@ -10983,25 +10900,25 @@ Object.assign( World.prototype, {
 
         shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
-        this.broadPhase.addProxy(shape.proxy);
+        this.broadPhase.addProxy( shape.proxy );
 
     },
 
     /**
     * I will remove the shape from the world.
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world,
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
     * Shape will be added to the world automatically, please do not call from outside this method.
     * @param  shape  Shape you want to delete
     */
     removeShape: function ( shape ){
 
-        this.broadPhase.removeProxy(shape.proxy);
+        this.broadPhase.removeProxy( shape.proxy );
         shape.proxy = null;
 
     },
 
     /**
-    * I'll add a joint to the world.
+    * I'll add a joint to the world. 
     * Joint that has been added will be the operands of each step.
     * @param  shape Joint to be added
     */
@@ -11010,80 +10927,92 @@ Object.assign( World.prototype, {
         if(joint.parent){
             printError("World", "It is not possible to be added to more than one world one of the joint");
         }
-        if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
-        this.joints=joint;
-        joint.parent=this;
-        this.numJoints++;
+        //if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
+        //this.joints=joint;
+
+        joint.parent = this;
+        //this.numJoints++;
         joint.awake();
-        joint.attach();
+        joint.attach( true );
+
+        this.joints.push( joint );
 
     },
 
     /**
-    * I will remove the joint from the world.
+    * I will remove the joint from the world. 
     * Joint that has been added will be the operands of each step.
     * @param  shape Joint to be deleted
     */
     removeJoint: function ( joint ) {
 
-        var remove=joint;
-        var prev=remove.prev;
+        
+        /*var prev=remove.prev;
         var next=remove.next;
         if(prev!==null)prev.next=next;
         if(next!==null)next.prev=prev;
         if(this.joints==remove)this.joints=next;
         remove.prev=null;
         remove.next=null;
-        this.numJoints--;
-        remove.awake();
-        remove.detach();
-        remove.parent=null;
+        this.numJoints--;*/
+        joint.awake();
+        joint.detach( true );
+        joint.parent = null;
 
     },
 
     addContact: function ( s1, s2 ) {
 
-        var newContact;
+        /*var newContact;
         if(this.unusedContacts!==null){
             newContact=this.unusedContacts;
             this.unusedContacts=this.unusedContacts.next;
         }else{
             newContact = new Contact();
-        }
-        newContact.attach(s1,s2);
+        }*/
+        var newContact = new Contact();
+        newContact.attach( s1, s2 );
         newContact.detector = this.detectors[s1.type][s2.type];
-        if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
-        this.contacts = newContact;
-        this.numContacts++;
+        //if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
+        //this.contacts = newContact;
+        this.contacts.push( newContact );
+
+        this.numContacts = this.contacts.length;
+
+        
 
     },
 
-    removeContact: function ( contact ) {
+    removeContact: function ( contact, ar ) {
 
-        var prev = contact.prev;
-        var next = contact.next;
-        if(next) next.prev = prev;
-        if(prev) prev.next = next;
-        if(this.contacts == contact) this.contacts = next;
-        contact.prev = null;
-        contact.next = null;
+        if( ar===undefined ) this.contacts.splice( this.contacts.indexOf(contact), 1 );
+
+        //var prev = contact.prev;
+        //var next = contact.next;
+        //if(next) next.prev = prev;
+        //if(prev) prev.next = next;
+        //if(this.contacts == contact) this.contacts = next;
+        //contact.prev = null;
+        //contact.next = null;
         contact.detach();
-        contact.next = this.unusedContacts;
-        this.unusedContacts = contact;
-        this.numContacts--;
+        //contact.next = this.unusedContacts;
+        //this.unusedContacts = contact;
+        this.numContacts = this.contacts.length;
+
 
     },
 
     checkContact: function ( name1, name2 ) {
 
         var n1, n2;
-        var contact = this.contacts;
-        while(contact!==null){
-            n1 = contact.body1.name || ' ';
-            n2 = contact.body2.name || ' ';
-            if((n1==name1 && n2==name2) || (n2==name1 && n1==name2)){ if(contact.touching) return true; else return false;}
-            else contact = contact.next;
+        var i = this.contacts.length, contact;
+        while(i--){
+            contact = this.contacts[i];
+            n1 = contact.body1.name;
+            n2 = contact.body2.name;
+            if((n1===name1 && n2===name2) || (n2===name1 && n1===name2)){ if(contact.touching) return true; else return false;}
         }
+
         return false;
 
     },
@@ -11106,31 +11035,32 @@ Object.assign( World.prototype, {
 
         if( stat ) this.performance.setTime( 0 );
 
-        var body = this.rigidBodies;
+        var body, base, contact, i, j, k, cs, js, next;
 
-        while( body !== null ){
+        i = this.rigidBodies.length;
 
+        while( i-- ){
+
+            body = this.rigidBodies[i]; 
             body.addedToIsland = false;
-
             if( body.sleeping ) body.testWakeUp();
-
-            body = body.next;
+            //if( body.isKinematic ) body.forceTransforme();
 
         }
 
-
+        
 
         //------------------------------------------------------
         //   UPDATE BROADPHASE CONTACT
         //------------------------------------------------------
-
+        
         if( stat ) this.performance.setTime( 1 );
 
         this.broadPhase.detectPairs();
 
         var pairs = this.broadPhase.pairs;
 
-        var i = this.broadPhase.numPairs;
+        i = this.broadPhase.numPairs;
         //do{
         while(i--){
         //for(var i=0, l=numPairs; i<l; i++){
@@ -11146,18 +11076,22 @@ Object.assign( World.prototype, {
             }
 
             var link;
-            if( s1.numContacts < s2.numContacts ) link = s1.contactLink;
-            else link = s2.contactLink;
+            var s1L = s1.contactLink.length;
+            var s2L = s2.contactLink.length;
 
+            if( s1L < s2L ) link = s1.contactLink;
+            else link = s2.contactLink;
+            
             var exists = false;
-            while(link){
-                var contact = link.contact;
+            j = link.length;
+            while(j--){
+                var contact = link[j].contact;
                 if( contact.shape1 == s1 && contact.shape2 == s2 ){
                     contact.persisting = true;
                     exists = true;// contact already exists
                     break;
                 }
-                link = link.next;
+                //link = link.next;
             }
             if(!exists){
                 this.addContact( s1, s2 );
@@ -11172,8 +11106,11 @@ Object.assign( World.prototype, {
 
         // update & narrow phase
         this.numContactPoints = 0;
-        contact = this.contacts;
-        while( contact!==null ){
+        //contact = this.contacts;
+        i = this.contacts.length;
+        while( i-- ){
+            contact = this.contacts[i];
+        //while( contact!==null ){
             if(!contact.persisting){
                 if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
                 /*var aabb1=contact.shape1.aabb;
@@ -11183,9 +11120,9 @@ Object.assign( World.prototype, {
 	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
 	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
                 ){*/
-                    var next = contact.next;
-                    this.removeContact(contact);
-                    contact = next;
+                    //var next = contact.next;
+                    this.removeContact( contact );
+                    //contact = next;
                     continue;
                 }
             }
@@ -11193,11 +11130,11 @@ Object.assign( World.prototype, {
             var b2 = contact.body2;
 
             if( b1.isDynamic && !b1.sleeping || b2.isDynamic && !b2.sleeping ) contact.updateManifold();
-
+            
             this.numContactPoints += contact.manifold.numPoints;
             contact.persisting = false;
             contact.constraint.addedToIsland = false;
-            contact = contact.next;
+           // contact = contact.next;
 
         }
 
@@ -11208,11 +11145,11 @@ Object.assign( World.prototype, {
         //------------------------------------------------------
 
         var invTimeStep = 1 / this.timeStep;
-        var joint;
         var constraint;
 
-        for( joint = this.joints; joint !== null; joint = joint.next ){
-            joint.addedToIsland = false;
+        i = this.joints.length;
+        while( i-- ){
+            this.joints[i].addedToIsland = false;
         }
 
 
@@ -11226,14 +11163,17 @@ Object.assign( World.prototype, {
         this.numIslands = 0;
 
         // build and solve simulation islands
-
-        for( var base = this.rigidBodies; base !== null; base = base.next ){
+        i = this.rigidBodies.length;
+        //while( body !== null ){
+        while( i-- ){
+            base = this.rigidBodies[i]; 
+        //for( var base = this.rigidBodies; base !== null; base = base.next ){
 
             if( base.addedToIsland || base.isStatic || base.sleeping ) continue;// ignore
-
+            
             if( base.isLonely() ){// update single body
-                if( base.isDynamic ){
-                    base.linearVelocity.addTime( this.gravity, this.timeStep );
+                if( base.isDynamic && !base.isKinematic ){
+                    base.linearVelocity.addScale( this.gravity, this.timeStep );
                     /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
                     base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
@@ -11267,50 +11207,60 @@ Object.assign( World.prototype, {
                 this.islandRigidBodies[islandNumRigidBodies++] = body;
                 if(body.isStatic) continue;
 
+
+                
                 // search connections
-                for( var cs = body.contactLink; cs !== null; cs = cs.next ) {
+                j = body.contactLink.length;
+                while(j--){
+                    cs = body.contactLink[j];
                     var contact = cs.contact;
                     constraint = contact.constraint;
                     if( constraint.addedToIsland || !contact.touching ) continue;// ignore
-
+                    
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
-                    var next = cs.body;
+                    next = cs.body;
 
                     if(next.addedToIsland) continue;
-
+                    
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
                 }
-                for( var js = body.jointLink; js !== null; js = js.next ) {
+
+                k = body.jointLink.length;
+                while(k--){
+
+                    js = body.jointLink[k];
                     constraint = js.joint;
 
-                    if(constraint.addedToIsland) continue;// ignore
-
+                    if( constraint.addedToIsland ) continue;// ignore
+                    
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
                     next = js.body;
-                    if( next.addedToIsland || !next.isDynamic ) continue;
 
+                    if( next.addedToIsland || !next.isDynamic ) continue;
+                    
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
+
                 }
             } while( stackCount != 0 );
 
             // update velocities
-            var gVel = new Vec3().addTime( this.gravity, this.timeStep );
+            var gVel = new Vec3().addScale( this.gravity, this.timeStep );
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
-            var j = islandNumRigidBodies;
+            j = islandNumRigidBodies;
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
-                if(body.isDynamic){
+                if( body.isDynamic && !body.isKinematic ){
                     body.linearVelocity.addEqual(gVel);
                     /*body.linearVelocity.x+=gx;
                     body.linearVelocity.y+=gy;
@@ -11322,7 +11272,7 @@ Object.assign( World.prototype, {
             if(this.enableRandomizer){
                 //for(var j=1, l=islandNumConstraints; j<l; j++){
                 j = islandNumConstraints;
-                while(j--){ if(j!==0){
+                while(j--){ if(j!==0){     
                         var swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                         constraint = this.islandConstraints[j];
                         this.islandConstraints[j] = this.islandConstraints[swap];
@@ -11338,7 +11288,7 @@ Object.assign( World.prototype, {
             //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].preSolve( this.timeStep, invTimeStep );// pre-solve
             }
-            var k = this.numIterations;
+            k = this.numIterations;
             while(k--){
             //for(var k=0, l=this.numIterations; k<l; k++){
                 j = islandNumConstraints;
@@ -11398,13 +11348,12 @@ Object.assign( World.prototype, {
 
     },
 
-
     /**
     * add someting to world
     */
 
     add: function( o ){
-
+        
         o = o || {};
 
         var type = o.type || "box";
@@ -11422,15 +11371,16 @@ Object.assign( World.prototype, {
 
         // body dynamic or static
         var move = o.move || false;
-
+        var kinematic = o.kinematic || false;
+        
         // body position
         var p = o.pos || [0,0,0];
         p = p.map(function(x) { return x * invScale; });
 
-        // body size
+        // body size 
         var s = o.size === undefined ? [1,1,1] : o.size;
-        if( s.length === 1 ){ s[1] = s[0]; }
-        if( s.length === 2 ){ s[2] = s[0]; }
+        if(s.length == 1){ s[1] = s[0]; }
+        if(s.length == 2){ s[2] = s[0]; }
         s = s.map(function(x) { return x * invScale; });
 
         // body rotation in degree
@@ -11464,61 +11414,60 @@ Object.assign( World.prototype, {
             sc.relativePosition.set( o.massPos[0], o.massPos[1], o.massPos[2] );
         }
         if(o.massRot){
-            o.massRot = o.massRot.map(function(x) { return x * _Math.degtorad; });
-            var q = new Quat().setFromEuler( o.massRot[0], o.massRot[1], o.massRot[2] );
-            sc.relativeRotation = new Mat33().setQuat( q );//_Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
+            o.massRot = o.massRot.map(function(x) { return x * degtorad; });
+            sc.relativeRotation = _Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
         }
 
         var position = new Vec3( p[0], p[1], p[2] );
         var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
-
+        
         // rigidbody
         var body = new RigidBody( position, rotation, this.scale, this.invScale );
-        //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
 
         // shapes
         var shapes = [];
 
         var n;
-        for( var i = 0; i< type.length; i++ ){
+        for(var i=0; i<type.length; i++){
             n = i*3;
-            //n2 = i*4;
             switch(type[i]){
                 case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
                 case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
                 case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape( shapes[i] );
-            if(i>0){
-                //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
+            if( i > 0 ){
                 if( p[n] ) shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
-
                 if( r[n] ) {
                     var q = new Quat().setFromEuler( r[n], r[n+1], r[n+2] );
-                    shapes[i].relativeRotation = new Mat33().setQuat( q );
+                    shapes[i].relativeRotation = new Mat33().setQuat(q);
                 }
             }
-        }
+        } 
 
+        // body can sleep or not
+        if( o.neverSleep || kinematic) body.allowSleep = false;
+        else body.allowSleep = true;
+
+        body.isKinematic = kinematic;
+        
         // body static or dynamic
         if( move ){
 
-            if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
+            if( o.massPos || o.massRot ) body.setupMass( BODY_DYNAMIC, false );
             else body.setupMass( BODY_DYNAMIC, true );
 
-            // body can sleep or not
-            if( o.neverSleep ) body.allowSleep = false;
-            else body.allowSleep = true;
+            
 
         } else {
 
             body.setupMass( BODY_STATIC );
 
         }
-
+        
         if( o.name !== undefined ) body.name = o.name;
-        else if( move ) body.name = this.numRigidBodies;
-
+        else if( o.move ) body.name = this.rigidBodies.length;
+        
         // finaly add to physics world
         this.addRigidBody( body );
 
@@ -11530,12 +11479,10 @@ Object.assign( World.prototype, {
 
         return body;
 
-
     },
 
     initJoint: function( type, o ){
 
-        //var type = type;
         var invScale = this.invScale;
 
         var axe1 = o.axe1 || [1,0,0];
@@ -11543,8 +11490,8 @@ Object.assign( World.prototype, {
         var pos1 = o.pos1 || [0,0,0];
         var pos2 = o.pos2 || [0,0,0];
 
-        pos1 = pos1.map(function(x){ return x * invScale; });
-        pos2 = pos2.map(function(x){ return x * invScale; });
+        pos1 = pos1.map( function ( x ) { return x * invScale; } );
+        pos2 = pos2.map( function ( x ) { return x * invScale; } );
 
         var min, max;
         if( type === "jointDistance" ){
@@ -11593,21 +11540,21 @@ Object.assign( World.prototype, {
 
         var joint;
         switch( type ){
-            case "jointDistance": joint = new DistanceJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );
-                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
+            case "jointDistance": joint = new DistanceJoint(jc, min, max); 
+                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
+                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
             break;
             case "jointHinge": case "joint": joint = new HingeJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );// soften the joint ex: 100, 0.2
-                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
+                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
             break;
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
             case "jointSlide": joint = new SliderJoint(jc, min, max); break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
-            case "jointWheel": joint = new WheelJoint(jc);
-                if(limit !== null) joint.rotationalLimitMotor1.setLimit( limit[0], limit[1] );
-                if(spring !== null) joint.rotationalLimitMotor1.setSpring( spring[0], spring[1] );
-                if(motor !== null) joint.rotationalLimitMotor1.setMotor( motor[0], motor[1] );
+            case "jointWheel": joint = new WheelJoint(jc);  
+                if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
+                if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
+                if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
             break;
         }
 
@@ -11621,10 +11568,5 @@ Object.assign( World.prototype, {
 
 
 } );
-
-// test version
-
-//export { RigidBody } from './core/RigidBody_X.js';
-//export { World } from './core/World_X.js';
 
 export { _Math as Math, Vec3, Quat, Mat33, Shape, BoxShape, SphereShape, CylinderShape, ShapeConfig, LimitMotor, HingeJoint, BallAndSocketJoint, DistanceJoint, PrismaticJoint, SliderJoint, WheelJoint, JointConfig, RigidBody, World, REVISION, BR_NULL, BR_BRUTE_FORCE, BR_SWEEP_AND_PRUNE, BR_BOUNDING_VOLUME_TREE, BODY_NULL, BODY_DYNAMIC, BODY_STATIC, BODY_KINEMATIC, BODY_GHOST, SHAPE_NULL, SHAPE_SPHERE, SHAPE_BOX, SHAPE_CYLINDER, SHAPE_TETRA, JOINT_NULL, JOINT_DISTANCE, JOINT_BALL_AND_SOCKET, JOINT_HINGE, JOINT_WHEEL, JOINT_SLIDER, JOINT_PRISMATIC, AABB_PROX, printError, InfoDisplay };

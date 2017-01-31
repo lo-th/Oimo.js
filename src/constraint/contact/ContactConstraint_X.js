@@ -1,5 +1,5 @@
 import { Constraint } from '../Constraint';
-import { ContactPointDataBuffer } from './ContactPointDataBuffer_X';
+import { ContactPointDataBuffer } from './ContactPointDataBuffer';
 import { Vec3 } from '../../math/Vec3';
 import { _Math } from '../../math/Math';
 
@@ -14,10 +14,12 @@ function ContactConstraint ( manifold ){
     // The contact manifold of the constraint.
     this.manifold = manifold;
     // The coefficient of restitution of the constraint.
-    this.restitution=NaN;
+    this.restitution = 0;
     // The coefficient of friction of the constraint.
-    this.friction=NaN;
+    this.friction = 0;
 
+    this.shape1 = null;
+    this.shape2 = null;
     this.body1 = null;
     this.body2 = null;
 
@@ -25,23 +27,26 @@ function ContactConstraint ( manifold ){
     this.tmpC1 = new Vec3();
     this.tmpC2 = new Vec3();
 
+    this.tmpP1 = new Vec3();
+    this.tmpP2 = new Vec3();
+
     this.tmplv1 = new Vec3();
     this.tmplv2 = new Vec3();
     this.tmpav1 = new Vec3();
     this.tmpav2 = new Vec3();
 
-    this.p1=null;
-    this.p2=null;
-    this.lv1=null;
-    this.lv2=null;
-    this.av1=null;
-    this.av2=null;
-    this.i1=null;
-    this.i2=null;
+    //this.p1=null;
+    //this.p2=null;
+    this.lv1 = null;
+    this.lv2 = null;
+    this.av1 = null;
+    this.av2 = null;
+    //this.i1=null;
+    //this.i2=null;
 
-    this.m1=NaN;
-    this.m2=NaN;
-    this.num=0;
+    this.m1 = 0;
+    this.m2 = 0;
+    this.num = 0;
 
     this.ps = manifold.points;
     this.cs = [
@@ -58,37 +63,59 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
     constructor: ContactConstraint,
 
     // Attach the constraint to the bodies.
-    attach: function(){
+    attach: function ( shape1, shape2 ) {
 
-        this.p1=this.body1.position;
-        this.p2=this.body2.position;
-        this.lv1=this.body1.linearVelocity;
-        this.av1=this.body1.angularVelocity;
-        this.lv2=this.body2.linearVelocity;
-        this.av2=this.body2.angularVelocity;
-        this.i1=this.body1.inverseInertia;
-        this.i2=this.body2.inverseInertia;
+        this.shape1 = shape1;
+        this.shape2 = shape2;
+        this.body1 = shape1.parent;
+        this.body2 = shape2.parent;
+
+        /*this.p1 = this.body1.position;
+        this.p2 = this.body2.position;
+        this.lv1 = this.body1.linearVelocity;
+        this.av1 = this.body1.angularVelocity;
+        this.lv2 = this.body2.linearVelocity;
+        this.av2 = this.body2.angularVelocity;
+        this.i1 = this.body1.inverseInertia;
+        this.i2 = this.body2.inverseInertia;*/
 
     },
 
     // Detach the constraint from the bodies.
     detach: function(){
 
-        this.p1=null;
-        this.p2=null;
-        this.lv1=null;
-        this.lv2=null;
-        this.av1=null;
-        this.av2=null;
-        this.i1=null;
-        this.i2=null;
+        /*this.p1 = null;
+        this.p2 = null;
+        this.lv1 = null;
+        this.lv2 = null;
+        this.av1 = null;
+        this.av2 = null;
+        this.i1 = null;
+        this.i2 = null;*/
 
+        this.shape1 = null;
+        this.shape2 = null;
         this.body1 = null;
         this.body2 = null;
 
     },
 
     preSolve: function( timeStep, invTimeStep ){
+
+        this.restitution = _Math.sqrt( this.shape1.restitution, this.shape2.restitution );
+        this.friction = _Math.sqrt( this.shape1.friction, this.shape2.friction );
+
+        /*this.p1 = this.body1.position;
+        this.p2 = this.body2.position;
+        this.i1 = this.body1.inverseInertia;
+        this.i2 = this.body2.inverseInertia;*/
+
+        this.lv1 = this.body1.linearVelocity;
+        this.av1 = this.body1.angularVelocity;
+        this.lv2 = this.body2.linearVelocity;
+        this.av2 = this.body2.angularVelocity;
+        
+
 
         this.m1 = this.body1.inverseMass;
         this.m2 = this.body2.inverseMass;
@@ -97,25 +124,30 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
         this.num = this.manifold.numPoints;
 
+        var i = this.num;
+
         var c = this.cs;
-        var p, rvn, len, norImp, norTar, sepV;
+        var p, rvn, len, norImp, norTar, sepV, i1, i2;
 
         while( i-- ) {
 
             c = this.cs[i];
             p = this.ps[i];
 
-            c.rp1.sub( p.position, this.p1 );
-            c.rp2.sub( p.position, this.p2 );
+            this.i1 = this.body1.inverseInertia;
+            this.i2 = this.body2.inverseInertia;
+
+            this.tmpP1.sub( p.position, this.body1.position );
+            this.tmpP2.sub( p.position, this.body2.position );
+
+            this.tmpC1.crossVectors( this.av1, this.tmpP1 );
+            this.tmpC2.crossVectors( this.av2, this.tmpP2 );
 
             c.norImp = p.normalImpulse;
             c.tanImp = p.tangentImpulse;
             c.binImp = p.binormalImpulse;
 
             c.nor.copy( p.normal );
-
-            this.tmpC1.crossVectors( this.av1, c.rp1 );
-            this.tmpC2.crossVectors( this.av2, c.rp2 );
 
             this.tmp.set(
 
@@ -135,9 +167,8 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             len = _Math.dotVectors( c.tan, c.tan );
 
-            if(len<=0.04){
-                c.tan.tangent( c.nor );
-            }
+            if( len <= 0.04 ) c.tan.tangent( c.nor );
+            
 
             c.tan.normalize();
 
@@ -152,34 +183,37 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.binU1.scale( c.bin, this.m1 );
             c.binU2.scale( c.bin, this.m2 );
 
-            c.norT1.crossVectors( c.rp1, c.nor );
-            c.tanT1.crossVectors( c.rp1, c.tan );
-            c.binT1.crossVectors( c.rp1, c.bin );
+            c.norT1.crossVectors( this.tmpP1, c.nor );
+            c.tanT1.crossVectors( this.tmpP1, c.tan );
+            c.binT1.crossVectors( this.tmpP1, c.bin );
 
-            c.norT2.crossVectors( c.rp2, c.nor );
-            c.tanT2.crossVectors( c.rp2, c.tan );
-            c.binT2.crossVectors( c.rp2, c.bin );
+            c.norT2.crossVectors( this.tmpP2, c.nor );
+            c.tanT2.crossVectors( this.tmpP2, c.tan );
+            c.binT2.crossVectors( this.tmpP2, c.bin );
 
-            c.norTU1.mulMat( this.i1, c.norT1 );
-            c.tanTU1.mulMat( this.i1, c.tanT1 );
-            c.binTU1.mulMat( this.i1, c.binT1 );
+            i1 = this.body1.inverseInertia;
+            i2 = this.body2.inverseInertia;
 
-            c.norTU2.mulMat( this.i2, c.norT2 );
-            c.tanTU2.mulMat( this.i2, c.tanT2 );
-            c.binTU2.mulMat( this.i2, c.binT2 );
+            c.norTU1.mulMat( i1, c.norT1 );
+            c.tanTU1.mulMat( i1, c.tanT1 );
+            c.binTU1.mulMat( i1, c.binT1 );
 
-            this.tmpC1.crossVectors( c.norTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.norTU2, c.rp2 );
+            c.norTU2.mulMat( i2, c.norT2 );
+            c.tanTU2.mulMat( i2, c.tanT2 );
+            c.binTU2.mulMat( i2, c.binT2 );
+
+            this.tmpC1.crossVectors( c.norTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.norTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.norDen = 1 / ( m1m2 +_Math.dotVectors( c.nor, this.tmp ));
 
-            this.tmpC1.crossVectors( c.tanTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.tanTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.tanTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.tanTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.tanDen = 1 / ( m1m2 +_Math.dotVectors( c.tan, this.tmp ));
 
-            this.tmpC1.crossVectors( c.binTU1, c.rp1 );
-            this.tmpC2.crossVectors( c.binTU2, c.rp2 );
+            this.tmpC1.crossVectors( c.binTU1, this.tmpP1 );
+            this.tmpC2.crossVectors( c.binTU2, this.tmpP2 );
             this.tmp.add( this.tmpC1, this.tmpC2 );
             c.binDen = 1 / ( m1m2 +_Math.dotVectors( c.bin, this.tmp ));
 
@@ -200,19 +234,19 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             } else {
 
-                c.norImp=0;
-                c.tanImp=0;
-                c.binImp=0;
+                c.norImp = 0;
+                c.tanImp = 0;
+                c.binImp = 0;
 
             }
 
 
-            if(rvn>-1) rvn=0; // disable bouncing
+            if( rvn > -1 ) rvn = 0; // disable bouncing
             
             norTar = this.restitution*-rvn;
             sepV = -(p.penetration+0.005)*invTimeStep*0.05; // allow 0.5cm error
-            if(norTar<sepV) norTar=sepV;
-            c.norTar=norTar;
+            if( norTar < sepV ) norTar=sepV;
+            c.norTar = norTar;
 
         }
     },
@@ -241,7 +275,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             rvn = _Math.dotVectors( this.tmp, c.tan ) + _Math.dotVectors( this.tmpav2, c.tanT2 ) - _Math.dotVectors( this.tmpav1, c.tanT1 );
         
             oldImp1 = tanImp;
-            newImp1 = rvn*c.tanDen;
+            newImp1 = rvn * c.tanDen;
             tanImp += newImp1;
 
             rvn = _Math.dotVectors( this.tmp, c.bin ) + _Math.dotVectors( this.tmpav2, c.binT2 ) - _Math.dotVectors( this.tmpav1, c.binT1 );
@@ -337,7 +371,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             p.normal.copy( c.nor );
             p.tangent.copy( c.tan );
-            p.binormal.copy( c.bin )
+            p.binormal.copy( c.bin );
 
             p.normalImpulse = c.norImp;
             p.tangentImpulse = c.tanImp;

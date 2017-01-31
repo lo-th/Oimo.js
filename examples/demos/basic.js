@@ -71,17 +71,21 @@ function update () {
 
     world.step();
 
+    var m;
+
     bodys.forEach( function ( b, id ) {
 
-        if(b.type===1){
+        if( b.type === 1 ){
 
-            if( b.sleeping ) meshs[id].material = mat.sleep;
-            else meshs[id].material = mat.move;
+            m = meshs[id];
 
-            meshs[id].position.copy( b.getPosition() );
-            meshs[id].quaternion.copy( b.getQuaternion() );
+            if( b.sleeping ) switchMat( m, 'sleep' );
+            else switchMat( m, 'move' );
 
-            if(meshs[id].position.y<-10){
+            m.position.copy( b.getPosition() );
+            m.quaternion.copy( b.getQuaternion() );
+
+            if( m.position.y < -10 ){
                 b.resetPosition( Math.rand(-5,5), Math.rand(10,20), Math.rand(-5,5) );
             }
         }

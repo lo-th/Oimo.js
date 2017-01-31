@@ -16,7 +16,7 @@ var meshs = [];
 var mat, geo;
 
 var demos = [ 
-    'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel', 'empty', 'tower'
+    'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel', 'empty', 'tower', 'kinematic', 'kinematic2'
 ];
 
 demos.sort();
@@ -89,28 +89,4 @@ function launch ( name ) {
 
 function cam ( h,v,d,t ){ view.moveCamera( h, v, d, t || [0,0,0] ); };
 
-//function add ( o ) { return view.add( o ); };
-
-/*function joint ( o ) { o.type = o.type == undefined ? 'joint' : o.type; view.add( o ); };
-
-function character ( o ) { view.character( o ); };
-
-function car ( o ) { view.vehicle( o ); };
-
-function drive ( name ) { view.setDriveCar( name ); };
-
-function follow ( name ) { view.setFollow( name ); };
-
-function substep ( substep ) { ammo.send( 'substep', {substep:substep} ) ; };
-
-
-
-function tell ( str ) { editor.tell( str ); };
-
-function load ( name, callback ) { view.load( name, callback ); };
-
-function anchor ( o ) { ammo.send( 'anchor', o ); };
-
-function gravity ( a ) { ammo.send( 'gravity', {g:a} ); };
-
-function water ( o ) { ammo.send( 'gravity', o ); };*/
+function switchMat ( obj, name ){ view.switchMaterial( obj, name ); };

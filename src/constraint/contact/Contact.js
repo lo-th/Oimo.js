@@ -74,14 +74,15 @@ Object.assign( Contact.prototype, {
     * Update the contact manifold.
     */
     updateManifold: function () {
-        this.constraint.restitution=this.mixRestitution(this.shape1.restitution,this.shape2.restitution);
+
+        this.constraint.restitution =this.mixRestitution(this.shape1.restitution,this.shape2.restitution);
         this.constraint.friction=this.mixFriction(this.shape1.friction,this.shape2.friction);
         var numBuffers=this.manifold.numPoints;
         var i = numBuffers;
         while(i--){
         //for(var i=0;i<numBuffers;i++){
-            var b=this.buffer[i];
-            var p=this.points[i];
+            var b = this.buffer[i];
+            var p = this.points[i];
             b.lp1X=p.localPoint1.x;
             b.lp1Y=p.localPoint1.y;
             b.lp1Z=p.localPoint1.z;

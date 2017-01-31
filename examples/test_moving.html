@@ -263,7 +263,7 @@
 
         config[3] = 1;
         config[4] = all;
-        bodys[max] = world.add({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, config:config, name:'paddle'});
+        bodys[max] = world.add({size:[20, 40, 60], pos:[-150,20,0], rot:[0,0,0], move:true, noSleep:true, config:config, name:'paddle', kinematic:true });
         meshs[max] = new THREE.Mesh( buffgeoBox, matBox );
         meshs[max].scale.set( 20, 40, 60 );
         scene.add( meshs[max] );

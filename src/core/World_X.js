@@ -1,5 +1,5 @@
 import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
-import { Performance, printError } from './Utils';
+import { InfoDisplay, printError } from './Utils';
 
 
 import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPhase_X';
@@ -72,7 +72,7 @@ function World ( o ) {
     // This is the detailed information of the performance. 
     this.performance = null;
     this.isStat = o.info === undefined ? false : o.info;
-    if( this.isStat ) this.performance = new Performance( this );
+    if( this.isStat ) this.performance = new InfoDisplay( this );
 
     // Whether the constraints randomizer is enabled or not.
     this.enableRandomizer = o.random !== undefined ? o.random : true;
@@ -412,6 +412,7 @@ Object.assign( World.prototype, {
             body = this.rigidBodies[i]; 
             body.addedToIsland = false;
             if( body.sleeping ) body.testWakeUp();
+            //if( body.isKinematic ) body.forceTransforme();
 
         }
 
@@ -539,8 +540,8 @@ Object.assign( World.prototype, {
             if( base.addedToIsland || base.isStatic || base.sleeping ) continue;// ignore
             
             if( base.isLonely() ){// update single body
-                if( base.isDynamic ){
-                    base.linearVelocity.addTime( this.gravity, this.timeStep );
+                if( base.isDynamic && !base.isKinematic ){
+                    base.linearVelocity.addScale( this.gravity, this.timeStep );
                     /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
                     base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
@@ -619,7 +620,7 @@ Object.assign( World.prototype, {
             } while( stackCount != 0 );
 
             // update velocities
-            var gVel = new Vec3().addTime( this.gravity, this.timeStep );
+            var gVel = new Vec3().addScale( this.gravity, this.timeStep );
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
@@ -627,7 +628,7 @@ Object.assign( World.prototype, {
             while (j--){
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
-                if(body.isDynamic){
+                if( body.isDynamic && !body.isKinematic ){
                     body.linearVelocity.addEqual(gVel);
                     /*body.linearVelocity.x+=gx;
                     body.linearVelocity.y+=gy;
@@ -738,6 +739,7 @@ Object.assign( World.prototype, {
 
         // body dynamic or static
         var move = o.move || false;
+        var kinematic = o.kinematic || false;
         
         // body position
         var p = o.pos || [0,0,0];
@@ -810,16 +812,20 @@ Object.assign( World.prototype, {
                 }
             }
         } 
+
+        // body can sleep or not
+        if( o.neverSleep || kinematic) body.allowSleep = false;
+        else body.allowSleep = true;
+
+        body.isKinematic = kinematic;
         
         // body static or dynamic
         if( move ){
 
-            if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
+            if( o.massPos || o.massRot ) body.setupMass( BODY_DYNAMIC, false );
             else body.setupMass( BODY_DYNAMIC, true );
 
-            // body can sleep or not
-            if( o.neverSleep ) body.allowSleep = false;
-            else body.allowSleep = true;
+            
 
         } else {
 

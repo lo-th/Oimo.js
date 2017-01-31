@@ -33,6 +33,9 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     this.scale = scale || 1;
     this.invScale = invScale || 1;
 
+    // possible link to three Mesh;
+    this.mesh = null;
+
     this.name = "";
     // The maximum number of shapes that can be added to a one rigid.
     //this.MAX_SHAPES = 64;//64;
@@ -365,6 +368,7 @@ Object.assign( RigidBody.prototype, {
         }
 
         this.syncShapes();
+        this.updateMesh();
 
     },
 
@@ -476,6 +480,19 @@ Object.assign( RigidBody.prototype, {
     getQuaternion: function () {
 
         return new Quat().setFromRotationMatrix( this.rotation );
+
+    },
+
+    //---------------------------------------------
+    // AUTO UPDATE THREE MESH
+    //---------------------------------------------
+
+    updateMesh: function(){
+
+        if( this.mesh === null ) return;
+
+        this.mesh.position.copy( this.getPosition() );
+        this.mesh.quaternion.copy( this.getQuaternion() );
 
     },
 

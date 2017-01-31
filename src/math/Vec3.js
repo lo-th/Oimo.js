@@ -227,6 +227,134 @@ Object.assign( Vec3.prototype, {
 
     },
 
+    subQuatTime: function( q, t ){
+
+        //
+
+       /* var angle = _Math.acos(q.w);
+        var s = _Math.asin(angle);
+        var x = q.x / s;
+        var y = q.y / s;
+        var z = q.z / s;
+
+        q.normalize();
+
+        var angle = 2 * _Math.acos(q.w)
+        var len = _Math.sqrt(1-q.w*q.w)
+        if(len>0) {len = 0;console.log('out')}//{len=1/len;}
+var x = q.x / len
+var y = q.y / len
+var z = q.z / len*/
+
+      // this.set( x, y, z ).normalize();
+
+       // console.log(this)
+
+        //q.normalize();
+
+        /*var w = 2 * Math.acos( q.w );
+        var s = Math.sqrt( 1 - q.w * q.w );
+
+        if ( s < 0.0001 ) {
+
+             this.x = 1;
+             this.y = 0;
+             this.z = 0;
+
+        } else {
+
+             this.x = q.x / s;
+             this.y = q.y / s;
+             this.z = q.z / s;
+
+        }*/
+
+        //this.normalize()
+
+     /*   var angle = 2 * _Math.acos(q.w)
+var x = q.x / _Math.sqrt(1-q.w*q.w)
+var y = q.y / _Math.sqrt(1-q.w*q.w)
+var z = q.z / _Math.sqrt(1-q.w*q.w)
+
+var x = 2 * ( q.x * q.z - q.w * q.y )
+var y = 2 * ( q.y * q.z + q.w * q.x )
+var z = 1 - 2 * ( q.x * q.x + q.y * q.y )*/
+
+        //this.set(0.5,0.5,0)
+        //this.set(0,1,0)
+
+        //this.applyQuaternion( new Quat(0,0,0,1) )
+        //this.set(0,0,1)
+       // this.set(x,y,z);//.normalize()
+        this.applyQuaternion( q.scaleEqual(t).normalize() )
+       // this.applyQuaternion( q.scaleEqual(t) )
+        //this.scaleEqual( 1/t );
+
+        //var v = new Vec3().applyQuaternion( q  );
+        //console.log(this)
+        //this.scale( v, t );
+
+        /*q.normalize();
+
+        var v = new Vec3(1, 1,1)
+
+        var xx = q.x * q.x;
+        var yy = q.y * q.y;
+        var zz = q.z * q.z;
+        var xy = q.x * q.y;
+        var yz = q.y * q.z;
+        var xz = q.x * q.z;
+        var sx = q.w * q.x;
+        var sy = q.w * q.y;
+        var sz = q.w * q.z;
+        var tx = v.x * (0.5 - yy - zz) + v.y * (xy - sz) + v.z * (xz + sy);
+        var ty = v.x * (xy + sz) + v.y * (0.5 - xx - zz) + v.z * (yz - sx);
+        var tz = v.x * (xz - sy) + v.y * (yz + sx) + v.z * (0.5 - xx - yy);
+
+        this.x = tx * 2;
+        this.y = ty * 2;
+        this.z = tz * 2;*/
+
+        //var x = this.x;
+        //var y = this.y;
+        //var z = this.z;*/
+
+        //this.applyQuaternion( q ).scaleEqual( t )//.//.scaleEqual( t ) );//.normalize()
+        //
+
+
+       /* var qx = q.x;
+        var qy = q.y;
+        var qz = q.z;
+        var qw = q.w;
+
+        t*=0.5;
+        var iw=(-x*qx - y*qy - z*qz)*t;
+        var ix=( x*qw + y*qz - z*qy)*t;
+        var iy=(-x*qz + y*qw + z*qx)*t;
+        var iz=( x*qy - y*qx + z*qw)*t;
+
+        this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
+        this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
+        this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;*/
+
+        return this;
+
+    },
+
+    applyMatrix3: function ( m ) {
+
+        var x = this.x, y = this.y, z = this.z;
+        var e = m.elements;
+
+        this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+        this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+        this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+
+        return this;
+
+    },
+
     applyQuaternion: function ( q ) {
 
         var x = this.x;

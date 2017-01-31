@@ -102,7 +102,7 @@ function update () {
 
     world.step();
 
-    var v, n, cx;
+    var v, n, cx, m;
 
     bodys.forEach( function ( b, id ) {
 
@@ -112,26 +112,22 @@ function update () {
 
                 cx = Math.floor( id / maxPoint );
                 n = (id) - (cx*maxPoint);
-                //v = b.getPosition();
-
+                
                 donutsGeo[cx].positions[n].copy( b.getPosition() );
-
-                //if(n===0) donutsGeo[cx].positions[maxPoint].copy( b.getPosition() );
-                //pos[cx][n] = v;
-                //pos[cx][n+1] = v.y;
-                //pos[cx][n+2] = v.z;
 
             } else {
 
                 var mid = id - maxp
 
-                if( b.sleeping ) meshs[mid].material = mat.sleep;
-                else meshs[mid].material = mat.move;
+                m = meshs[mid]; 
 
-                meshs[mid].position.copy( b.getPosition() );
-                meshs[mid].quaternion.copy( b.getQuaternion() );
+                if( b.sleeping ) switchMat( m, 'sleep');
+                else switchMat( m, 'move');
 
-                if(meshs[mid].position.y<-10){
+                m.position.copy( b.getPosition() );
+                m.quaternion.copy( b.getQuaternion() );
+
+                if( m.position.y < -10 ){
                     x = Math.rand(-5,5);
                     z = Math.rand(-5,5);
                     y = Math.rand(10,20);

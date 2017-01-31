@@ -259,6 +259,12 @@ view = {
 
     },
 
+    switchMaterial: function ( m, name ){
+
+        if( m.material.name !== name ) m.material = mat[name];
+
+    },
+
     addLights: function(){
 
         light = new THREE.DirectionalLight( 0xffffff, 1 );

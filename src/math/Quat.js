@@ -37,27 +37,23 @@ Object.assign( Quat.prototype, {
 
     addTime: function( v, t ){
 
-        var x = v.x;
-        var y = v.y;
-        var z = v.z;
-        var qw=this.w;
-        var qx=this.x;
-        var qy=this.y;
-        var qz=this.z;
-        t*=0.5;
-        var ns=(-x*qx - y*qy - z*qz)*t;
-        var nx=( x*qw + y*qz - z*qy)*t;
-        var ny=(-x*qz + y*qw + z*qx)*t;
-        var nz=( x*qy - y*qx + z*qw)*t;
-        qw += ns;
-        qx += nx;
-        qy += ny;
-        qz += nz;
-        var s= 1 / _Math.sqrt( qw*qw+qx*qx+qy*qy+qz*qz );
-        this.w=qw*s;
-        this.x=qx*s;
-        this.y=qy*s;
-        this.z=qz*s;
+        var ax = v.x;
+        var ay = v.y;
+        var az = v.z;
+        var qw = this.w;
+        var qx = this.x;
+        var qy = this.y;
+        var qz = this.z;
+
+        t *= 0.5;
+        
+        this.x += t * (  ax*qw + ay*qz - az*qy );
+        this.y += t * (  ay*qw + az*qx - ax*qz );
+        this.z += t * (  az*qw + ax*qy - ay*qx );
+        this.w += t * ( -ax*qx - ay*qy - az*qz );
+
+        this.normalize();
+
         return this;
 
     },
@@ -81,6 +77,17 @@ Object.assign( Quat.prototype, {
         return this;
 
     },
+
+    scaleEqual: function( s ){
+
+        this.w*=s;
+        this.x*=s;
+        this.y*=s;
+        this.z*=s;
+        return this;
+
+    },
+
     mul: function( q1, q2 ){
 
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,
@@ -103,15 +110,15 @@ Object.assign( Quat.prototype, {
         var z2=v2.z;
         var d=x1*x2+y1*y2+z1*z2;
         if(d==-1){
-        x2=y1*x1-z1*z1;
-        y2=-z1*y1-x1*x1;
-        z2=x1*z1+y1*y1;
-        d=1/_Math.sqrt(x2*x2+y2*y2+z2*z2);
-        this.w=0;
-        this.x=x2*d;
-        this.y=y2*d;
-        this.z=z2*d;
-        return this;
+            x2=y1*x1-z1*z1;
+            y2=-z1*y1-x1*x1;
+            z2=x1*z1+y1*y1;
+            d=1/_Math.sqrt(x2*x2+y2*y2+z2*z2);
+            this.w=0;
+            this.x=x2*d;
+            this.y=y2*d;
+            this.z=z2*d;
+            return this;
         }
         var cx=y1*z2-z1*y2;
         var cy=z1*x2-x1*z2;
@@ -139,7 +146,7 @@ Object.assign( Quat.prototype, {
 
     invert: function(q){
 
-        this.w=q.w;
+        this.w = q.w;
         this.x=-q.x;
         this.y=-q.y;
         this.z=-q.z;

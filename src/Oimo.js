@@ -83,10 +83,10 @@ export { JointConfig } from './constraint/joint/JointConfig.js';
 
 
 
-export { RigidBody } from './core/RigidBody.js';
-export { World } from './core/World.js';
+//export { RigidBody } from './core/RigidBody.js';
+//export { World } from './core/World.js';
 
 // test version
 
-//export { RigidBody } from './core/RigidBody_X.js';
-//export { World } from './core/World_X.js';
+export { RigidBody } from './core/RigidBody_X.js';
+export { World } from './core/World_X.js';
