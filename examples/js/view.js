@@ -570,6 +570,23 @@ view = {
 
     },
 
+    load_bvh: function ( file, callback ) {
+
+        var bvhLoader = new THREE.BVHLoader();
+        var xml = new XMLHttpRequest();
+        xml.responseType = 'arraybuffer';
+
+        xml.onload = function (  ) {
+
+            callback( bvhLoader.parse( SEA3D.File.LZMAUncompress( xml.response ) ) );
+
+        }
+
+        xml.open( 'GET', './examples/assets/bvh/'+ file +'.z', true );
+        xml.send( null );
+
+    },
+
 
     //--------------------------------------
     //

@@ -1,4 +1,4 @@
-var mixer, skeleton, bones, skeletonHelper, mid, boneContainer;
+var mixer, skeleton, bones, skeletonHelper, mid, boneContainer, loaded = false;
 
 function demo() {
 
@@ -8,35 +8,36 @@ function demo() {
 
     var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
 
-    var loader = new THREE.BVHLoader();
-    loader.load( "./examples/assets/bvh/action.bvh", function( result ) {
-
-        skeleton = result.skeleton;
-        bones = skeleton.bones;
-
-        skeletonHelper = new THREE.SkeletonHelper( bones[ 0 ] );
-        skeletonHelper.skeleton = skeleton; // allow animation mixer to bind to SkeletonHelper directly
-
-        skeletonHelper.visible = false;
-
-        boneContainer = new THREE.Group();
-        boneContainer.add( bones[ 0 ] );
-        boneContainer.scale.set(0.5,0.5,0.5)
-
-        view.addMesh( skeletonHelper );
-        view.addMesh( boneContainer );
-
-        createSkeleton();
-
-        // play animation
-        mixer = new THREE.AnimationMixer( skeletonHelper );
-        mixer.clipAction( result.clip ).setEffectiveWeight( 1.0 ).play();
-
-    });
+    view.load_bvh( 'action', initAnimation );
 
 };
 
-function createSkeleton () {
+function initAnimation ( result ){
+
+    skeleton = result.skeleton;
+    bones = skeleton.bones;
+
+    skeletonHelper = new THREE.SkeletonHelper( bones[ 0 ] );
+    skeletonHelper.skeleton = skeleton; // allow animation mixer to bind to SkeletonHelper directly
+
+    skeletonHelper.visible = false;
+
+    boneContainer = new THREE.Group();
+    boneContainer.add( bones[ 0 ] );
+    boneContainer.scale.set(0.5,0.5,0.5)
+
+    view.addMesh( skeletonHelper );
+    view.addMesh( boneContainer );
+
+    initSkeleton();
+
+    // play animation
+    mixer = new THREE.AnimationMixer( skeletonHelper );
+    mixer.clipAction( result.clip ).setEffectiveWeight( 1.0 ).play();
+
+};
+
+function initSkeleton () {
 
     mid = [];
 
@@ -81,6 +82,8 @@ function createSkeleton () {
 
     }
 
+    loaded = true;
+
     addExtra();
 
 }
@@ -107,12 +110,7 @@ function addExtra () {
 function updateSkeleton () {
 
     var boneMatrix = new THREE.Matrix4();
-    var matrixWorldInv = new THREE.Matrix4();
-    var scMat = new THREE.Matrix4().scale(new THREE.Vector3(0.5,0.5,0.5))
-
-
-    matrixWorldInv.getInverse( boneContainer.matrixWorld );
-
+    var matrixWorldInv = new THREE.Matrix4().getInverse( boneContainer.matrixWorld );
 
     var pm = new THREE.Matrix4();
     var rm0 = new THREE.Matrix4().makeRotationZ( Math.PI );
@@ -167,8 +165,6 @@ function addID( o, i ){
     bodys[i] = world.add(o);
     meshs[i] = view.add(o);
 
-    //meshs[i].matrixAutoUpdate = false;
-
 }
 
 function update () {
@@ -176,27 +172,12 @@ function update () {
     world.step();
 
     if ( mixer ) mixer.update( 0.008 );
-    if ( skeletonHelper ){ 
+    if ( loaded ){ 
 
-        skeletonHelper.update();
+        //skeletonHelper.update();
         updateSkeleton();
 
-        
-
     }
-
-
-
-    //mpaddle.rotation.y += 0.01;
-
-    //paddle.setPosition( mpaddle.position );
-    //paddle.setQuaternion( mpaddle.quaternion );
-
-    
-
-    /*mpaddle.quaternion.copy( paddle.getQuaternion() );
-
-    */
 
     var m;
 
@@ -225,8 +206,5 @@ function update () {
     });
 
     editor.tell( world.getInfo() );
-
-    //paddle.setQuaternion( mpaddle.quaternion );
-
 
 }
