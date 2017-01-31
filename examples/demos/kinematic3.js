@@ -1,4 +1,4 @@
-var mixer, skeleton, bones, skeletonHelper, mid, boneContainer, loaded = false;
+var mixer, bones, skeletonHelper, mid, boneContainer, loaded = false, scale = 0.5;
 
 function demo() {
 
@@ -14,7 +14,7 @@ function demo() {
 
 function initAnimation ( result ){
 
-    skeleton = result.skeleton;
+    var skeleton = result.skeleton;
     bones = skeleton.bones;
 
     skeletonHelper = new THREE.SkeletonHelper( bones[ 0 ] );
@@ -24,7 +24,7 @@ function initAnimation ( result ){
 
     boneContainer = new THREE.Group();
     boneContainer.add( bones[ 0 ] );
-    boneContainer.scale.set(0.5,0.5,0.5)
+    boneContainer.scale.multiplyScalar( scale );
 
     view.addMesh( skeletonHelper );
     view.addMesh( boneContainer );
@@ -43,24 +43,26 @@ function initSkeleton () {
 
     var p1 = new THREE.Vector3();
     var p2 = new THREE.Vector3();
-    var i = bones.length, name, bone, child, o, d, w = 2;
+    var i = bones.length, name, bone, child, o, d, w;
+
     while(i--){
 
         bone = bones[i];
         name = bone.name;
+        d = 1;
+        p1.copy(bone.getWorldPosition());
 
-        if(i===0 || i===1 || i===2 || i===4 ) w=4;
+        if( i===0 || i===1 || i===2 || i===4 ) w=4;
         else w=2;
 
         if( bone.children.length > 0 ) child = bone.children[0];
         else child = null;
 
-        if( child === null ){
-            d = 1;
-        } else {
-            p1.setFromMatrixPosition( bone.matrixWorld );
-            p2.setFromMatrixPosition( child.matrixWorld );
-            d = Math.distanceVector( p1, p2 )* 0.5;
+        if( child !== null ){
+
+            p2.copy(child.getWorldPosition());
+            d = Math.distanceVector( p1, p2 ) * scale;
+
         }
 
         if( i===4 ) d*=2;
@@ -70,7 +72,7 @@ function initSkeleton () {
         o = {
             name:name,
             size:[w,d,w],
-            pos:bone.getWorldPosition().toArray(),
+            pos:p1.toArray(),
             move: true,
             kinematic: true,
             material:'donut'
@@ -187,12 +189,10 @@ function update () {
 
             m = meshs[id];
 
-            if(m.material.name!=='donut'){
+            if( !b.isKinematic ){
                 if( b.sleeping ) switchMat( m, 'sleep' );
                 else switchMat( m, 'move' );
             }
-
-            
 
             m.position.copy( b.getPosition() );
             m.quaternion.copy( b.getQuaternion() );
