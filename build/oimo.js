@@ -221,6 +221,8 @@
 	    console.error("[OIMO] " + clazz + ": " + msg);
 	}
 
+	// A performance evaluator
+
 	function InfoDisplay(world){
 
 	    this.parent = world;
@@ -1449,6 +1451,13 @@
 
 	} );
 
+	/**
+	 * An axis-aligned bounding box.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
 	    this.elements = new Float32Array( 6 );
@@ -1684,6 +1693,14 @@
 
 	});
 
+	/**
+	 * A box shape.
+	 *
+	 * @extends Shape
+	 * @author saharan
+	 * @author lo-th
+	 */
+	 
 	function BoxShape( config, Width, Height, Depth ) {
 
 	    Shape.call( this, config );
@@ -1820,6 +1837,13 @@
 		}
 	});
 
+	/**
+	 * A sphere shape.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SphereShape( config, radius ) {
 
 	    Shape.call( this, config );
@@ -1859,6 +1883,14 @@
 		}
 
 	});
+
+	/**
+	 * A cylinder shape.
+	 *
+	 * @extends Shape
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function CylinderShape( config, radius, height ) {
 
@@ -1936,6 +1968,14 @@
 
 	});
 
+	/**
+	 * A shape configuration holds common configuration data for constructing a shape.
+	 * These configurations can be reused safely.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+	 
 	function ShapeConfig(){
 
 	    // position of the shape in parent's coordinate system.
@@ -2014,6 +2054,13 @@
 
 	});
 
+	/**
+	 * The base class of all type of the constraints.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function Constraint(){
 
 	    // parent world of the constraint.
@@ -2069,6 +2116,13 @@
 	    this.joint = joint;
 
 	}
+
+	/**
+	 * Joints are used to constrain the motion between two rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function Joint ( config ){
 
@@ -2242,6 +2296,10 @@
 
 	});
 
+	/**
+	* A linear constraint for all axes for various joints.
+	* @author saharan
+	*/
 	function LinearConstraint ( joint ){
 
 	    this.m1=NaN;
@@ -3051,6 +3109,13 @@
 	    
 	} );
 
+	/**
+	 * A hinge joint allows only for relative rotation of rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
 	    Joint.call( this, config );
@@ -3147,6 +3212,13 @@
 	    }
 
 	});
+
+	/**
+	 * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function BallAndSocketJoint ( config ){
 
@@ -3467,6 +3539,13 @@
 	    }
 	} );
 
+	/**
+	 * A distance joint limits the distance between two anchor points on rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function DistanceJoint ( config, minDistance, maxDistance ){
 
 	    Joint.call( this, config );
@@ -3511,6 +3590,11 @@
 	    }
 
 	});
+
+	/**
+	* An angular constraint for all axes for various joints.
+	* @author saharan
+	*/
 
 	function AngularConstraint( joint, targetOrientation ) {
 
@@ -4301,6 +4385,13 @@
 	    
 	} );
 
+	/**
+	 * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
 	    Joint.call( this, config );
@@ -4369,6 +4460,13 @@
 	    }
 
 	});
+
+	/**
+	 * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4467,6 +4565,14 @@
 	    }
 
 	});
+
+	/**
+	 * A wheel joint allows for relative rotation between two rigid bodies along two axes.
+	 * The wheel joint also allows for relative translation for the suspension.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function WheelJoint ( config ){
 
@@ -4604,6 +4710,12 @@
 
 	}
 
+	/**
+	 * This class holds mass information of a shape.
+	 * @author lo-th
+	 * @author saharan
+	 */
+
 	function MassInfo (){
 
 	    // Mass of the shape.
@@ -4641,6 +4753,11 @@
 
 	}
 
+	/**
+	* The class holds details of the contact point.
+	* @author saharan
+	*/
+
 	function ManifoldPoint(){
 
 	    // Whether this manifold point is persisting or not.
@@ -4673,6 +4790,11 @@
 	    this.penetration = 0;
 
 	}
+
+	/**
+	* A contact manifold between two shapes.
+	* @author saharan
+	*/
 
 	function ContactManifold () {
 
@@ -4802,6 +4924,11 @@
 
 	}
 
+	/**
+	* ...
+	* @author saharan
+	* @author lo-th
+	*/
 	function ContactConstraint ( manifold ){
 	    
 	    Constraint.call( this );
@@ -5179,6 +5306,13 @@
 
 	});
 
+	/**
+	* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
+	*
+	* @author saharan
+	* @author lo-th
+	*/
+
 	function Contact(){
 
 	    // The first shape.
@@ -5433,6 +5567,10 @@
 	    this.tmpQuat = new Quat();
 
 
+	    this.quaternion = new Quat();
+	    this.pos = new Vec3();
+
+
 
 	    // Is the translational velocity.
 	    this.linearVelocity = new Vec3();
@@ -5508,6 +5646,8 @@
 	        this.scale = this.parent.scale;
 	        this.invScale = this.parent.invScale;
 
+
+
 	    },
 
 	    /**
@@ -5561,6 +5701,7 @@
 
 	    dispose: function () {
 
+	        if( this.mesh ) this.mesh = null;
 	        this.parent.removeRigidBody( this );
 
 	    },
@@ -5770,6 +5911,8 @@
 	                    this.tmpPos.sub( this.newPosition, this.position );
 	                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
 
+	                    //this.linearVelocity.copy( this.tmpPos );
+
 	                    //this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
 	                    //this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
 	                    //this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
@@ -5858,7 +6001,7 @@
 	        }
 	    },
 
-	    forceTransforme: function () {
+	    /*forceTransforme: function () {
 
 	        this.linearVelocity.set( 0, 0, 0 );
 	        this.angularVelocity.set( 0, 0, 0 );
@@ -5873,7 +6016,7 @@
 
 	        //this.setupMass(this.type, false)
 
-	    },
+	    },*/
 
 	    
 
@@ -5898,14 +6041,16 @@
 
 	        this.newPosition.copy( pos ).multiplyScalar( this.invScale );
 	        this.controlPos = true;
+	        if( !this.isKinematic ) this.isKinematic = true;
 
 	    },
 
 	    setQuaternion: function ( q ) {
 	        //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
 
-	        this.newOrientation.set( q.x, q.y, q.z, q.w );
+	        this.newOrientation.copy( q );
 	        this.controlRot = true;
+	        if( !this.isKinematic ) this.isKinematic = true;
 
 	    },
 
@@ -5951,13 +6096,13 @@
 
 	    getPosition:function () {
 
-	        return new Vec3().scale( this.position, this.scale );
+	        return this.pos;
 
 	    },
 
 	    getQuaternion: function () {
 
-	        return new Quat().setFromRotationMatrix( this.rotation );
+	        return this.quaternion;
 
 	    },
 
@@ -5965,12 +6110,25 @@
 	    // AUTO UPDATE THREE MESH
 	    //---------------------------------------------
 
-	    updateMesh: function(){
+	    connectMesh: function ( mesh ) {
+
+	        this.mesh = mesh;
+	        this.mesh.matrixAutoUpdate = false;
+	        this.updateMesh();
+
+	    },
+
+	    updateMesh: function () {
+
+	        this.pos.scale( this.position, this.scale );
+	        this.quaternion.copy( this.orientation );
+	        //this.quaternion.setFromRotationMatrix( this.rotation );
 
 	        if( this.mesh === null ) return;
 
-	        this.mesh.position.copy( this.getPosition() );
-	        this.mesh.quaternion.copy( this.getQuaternion() );
+	        var s = this.mesh.scale;
+
+	        this.mesh.matrix.compose( this.pos, this.quaternion, s );
 
 	    },
 
@@ -5989,7 +6147,11 @@
 
 	}
 
-	function BroadPhase(){
+	/**
+	* The broad-phase is used for collecting all possible pairs for collision.
+	*/
+
+	 function BroadPhase(){
 
 	    this.types = BR_NULL;
 	    this.numPairChecks = 0;
@@ -6107,6 +6269,12 @@
 
 	});
 
+	/**
+	* A basic implementation of proxies.
+	*
+	* @author saharan
+	*/
+
 	function BasicProxy ( shape ) {
 
 	    Proxy.call( this, shape );
@@ -6124,6 +6292,11 @@
 	    }
 
 	});
+
+	/**
+	* A broad-phase algorithm with brute-force search.
+	* This always checks for all possible pairs.
+	*/
 
 	function BruteForceBroadPhase(){
 
@@ -6179,6 +6352,11 @@
 	    }
 
 	});
+
+	/**
+	 * A projection axis for sweep and prune broad-phase.
+	 * @author saharan
+	 */
 
 	function SAPAxis (){
 
@@ -6371,6 +6549,12 @@
 
 	}
 
+	/**
+	 * A proxy for sweep and prune broad-phase.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SAPProxy ( sap, shape ){
 
 	    Proxy.call( this, shape );
@@ -6437,6 +6621,13 @@
 	    }
 
 	});
+
+	/**
+	 * A broad-phase collision detection algorithm using sweep and prune.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SAPBroadPhase () {
 
@@ -6644,6 +6835,11 @@
 
 	});
 
+	/**
+	* A node of the dynamic bounding volume tree.
+	* @author saharan
+	*/
+
 	function DBVTNode(){
 	    
 		// The first child node of this node.
@@ -6660,6 +6856,13 @@
 	    this.aabb = new AABB();
 
 	}
+
+	/**
+	 * A dynamic bounding volume tree for the broad-phase algorithm.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVT(){
 
@@ -7001,6 +7204,11 @@
 	    
 	});
 
+	/**
+	* A proxy for dynamic bounding volume tree broad-phase.
+	* @author saharan
+	*/
+
 	function DBVTProxy ( shape ) {
 
 	    Proxy.call( this, shape);
@@ -7019,6 +7227,12 @@
 	    }
 
 	});
+
+	/**
+	 * A broad-phase algorithm using dynamic bounding volume tree.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVTBroadPhase(){
 
@@ -7157,6 +7371,10 @@
 
 	} );
 
+	/**
+	 * A collision detector which detects collisions between two boxes.
+	 * @author saharan
+	 */
 	function BoxBoxCollisionDetector() {
 
 	    CollisionDetector.call( this );
@@ -10396,6 +10614,10 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between sphere and box.
+	 * @author saharan
+	 */
 	function SphereBoxCollisionDetector ( flip ) {
 	    
 	    CollisionDetector.call( this );
@@ -10648,6 +10870,11 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan
+	 */
+	 
 	function SphereSphereCollisionDetector (){
 
 	    CollisionDetector.call( this );
@@ -10683,6 +10910,19 @@
 	    }
 
 	});
+
+	//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
+
+	//import { TetraShape } from '../collision/shape/TetraShape';
+
+	/**
+	 * The class of physical computing world. 
+	 * You must be added to the world physical all computing objects
+	 * @author saharan
+	 * @author lo-th
+	 */
+
+	 // timestep, broadphase, iterations, worldscale, random, stat
 
 	function World ( o ) {
 

@@ -11,7 +11,7 @@ function demo() {
         info:true // display statistique
     });
 
-    var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
+    var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1 });
 
     // basic geometry body
 
@@ -62,8 +62,14 @@ function demo() {
 
 function add( o ){
 
-    bodys.push( world.add(o) );
-    meshs.push( view.add(o) );
+    var b = world.add(o);
+    var m = view.add(o);
+
+    // ! \\ update directly mesh matrix
+    b.connectMesh( m );
+
+    bodys.push( b );
+    //meshs.push( m );
 
 }
 
@@ -77,16 +83,16 @@ function update () {
 
         if( b.type === 1 ){
 
-            m = meshs[id];
+            m = b.mesh;//meshs[id];
 
             if( b.sleeping ) switchMat( m, 'sleep' );
             else switchMat( m, 'move' );
 
-            m.position.copy( b.getPosition() );
-            m.quaternion.copy( b.getQuaternion() );
+            //m.position.copy( b.getPosition() );
+            //m.quaternion.copy( b.getQuaternion() );
 
             if( m.position.y < -10 ){
-                b.resetPosition( Math.rand(-5,5), Math.rand(10,20), Math.rand(-5,5) );
+                b.resetPosition( Math.rand(-5,5), 30, Math.rand(-5,5) );
             }
         }
 

@@ -60,6 +60,10 @@ function RigidBody ( Position, Rotation ) {
     this.tmpQuat = new Quat();
 
 
+    this.quaternion = new Quat();
+    this.pos = new Vec3();
+
+
 
     // Is the translational velocity.
     this.linearVelocity = new Vec3();
@@ -135,6 +139,8 @@ Object.assign( RigidBody.prototype, {
         this.scale = this.parent.scale;
         this.invScale = this.parent.invScale;
 
+
+
     },
 
     /**
@@ -188,6 +194,7 @@ Object.assign( RigidBody.prototype, {
 
     dispose: function () {
 
+        if( this.mesh ) this.mesh = null;
         this.parent.removeRigidBody( this );
 
     },
@@ -397,6 +404,8 @@ Object.assign( RigidBody.prototype, {
                     this.tmpPos.sub( this.newPosition, this.position );
                     this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
 
+                    //this.linearVelocity.copy( this.tmpPos );
+
                     //this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                     //this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
                     //this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
@@ -485,7 +494,7 @@ Object.assign( RigidBody.prototype, {
         }
     },
 
-    forceTransforme: function () {
+    /*forceTransforme: function () {
 
         this.linearVelocity.set( 0, 0, 0 );
         this.angularVelocity.set( 0, 0, 0 );
@@ -500,7 +509,7 @@ Object.assign( RigidBody.prototype, {
 
         //this.setupMass(this.type, false)
 
-    },
+    },*/
 
     
 
@@ -525,14 +534,16 @@ Object.assign( RigidBody.prototype, {
 
         this.newPosition.copy( pos ).multiplyScalar( this.invScale );
         this.controlPos = true;
+        if( !this.isKinematic ) this.isKinematic = true;
 
     },
 
     setQuaternion: function ( q ) {
         //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
 
-        this.newOrientation.set( q.x, q.y, q.z, q.w );
+        this.newOrientation.copy( q );
         this.controlRot = true;
+        if( !this.isKinematic ) this.isKinematic = true;
 
     },
 
@@ -578,13 +589,13 @@ Object.assign( RigidBody.prototype, {
 
     getPosition:function () {
 
-        return new Vec3().scale( this.position, this.scale );
+        return this.pos;
 
     },
 
     getQuaternion: function () {
 
-        return new Quat().setFromRotationMatrix( this.rotation );
+        return this.quaternion;
 
     },
 
@@ -592,12 +603,25 @@ Object.assign( RigidBody.prototype, {
     // AUTO UPDATE THREE MESH
     //---------------------------------------------
 
-    updateMesh: function(){
+    connectMesh: function ( mesh ) {
+
+        this.mesh = mesh;
+        this.mesh.matrixAutoUpdate = false;
+        this.updateMesh();
+
+    },
+
+    updateMesh: function () {
+
+        this.pos.scale( this.position, this.scale );
+        this.quaternion.copy( this.orientation );
+        //this.quaternion.setFromRotationMatrix( this.rotation );
 
         if( this.mesh === null ) return;
 
-        this.mesh.position.copy( this.getPosition() );
-        this.mesh.quaternion.copy( this.getQuaternion() );
+        var s = this.mesh.scale;
+
+        this.mesh.matrix.compose( this.pos, this.quaternion, s );
 
     },
 

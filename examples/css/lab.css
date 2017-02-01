@@ -18,7 +18,7 @@ html, body {
 
 	font-family: Consolas, Menlo, Monaco, monospace;
     font-weight: 400;
-    /*font-size: 14px;*/
+    font-size: 12px;
     font-style: normal;
     font-variant: normal;
     /*font-smooth: never;
@@ -34,28 +34,19 @@ a{
     text-decoration: none;
 }
 h1{
-    font-size: 11px;
-    font-style: normal;
-    font-variant: normal;
-    font-weight: 400;
+    font-size: 14px;
     color:#DE5825;
     margin-left: 10px;
     display:inline;
 }
 h2{
-    font-size: 11px;
-    font-style: normal;
-    font-variant: normal;
-    font-weight: 400;
+    font-size: 14px;
     color:#79d62e;
     margin-left: 10px;
     display:inline;
 }
 h3{
     font-size: 16px;
-    font-style: normal;
-    font-variant: normal;
-    font-weight: 500;
 }
 
 @keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}
@@ -84,8 +75,8 @@ h3{
 
 .menuButtonBig{
 
-    font-size: 13px;
-    /*font-weight: 400;*/
+    /*font-size: 13px;
+    font-weight: 400;*/
     height: 30px;
     padding: 4px;
     padding-top: 10px;
@@ -266,8 +257,8 @@ h3{
     top:40px;
     width:100%;
     background:none;
-    padding-top:10px;
-    padding-left:10px;
+    /*padding-top:10px;
+    padding-left:10px;*/
     height:calc(100% - 40px);
 }
 
@@ -284,10 +275,12 @@ h3{
     font-family: Consolas, Menlo, Monaco, monospace;
     font-weight: normal;
     font-stretch: normal;
-    font-size: 14px;
-    letter-spacing: -0.6px;
+    font-size: 12px;
+    line-height: 110%;
+    color: #DDD;
+    /*letter-spacing: -0.5px;*/
     
-    background-color: none;
+    background: none;
     border:none;
     
 }
@@ -326,7 +319,7 @@ h3{
     padding: 0 3px 0 5px;
     /*margin-left: -20px;*/
     min-width: 10px;
-    text-align: left;
+    text-align: right;
     /*background: #D0D0D0;*/
     background: none;
     color: #AAA;
@@ -401,11 +394,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
    the editor. You probably shouldn't touch them. */
 
 .CodeMirror {
-    line-height: 100%;
     position: relative;
     overflow: hidden;
-    background: none;
-    color: #DDD;
 }
 
 .CodeMirror-scroll {
@@ -567,7 +557,7 @@ span.CodeMirror-selectedtext { background: none; }
 }
 .cm-s-monokai ::-webkit-scrollbar-track:horizontal{
     background: none;
-    /*background-color: #202020;
+    /*background-color: #1e1e1e;
     box-shadow: 0px -12px 12px -12px rgba(0, 0, 0, 0.3) inset;*/
 }
 
@@ -577,21 +567,21 @@ span.CodeMirror-selectedtext { background: none; }
 
 .cm-s-monokai ::-webkit-scrollbar-thumb {
     background-color: rgba(255, 255, 255, 0.2);/*#333;*/
-    border:5px solid rgba(0,0,0,0);
+    border:3px solid rgba(0,0,0,0);
     /*border-radius: 25px;*/
     -webkit-background-clip: padding-box;
     background-clip: padding-box;
-    box-shadow: 1px 1px 0px 1px rgba(255, 255, 255, 0.1) inset;
+    /*box-shadow: 1px 1px 0px 1px rgba(255, 255, 255, 0.1) inset;*/
 }
 
 .cm-s-monokai ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.6);/*#555;*/
+    background-color: rgba(255, 255, 255, 0.4);/*#555;*/
 
 }
 
 .cm-s-monokai ::-webkit-scrollbar {
-    width:20px;
-    height:20px;
+    width:10px;
+    height:10px;
 }
 
 /* ERROR */

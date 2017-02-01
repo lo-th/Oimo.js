@@ -1,6 +1,5 @@
 import { _Math } from './Math';
 import { Vec3 } from './Vec3';
-import { Quat } from './Quat';
 
 function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
