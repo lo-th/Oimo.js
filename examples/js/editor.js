@@ -318,7 +318,7 @@ editor = {
         var b = document.createElement('div');
         b.className = 'menuButtonBig';
         bigContent.appendChild( b );
-        b.innerHTML = '&bull; ' + name.charAt(0).toUpperCase() + name.substring(1).toLowerCase();
+        b.innerHTML = '&bull; ' + name;//.charAt(0).toUpperCase() + name.substring(1).toLowerCase();
         b.name = name;
         b.addEventListener('mousedown', editor.bigDown, false );
 

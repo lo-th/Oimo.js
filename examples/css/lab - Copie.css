@@ -5,8 +5,8 @@
 
 *{ 
 	padding:0; margin:0;
-	-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; 
-	-webkit-user-select:none; -moz-user-select: none; /*pointer-events:none; */
+	/*-o-user-select:none; -ms-user-select:none; -khtml-user-select:none; 
+	-webkit-user-select:none; -moz-user-select: none;*/ /*pointer-events:none; */
 	box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;
 }
 
@@ -26,7 +26,7 @@ html, body {
     /*line-height: 23px;*/
     height:100%;
     background:#252525;
-    color:#DDD;
+    color:#AAA;
     overflow:hidden;
 }
 a{
@@ -84,8 +84,8 @@ h3{
 
 .menuButtonBig{
 
-    font-size: 13px;
-    /*font-weight: 400;*/
+    font-size: 11px;
+    font-weight: 500;
     height: 30px;
     padding: 4px;
     padding-top: 10px;
@@ -112,7 +112,6 @@ h3{
     width:70px;
     height:30px;
     font-size: 16px;
-    letter-spacing: 1px;
     font-weight: 500;
     text-align: center;
     pointer-events:auto;
@@ -176,7 +175,6 @@ h3{
 }
 
 .menuCode {
-
     position:absolute;
     top : 0px;
     left: 0px;
@@ -287,9 +285,23 @@ h3{
     font-size: 14px;
     letter-spacing: -0.6px;
     
+    /*font-smooth: never;
+    -webkit-font-smoothing: none;/**/
+    
+    /*line-height: 123%;
+    letter-spacing:-1px;
+    padding-right: 20px;*/
     background-color: none;
     border:none;
+    /*font-weight: 400;
+    line-height: 23px;
+    margin-left:10px;*/
     
+    
+   /*
+    -webkit-transform: translateZ(0);
+     backface-visibility: hidden;
+    transform: translate3d(0,0,0);*/
 }
 
 /* PADDING */
@@ -401,11 +413,11 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
    the editor. You probably shouldn't touch them. */
 
 .CodeMirror {
-    line-height: 100%;
+    line-height: 123%;
     position: relative;
     overflow: hidden;
     background: none;
-    color: #DDD;
+    color: #2b2e41;
 }
 
 .CodeMirror-scroll {
@@ -512,14 +524,15 @@ div.CodeMirror-cursors { visibility: hidden; position: relative; z-index: 3; }
 span.CodeMirror-selectedtext { background: none; }
 
 
+
 /* Based on Sublime Text's Monokai theme */
 
-.cm-s-monokai.CodeMirror {background: none; color:#DDD; }
+.cm-s-monokai.CodeMirror {background: none; color:#AAA; }
 /*.cm-s-monokai .cm-punctuation {color:#D0D0D0;}*/
 .cm-s-monokai div.CodeMirror-selected {background: rgba(100,100,100,0.3) !important;}
 .cm-s-monokai .CodeMirror-gutters {background:none; color:#ffffff; border-right: 0px;}
 .cm-s-monokai .CodeMirror-guttermarker { color: white; }
-.cm-s-monokai .CodeMirror-guttermarker-subtle { color: #DDD; }
+.cm-s-monokai .CodeMirror-guttermarker-subtle { color: #d0d0d0; }
 .cm-s-monokai .CodeMirror-linenumber { color: #606060; background:none; }
 .cm-s-monokai .CodeMirror-cursor {border-left: 1px solid #f8f8f0 !important;}
 
@@ -530,16 +543,16 @@ span.CodeMirror-selectedtext { background: none; }
 .cm-s-monokai span.cm-atom {color: #ae81ff;}
 .cm-s-monokai span.cm-number {color: #ae81ff;}
 
-.cm-s-monokai span.cm-property {color: #DDD;}
+.cm-s-monokai span.cm-property {color: #a6e22e;}
 .cm-s-monokai span.cm-attribute {color: #a6e22e;}
 .cm-s-monokai span.cm-keyword {color: #66d9ef;}
 .cm-s-monokai span.cm-string {color: #e6db74;}
 
-.cm-s-monokai span.cm-variable {color: #a6e22e;}
+.cm-s-monokai span.cm-variable {color: #deded4;}
 .cm-s-monokai span.cm-variable-2 {color: #9effff;}
 .cm-s-monokai span.cm-variable-3 {color: #ff0000;}
-.cm-s-monokai span.cm-def {color:#DDD;}
-.cm-s-monokai span.cm-bracket {color: #DDD;}
+.cm-s-monokai span.cm-def {color: #f8f8f2;}
+.cm-s-monokai span.cm-bracket {color: #f8f8f2;}
 .cm-s-monokai span.cm-tag {color: #f92672;}
 .cm-s-monokai span.cm-link {color: #ae81ff;}
 .cm-s-monokai span.cm-error {background: #f92672; color: #f8f8f0;}
