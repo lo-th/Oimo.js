@@ -62,7 +62,7 @@ h3{
 #octo{cursor:pointer;pointer-events:auto;}
 
 .canvas3d { 
-    position: absolute; top:0; left:0; pointer-events:auto; width:100%; height:100%; 
+    position: absolute; top:0; left:0; pointer-events:auto; width:100%; height:100%;
 }
 
 .bigmenu {
@@ -123,11 +123,16 @@ h3{
 }
 
 .debug {
+
     font-size: 11px;
-    position:absolute;
-    padding-left: 10px;
-    bottom: 10px;
-    color:#888888;
+    position: absolute;
+    margin:10px 10px;
+    left: 0px;
+    bottom: 0px;
+    color:#AAA;
+    pointer-events: none;
+    opacity: 0.5;
+
 }
 
 .title {

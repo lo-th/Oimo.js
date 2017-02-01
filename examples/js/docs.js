@@ -48,6 +48,17 @@ function init(){
     doctext.className = 'docContent';
     document.body.appendChild( doctext );
 
+    requestAnimationFrame( loop );
+
+};
+
+function loop () {
+
+    requestAnimationFrame( loop );
+
+    update();
+    view.render();
+
 };
 
 function go( name ){

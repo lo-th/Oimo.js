@@ -97,12 +97,13 @@ view = {
 
     render: function () {
 
-        requestAnimationFrame( _V.render );
+        //requestAnimationFrame( _V.render );
+
 
         TWEEN.update();
         //THREE.SEA3D.AnimationHandler.update( 0.017 );
 
-        update();
+        //update();
 
         renderer.render( scene, camera );
 
@@ -259,7 +260,7 @@ view = {
 
         window.addEventListener( 'resize', _V.resize, false );
 
-        this.render();
+        //this.render();
 
         this.load ( 'basic', callback );
 

@@ -3,7 +3,7 @@
 *    | |_ _| | |  _  |
 *    |___|_|_| |_| |_|
 *    @author lo.th / http://lo-th.github.io/labs/
-*    AMMO LAB MAIN
+*    OIMO LAB MAIN
 */
 
 'use strict';
@@ -16,7 +16,8 @@ var meshs = [];
 var mat, geo;
 
 var demos = [ 
-    'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel', 'empty', 'tower', 'kinematic', 'kinematic2', 'kinematic3'
+    'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel',
+    'empty', 'tower', 'kinematic', 'kinematic2', 'kinematic3'
 ];
 
 demos.sort();
@@ -35,11 +36,14 @@ var isDocs = false;
 
 function init(){
 
+    user.init();
     view.init( next );
 
     mat = view.getMat();
     geo = view.getGeo();
     scene = view.getScene();
+
+    requestAnimationFrame( loop );
 
 };
 
@@ -50,15 +54,14 @@ function next(){
 
 };
 
-/*function loop () {
+function loop () {
 
     requestAnimationFrame( loop );
-    //view.update();
-    //user.update( true );
+
     update();
     view.render();
 
-};*/
+};
 
 function reset () {
 
