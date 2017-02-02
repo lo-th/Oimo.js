@@ -63,11 +63,13 @@ export { TranslationalConstraint } from './constraint/joint/base/TranslationalCo
 */
 
 
-export { Shape } from './collision/shape/Shape.js';
-export { BoxShape } from './collision/shape/BoxShape.js';
-export { SphereShape } from './collision/shape/SphereShape.js';
-export { CylinderShape } from './collision/shape/CylinderShape.js';
-export { ShapeConfig } from './collision/shape/ShapeConfig.js';
+export { Shape } from './shape/Shape.js';
+export { Box } from './shape/Box.js';
+export { Sphere } from './shape/Sphere.js';
+export { Cylinder } from './shape/Cylinder.js';
+import { Plane } from './shape/Plane';
+import { Particle } from './shape/Particle';
+export { ShapeConfig } from './shape/ShapeConfig.js';
 
 //export { TetraShape } from './collision/shape/TetraShape.js';
 //export { Joint } from './constraint/joint/Joint.js';
@@ -80,6 +82,7 @@ export { PrismaticJoint } from './constraint/joint/PrismaticJoint.js';
 export { SliderJoint } from './constraint/joint/SliderJoint.js';
 export { WheelJoint } from './constraint/joint/WheelJoint.js';
 export { JointConfig } from './constraint/joint/JointConfig.js';
+
 
 
 

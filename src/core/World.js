@@ -18,10 +18,10 @@ import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { Vec3 } from '../math/Vec3';
 
-import { ShapeConfig } from '../collision/shape/ShapeConfig';
-import { BoxShape } from '../collision/shape/BoxShape';
-import { SphereShape } from '../collision/shape/SphereShape';
-import { CylinderShape } from '../collision/shape/CylinderShape';
+import { ShapeConfig } from '../shape/ShapeConfig';
+import { Box } from '../shape/Box';
+import { Sphere } from '../shape/Sphere';
+import { Cylinder } from '../shape/Cylinder';
 //import { TetraShape } from '../collision/shape/TetraShape';
 
 import { Contact } from '../constraint/contact/Contact';
@@ -765,9 +765,9 @@ Object.assign( World.prototype, {
             n = i*3;
             //n2 = i*4;
             switch(type[i]){
-                case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
-                case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
-                case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
+                case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
+                case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
+                case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape( shapes[i] );
             if(i>0){

@@ -9,9 +9,9 @@ import { DBVTBroadPhase } from '../collision/broadphase/dbvt/DBVTBroadPhase_X';
 import { BoxBoxCollisionDetector } from '../collision/narrowphase/BoxBoxCollisionDetector';
 import { BoxCylinderCollisionDetector } from '../collision/narrowphase/BoxCylinderCollisionDetector';
 import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/CylinderCylinderCollisionDetector';
-import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector';
-import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector';
-import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector';
+import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector_X';
+import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector_X';
+import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector_X';
 //import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
 
 import { _Math } from '../math/Math';
@@ -19,10 +19,13 @@ import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { Vec3 } from '../math/Vec3';
 
-import { ShapeConfig } from '../collision/shape/ShapeConfig';
-import { BoxShape } from '../collision/shape/BoxShape';
-import { SphereShape } from '../collision/shape/SphereShape';
-import { CylinderShape } from '../collision/shape/CylinderShape';
+import { ShapeConfig } from '../shape/ShapeConfig';
+import { Box } from '../shape/Box';
+import { Sphere } from '../shape/Sphere';
+import { Cylinder } from '../shape/Cylinder';
+import { Plane } from '../shape/Plane';
+import { Particle } from '../shape/Particle';
+
 //import { TetraShape } from '../collision/shape/TetraShape';
 
 import { Contact } from '../constraint/contact/Contact_X';
@@ -113,6 +116,7 @@ function World ( o ) {
         this.detectors[i]=[];
         this.detectors[i].length = numShapeTypes;
     }
+
 
     this.detectors[SHAPE_SPHERE][SHAPE_SPHERE] = new SphereSphereCollisionDetector();
     this.detectors[SHAPE_SPHERE][SHAPE_BOX] = new SphereBoxCollisionDetector(false);
@@ -799,9 +803,9 @@ Object.assign( World.prototype, {
         for(var i=0; i<type.length; i++){
             n = i*3;
             switch(type[i]){
-                case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
-                case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
-                case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
+                case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
+                case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
+                case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape( shapes[i] );
             if( i > 0 ){

@@ -1,15 +1,14 @@
-import { SHAPE_SPHERE, AABB_PROX } from '../../constants';
+import { SHAPE_SPHERE, AABB_PROX } from '../constants';
 import { Shape } from './Shape';
-import { _Math } from '../../math/Math';
+import { _Math } from '../math/Math';
 
 /**
- * A sphere shape.
- *
+ * Sphere shape
  * @author saharan
  * @author lo-th
  */
 
-function SphereShape( config, radius ) {
+function Sphere( config, radius ) {
 
     Shape.call( this, config );
 
@@ -20,13 +19,19 @@ function SphereShape( config, radius ) {
 
 };
 
-SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
+Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	constructor: SphereShape,
+	constructor: Sphere,
+
+	volume: function () {
+
+		return _Math.PI * this.radius * 1.333333;
+
+	},
 
 	calculateMassInfo: function ( out ) {
 
-		var mass = 1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
+		var mass = this.volume() * this.radius * this.radius * this.density; //1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
 		out.mass = mass;
 		var inertia = mass * this.radius * this.radius * 0.4;
 		out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
@@ -49,4 +54,4 @@ SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-export { SphereShape };
+export { Sphere };

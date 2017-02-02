@@ -1,9 +1,9 @@
-import { SHAPE_NULL } from '../../constants';
-import { printError } from '../../core/Utils';
-import { _Math } from '../../math/Math';
-import { Vec3 } from '../../math/Vec3';
-import { Mat33 } from '../../math/Mat33';
-import { AABB } from '../../math/AABB';
+import { SHAPE_NULL } from '../constants';
+import { printError } from '../core/Utils';
+import { _Math } from '../math/Math';
+import { Vec3 } from '../math/Vec3';
+import { Mat33 } from '../math/Mat33';
+import { AABB } from '../math/AABB';
 
 var count = 0;
 function ShapeIdCount() { return count++; }

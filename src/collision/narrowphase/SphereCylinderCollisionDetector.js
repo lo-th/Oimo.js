@@ -79,6 +79,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
     }
 
+
 });
 
 export { SphereCylinderCollisionDetector };

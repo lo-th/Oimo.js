@@ -1,15 +1,15 @@
-import { SHAPE_BOX, AABB_PROX } from '../../constants';
+import { SHAPE_BOX, AABB_PROX } from '../constants';
 import { Shape } from './Shape';
+import { Vec3 } from '../math/Vec3';
+
 
 /**
- * A box shape.
- *
- * @extends Shape
+ * Box shape.
  * @author saharan
  * @author lo-th
  */
  
-function BoxShape( config, Width, Height, Depth ) {
+function Box ( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
 
@@ -28,11 +28,12 @@ function BoxShape( config, Width, Height, Depth ) {
 
 };
 
-BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
+Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	constructor: BoxShape,
+	constructor: Box,
 
 	calculateMassInfo: function ( out ) {
+
 		var mass = this.width * this.height * this.depth * this.density;
 		var divid = 1/12;
 		out.mass = mass;
@@ -41,6 +42,7 @@ BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 			0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
 			0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
 		);
+
 	},
 
 	updateProxy: function () {
@@ -145,4 +147,4 @@ BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 });
 
-export { BoxShape };
+export { Box };

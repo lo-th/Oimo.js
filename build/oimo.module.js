@@ -109,7 +109,9 @@ var SHAPE_NULL = 0;
 var SHAPE_SPHERE = 1;
 var SHAPE_BOX = 2;
 var SHAPE_CYLINDER = 3;
-var SHAPE_TETRA = 4;
+var SHAPE_PLANE = 4;
+var SHAPE_PARTICLE = 5;
+var SHAPE_TETRA = 6;
 
 // Joint type
 var JOINT_NULL = 0;
@@ -214,8 +216,6 @@ var _Math = {
 function printError( clazz, msg ){
     console.error("[OIMO] " + clazz + ": " + msg);
 }
-
-// A performance evaluator
 
 function InfoDisplay(world){
 
@@ -1445,13 +1445,6 @@ Object.assign( Mat33.prototype, {
 
 } );
 
-/**
- * An axis-aligned bounding box.
- *
- * @author saharan
- * @author lo-th
- */
-
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
     this.elements = new Float32Array( 6 );
@@ -1687,15 +1680,7 @@ Object.assign( Shape.prototype, {
 
 });
 
-/**
- * A box shape.
- *
- * @extends Shape
- * @author saharan
- * @author lo-th
- */
- 
-function BoxShape( config, Width, Height, Depth ) {
+function Box ( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
 
@@ -1714,11 +1699,12 @@ function BoxShape( config, Width, Height, Depth ) {
 
 }
 
-BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
+Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	constructor: BoxShape,
+	constructor: Box,
 
 	calculateMassInfo: function ( out ) {
+
 		var mass = this.width * this.height * this.depth * this.density;
 		var divid = 1/12;
 		out.mass = mass;
@@ -1727,6 +1713,7 @@ BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 			0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
 			0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
 		);
+
 	},
 
 	updateProxy: function () {
@@ -1831,14 +1818,7 @@ BoxShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 });
 
-/**
- * A sphere shape.
- *
- * @author saharan
- * @author lo-th
- */
-
-function SphereShape( config, radius ) {
+function Sphere( config, radius ) {
 
     Shape.call( this, config );
 
@@ -1849,13 +1829,19 @@ function SphereShape( config, radius ) {
 
 }
 
-SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
+Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-	constructor: SphereShape,
+	constructor: Sphere,
+
+	volume: function () {
+
+		return _Math.PI * this.radius * 1.333333;
+
+	},
 
 	calculateMassInfo: function ( out ) {
 
-		var mass = 1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
+		var mass = this.volume() * this.radius * this.radius * this.density; //1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
 		out.mass = mass;
 		var inertia = mass * this.radius * this.radius * 0.4;
 		out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
@@ -1878,15 +1864,7 @@ SphereShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A cylinder shape.
- *
- * @extends Shape
- * @author saharan
- * @author lo-th
- */
-
-function CylinderShape( config, radius, height ) {
+function Cylinder ( config, radius, height ) {
 
     Shape.call( this, config );
 
@@ -1901,9 +1879,9 @@ function CylinderShape( config, radius, height ) {
 
 }
 
-CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
+Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-    constructor: CylinderShape,
+    constructor: Cylinder,
 
     calculateMassInfo: function ( out ) {
 
@@ -1915,6 +1893,7 @@ CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
         out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
 
     },
+
     updateProxy: function () {
 
         var te = this.rotation.elements;
@@ -1962,14 +1941,95 @@ CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A shape configuration holds common configuration data for constructing a shape.
- * These configurations can be reused safely.
- *
- * @author saharan
- * @author lo-th
- */
- 
+function Plane( config, normal ) {
+
+    Shape.call( this, config );
+
+    this.type = SHAPE_PLANE;
+
+    // radius of the shape.
+    this.normal = normal || new Vec3( 0, 1, 0 );
+
+}
+
+Plane.prototype = Object.assign( Object.create( Shape.prototype ), {
+
+    constructor: Plane,
+
+    volume: function () {
+
+        return Number.MAX_VALUE;
+
+    },
+
+    calculateMassInfo: function ( out ) {
+
+        var inertia = 0;
+        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+
+    },
+
+    updateProxy: function () {
+
+        var p = AABB_PROX;
+
+        var min = -Number.MAX_VALUE;
+        var max = Number.MAX_VALUE;
+        var n = this.normal;
+
+        this.aabb.set(
+            n.x === -1 ? this.position.x - p : min, n.x === 1 ? this.position.x + p : max,
+            n.y === -1 ? this.position.y - p : min, n.y === 1 ? this.position.y + p : max,
+            n.z === -1 ? this.position.z - p : min, n.z === 1 ? this.position.z + p : max
+        );
+
+        if ( this.proxy != null ) this.proxy.update();
+
+    }
+
+});
+
+function Particle( config, normal ) {
+
+    Shape.call( this, config );
+
+    this.type = SHAPE_PARTICLE;
+
+}
+
+Particle.prototype = Object.assign( Object.create( Shape.prototype ), {
+
+    constructor: Particle,
+
+    volume: function () {
+
+        return Number.MAX_VALUE;
+
+    },
+
+    calculateMassInfo: function ( out ) {
+
+        var inertia = 0;
+        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+
+    },
+
+    updateProxy: function () {
+
+        var p = 0;//AABB_PROX;
+
+        this.aabb.set(
+            this.position.x - p, this.position.x + p,
+            this.position.y - p, this.position.y + p,
+            this.position.z - p, this.position.z + p
+        );
+
+        if ( this.proxy != null ) this.proxy.update();
+
+    }
+
+});
+
 function ShapeConfig(){
 
     // position of the shape in parent's coordinate system.
@@ -2048,13 +2108,6 @@ Object.assign( LimitMotor.prototype, {
 
 });
 
-/**
- * The base class of all type of the constraints.
- *
- * @author saharan
- * @author lo-th
- */
-
 function Constraint(){
 
     // parent world of the constraint.
@@ -2110,13 +2163,6 @@ function JointLink ( joint ){
     this.joint = joint;
 
 }
-
-/**
- * Joints are used to constrain the motion between two rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function Joint ( config ){
 
@@ -2290,10 +2336,6 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
 });
 
-/**
-* A linear constraint for all axes for various joints.
-* @author saharan
-*/
 function LinearConstraint ( joint ){
 
     this.m1=NaN;
@@ -3103,13 +3145,6 @@ Object.assign( Rotational3Constraint.prototype, {
     
 } );
 
-/**
- * A hinge joint allows only for relative rotation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
     Joint.call( this, config );
@@ -3206,13 +3241,6 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function BallAndSocketJoint ( config ){
 
@@ -3533,13 +3561,6 @@ Object.assign( TranslationalConstraint.prototype, {
     }
 } );
 
-/**
- * A distance joint limits the distance between two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
-
 function DistanceJoint ( config, minDistance, maxDistance ){
 
     Joint.call( this, config );
@@ -3584,11 +3605,6 @@ DistanceJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
-* An angular constraint for all axes for various joints.
-* @author saharan
-*/
 
 function AngularConstraint( joint, targetOrientation ) {
 
@@ -4379,13 +4395,6 @@ Object.assign( Translational3Constraint.prototype, {
     
 } );
 
-/**
- * A prismatic joint allows only for relative translation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
     Joint.call( this, config );
@@ -4454,13 +4463,6 @@ PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4559,14 +4561,6 @@ SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A wheel joint allows for relative rotation between two rigid bodies along two axes.
- * The wheel joint also allows for relative translation for the suspension.
- *
- * @author saharan
- * @author lo-th
- */
 
 function WheelJoint ( config ){
 
@@ -4704,12 +4698,6 @@ function JointConfig(){
 
 }
 
-/**
- * This class holds mass information of a shape.
- * @author lo-th
- * @author saharan
- */
-
 function MassInfo (){
 
     // Mass of the shape.
@@ -4747,11 +4735,6 @@ function ImpulseDataBuffer (){
 
 }
 
-/**
-* The class holds details of the contact point.
-* @author saharan
-*/
-
 function ManifoldPoint(){
 
     // Whether this manifold point is persisting or not.
@@ -4785,11 +4768,6 @@ function ManifoldPoint(){
 
 }
 
-/**
-* A contact manifold between two shapes.
-* @author saharan
-*/
-
 function ContactManifold () {
 
     // The first rigid body.
@@ -4811,11 +4789,8 @@ function ContactManifold () {
 ContactManifold.prototype = {
 
     constructor: ContactManifold,
-    /**
-    * Reset the manifold.
-    * @param   shape1
-    * @param   shape2
-    */
+
+    //Reset the manifold.
     reset:function( shape1, shape2 ){
 
         this.body1 = shape1.parent;
@@ -4823,17 +4798,8 @@ ContactManifold.prototype = {
         this.numPoints = 0;
 
     },
-    /**
-    * Add a point into this manifold.
-    * @param   x
-    * @param   y
-    * @param   z
-    * @param   normalX
-    * @param   normalY
-    * @param   normalZ
-    * @param   penetration
-    * @param   flip
-    */
+
+    //  Add a point into this manifold.
     addPoint: function ( x, y, z, nx, ny, nz, penetration, flip ) {
         
         var p = this.points[ this.numPoints++ ];
@@ -4843,26 +4809,6 @@ ContactManifold.prototype = {
         p.localPoint1.mulManifold( this.body1.rotation, new Vec3().sub( p.position, this.body1.position ) );
         p.localPoint2.mulManifold( this.body2.rotation, new Vec3().sub( p.position, this.body2.position ) );
 
-        /*var r = this.body1.rotation;
-        var rx = x-this.body1.position.x;
-        var ry = y-this.body1.position.y;
-        var rz = z-this.body1.position.z;
-
-        var tr = r.elements;
-        p.localPoint1.x = rx*tr[0] + ry*tr[3] + rz*tr[6];
-        p.localPoint1.y = rx*tr[1] + ry*tr[4] + rz*tr[7];
-        p.localPoint1.z = rx*tr[2] + ry*tr[5] + rz*tr[8];
-
-        r = this.body2.rotation;
-        rx = x-this.body2.position.x;
-        ry = y-this.body2.position.y;
-        rz = z-this.body2.position.z;
-
-        tr = r.elements;
-        p.localPoint2.x = rx*tr[0] + ry*tr[3] + rz*tr[6];
-        p.localPoint2.y = rx*tr[1] + ry*tr[4] + rz*tr[7];
-        p.localPoint2.z = rx*tr[2] + ry*tr[5] + rz*tr[8];*/
-
         p.normalImpulse = 0;
 
         p.normal.set( nx, ny, nz );
@@ -4870,6 +4816,7 @@ ContactManifold.prototype = {
 
         p.penetration = penetration;
         p.warmStarted = false;
+        
     }
 };
 
@@ -4918,11 +4865,6 @@ function ContactPointDataBuffer (){
 
 }
 
-/**
-* ...
-* @author saharan
-* @author lo-th
-*/
 function ContactConstraint ( manifold ){
     
     Constraint.call( this );
@@ -5300,13 +5242,6 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
 });
 
-/**
-* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
-*
-* @author saharan
-* @author lo-th
-*/
-
 function Contact(){
 
     // The first shape.
@@ -5511,19 +5446,11 @@ Object.assign( Contact.prototype, {
         this.shape2 = null;
         this.body1 = null;
         this.body2 = null;
+        this.detector = null;
         
     }
 
 } );
-
-//import { TetraShape } from '../collision/shape/TetraShape';
-
-/**
-* The class of rigid body.
-* Rigid body has the shape of a single or multiple collision processing,
-* I can set the parameters individually.
-* @author saharan
-*/
 
 function RigidBody ( Position, Rotation ) {
 
@@ -6107,7 +6034,7 @@ Object.assign( RigidBody.prototype, {
     connectMesh: function ( mesh ) {
 
         this.mesh = mesh;
-        this.mesh.matrixAutoUpdate = false;
+        //this.mesh.matrixAutoUpdate = false;
         this.updateMesh();
 
     },
@@ -6120,9 +6047,12 @@ Object.assign( RigidBody.prototype, {
 
         if( this.mesh === null ) return;
 
-        var s = this.mesh.scale;
+        this.mesh.position.copy( this.pos );
+        this.mesh.quaternion.copy( this.quaternion );
 
+        /*var s = this.mesh.scale;
         this.mesh.matrix.compose( this.pos, this.quaternion, s );
+        this.mesh.matrixWorldNeedsUpdate = true;*/
 
     },
 
@@ -6141,11 +6071,7 @@ function Pair ( s1, s2 ){
 
 }
 
-/**
-* The broad-phase is used for collecting all possible pairs for collision.
-*/
-
- function BroadPhase(){
+function BroadPhase(){
 
     this.types = BR_NULL;
     this.numPairChecks = 0;
@@ -6263,12 +6189,6 @@ Object.assign( Proxy.prototype, {
 
 });
 
-/**
-* A basic implementation of proxies.
-*
-* @author saharan
-*/
-
 function BasicProxy ( shape ) {
 
     Proxy.call( this, shape );
@@ -6286,11 +6206,6 @@ BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
-* A broad-phase algorithm with brute-force search.
-* This always checks for all possible pairs.
-*/
 
 function BruteForceBroadPhase(){
 
@@ -6346,11 +6261,6 @@ BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.protot
     }
 
 });
-
-/**
- * A projection axis for sweep and prune broad-phase.
- * @author saharan
- */
 
 function SAPAxis (){
 
@@ -6543,12 +6453,6 @@ function SAPElement ( proxy, max ) {
 
 }
 
-/**
- * A proxy for sweep and prune broad-phase.
- * @author saharan
- * @author lo-th
- */
-
 function SAPProxy ( sap, shape ){
 
     Proxy.call( this, shape );
@@ -6615,13 +6519,6 @@ SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
- * A broad-phase collision detection algorithm using sweep and prune.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SAPBroadPhase () {
 
@@ -6829,11 +6726,6 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
 
 });
 
-/**
-* A node of the dynamic bounding volume tree.
-* @author saharan
-*/
-
 function DBVTNode(){
     
 	// The first child node of this node.
@@ -6850,13 +6742,6 @@ function DBVTNode(){
     this.aabb = new AABB();
 
 }
-
-/**
- * A dynamic bounding volume tree for the broad-phase algorithm.
- *
- * @author saharan
- * @author lo-th
- */
 
 function DBVT(){
 
@@ -7198,11 +7083,6 @@ Object.assign( DBVT.prototype, {
     
 });
 
-/**
-* A proxy for dynamic bounding volume tree broad-phase.
-* @author saharan
-*/
-
 function DBVTProxy ( shape ) {
 
     Proxy.call( this, shape);
@@ -7221,12 +7101,6 @@ DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
- * A broad-phase algorithm using dynamic bounding volume tree.
- * @author saharan
- * @author lo-th
- */
 
 function DBVTBroadPhase(){
 
@@ -7365,10 +7239,6 @@ Object.assign( CollisionDetector.prototype, {
 
 } );
 
-/**
- * A collision detector which detects collisions between two boxes.
- * @author saharan
- */
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
@@ -10608,14 +10478,20 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
 });
 
-/**
- * A collision detector which detects collisions between sphere and box.
- * @author saharan
- */
 function SphereBoxCollisionDetector ( flip ) {
     
     CollisionDetector.call( this );
     this.flip = flip;
+
+    this.n = new Vec3();
+    this.p = new Vec3();
+
+    this.dix = new Vec3();
+    this.diy = new Vec3();
+    this.diz = new Vec3();
+
+    this.cc = new Vec3();
+    this.cc2 = new Vec3();
 
 }
 
@@ -10625,158 +10501,120 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
 
     detectCollision: function ( shape1, shape2, manifold ) {
 
-        var s;
-        var b;
-        if(this.flip){
-            s=(shape2);
-            b=(shape1);
-        }else{
-            s=(shape1);
-            b=(shape2);
-        }
+        var s = this.flip ? shape2 : shape1;
+        var b = this.flip ? shape1 : shape2;
+
+        var n = this.n;
+        var p = this.p;
+        var cc = this.cc;
+        var cc2 = this.cc2;
 
         var D = b.dimentions;
-
-        var ps=s.position;
-        var psx=ps.x;
-        var psy=ps.y;
-        var psz=ps.z;
-        var pb=b.position;
-        var pbx=pb.x;
-        var pby=pb.y;
-        var pbz=pb.z;
-        var rad=s.radius;
-
-        var hw=b.halfWidth;
-        var hh=b.halfHeight;
-        var hd=b.halfDepth;
-
-        var dx=psx-pbx;
-        var dy=psy-pby;
-        var dz=psz-pbz;
-        var sx=D[0]*dx+D[1]*dy+D[2]*dz;
-        var sy=D[3]*dx+D[4]*dy+D[5]*dz;
-        var sz=D[6]*dx+D[7]*dy+D[8]*dz;
-        var cx;
-        var cy;
-        var cz;
+        var hw = b.halfWidth;
+        var hh = b.halfHeight;
+        var hd = b.halfDepth;
+        var rad = s.radius;
         var len;
-        var invLen;
-        var overlap=0;
-        if(sx>hw){
-            sx=hw;
-        }else if(sx<-hw){
-            sx=-hw;
-        }else{
-            overlap=1;
-        }
-        if(sy>hh){
-            sy=hh;
-        }else if(sy<-hh){
-            sy=-hh;
-        }else{
-            overlap|=2;
-        }
-        if(sz>hd){
-            sz=hd;
-        }else if(sz<-hd){
-            sz=-hd;
-        }else{
-            overlap|=4;
-        }
-        if(overlap==7){
+        var overlap = 0;
+
+        this.dix.set( D[0], D[1], D[2] );
+        this.diy.set( D[3], D[4], D[5] );
+        this.diz.set( D[6], D[7], D[8] );
+
+        n.sub( s.position, b.position );
+        
+        cc.set(
+            _Math.dotVectors( this.dix, n ),
+            _Math.dotVectors( this.diy, n ),
+            _Math.dotVectors( this.diz, n )
+        );        
+
+        if( cc.x > hw ) cc.x = hw;
+        else if( cc.x < -hw ) cc.x = -hw;
+        else overlap = 1;
+        
+        if( cc.y > hh ) cc.y = hh;
+        else if( cc.y < -hh ) cc.y = -hh;
+        else overlap |= 2;
+        
+        if( cc.z > hd ) cc.z = hd;
+        else if( cc.z < -hd ) cc.z = -hd;
+        else overlap |= 4;
+        
+        if( overlap === 7 ){
+
             // center of sphere is in the box
-            if(sx<0){
-                dx=hw+sx;
-            }else{
-                dx=hw-sx;
-            }
-            if(sy<0){
-                dy=hh+sy;
-            }else{
-                dy=hh-sy;
-            }
-            if(sz<0){
-                dz=hd+sz;
-            }else{
-                dz=hd-sz;
-            }
-            if(dx<dy){
-                if(dx<dz){
-                    len=dx-hw;
-                if(sx<0){
-                    sx=-hw;
-                    dx=D[0];
-                    dy=D[1];
-                    dz=D[2];
-                }else{
-                    sx=hw;
-                    dx=-D[0];
-                    dy=-D[1];
-                    dz=-D[2];
-                }
-            }else{
-                len=dz-hd;
-                if(sz<0){
-                    sz=-hd;
-                    dx=D[6];
-                    dy=D[7];
-                    dz=D[8];
-                }else{
-                    sz=hd;
-                    dx=-D[6];
-                    dy=-D[7];
-                    dz=-D[8];
-                }
-            }
-            }else{
-                if(dy<dz){
-                    len=dy-hh;
-                    if(sy<0){
-                        sy=-hh;
-                        dx=D[3];
-                        dy=D[4];
-                        dz=D[5];
+            n.set(
+                cc.x < 0 ? hw + cc.x : hw - cc.x,
+                cc.y < 0 ? hh + cc.y : hh - cc.y,
+                cc.z < 0 ? hd + cc.z : hd - cc.z
+            );
+            
+            if( n.x < n.y ){
+                if( n.x < n.z ){
+                    len = n.x - hw;
+                    if( cc.x < 0 ){
+                        cc.x = -hw;
+                        n.copy( this.dix );
                     }else{
-                        sy=hh;
-                        dx=-D[3];
-                        dy=-D[4];
-                        dz=-D[5];
+                        cc.x = hw;
+                        n.subEqual( this.dix );
                     }
                 }else{
-                    len=dz-hd;
-                    if(sz<0){
-                        sz=-hd;
-                        dx=D[6];
-                        dy=D[7];
-                        dz=D[8];
+                    len = n.z - hd;
+                    if( cc.z < 0 ){
+                        cc.z = -hd;
+                        n.copy( this.diz );
                     }else{
-                        sz=hd;
-                        dx=-D[6];
-                        dy=-D[7];
-                        dz=-D[8];
+                        cc.z = hd;
+                        n.subEqual( this.diz );
+                    }
+                }
+            }else{
+                if( n.y < n.z ){
+                    len = n.y - hh;
+                    if( cc.y < 0 ){
+                        cc.y = -hh;
+                        n.copy( this.diy );
+                    }else{
+                        cc.y = hh;
+                        n.subEqual( this.diy );
+                    }
+                }else{
+                    len = n.z - hd;
+                    if( cc.z < 0 ){
+                        cc.z = -hd;
+                        n.copy( this.diz );
+                    }else{
+                        cc.z = hd;
+                        n.subEqual( this.diz );
+                    }
                 }
             }
-        }
-        cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
-        cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
-        cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
-        manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
+
+            p.copy( s.position ).addScale( n, rad );
+            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len-rad, this.flip );
+
         }else{
-            cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
-            cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
-            cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
-            dx=cx-ps.x;
-            dy=cy-ps.y;
-            dz=cz-ps.z;
-            len=dx*dx+dy*dy+dz*dz;
-            if(len>0&&len<rad*rad){
-                len=_Math.sqrt(len);
-                invLen=1/len;
-                dx*=invLen;
-                dy*=invLen;
-                dz*=invLen;
-                manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
+
+            cc2.set( 
+                cc.x*D[0]+cc.y*D[3]+cc.z*D[6],
+                cc.x*D[1]+cc.y*D[4]+cc.z*D[7],
+                cc.x*D[2]+cc.y*D[5]+cc.z*D[8]
+            ).addEqual( b.position );
+
+            n.sub( cc2, s.position );
+
+            len = n.lengthSq();
+
+            if( len > 0 && len < rad * rad ){
+
+                len = _Math.sqrt( len );
+                n.scaleEqual( 1/len );
+
+                p.copy( s.position ).addScale( n, rad );
+                manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len-rad, this.flip );
+
             }
         }
 
@@ -10789,6 +10627,12 @@ function SphereCylinderCollisionDetector ( flip ){
     CollisionDetector.call( this );
     this.flip = flip;
 
+    this.n = new Vec3();
+    this.p = new Vec3();
+
+    this.n2 = new Vec3();
+    this.cc = new Vec3();
+
 }
 
 SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
@@ -10796,82 +10640,65 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
     constructor: SphereCylinderCollisionDetector,
 
     detectCollision: function ( shape1, shape2, manifold ) {
-        
-        var s;
-        var c;
-        if( this.flip ){
-            s = shape2;
-            c = shape1;
-        }else{
-            s = shape1;
-            c = shape2;
-        }
-        var ps = s.position;
-        var psx = ps.x;
-        var psy = ps.y;
-        var psz = ps.z;
-        var pc = c.position;
-        var pcx = pc.x;
-        var pcy = pc.y;
-        var pcz = pc.z;
-        var dirx = c.normalDirection.x;
-        var diry = c.normalDirection.y;
-        var dirz = c.normalDirection.z;
+
+        var s = this.flip ? shape2 : shape1;
+        var c = this.flip ? shape1 : shape2;
+
+        var n = this.n;
+        var p = this.p;
+        var n2 = this.n2;
+        var cc = this.cc;
+
         var rads = s.radius;
         var radc = c.radius;
         var rad2 = rads + radc;
         var halfh = c.halfHeight;
-        var dx = psx - pcx;
-        var dy = psy - pcy;
-        var dz = psz - pcz;
-        var dot = dx * dirx + dy * diry + dz * dirz;
+        var len;
+
+        n.sub( s.position, c.position );
+        var dot = _Math.dotVectors( n, c.normalDirection );
+
         if ( dot < -halfh - rads || dot > halfh + rads ) return;
-        var cx = pcx + dot * dirx;
-        var cy = pcy + dot * diry;
-        var cz = pcz + dot * dirz;
-        var d2x = psx - cx;
-        var d2y = psy - cy;
-        var d2z = psz - cz;
-        var len = d2x * d2x + d2y * d2y + d2z * d2z;
+
+        cc.copy( c.position ).addScale( c.normalDirection, dot );
+        n2.sub( s.position, cc );
+        len = n2.lengthSq();
+
         if ( len > rad2 * rad2 ) return;
+
         if ( len > radc * radc ) {
             len = radc / _Math.sqrt( len );
-            d2x *= len;
-            d2y *= len;
-            d2z *= len;
+            n2.scaleEqual( len );
         }
+
         if( dot < -halfh ) dot = -halfh;
         else if( dot > halfh ) dot = halfh;
-        cx = pcx + dot * dirx + d2x;
-        cy = pcy + dot * diry + d2y;
-        cz = pcz + dot * dirz + d2z;
-        dx = cx - psx;
-        dy = cy - psy;
-        dz = cz - psz;
-        len = dx * dx + dy * dy + dz * dz;
-        var invLen;
+
+        cc.addEqual( n2 );
+        n.sub( cc, s.position );
+        len = n.lengthSq();
+
         if ( len > 0 && len < rads * rads ) {
-            len = _Math.sqrt(len);
-            invLen = 1 / len;
-            dx *= invLen;
-            dy *= invLen;
-            dz *= invLen;
-            ///result.addContactInfo(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,s,c,0,0,false);
-            manifold.addPoint( psx + dx * rads, psy + dy * rads, psz + dz * rads, dx, dy, dz, len - rads, this.flip );
+
+            len = _Math.sqrt( len );
+            n.scaleEqual( 1/len );
+
+            //n.normalize();
+            p.copy( s.position ).addScale( n, rads );
+            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len - rads, this.flip );
+
         }
 
     }
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan
- */
- 
 function SphereSphereCollisionDetector (){
 
     CollisionDetector.call( this );
+
+    this.n = new Vec3();
+    this.p = new Vec3();
 
 }
 
@@ -10881,42 +10708,30 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
 
     detectCollision: function ( shape1, shape2, manifold ) {
 
+        var n = this.n;
+        var p = this.p;
+
         var s1 = shape1;
         var s2 = shape2;
-        var p1 = s1.position;
-        var p2 = s2.position;
-        var dx = p2.x - p1.x;
-        var dy = p2.y - p1.y;
-        var dz = p2.z - p1.z;
-        var len = dx * dx + dy * dy + dz * dz;
-        var r1 = s1.radius;
-        var r2 = s2.radius;
-        var rad = r1 + r2;
-        if ( len > 0 && len < rad * rad ){
+
+        n.sub( s2.position, s1.position );
+        var rad = s1.radius + s2.radius;
+        var len = n.lengthSq();
+        
+        if( len > 0 && len < rad * rad ){
+
             len = _Math.sqrt( len );
-            var invLen = 1 / len;
-            dx *= invLen;
-            dy *= invLen;
-            dz *= invLen;
-            manifold.addPoint( p1.x + dx * r1, p1.y + dy * r1, p1.z + dz * r1, dx, dy, dz, len - rad, false );
+            n.scaleEqual( 1/len );
+
+            //n.normalize();
+            p.copy( s1.position ).addScale( n, s1.radius );
+            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len - rad, false );
+
         }
 
     }
 
 });
-
-//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
-
-//import { TetraShape } from '../collision/shape/TetraShape';
-
-/**
- * The class of physical computing world. 
- * You must be added to the world physical all computing objects
- * @author saharan
- * @author lo-th
- */
-
- // timestep, broadphase, iterations, worldscale, random, stat
 
 function World ( o ) {
 
@@ -10985,6 +10800,7 @@ function World ( o ) {
         this.detectors[i]=[];
         this.detectors[i].length = numShapeTypes;
     }
+
 
     this.detectors[SHAPE_SPHERE][SHAPE_SPHERE] = new SphereSphereCollisionDetector();
     this.detectors[SHAPE_SPHERE][SHAPE_BOX] = new SphereBoxCollisionDetector(false);
@@ -11671,9 +11487,9 @@ Object.assign( World.prototype, {
         for(var i=0; i<type.length; i++){
             n = i*3;
             switch(type[i]){
-                case "sphere": shapes[i] = new SphereShape(sc, s[n]); break;
-                case "cylinder": shapes[i] = new CylinderShape(sc, s[n], s[n+1]); break;
-                case "box": shapes[i] = new BoxShape(sc, s[n], s[n+1], s[n+2]); break;
+                case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
+                case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
+                case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
             }
             body.addShape( shapes[i] );
             if( i > 0 ){
@@ -11809,4 +11625,4 @@ Object.assign( World.prototype, {
 
 } );
 
-export { _Math as Math, Vec3, Quat, Mat33, Shape, BoxShape, SphereShape, CylinderShape, ShapeConfig, LimitMotor, HingeJoint, BallAndSocketJoint, DistanceJoint, PrismaticJoint, SliderJoint, WheelJoint, JointConfig, RigidBody, World, REVISION, BR_NULL, BR_BRUTE_FORCE, BR_SWEEP_AND_PRUNE, BR_BOUNDING_VOLUME_TREE, BODY_NULL, BODY_DYNAMIC, BODY_STATIC, BODY_KINEMATIC, BODY_GHOST, SHAPE_NULL, SHAPE_SPHERE, SHAPE_BOX, SHAPE_CYLINDER, SHAPE_TETRA, JOINT_NULL, JOINT_DISTANCE, JOINT_BALL_AND_SOCKET, JOINT_HINGE, JOINT_WHEEL, JOINT_SLIDER, JOINT_PRISMATIC, AABB_PROX, printError, InfoDisplay };
+export { _Math as Math, Vec3, Quat, Mat33, Shape, Box, Sphere, Cylinder, ShapeConfig, LimitMotor, HingeJoint, BallAndSocketJoint, DistanceJoint, PrismaticJoint, SliderJoint, WheelJoint, JointConfig, RigidBody, World, REVISION, BR_NULL, BR_BRUTE_FORCE, BR_SWEEP_AND_PRUNE, BR_BOUNDING_VOLUME_TREE, BODY_NULL, BODY_DYNAMIC, BODY_STATIC, BODY_KINEMATIC, BODY_GHOST, SHAPE_NULL, SHAPE_SPHERE, SHAPE_BOX, SHAPE_CYLINDER, SHAPE_PLANE, SHAPE_PARTICLE, SHAPE_TETRA, JOINT_NULL, JOINT_DISTANCE, JOINT_BALL_AND_SOCKET, JOINT_HINGE, JOINT_WHEEL, JOINT_SLIDER, JOINT_PRISMATIC, AABB_PROX, printError, InfoDisplay };

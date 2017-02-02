@@ -23,7 +23,9 @@ export var SHAPE_NULL = 0;
 export var SHAPE_SPHERE = 1;
 export var SHAPE_BOX = 2;
 export var SHAPE_CYLINDER = 3;
-export var SHAPE_TETRA = 4;
+export var SHAPE_PLANE = 4;
+export var SHAPE_PARTICLE = 5;
+export var SHAPE_TETRA = 6;
 
 // Joint type
 export var JOINT_NULL = 0;

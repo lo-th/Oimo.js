@@ -215,6 +215,7 @@ Object.assign( Contact.prototype, {
         this.shape2 = null;
         this.body1 = null;
         this.body2 = null;
+        this.detector = null;
         
     }
 

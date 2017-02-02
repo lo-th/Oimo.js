@@ -4,6 +4,7 @@ import { Vec3 } from '../../math/Vec3';
 /**
 * A contact manifold between two shapes.
 * @author saharan
+* @author lo-th
 */
 
 function ContactManifold () {
@@ -27,11 +28,8 @@ function ContactManifold () {
 ContactManifold.prototype = {
 
     constructor: ContactManifold,
-    /**
-    * Reset the manifold.
-    * @param   shape1
-    * @param   shape2
-    */
+
+    //Reset the manifold.
     reset:function( shape1, shape2 ){
 
         this.body1 = shape1.parent;
@@ -39,17 +37,8 @@ ContactManifold.prototype = {
         this.numPoints = 0;
 
     },
-    /**
-    * Add a point into this manifold.
-    * @param   x
-    * @param   y
-    * @param   z
-    * @param   normalX
-    * @param   normalY
-    * @param   normalZ
-    * @param   penetration
-    * @param   flip
-    */
+
+    //  Add a point into this manifold.
     addPoint: function ( x, y, z, nx, ny, nz, penetration, flip ) {
         
         var p = this.points[ this.numPoints++ ];
@@ -59,26 +48,6 @@ ContactManifold.prototype = {
         p.localPoint1.mulManifold( this.body1.rotation, new Vec3().sub( p.position, this.body1.position ) );
         p.localPoint2.mulManifold( this.body2.rotation, new Vec3().sub( p.position, this.body2.position ) );
 
-        /*var r = this.body1.rotation;
-        var rx = x-this.body1.position.x;
-        var ry = y-this.body1.position.y;
-        var rz = z-this.body1.position.z;
-
-        var tr = r.elements;
-        p.localPoint1.x = rx*tr[0] + ry*tr[3] + rz*tr[6];
-        p.localPoint1.y = rx*tr[1] + ry*tr[4] + rz*tr[7];
-        p.localPoint1.z = rx*tr[2] + ry*tr[5] + rz*tr[8];
-
-        r = this.body2.rotation;
-        rx = x-this.body2.position.x;
-        ry = y-this.body2.position.y;
-        rz = z-this.body2.position.z;
-
-        tr = r.elements;
-        p.localPoint2.x = rx*tr[0] + ry*tr[3] + rz*tr[6];
-        p.localPoint2.y = rx*tr[1] + ry*tr[4] + rz*tr[7];
-        p.localPoint2.z = rx*tr[2] + ry*tr[5] + rz*tr[8];*/
-
         p.normalImpulse = 0;
 
         p.normal.set( nx, ny, nz );
@@ -86,6 +55,7 @@ ContactManifold.prototype = {
 
         p.penetration = penetration;
         p.warmStarted = false;
+        
     }
 }
 

@@ -1,5 +1,5 @@
-import { Vec3 } from '../../math/Vec3';
-import { Mat33 } from '../../math/Mat33';
+import { Vec3 } from '../math/Vec3';
+import { Mat33 } from '../math/Mat33';
 
 /**
  * A shape configuration holds common configuration data for constructing a shape.

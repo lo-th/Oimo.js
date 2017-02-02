@@ -1,11 +1,11 @@
-import { SHAPE_TETRA, AABB_PROX } from '../../constants';
+import { SHAPE_TETRA, AABB_PROX } from '../constants';
 import { Shape } from './Shape';
 
 /**
  * A tetra shape.
  * @author xprogram
  */
-function TetraShape ( config, p1, p2, p3, p4 ){
+function Tetra ( config, p1, p2, p3, p4 ){
 
     Shape.call( this, config );
     this.type = SHAPE_TETRA;
@@ -16,10 +16,10 @@ function TetraShape ( config, p1, p2, p3, p4 ){
 
 };
 
-TetraShape.prototype = Object.create( Shape.prototype );
-TetraShape.prototype.constructor = TetraShape;
+Tetra.prototype = Object.create( Shape.prototype );
+Tetra.prototype.constructor = TetraShape;
 
-TetraShape.prototype.calculateMassInfo = function( out ){
+Tetra.prototype.calculateMassInfo = function( out ){
     // I guess you could calculate box mass and split it
     // in half for the tetra...
     this.aabb.setFromPoints(this.verts);
@@ -38,7 +38,7 @@ TetraShape.prototype.calculateMassInfo = function( out ){
 
 };
 
-TetraShape.prototype.updateProxy = function () {
+Tetra.prototype.updateProxy = function () {
 
     this.aabb.setFromPoints(this.verts);
     this.aabb.expandByScalar(AABB_PROX);
@@ -47,8 +47,8 @@ TetraShape.prototype.updateProxy = function () {
 
 };
 
-TetraShape.prototype.mtri = function ( a, b, c ){
+Tetra.prototype.mtri = function ( a, b, c ){
     return {a: a, b: b, c: c};
 }
 
-export { TetraShape };
+export { Tetra };

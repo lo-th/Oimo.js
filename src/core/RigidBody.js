@@ -1,18 +1,12 @@
 import { BODY_NULL, BODY_DYNAMIC, BODY_STATIC } from '../constants';
 import { printError } from './Utils';
 
-import { MassInfo } from '../collision/shape/MassInfo';
-import { ShapeConfig } from '../collision/shape/ShapeConfig';
+import { MassInfo } from '../shape/MassInfo';
 
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { Vec3 } from '../math/Vec3';
-
-import { BoxShape } from '../collision/shape/BoxShape';
-import { SphereShape } from '../collision/shape/SphereShape';
-import { CylinderShape } from '../collision/shape/CylinderShape';
-//import { TetraShape } from '../collision/shape/TetraShape';
 
 import { Contact } from '../constraint/contact/Contact';
 

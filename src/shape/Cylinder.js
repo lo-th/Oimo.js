@@ -1,17 +1,15 @@
-import { SHAPE_CYLINDER, AABB_PROX } from '../../constants';
+import { SHAPE_CYLINDER, AABB_PROX } from '../constants';
 import { Shape } from './Shape';
-import { _Math } from '../../math/Math';
-import { Vec3 } from '../../math/Vec3';
+import { _Math } from '../math/Math';
+import { Vec3 } from '../math/Vec3';
 
 /**
- * A cylinder shape.
- *
- * @extends Shape
+ * Cylinder shape
  * @author saharan
  * @author lo-th
  */
 
-function CylinderShape( config, radius, height ) {
+function Cylinder ( config, radius, height ) {
 
     Shape.call( this, config );
 
@@ -26,9 +24,9 @@ function CylinderShape( config, radius, height ) {
 
 };
 
-CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
+Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
 
-    constructor: CylinderShape,
+    constructor: Cylinder,
 
     calculateMassInfo: function ( out ) {
 
@@ -40,6 +38,7 @@ CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
         out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
 
     },
+
     updateProxy: function () {
 
         var te = this.rotation.elements;
@@ -87,4 +86,4 @@ CylinderShape.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-export { CylinderShape };
+export { Cylinder };
