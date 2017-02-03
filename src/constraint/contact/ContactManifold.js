@@ -39,6 +39,24 @@ ContactManifold.prototype = {
     },
 
     //  Add a point into this manifold.
+    addPointVec: function ( pos, norm, penetration, flip ) {
+        
+        var p = this.points[ this.numPoints++ ];
+
+        p.position.copy( pos );
+        p.localPoint1.mulManifold( this.body1.rotation, pos.clone().subEqual( this.body1.position ) );
+        p.localPoint2.mulManifold( this.body2.rotation, pos.clone().subEqual( this.body2.position ) );
+
+        p.normal.copy( norm );
+        if( flip ) p.normal.negate();
+
+        p.normalImpulse = 0;
+        p.penetration = penetration;
+        p.warmStarted = false;
+        
+    },
+
+    //  Add a point into this manifold.
     addPoint: function ( x, y, z, nx, ny, nz, penetration, flip ) {
         
         var p = this.points[ this.numPoints++ ];

@@ -65,7 +65,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
             //n.normalize();
             p.copy( s.position ).addScale( n, rads );
-            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len - rads, this.flip );
+            manifold.addPointVec( p, n, len - rads, this.flip );
 
         }
 

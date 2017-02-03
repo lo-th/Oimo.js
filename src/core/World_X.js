@@ -1,4 +1,4 @@
-import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
+import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, SHAPE_PLANE, BODY_DYNAMIC, BODY_STATIC } from '../constants';
 import { InfoDisplay, printError } from './Utils';
 
 
@@ -6,12 +6,13 @@ import { BruteForceBroadPhase } from '../collision/broadphase/BruteForceBroadPha
 import { SAPBroadPhase } from '../collision/broadphase/sap/SAPBroadPhase_X';
 import { DBVTBroadPhase } from '../collision/broadphase/dbvt/DBVTBroadPhase_X';
 
-import { BoxBoxCollisionDetector } from '../collision/narrowphase/BoxBoxCollisionDetector';
+import { BoxBoxCollisionDetector } from '../collision/narrowphase/BoxBoxCollisionDetector_X';
 import { BoxCylinderCollisionDetector } from '../collision/narrowphase/BoxCylinderCollisionDetector';
 import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/CylinderCylinderCollisionDetector';
 import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector_X';
 import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector_X';
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector_X';
+import { SpherePlaneCollisionDetector } from '../collision/narrowphase/SpherePlaneCollisionDetector_X';
 //import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
 
 import { _Math } from '../math/Math';
@@ -131,6 +132,9 @@ function World ( o ) {
 
     this.detectors[SHAPE_CYLINDER][SHAPE_SPHERE] = new SphereCylinderCollisionDetector(true);
     this.detectors[SHAPE_SPHERE][SHAPE_CYLINDER] = new SphereCylinderCollisionDetector(false);
+
+    this.detectors[SHAPE_PLANE][SHAPE_SPHERE] = new SpherePlaneCollisionDetector(true);
+    this.detectors[SHAPE_SPHERE][SHAPE_PLANE] = new SpherePlaneCollisionDetector(false);
 
     // TETRA add
     //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
@@ -270,7 +274,7 @@ Object.assign( World.prototype, {
             printError("World", "It is not possible to be added alone to shape world");
         }
 
-        shape.proxy = this.broadPhase.createProxy(shape);
+        shape.proxy = this.broadPhase.createProxy( shape );
         shape.updateProxy();
         this.broadPhase.addProxy( shape.proxy );
 
@@ -806,6 +810,7 @@ Object.assign( World.prototype, {
                 case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
                 case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
                 case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
+                case "plane": shapes[i] = new Plane( sc ); break
             }
             body.addShape( shapes[i] );
             if( i > 0 ){

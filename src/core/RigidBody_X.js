@@ -24,7 +24,7 @@ function RigidBody ( Position, Rotation ) {
     this.position = Position || new Vec3();
     this.orientation = Rotation || new Quat();
 
-    this.scale =1;
+    this.scale = 1;
     this.invScale = 1;
 
     // possible link to three Mesh;
@@ -231,7 +231,7 @@ Object.assign( RigidBody.prototype, {
             shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
-            tmpV.addScale(shape.relativePosition, shapeMass);
+            tmpV.addScale( shape.relativePosition, shapeMass );
             this.mass += shapeMass;
             this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
             this.localInertia.addEqual( tmpM );

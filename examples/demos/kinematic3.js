@@ -52,15 +52,15 @@ function initSkeleton () {
         d = 1;
         p1.copy(bone.getWorldPosition());
 
-        if( i===0 || i===1 || i===2 || i===4 ) w=4;
-        else w=2;
+        if( i===0 || i===1 || i===2 || i===4 ) w = 4;
+        else w = 2;
 
         if( bone.children.length > 0 ) child = bone.children[0];
         else child = null;
 
         if( child !== null ){
 
-            p2.copy(child.getWorldPosition());
+            p2.copy( child.getWorldPosition() );
             d = Math.distanceVector( p1, p2 ) * scale;
 
         }
@@ -75,6 +75,8 @@ function initSkeleton () {
             pos:p1.toArray(),
             move: true,
             kinematic: true,
+            density:0.3, 
+            restitution:0,
             material:'donut'
         }
 
@@ -86,8 +88,25 @@ function initSkeleton () {
 
     loaded = true;
 
+    addHair()
     addExtra();
 
+}
+
+function addHair () {
+
+    var b;
+    var spring = [0.1, 0.1];
+    var p = bodys[4].position;
+
+    for( i = 0; i < 5; i++){
+
+        b = add({ type:'box', size:[2, 3, 2], pos:[p.x, p.y-(i*4), p.z-3], move:1, density:0.3, restitution:0 });
+
+        if( i===0 ) world.add({ type:'jointHinge', body1:bodys[4], body2:b.name, pos1:[0,0,-3], pos2:[0,-2,0], axe1:[1,0,0], axe2:[1,0,0], collision:true, spring:spring, min:60, max:90 });
+        else world.add({ type:'jointHinge', body1:b.name-1, body2:b.name, pos1:[0,2,0], pos2:[0,-2,0], axe1:[1,0,0], axe2:[1,0,0], collision:true, spring:spring, min:-10, max:0 });
+
+    }
 }
 
 function addExtra () {
@@ -104,7 +123,8 @@ function addExtra () {
         z = Math.rand(-10,10);
         y = Math.rand(60,100)
 
-        add( { type:'box', size:[w,h,d], pos:[x,y,z], move:true } );
+        //add( { type:'box', size:[w,h,d], pos:[x,y,z], move:true } );
+        add( { type:'sphere', size:[w*0.5], pos:[x,y,z], move:true } );
 
     }
 }
@@ -157,8 +177,12 @@ function updateSkeleton () {
 
 function add( o ){
 
-    bodys.push( world.add(o) );
+    var b = world.add( o )
+
+    bodys.push( b );
     meshs.push( view.add(o) );
+
+    return b
 
 }
 

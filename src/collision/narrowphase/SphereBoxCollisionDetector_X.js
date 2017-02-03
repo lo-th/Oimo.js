@@ -75,6 +75,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
         if( overlap === 7 ){
 
             // center of sphere is in the box
+            
             n.set(
                 cc.x < 0 ? hw + cc.x : hw - cc.x,
                 cc.y < 0 ? hh + cc.y : hh - cc.y,
@@ -124,7 +125,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
             }
 
             p.copy( s.position ).addScale( n, rad );
-            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len-rad, this.flip );
+            manifold.addPointVec( p, n, len-rad, this.flip );
 
         }else{
 
@@ -144,7 +145,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
                 n.scaleEqual( 1/len );
 
                 p.copy( s.position ).addScale( n, rad );
-                manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len-rad, this.flip );
+                manifold.addPointVec( p, n, len-rad, this.flip );
 
             }
         }

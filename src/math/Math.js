@@ -14,25 +14,58 @@ var _Math = {
     min    : Math.min,
     random : Math.random,
 
-    lerp: function ( x, y, t ) { return ( 1 - t ) * x + t * y; },
-    randInt: function ( low, high ) { return low + _Math.floor( _Math.random() * ( high - low + 1 ) ); },
-    rand: function ( low, high ) { return low + _Math.random() * ( high - low ); },
+    degtorad : 0.0174532925199432957,
+    radtodeg : 57.295779513082320876,
+    PI       : 3.141592653589793,
+    TwoPI    : 6.283185307179586,
+    PI90     : 1.570796326794896,
+    PI270    : 4.712388980384689,
+
+    INF      : Infinity,
+    EPZ      : 0.00001,
+
+    lerp: function ( x, y, t ) { 
+
+        return ( 1 - t ) * x + t * y; 
+
+    },
+
+    randInt: function ( low, high ) { 
+
+        return low + _Math.floor( _Math.random() * ( high - low + 1 ) ); 
+
+    },
+
+    rand: function ( low, high ) { 
+
+        return low + _Math.random() * ( high - low ); 
+
+    },
     //lerp : function ( a, b, percent ) { return a + (b - a) * percent; },
     //rand: function ( a, b ) { return _Math.lerp(a, b, _Math.random()); },
     //randInt: function ( a, b, n ) { return _Math.lerp(a, b, _Math.random()).toFixed(n || 0)*1;},
 
-    int: function( x ) { return _Math.floor(x); },
-    fix: function( x, n ) { return x.toFixed(n || 3, 10); },
+    int: function( x ) { 
 
-    clamp: function ( value, min, max ) { return _Math.max( min, _Math.min( max, value ) ); },
+        return _Math.floor(x); 
+
+    },
+
+    fix: function( x, n ) { 
+
+        return x.toFixed(n || 3, 10); 
+
+    },
+
+    clamp: function ( value, min, max ) { 
+
+        return _Math.max( min, _Math.min( max, value ) ); 
+
+    },
+    
     //clamp: function ( x, a, b ) { return ( x < a ) ? a : ( ( x > b ) ? b : x ); },
 
-    degtorad : 0.0174532925199432957,
-    radtodeg : 57.295779513082320876,
-    PI     : 3.141592653589793,
-    TwoPI  : 6.283185307179586,
-    PI90   : 1.570796326794896,
-    PI270  : 4.712388980384689,
+    
 
     distance: function( p1, p2 ){
 

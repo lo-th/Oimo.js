@@ -147,25 +147,58 @@
 	    min    : Math.min,
 	    random : Math.random,
 
-	    lerp: function ( x, y, t ) { return ( 1 - t ) * x + t * y; },
-	    randInt: function ( low, high ) { return low + _Math.floor( _Math.random() * ( high - low + 1 ) ); },
-	    rand: function ( low, high ) { return low + _Math.random() * ( high - low ); },
+	    degtorad : 0.0174532925199432957,
+	    radtodeg : 57.295779513082320876,
+	    PI       : 3.141592653589793,
+	    TwoPI    : 6.283185307179586,
+	    PI90     : 1.570796326794896,
+	    PI270    : 4.712388980384689,
+
+	    INF      : Infinity,
+	    EPZ      : 0.00001,
+
+	    lerp: function ( x, y, t ) { 
+
+	        return ( 1 - t ) * x + t * y; 
+
+	    },
+
+	    randInt: function ( low, high ) { 
+
+	        return low + _Math.floor( _Math.random() * ( high - low + 1 ) ); 
+
+	    },
+
+	    rand: function ( low, high ) { 
+
+	        return low + _Math.random() * ( high - low ); 
+
+	    },
 	    //lerp : function ( a, b, percent ) { return a + (b - a) * percent; },
 	    //rand: function ( a, b ) { return _Math.lerp(a, b, _Math.random()); },
 	    //randInt: function ( a, b, n ) { return _Math.lerp(a, b, _Math.random()).toFixed(n || 0)*1;},
 
-	    int: function( x ) { return _Math.floor(x); },
-	    fix: function( x, n ) { return x.toFixed(n || 3, 10); },
+	    int: function( x ) { 
 
-	    clamp: function ( value, min, max ) { return _Math.max( min, _Math.min( max, value ) ); },
+	        return _Math.floor(x); 
+
+	    },
+
+	    fix: function( x, n ) { 
+
+	        return x.toFixed(n || 3, 10); 
+
+	    },
+
+	    clamp: function ( value, min, max ) { 
+
+	        return _Math.max( min, _Math.min( max, value ) ); 
+
+	    },
+	    
 	    //clamp: function ( x, a, b ) { return ( x < a ) ? a : ( ( x > b ) ? b : x ); },
 
-	    degtorad : 0.0174532925199432957,
-	    radtodeg : 57.295779513082320876,
-	    PI     : 3.141592653589793,
-	    TwoPI  : 6.283185307179586,
-	    PI90   : 1.570796326794896,
-	    PI270  : 4.712388980384689,
+	    
 
 	    distance: function( p1, p2 ){
 
@@ -222,6 +255,8 @@
 	function printError( clazz, msg ){
 	    console.error("[OIMO] " + clazz + ": " + msg);
 	}
+
+	// A performance evaluator
 
 	function InfoDisplay(world){
 
@@ -1451,6 +1486,13 @@
 
 	} );
 
+	/**
+	 * An axis-aligned bounding box.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
 	    this.elements = new Float32Array( 6 );
@@ -1686,6 +1728,12 @@
 
 	});
 
+	/**
+	 * Box shape.
+	 * @author saharan
+	 * @author lo-th
+	 */
+	 
 	function Box ( config, Width, Height, Depth ) {
 
 	    Shape.call( this, config );
@@ -1824,6 +1872,12 @@
 		}
 	});
 
+	/**
+	 * Sphere shape
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function Sphere( config, radius ) {
 
 	    Shape.call( this, config );
@@ -1869,6 +1923,12 @@
 		}
 
 	});
+
+	/**
+	 * Cylinder shape
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function Cylinder ( config, radius, height ) {
 
@@ -1947,6 +2007,11 @@
 
 	});
 
+	/**
+	 * Plane shape.
+	 * @author lo-th
+	 */
+
 	function Plane( config, normal ) {
 
 	    Shape.call( this, config );
@@ -1954,7 +2019,7 @@
 	    this.type = SHAPE_PLANE;
 
 	    // radius of the shape.
-	    this.normal = normal || new Vec3( 0, 1, 0 );
+	    this.normal = new Vec3( 0, 1, 0 );
 
 	}
 
@@ -1970,7 +2035,8 @@
 
 	    calculateMassInfo: function ( out ) {
 
-	        var inertia = 0;
+	        out.mass = this.density;//0.0001;
+	        var inertia = 1;
 	        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
 
 	    },
@@ -1979,10 +2045,10 @@
 
 	        var p = AABB_PROX;
 
-	        var min = -Number.MAX_VALUE;
-	        var max = Number.MAX_VALUE;
+	        var min = -_Math.INF;
+	        var max = _Math.INF;
 	        var n = this.normal;
-
+	        // The plane AABB is infinite, except if the normal is pointing along any axis
 	        this.aabb.set(
 	            n.x === -1 ? this.position.x - p : min, n.x === 1 ? this.position.x + p : max,
 	            n.y === -1 ? this.position.y - p : min, n.y === 1 ? this.position.y + p : max,
@@ -1994,6 +2060,11 @@
 	    }
 
 	});
+
+	/**
+	 * A Particule shape
+	 * @author lo-th
+	 */
 
 	function Particle( config, normal ) {
 
@@ -2036,6 +2107,14 @@
 
 	});
 
+	/**
+	 * A shape configuration holds common configuration data for constructing a shape.
+	 * These configurations can be reused safely.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+	 
 	function ShapeConfig(){
 
 	    // position of the shape in parent's coordinate system.
@@ -2114,6 +2193,13 @@
 
 	});
 
+	/**
+	 * The base class of all type of the constraints.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function Constraint(){
 
 	    // parent world of the constraint.
@@ -2169,6 +2255,13 @@
 	    this.joint = joint;
 
 	}
+
+	/**
+	 * Joints are used to constrain the motion between two rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function Joint ( config ){
 
@@ -2342,6 +2435,10 @@
 
 	});
 
+	/**
+	* A linear constraint for all axes for various joints.
+	* @author saharan
+	*/
 	function LinearConstraint ( joint ){
 
 	    this.m1=NaN;
@@ -3151,6 +3248,13 @@
 	    
 	} );
 
+	/**
+	 * A hinge joint allows only for relative rotation of rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
 	    Joint.call( this, config );
@@ -3247,6 +3351,13 @@
 	    }
 
 	});
+
+	/**
+	 * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function BallAndSocketJoint ( config ){
 
@@ -3567,6 +3678,13 @@
 	    }
 	} );
 
+	/**
+	 * A distance joint limits the distance between two anchor points on rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function DistanceJoint ( config, minDistance, maxDistance ){
 
 	    Joint.call( this, config );
@@ -3611,6 +3729,11 @@
 	    }
 
 	});
+
+	/**
+	* An angular constraint for all axes for various joints.
+	* @author saharan
+	*/
 
 	function AngularConstraint( joint, targetOrientation ) {
 
@@ -4401,6 +4524,13 @@
 	    
 	} );
 
+	/**
+	 * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
 	    Joint.call( this, config );
@@ -4469,6 +4599,13 @@
 	    }
 
 	});
+
+	/**
+	 * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4567,6 +4704,14 @@
 	    }
 
 	});
+
+	/**
+	 * A wheel joint allows for relative rotation between two rigid bodies along two axes.
+	 * The wheel joint also allows for relative translation for the suspension.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function WheelJoint ( config ){
 
@@ -4704,6 +4849,12 @@
 
 	}
 
+	/**
+	 * This class holds mass information of a shape.
+	 * @author lo-th
+	 * @author saharan
+	 */
+
 	function MassInfo (){
 
 	    // Mass of the shape.
@@ -4741,6 +4892,11 @@
 
 	}
 
+	/**
+	* The class holds details of the contact point.
+	* @author saharan
+	*/
+
 	function ManifoldPoint(){
 
 	    // Whether this manifold point is persisting or not.
@@ -4774,6 +4930,12 @@
 
 	}
 
+	/**
+	* A contact manifold between two shapes.
+	* @author saharan
+	* @author lo-th
+	*/
+
 	function ContactManifold () {
 
 	    // The first rigid body.
@@ -4803,6 +4965,24 @@
 	        this.body2 = shape2.parent;
 	        this.numPoints = 0;
 
+	    },
+
+	    //  Add a point into this manifold.
+	    addPointVec: function ( pos, norm, penetration, flip ) {
+	        
+	        var p = this.points[ this.numPoints++ ];
+
+	        p.position.copy( pos );
+	        p.localPoint1.mulManifold( this.body1.rotation, pos.clone().subEqual( this.body1.position ) );
+	        p.localPoint2.mulManifold( this.body2.rotation, pos.clone().subEqual( this.body2.position ) );
+
+	        p.normal.copy( norm );
+	        if( flip ) p.normal.negate();
+
+	        p.normalImpulse = 0;
+	        p.penetration = penetration;
+	        p.warmStarted = false;
+	        
 	    },
 
 	    //  Add a point into this manifold.
@@ -4871,6 +5051,11 @@
 
 	}
 
+	/**
+	* ...
+	* @author saharan
+	* @author lo-th
+	*/
 	function ContactConstraint ( manifold ){
 	    
 	    Constraint.call( this );
@@ -5248,6 +5433,13 @@
 
 	});
 
+	/**
+	* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
+	*
+	* @author saharan
+	* @author lo-th
+	*/
+
 	function Contact(){
 
 	    // The first shape.
@@ -5458,12 +5650,20 @@
 
 	} );
 
+	/**
+	* The class of rigid body.
+	* Rigid body has the shape of a single or multiple collision processing,
+	* I can set the parameters individually.
+	* @author saharan
+	*/
+
+
 	function RigidBody ( Position, Rotation ) {
 
 	    this.position = Position || new Vec3();
 	    this.orientation = Rotation || new Quat();
 
-	    this.scale =1;
+	    this.scale = 1;
 	    this.invScale = 1;
 
 	    // possible link to three Mesh;
@@ -5670,7 +5870,7 @@
 	            shape = this.shapes[i];
 	            shape.calculateMassInfo( this.massInfo );
 	            var shapeMass = this.massInfo.mass;
-	            tmpV.addScale(shape.relativePosition, shapeMass);
+	            tmpV.addScale( shape.relativePosition, shapeMass );
 	            this.mass += shapeMass;
 	            this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
 	            this.localInertia.addEqual( tmpM );
@@ -6077,7 +6277,11 @@
 
 	}
 
-	function BroadPhase(){
+	/**
+	* The broad-phase is used for collecting all possible pairs for collision.
+	*/
+
+	 function BroadPhase(){
 
 	    this.types = BR_NULL;
 	    this.numPairChecks = 0;
@@ -6195,6 +6399,12 @@
 
 	});
 
+	/**
+	* A basic implementation of proxies.
+	*
+	* @author saharan
+	*/
+
 	function BasicProxy ( shape ) {
 
 	    Proxy.call( this, shape );
@@ -6212,6 +6422,11 @@
 	    }
 
 	});
+
+	/**
+	* A broad-phase algorithm with brute-force search.
+	* This always checks for all possible pairs.
+	*/
 
 	function BruteForceBroadPhase(){
 
@@ -6267,6 +6482,11 @@
 	    }
 
 	});
+
+	/**
+	 * A projection axis for sweep and prune broad-phase.
+	 * @author saharan
+	 */
 
 	function SAPAxis (){
 
@@ -6459,6 +6679,12 @@
 
 	}
 
+	/**
+	 * A proxy for sweep and prune broad-phase.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SAPProxy ( sap, shape ){
 
 	    Proxy.call( this, shape );
@@ -6525,6 +6751,13 @@
 	    }
 
 	});
+
+	/**
+	 * A broad-phase collision detection algorithm using sweep and prune.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SAPBroadPhase () {
 
@@ -6732,6 +6965,11 @@
 
 	});
 
+	/**
+	* A node of the dynamic bounding volume tree.
+	* @author saharan
+	*/
+
 	function DBVTNode(){
 	    
 		// The first child node of this node.
@@ -6748,6 +6986,13 @@
 	    this.aabb = new AABB();
 
 	}
+
+	/**
+	 * A dynamic bounding volume tree for the broad-phase algorithm.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVT(){
 
@@ -7089,6 +7334,11 @@
 	    
 	});
 
+	/**
+	* A proxy for dynamic bounding volume tree broad-phase.
+	* @author saharan
+	*/
+
 	function DBVTProxy ( shape ) {
 
 	    Proxy.call( this, shape);
@@ -7107,6 +7357,12 @@
 	    }
 
 	});
+
+	/**
+	 * A broad-phase algorithm using dynamic bounding volume tree.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVTBroadPhase(){
 
@@ -7245,20 +7501,48 @@
 
 	} );
 
+	/**
+	 * A collision detector which detects collisions between two boxes.
+	 * @author saharan
+	 */
 	function BoxBoxCollisionDetector() {
 
 	    CollisionDetector.call( this );
-	    this.clipVertices1 = new Float32Array( 24 ); // 8 vertices x,y,z
-	    this.clipVertices2 = new Float32Array( 24 );
+	    this.clipVertices1 = new Float32Array( 12 ); // 4 x vertices x,y,z
+	    this.clipVertices2 = new Float32Array( 12 );
+	    this.qqq = new Float32Array( 12 );
+
 	    this.used = new Float32Array( 8 );
+
+	    this.v = [];
+	    var i = 21;
+	    while( i-- ){
+	        this.v.push( new Vec3() );
+	    } 
 	    
-	    this.INF = 1/0;
+	    this.INF = _Math.INF;
+
+	    this.n = new Vec3();
+	    this.n1 = new Vec3();
+	    this.n2 = new Vec3();
+	    this.p = new Vec3();
+	    this.p1 = new Vec3();
+	    this.p2 = new Vec3();
+	    this.d = new Vec3();
+
+	    this.c = new Vec3();
+	    this.s1 = new Vec3();
+	    this.s2 = new Vec3();
 
 	}
 
 	BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
 	    constructor: BoxBoxCollisionDetector,
+
+	    tryAxis: function ( ) {
+
+	    },
 
 	    detectCollision: function ( shape1, shape2, manifold ) {
 	        // What you are doing 
@@ -7288,33 +7572,48 @@
 	        // For potential collision points of all, to examine the distance between the surface A 
 	        // • If you were on the inside surface of A, and the collision point
 
+	        var n = this.n;
+	        var p = this.p;
+	        var v = this.v;
+
+	        var n1 = this.n1;
+	        var n2 = this.n2;
+	        var p1 = this.p1;
+	        var p2 = this.p2;
+
+	        // center of current face
+	        var c = this.c;
+	        // face side
+	        var s1 = this.s1;
+	        var s2 = this.s2;
+
+	        var d = this.d;
+
 	        var b1;
 	        var b2;
+
 	        if(shape1.id<shape2.id){
-	            b1=(shape1);
-	            b2=(shape2);
+	            b1=shape1;
+	            b2=shape2;
 	        }else{
-	            b1=(shape2);
-	            b2=(shape1);
+	            b1=shape2;
+	            b2=shape1;
 	        }
+
 	        var V1 = b1.elements;
 	        var V2 = b2.elements;
 
 	        var D1 = b1.dimentions;
 	        var D2 = b2.dimentions;
 
-	        var p1=b1.position;
-	        var p2=b2.position;
-	        var p1x=p1.x;
-	        var p1y=p1.y;
-	        var p1z=p1.z;
-	        var p2x=p2.x;
-	        var p2y=p2.y;
-	        var p2z=p2.z;
+	        //n.sub( b2.position, b1.position );
+
+	        p1.copy( b1.position );
+	        p2.copy( b2.position );
+
 	        // diff
-	        var dx=p2x-p1x;
-	        var dy=p2y-p1y;
-	        var dz=p2z-p1z;
+	        d.sub( p2, p1 );
+
 	        // distance
 	        var w1=b1.halfWidth;
 	        var h1=b1.halfHeight;
@@ -7330,104 +7629,43 @@
 	        // 7~f: edge
 	        // http://marupeke296.com/COL_3D_No13_OBBvsOBB.html
 	        // ----------------------------
-	        
-	        var a1x=D1[0];
-	        var a1y=D1[1];
-	        var a1z=D1[2];
-	        var a2x=D1[3];
-	        var a2y=D1[4];
-	        var a2z=D1[5];
-	        var a3x=D1[6];
-	        var a3y=D1[7];
-	        var a3z=D1[8];
-	        var d1x=D1[9];
-	        var d1y=D1[10];
-	        var d1z=D1[11];
-	        var d2x=D1[12];
-	        var d2y=D1[13];
-	        var d2z=D1[14];
-	        var d3x=D1[15];
-	        var d3y=D1[16];
-	        var d3z=D1[17];
 
-	        var a4x=D2[0];
-	        var a4y=D2[1];
-	        var a4z=D2[2];
-	        var a5x=D2[3];
-	        var a5y=D2[4];
-	        var a5z=D2[5];
-	        var a6x=D2[6];
-	        var a6y=D2[7];
-	        var a6z=D2[8];
-	        var d4x=D2[9];
-	        var d4y=D2[10];
-	        var d4z=D2[11];
-	        var d5x=D2[12];
-	        var d5y=D2[13];
-	        var d5z=D2[14];
-	        var d6x=D2[15];
-	        var d6y=D2[16];
-	        var d6z=D2[17];
-	        
-	        var a7x=a1y*a4z-a1z*a4y;
-	        var a7y=a1z*a4x-a1x*a4z;
-	        var a7z=a1x*a4y-a1y*a4x;
-	        var a8x=a1y*a5z-a1z*a5y;
-	        var a8y=a1z*a5x-a1x*a5z;
-	        var a8z=a1x*a5y-a1y*a5x;
-	        var a9x=a1y*a6z-a1z*a6y;
-	        var a9y=a1z*a6x-a1x*a6z;
-	        var a9z=a1x*a6y-a1y*a6x;
-	        var aax=a2y*a4z-a2z*a4y;
-	        var aay=a2z*a4x-a2x*a4z;
-	        var aaz=a2x*a4y-a2y*a4x;
-	        var abx=a2y*a5z-a2z*a5y;
-	        var aby=a2z*a5x-a2x*a5z;
-	        var abz=a2x*a5y-a2y*a5x;
-	        var acx=a2y*a6z-a2z*a6y;
-	        var acy=a2z*a6x-a2x*a6z;
-	        var acz=a2x*a6y-a2y*a6x;
-	        var adx=a3y*a4z-a3z*a4y;
-	        var ady=a3z*a4x-a3x*a4z;
-	        var adz=a3x*a4y-a3y*a4x;
-	        var aex=a3y*a5z-a3z*a5y;
-	        var aey=a3z*a5x-a3x*a5z;
-	        var aez=a3x*a5y-a3y*a5x;
-	        var afx=a3y*a6z-a3z*a6y;
-	        var afy=a3z*a6x-a3x*a6z;
-	        var afz=a3x*a6y-a3y*a6x;
+
+	        v[0].set( D1[0], D1[1], D1[2] );
+	        v[1].set( D1[3], D1[4], D1[5] );
+	        v[2].set( D1[6], D1[7], D1[8] );
+	        v[3].set( D1[9], D1[10], D1[11] );
+	        v[4].set( D1[12], D1[13], D1[14] );
+	        v[5].set( D1[15], D1[16], D1[17] );
+
+	        v[6].set( D2[0], D2[1], D2[2] );
+	        v[7].set( D2[3], D2[4], D2[5] );
+	        v[8].set( D2[6], D2[7], D2[8] );
+	        v[9].set( D2[9], D2[10], D2[11] );
+	        v[10].set( D2[12], D2[13], D2[14] );
+	        v[11].set( D2[15], D2[16], D2[17] );
+
+	        v[12].crossVectors( v[0], v[6] );
+	        v[13].crossVectors( v[0], v[7] );
+	        v[14].crossVectors( v[0], v[8] );
+
+	        v[15].crossVectors( v[1], v[6] );
+	        v[16].crossVectors( v[1], v[7] );
+	        v[17].crossVectors( v[1], v[8] );
+
+	        v[18].crossVectors( v[2], v[6] );
+	        v[19].crossVectors( v[2], v[7] );
+	        v[20].crossVectors( v[2], v[8] );
+
 	        // right or left flags
-	        var right1;
-	        var right2;
-	        var right3;
-	        var right4;
-	        var right5;
-	        var right6;
-	        var right7;
-	        var right8;
-	        var right9;
-	        var righta;
-	        var rightb;
-	        var rightc;
-	        var rightd;
-	        var righte;
-	        var rightf;
+	        var rights = [];
 	        // overlapping distances
-	        var overlap1;
-	        var overlap2;
-	        var overlap3;
-	        var overlap4;
-	        var overlap5;
-	        var overlap6;
-	        var overlap7;
-	        var overlap8;
-	        var overlap9;
-	        var overlapa;
-	        var overlapb;
-	        var overlapc;
-	        var overlapd;
-	        var overlape;
-	        var overlapf;
+	        var overlaps = [];
+
+	        var epsilon = _Math.EPZ;
+	        var mdot = _Math.dotVectors;
+
+
 	        // invalid flags
 	        var invalid7=false;
 	        var invalid8=false;
@@ -7438,589 +7676,581 @@
 	        var invalidd=false;
 	        var invalide=false;
 	        var invalidf=false;
+
 	        // temporary variables
+	        
 	        var len;
 	        var len1;
 	        var len2;
 	        var dot1;
 	        var dot2;
 	        var dot3;
+
 	        // try axis 1
-	        len=a1x*dx+a1y*dy+a1z*dz;
-	        right1=len>0;
-	        if(!right1)len=-len;
+	        len = mdot( v[0], d );
+	        rights[0]=len>0;
+	        if(!rights[0])len=-len;
 	        len1=w1;
-	        dot1=a1x*a4x+a1y*a4y+a1z*a4z;
-	        dot2=a1x*a5x+a1y*a5y+a1z*a5z;
-	        dot3=a1x*a6x+a1y*a6y+a1z*a6z;
-	        if(dot1<0)dot1=-dot1;
-	        if(dot2<0)dot2=-dot2;
-	        if(dot3<0)dot3=-dot3;
-	        len2=dot1*w2+dot2*h2+dot3*d2;
-	        overlap1=len-len1-len2;
-	        if(overlap1>0)return;
+	        dot1 = mdot( v[0], v[6] );
+	        dot2 = mdot( v[0], v[7] );
+	        dot3 = mdot( v[0], v[8] );
+	        dot1 = dot1 < 0 ? -dot1 : dot1;
+	        dot2 = dot2 < 0 ? -dot2 : dot2;
+	        dot3 = dot3 < 0 ? -dot3 : dot3;
+	        len2 = dot1*w2 + dot2*h2 + dot3*d2;
+	        overlaps[0] = len-len1-len2;
+	        if(overlaps[0]>0) return;
+
 	        // try axis 2
-	        len=a2x*dx+a2y*dy+a2z*dz;
-	        right2=len>0;
-	        if(!right2)len=-len;
+	        len =  mdot( v[1], d );
+	        rights[1]=len>0;
+	        if(!rights[1])len=-len;
 	        len1=h1;
-	        dot1=a2x*a4x+a2y*a4y+a2z*a4z;
-	        dot2=a2x*a5x+a2y*a5y+a2z*a5z;
-	        dot3=a2x*a6x+a2y*a6y+a2z*a6z;
-	        if(dot1<0)dot1=-dot1;
-	        if(dot2<0)dot2=-dot2;
-	        if(dot3<0)dot3=-dot3;
+	        dot1 = mdot( v[1], v[6] );
+	        dot2 = mdot( v[1], v[7] );
+	        dot3 = mdot( v[1], v[8] );
+	        dot1 = dot1 < 0 ? -dot1 : dot1;
+	        dot2 = dot2 < 0 ? -dot2 : dot2;
+	        dot3 = dot3 < 0 ? -dot3 : dot3;
 	        len2=dot1*w2+dot2*h2+dot3*d2;
-	        overlap2=len-len1-len2;
-	        if(overlap2>0)return;
+	        overlaps[1] = len-len1-len2;
+	        if(overlaps[1]>0) return;
+
 	        // try axis 3
-	        len=a3x*dx+a3y*dy+a3z*dz;
-	        right3=len>0;
-	        if(!right3)len=-len;
+	        len = mdot( v[2], d );
+	        rights[2]=len>0;
+	        if(!rights[2])len=-len;
 	        len1=d1;
-	        dot1=a3x*a4x+a3y*a4y+a3z*a4z;
-	        dot2=a3x*a5x+a3y*a5y+a3z*a5z;
-	        dot3=a3x*a6x+a3y*a6y+a3z*a6z;
-	        if(dot1<0)dot1=-dot1;
-	        if(dot2<0)dot2=-dot2;
-	        if(dot3<0)dot3=-dot3;
+	        dot1 = mdot( v[2], v[6] );
+	        dot2 = mdot( v[2], v[7] );
+	        dot3 = mdot( v[2], v[8] );
+	        dot1 = dot1 < 0 ? -dot1 : dot1;
+	        dot2 = dot2 < 0 ? -dot2 : dot2;
+	        dot3 = dot3 < 0 ? -dot3 : dot3;
 	        len2=dot1*w2+dot2*h2+dot3*d2;
-	        overlap3=len-len1-len2;
-	        if(overlap3>0)return;
+	        overlaps[2]=len-len1-len2;
+	        if(overlaps[2]>0)return;
+
 	        // try axis 4
-	        len=a4x*dx+a4y*dy+a4z*dz;
-	        right4=len>0;
-	        if(!right4)len=-len;
-	        dot1=a4x*a1x+a4y*a1y+a4z*a1z;
-	        dot2=a4x*a2x+a4y*a2y+a4z*a2z;
-	        dot3=a4x*a3x+a4y*a3y+a4z*a3z;
-	        if(dot1<0)dot1=-dot1;
-	        if(dot2<0)dot2=-dot2;
-	        if(dot3<0)dot3=-dot3;
+	        len =  mdot( v[6], d );
+	        rights[3]=len>0;
+	        if(!rights[3])len=-len;
+	        dot1 = mdot( v[6], v[0] );
+	        dot2 = mdot( v[6], v[1] );
+	        dot3 = mdot( v[6], v[2] );
+	        dot1 = dot1 < 0 ? -dot1 : dot1;
+	        dot2 = dot2 < 0 ? -dot2 : dot2;
+	        dot3 = dot3 < 0 ? -dot3 : dot3;
 	        len1=dot1*w1+dot2*h1+dot3*d1;
 	        len2=w2;
-	        overlap4=(len-len1-len2)*1.0;
-	        if(overlap4>0)return;
+	        overlaps[3]=(len-len1-len2)*1.0;
+	        if(overlaps[3]>0)return;
+
 	        // try axis 5
-	        len=a5x*dx+a5y*dy+a5z*dz;
-	        right5=len>0;
-	        if(!right5)len=-len;
-	        dot1=a5x*a1x+a5y*a1y+a5z*a1z;
-	        dot2=a5x*a2x+a5y*a2y+a5z*a2z;
-	        dot3=a5x*a3x+a5y*a3y+a5z*a3z;
-	        if(dot1<0)dot1=-dot1;
-	        if(dot2<0)dot2=-dot2;
-	        if(dot3<0)dot3=-dot3;
+	        len =  mdot( v[7], d );
+	        rights[4]=len>0;
+	        if(!rights[4])len=-len;
+	        dot1 = mdot( v[7], v[0] );
+	        dot2 = mdot( v[7], v[1] );
+	        dot3 = mdot( v[7], v[2] );
+	        dot1 = dot1 < 0 ? -dot1 : dot1;
+	        dot2 = dot2 < 0 ? -dot2 : dot2;
+	        dot3 = dot3 < 0 ? -dot3 : dot3;
 	        len1=dot1*w1+dot2*h1+dot3*d1;
 	        len2=h2;
-	        overlap5=(len-len1-len2)*1.0;
-	        if(overlap5>0)return;
+	        overlaps[4]=(len-len1-len2)*1.0;
+	        if(overlaps[4]>0)return;
+
 	        // try axis 6
-	        len=a6x*dx+a6y*dy+a6z*dz;
-	        right6=len>0;
-	        if(!right6)len=-len;
-	        dot1=a6x*a1x+a6y*a1y+a6z*a1z;
-	        dot2=a6x*a2x+a6y*a2y+a6z*a2z;
-	        dot3=a6x*a3x+a6y*a3y+a6z*a3z;
-	        if(dot1<0)dot1=-dot1;
-	        if(dot2<0)dot2=-dot2;
-	        if(dot3<0)dot3=-dot3;
+	        len =  mdot( v[8], d ); 
+	        rights[5]=len>0;
+	        if(!rights[5])len=-len;
+	        dot1 = mdot( v[8], v[0] );
+	        dot2 = mdot( v[8], v[1] );
+	        dot3 = mdot( v[8], v[2] );
+	        dot1 = dot1 < 0 ? -dot1 : dot1;
+	        dot2 = dot2 < 0 ? -dot2 : dot2;
+	        dot3 = dot3 < 0 ? -dot3 : dot3;
 	        len1=dot1*w1+dot2*h1+dot3*d1;
 	        len2=d2;
-	        overlap6=(len-len1-len2)*1.0;
-	        if(overlap6>0)return;
+	        overlaps[5]=(len-len1-len2)*1.0;
+	        if(overlaps[5]>0)return;
+
 	        // try axis 7
-	        len=a7x*a7x+a7y*a7y+a7z*a7z;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            a7x*=len;
-	            a7y*=len;
-	            a7z*=len;
-	            len=a7x*dx+a7y*dy+a7z*dz;
-	            right7=len>0;
-	            if(!right7)len=-len;
-	            dot1=a7x*a2x+a7y*a2y+a7z*a2z;
-	            dot2=a7x*a3x+a7y*a3y+a7z*a3z;
+	        len = v[12].lengthSq();
+	        if( len > epsilon ){
+
+	            v[12].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[12], d );
+
+	            rights[6]=len>0;
+	            if(!rights[6])len=-len;
+	            dot1 = mdot( v[12], v[1] );
+	            dot2 = mdot( v[12], v[2] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*h1+dot2*d1;
-	            dot1=a7x*a5x+a7y*a5y+a7z*a5z;
-	            dot2=a7x*a6x+a7y*a6y+a7z*a6z;
+	            dot1 = mdot( v[12], v[7] );
+	            dot2 = mdot( v[12], v[8] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*h2+dot2*d2;
-	            overlap7=len-len1-len2;
-	            if(overlap7>0)return;
+	            overlaps[6]=len-len1-len2;
+	            if(overlaps[6]>0)return;
 	        }else{
-	            right7=false;
-	            overlap7=0;
+	            rights[6]=false;
+	            overlaps[6]=0;
 	            invalid7=true;
 	        }
+
 	        // try axis 8
-	        len=a8x*a8x+a8y*a8y+a8z*a8z;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            a8x*=len;
-	            a8y*=len;
-	            a8z*=len;
-	            len=a8x*dx+a8y*dy+a8z*dz;
-	            right8=len>0;
-	            if(!right8)len=-len;
-	            dot1=a8x*a2x+a8y*a2y+a8z*a2z;
-	            dot2=a8x*a3x+a8y*a3y+a8z*a3z;
+	        len = v[13].lengthSq();
+	        if(len>epsilon){
+
+	            v[13].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[13], d );
+
+	            rights[7]=len>0;
+	            if(!rights[7])len=-len;
+	            dot1 = mdot( v[13], v[1] );
+	            dot2 = mdot( v[13], v[2] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*h1+dot2*d1;
-	            dot1=a8x*a4x+a8y*a4y+a8z*a4z;
-	            dot2=a8x*a6x+a8y*a6y+a8z*a6z;
+	            dot1 = mdot( v[13], v[6] );
+	            dot2 = mdot( v[13], v[8] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*w2+dot2*d2;
-	            overlap8=len-len1-len2;
-	            if(overlap8>0)return;
+	            overlaps[7]=len-len1-len2;
+	            if(overlaps[7]>0)return;
 	        }else{
-	            right8=false;
-	            overlap8=0;
+	            rights[7]=false;
+	            overlaps[7]=0;
 	            invalid8=true;
 	        }
+
 	        // try axis 9
-	        len=a9x*a9x+a9y*a9y+a9z*a9z;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            a9x*=len;
-	            a9y*=len;
-	            a9z*=len;
-	            len=a9x*dx+a9y*dy+a9z*dz;
-	            right9=len>0;
-	            if(!right9)len=-len;
-	            dot1=a9x*a2x+a9y*a2y+a9z*a2z;
-	            dot2=a9x*a3x+a9y*a3y+a9z*a3z;
+	        len = v[14].lengthSq();
+	        if( len > epsilon ){
+
+	            v[14].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[14], d );
+
+	            rights[8]=len>0;
+	            if(!rights[8])len=-len;
+	            dot1 = mdot( v[14], v[1] );
+	            dot2 = mdot( v[14], v[2] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*h1+dot2*d1;
-	            dot1=a9x*a4x+a9y*a4y+a9z*a4z;
-	            dot2=a9x*a5x+a9y*a5y+a9z*a5z;
+	            dot1 = mdot( v[14], v[6] );
+	            dot2 = mdot( v[14], v[7] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*w2+dot2*h2;
-	            overlap9=len-len1-len2;
-	            if(overlap9>0)return;
+	            overlaps[8]=len-len1-len2;
+	            if(overlaps[8]>0)return;
 	        }else{
-	            right9=false;
-	            overlap9=0;
+	            rights[8]=false;
+	            overlaps[8]=0;
 	            invalid9=true;
 	        }
+
 	        // try axis 10
-	        len=aax*aax+aay*aay+aaz*aaz;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            aax*=len;
-	            aay*=len;
-	            aaz*=len;
-	            len=aax*dx+aay*dy+aaz*dz;
-	            righta=len>0;
-	            if(!righta)len=-len;
-	            dot1=aax*a1x+aay*a1y+aaz*a1z;
-	            dot2=aax*a3x+aay*a3y+aaz*a3z;
+	        len = v[15].lengthSq();
+	        if( len > epsilon ){
+
+	            v[15].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[15], d );
+
+	            rights[9]=len>0;
+	            if(!rights[9])len=-len;
+	            dot1 = mdot( v[15], v[0] );
+	            dot2 = mdot( v[15], v[2] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*w1+dot2*d1;
-	            dot1=aax*a5x+aay*a5y+aaz*a5z;
-	            dot2=aax*a6x+aay*a6y+aaz*a6z;
+	            dot1 = mdot( v[15], v[7] );
+	            dot2 = mdot( v[15], v[8] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*h2+dot2*d2;
-	            overlapa=len-len1-len2;
-	            if(overlapa>0)return;
+	            overlaps[9]=len-len1-len2;
+	            if(overlaps[9]>0)return;
 	        }else{
-	            righta=false;
-	            overlapa=0;
+	            rights[9]=false;
+	            overlaps[9]=0;
 	            invalida=true;
 	        }
+
 	        // try axis 11
-	        len=abx*abx+aby*aby+abz*abz;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            abx*=len;
-	            aby*=len;
-	            abz*=len;
-	            len=abx*dx+aby*dy+abz*dz;
-	            rightb=len>0;
-	            if(!rightb)len=-len;
-	            dot1=abx*a1x+aby*a1y+abz*a1z;
-	            dot2=abx*a3x+aby*a3y+abz*a3z;
+	        len = v[16].lengthSq();
+	        if(len>epsilon){
+
+	            v[16].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[16], d );
+
+	            rights[10]=len>0;
+	            if(!rights[10])len=-len;
+	            dot1 = mdot( v[16], v[0] );
+	            dot2 = mdot( v[16], v[2] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*w1+dot2*d1;
-	            dot1=abx*a4x+aby*a4y+abz*a4z;
-	            dot2=abx*a6x+aby*a6y+abz*a6z;
+	            dot1 = mdot( v[16], v[6] );
+	            dot2 = mdot( v[16], v[8] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*w2+dot2*d2;
-	            overlapb=len-len1-len2;
-	            if(overlapb>0)return;
+	            overlaps[10]=len-len1-len2;
+	            if( overlaps[10] > 0 ) return;
 	        }else{
-	            rightb=false;
-	            overlapb=0;
-	            invalidb=true;
+	            rights[10] = false;
+	            overlaps[10] = 0;
+	            invalidb = true;
 	        }
+
 	        // try axis 12
-	        len=acx*acx+acy*acy+acz*acz;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            acx*=len;
-	            acy*=len;
-	            acz*=len;
-	            len=acx*dx+acy*dy+acz*dz;
-	            rightc=len>0;
-	            if(!rightc)len=-len;
-	            dot1=acx*a1x+acy*a1y+acz*a1z;
-	            dot2=acx*a3x+acy*a3y+acz*a3z;
+	        len = v[17].lengthSq();
+	        if(len>epsilon){
+
+	            v[17].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[17], d );
+
+	            rights[11]=len>0;
+	            if(!rights[11])len=-len;
+	            dot1 = mdot( v[17], v[0] );
+	            dot2 = mdot( v[17], v[2] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*w1+dot2*d1;
-	            dot1=acx*a4x+acy*a4y+acz*a4z;
-	            dot2=acx*a5x+acy*a5y+acz*a5z;
+	            dot1 = mdot( v[17], v[6] );
+	            dot2 = mdot( v[17], v[7] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*w2+dot2*h2;
-	            overlapc=len-len1-len2;
-	            if(overlapc>0)return;
+	            overlaps[11]=len-len1-len2;
+	            if(overlaps[11]>0)return;
 	        }else{
-	            rightc=false;
-	            overlapc=0;
+	            rights[11] = false;
+	            overlaps[11] = 0;
 	            invalidc=true;
 	        }
+
 	        // try axis 13
-	        len=adx*adx+ady*ady+adz*adz;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            adx*=len;
-	            ady*=len;
-	            adz*=len;
-	            len=adx*dx+ady*dy+adz*dz;
-	            rightd=len>0;
-	            if(!rightd)len=-len;
-	            dot1=adx*a1x+ady*a1y+adz*a1z;
-	            dot2=adx*a2x+ady*a2y+adz*a2z;
+	        len = v[18].lengthSq();
+	        if(len>epsilon){
+
+	            v[18].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[18], d );
+
+	            rights[12]=len>0;
+	            if(!rights[12])len=-len;
+	            dot1 = mdot( v[18], v[0] );
+	            dot2 = mdot( v[18], v[1] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*w1+dot2*h1;
-	            dot1=adx*a5x+ady*a5y+adz*a5z;
-	            dot2=adx*a6x+ady*a6y+adz*a6z;
+	            dot1 = mdot( v[18], v[7] );
+	            dot2 = mdot( v[18], v[8] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*h2+dot2*d2;
-	            overlapd=len-len1-len2;
-	            if(overlapd>0)return;
+	            overlaps[12]=len-len1-len2;
+	            if(overlaps[12]>0)return;
 	        }else{
-	            rightd=false;
-	            overlapd=0;
+	            rights[12]=false;
+	            overlaps[12]=0;
 	            invalidd=true;
 	        }
+
 	        // try axis 14
-	        len=aex*aex+aey*aey+aez*aez;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            aex*=len;
-	            aey*=len;
-	            aez*=len;
-	            len=aex*dx+aey*dy+aez*dz;
-	            righte=len>0;
-	            if(!righte)len=-len;
-	            dot1=aex*a1x+aey*a1y+aez*a1z;
-	            dot2=aex*a2x+aey*a2y+aez*a2z;
+	        len =  v[19].lengthSq();
+	        if(len>epsilon){
+
+	            v[19].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[19], d );
+
+	            rights[13]=len>0;
+	            if(!rights[13])len=-len;
+	            dot1 = mdot( v[19], v[0] );
+	            dot2 = mdot( v[19], v[1] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*w1+dot2*h1;
-	            dot1=aex*a4x+aey*a4y+aez*a4z;
-	            dot2=aex*a6x+aey*a6y+aez*a6z;
+	            dot1 = mdot( v[19], v[6] );
+	            dot2 = mdot( v[19], v[8] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*w2+dot2*d2;
-	            overlape=len-len1-len2;
-	            if(overlape>0)return;
+	            overlaps[13]=len-len1-len2;
+	            if(overlaps[13]>0)return;
 	        }else{
-	            righte=false;
-	            overlape=0;
+	            rights[13]=false;
+	            overlaps[13]=0;
 	            invalide=true;
 	        }
+
 	        // try axis 15
-	        len=afx*afx+afy*afy+afz*afz;
-	        if(len>1e-5){
-	            len=1/_Math.sqrt(len);
-	            afx*=len;
-	            afy*=len;
-	            afz*=len;
-	            len=afx*dx+afy*dy+afz*dz;
-	            rightf=len>0;
-	            if(!rightf)len=-len;
-	            dot1=afx*a1x+afy*a1y+afz*a1z;
-	            dot2=afx*a2x+afy*a2y+afz*a2z;
+	        len = v[20].lengthSq();
+	        if( len > epsilon ){
+
+	            v[20].multiplyScalar( 1 / _Math.sqrt(len) );
+	            len = mdot( v[20], d );
+
+	            rights[14]=len>0;
+	            if(!rights[14])len=-len;
+	            dot1 = mdot( v[20], v[0] );
+	            dot2 = mdot( v[20], v[1] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len1=dot1*w1+dot2*h1;
-	            dot1=afx*a4x+afy*a4y+afz*a4z;
-	            dot2=afx*a5x+afy*a5y+afz*a5z;
+	            dot1 = mdot( v[20], v[6] );
+	            dot2 = mdot( v[20], v[7] );
 	            if(dot1<0)dot1=-dot1;
 	            if(dot2<0)dot2=-dot2;
 	            len2=dot1*w2+dot2*h2;
-	            overlapf=len-len1-len2;
-	            if(overlapf>0)return;
+	            overlaps[14]=len-len1-len2;
+	            if(overlaps[14]>0)return;
 	        }else{
-	            rightf=false;
-	            overlapf=0;
+	            rights[14]=false;
+	            overlaps[14]=0;
 	            invalidf=true;
 	        }
+
+
 	        // boxes are overlapping
-	        var depth=overlap1;
-	        var depth2=overlap1;
+	        var depth=overlaps[0];
+	        var depth2=overlaps[0];
 	        var minIndex=0;
-	        var right=right1;
-	        if(overlap2>depth2){
-	            depth=overlap2;
-	            depth2=overlap2;
+	        var right=rights[0];
+	        if(overlaps[1]>depth2){
+	            depth=overlaps[1];
+	            depth2=overlaps[1];
 	            minIndex=1;
-	            right=right2;
+	            right=rights[1];
 	        }
-	        if(overlap3>depth2){
-	            depth=overlap3;
-	            depth2=overlap3;
+	        if(overlaps[2]>depth2){
+	            depth=overlaps[2];
+	            depth2=overlaps[2];
 	            minIndex=2;
-	            right=right3;
+	            right=rights[2];
 	        }
-	        if(overlap4>depth2){
-	            depth=overlap4;
-	            depth2=overlap4;
+	        if(overlaps[3]>depth2){
+	            depth=overlaps[3];
+	            depth2=overlaps[3];
 	            minIndex=3;
-	            right=right4;
+	            right=rights[3];
 	        }
-	        if(overlap5>depth2){
-	            depth=overlap5;
-	            depth2=overlap5;
+	        if(overlaps[4]>depth2){
+	            depth=overlaps[4];
+	            depth2=overlaps[4];
 	            minIndex=4;
-	            right=right5;
+	            right=rights[4];
 	        }
-	        if(overlap6>depth2){
-	            depth=overlap6;
-	            depth2=overlap6;
+	        if(overlaps[5]>depth2){
+	            depth=overlaps[5];
+	            depth2=overlaps[5];
 	            minIndex=5;
-	            right=right6;
+	            right=rights[5];
 	        }
-	        if(overlap7-0.01>depth2&&!invalid7){
-	            depth=overlap7;
-	            depth2=overlap7-0.01;
+	        if(overlaps[6]-0.01>depth2&&!invalid7){
+	            depth=overlaps[6];
+	            depth2=overlaps[6]-0.01;
 	            minIndex=6;
-	            right=right7;
+	            right=rights[6];
 	        }
-	        if(overlap8-0.01>depth2&&!invalid8){
-	            depth=overlap8;
-	            depth2=overlap8-0.01;
+	        if(overlaps[7]-0.01>depth2&&!invalid8){
+	            depth=overlaps[7];
+	            depth2=overlaps[7]-0.01;
 	            minIndex=7;
-	            right=right8;
+	            right=rights[7];
 	        }
-	        if(overlap9-0.01>depth2&&!invalid9){
-	            depth=overlap9;
-	            depth2=overlap9-0.01;
+	        if(overlaps[8]-0.01>depth2&&!invalid9){
+	            depth=overlaps[8];
+	            depth2=overlaps[8]-0.01;
 	            minIndex=8;
-	            right=right9;
+	            right=rights[8];
 	        }
-	        if(overlapa-0.01>depth2&&!invalida){
-	            depth=overlapa;
-	            depth2=overlapa-0.01;
+	        if(overlaps[9]-0.01>depth2&&!invalida){
+	            depth=overlaps[9];
+	            depth2=overlaps[9]-0.01;
 	            minIndex=9;
-	            right=righta;
+	            right=rights[9];
 	        }
-	        if(overlapb-0.01>depth2&&!invalidb){
-	            depth=overlapb;
-	            depth2=overlapb-0.01;
+	        if(overlaps[10]-0.01>depth2&&!invalidb){
+	            depth=overlaps[10];
+	            depth2=overlaps[10]-0.01;
 	            minIndex=10;
-	            right=rightb;
+	            right=rights[10];
 	        }
-	        if(overlapc-0.01>depth2&&!invalidc){
-	            depth=overlapc;
-	            depth2=overlapc-0.01;
+	        if(overlaps[11]-0.01>depth2&&!invalidc){
+	            depth=overlaps[11];
+	            depth2=overlaps[11]-0.01;
 	            minIndex=11;
-	            right=rightc;
+	            right=rights[11];
 	        }
-	        if(overlapd-0.01>depth2&&!invalidd){
-	            depth=overlapd;
-	            depth2=overlapd-0.01;
+	        if(overlaps[12]-0.01>depth2&&!invalidd){
+	            depth=overlaps[12];
+	            depth2=overlaps[12]-0.01;
 	            minIndex=12;
-	            right=rightd;
+	            right=rights[12];
 	        }
-	        if(overlape-0.01>depth2&&!invalide){
-	            depth=overlape;
-	            depth2=overlape-0.01;
+	        if(overlaps[13]-0.01>depth2&&!invalide){
+	            depth=overlaps[13];
+	            depth2=overlaps[13]-0.01;
 	            minIndex=13;
-	            right=righte;
+	            right=rights[13];
 	        }
-	        if(overlapf-0.01>depth2&&!invalidf){
-	            depth=overlapf;
+	        if(overlaps[14]-0.01>depth2&&!invalidf){
+	            depth=overlaps[14];
 	            minIndex=14;
-	            right=rightf;
+	            right=rights[14];
 	        }
-	        // normal
-	        var nx=0;
-	        var ny=0;
-	        var nz=0;
-	        // edge line or face side normal
-	        var n1x=0;
-	        var n1y=0;
-	        var n1z=0;
-	        var n2x=0;
-	        var n2y=0;
-	        var n2z=0;
-	        // center of current face
-	        var cx=0;
-	        var cy=0;
-	        var cz=0;
-	        // face side
-	        var s1x=0;
-	        var s1y=0;
-	        var s1z=0;
-	        var s2x=0;
-	        var s2y=0;
-	        var s2z=0;
+	    
 	        // swap b1 b2
-	        var swap=false;
+	        var swap = false;
 
 	        //_______________________________________
 
-	        if(minIndex==0){// b1.x * b2
-	            if(right){
-	                cx=p1x+d1x; cy=p1y+d1y;  cz=p1z+d1z;
-	                nx=a1x; ny=a1y; nz=a1z;
-	            }else{
-	                cx=p1x-d1x; cy=p1y-d1y; cz=p1z-d1z;
-	                nx=-a1x; ny=-a1y; nz=-a1z;
-	            }
-	            s1x=d2x; s1y=d2y; s1z=d2z;
-	            n1x=-a2x; n1y=-a2y; n1z=-a2z;
-	            s2x=d3x; s2y=d3y; s2z=d3z;
-	            n2x=-a3x; n2y=-a3y; n2z=-a3z;
-	        }
-	        else if(minIndex==1){// b1.y * b2
-	            if(right){
-	                cx=p1x+d2x; cy=p1y+d2y; cz=p1z+d2z;
-	                nx=a2x; ny=a2y; nz=a2z;
-	            }else{
-	                cx=p1x-d2x; cy=p1y-d2y; cz=p1z-d2z;
-	                nx=-a2x; ny=-a2y; nz=-a2z;
-	            }
-	            s1x=d1x; s1y=d1y; s1z=d1z;
-	            n1x=-a1x; n1y=-a1y; n1z=-a1z;
-	            s2x=d3x; s2y=d3y; s2z=d3z;
-	            n2x=-a3x; n2y=-a3y; n2z=-a3z;
-	        }
-	        else if(minIndex==2){// b1.z * b2
-	            if(right){
-	                cx=p1x+d3x; cy=p1y+d3y; cz=p1z+d3z;
-	                nx=a3x; ny=a3y; nz=a3z;
-	            }else{
-	                cx=p1x-d3x; cy=p1y-d3y; cz=p1z-d3z;
-	                nx=-a3x; ny=-a3y; nz=-a3z;
-	            }
-	            s1x=d1x; s1y=d1y; s1z=d1z;
-	            n1x=-a1x; n1y=-a1y; n1z=-a1z;
-	            s2x=d2x; s2y=d2y; s2z=d2z;
-	            n2x=-a2x; n2y=-a2y; n2z=-a2z;
-	        }
-	        else if(minIndex==3){// b2.x * b1
-	            swap=true;
-	            if(!right){
-	                cx=p2x+d4x; cy=p2y+d4y; cz=p2z+d4z;
-	                nx=a4x; ny=a4y; nz=a4z;
-	            }else{
-	                cx=p2x-d4x; cy=p2y-d4y; cz=p2z-d4z;
-	                nx=-a4x; ny=-a4y; nz=-a4z;
-	            }
-	            s1x=d5x; s1y=d5y; s1z=d5z;
-	            n1x=-a5x; n1y=-a5y; n1z=-a5z;
-	            s2x=d6x; s2y=d6y; s2z=d6z;
-	            n2x=-a6x; n2y=-a6y; n2z=-a6z;
-	        }
-	        else if(minIndex==4){// b2.y * b1
-	            swap=true;
-	            if(!right){
-	                cx=p2x+d5x; cy=p2y+d5y; cz=p2z+d5z;
-	                nx=a5x; ny=a5y; nz=a5z;
-	            }else{
-	                cx=p2x-d5x; cy=p2y-d5y; cz=p2z-d5z;
-	                nx=-a5x; ny=-a5y; nz=-a5z;
-	            }
-	            s1x=d4x; s1y=d4y; s1z=d4z;
-	            n1x=-a4x; n1y=-a4y; n1z=-a4z;
-	            s2x=d6x; s2y=d6y; s2z=d6z;
-	            n2x=-a6x; n2y=-a6y; n2z=-a6z;
-	        }
-	        else if(minIndex==5){// b2.z * b1
-	            swap=true;
-	            if(!right){
-	                cx=p2x+d6x; cy=p2y+d6y; cz=p2z+d6z;
-	                nx=a6x; ny=a6y; nz=a6z;
-	            }else{
-	                cx=p2x-d6x; cy=p2y-d6y; cz=p2z-d6z;
-	                nx=-a6x; ny=-a6y; nz=-a6z;
-	            }
-	            s1x=d4x; s1y=d4y; s1z=d4z;
-	            n1x=-a4x; n1y=-a4y; n1z=-a4z;
-	            s2x=d5x; s2y=d5y; s2z=d5z;
-	            n2x=-a5x; n2y=-a5y; n2z=-a5z;
-	        }
-	        else if(minIndex==6){// b1.x * b2.x
-	            nx=a7x; ny=a7y; nz=a7z;
-	            n1x=a1x; n1y=a1y; n1z=a1z;
-	            n2x=a4x; n2y=a4y; n2z=a4z;
-	        }
-	        else if(minIndex==7){// b1.x * b2.y
-	            nx=a8x; ny=a8y; nz=a8z;
-	            n1x=a1x; n1y=a1y; n1z=a1z;
-	            n2x=a5x; n2y=a5y; n2z=a5z;
-	        }
-	        else if(minIndex==8){// b1.x * b2.z
-	            nx=a9x; ny=a9y; nz=a9z;
-	            n1x=a1x; n1y=a1y; n1z=a1z;
-	            n2x=a6x; n2y=a6y; n2z=a6z;
-	        }
-	        else if(minIndex==9){// b1.y * b2.x
-	            nx=aax; ny=aay; nz=aaz;
-	            n1x=a2x; n1y=a2y; n1z=a2z;
-	            n2x=a4x; n2y=a4y; n2z=a4z;
-	        }
-	        else if(minIndex==10){// b1.y * b2.y
-	            nx=abx; ny=aby; nz=abz;
-	            n1x=a2x; n1y=a2y; n1z=a2z;
-	            n2x=a5x; n2y=a5y; n2z=a5z;
-	        }
-	        else if(minIndex==11){// b1.y * b2.z
-	            nx=acx; ny=acy; nz=acz;
-	            n1x=a2x; n1y=a2y; n1z=a2z;
-	            n2x=a6x; n2y=a6y; n2z=a6z;
-	        }
-	        else if(minIndex==12){// b1.z * b2.x
-	            nx=adx;  ny=ady; nz=adz;
-	            n1x=a3x; n1y=a3y; n1z=a3z;
-	            n2x=a4x; n2y=a4y; n2z=a4z;
-	        }
-	        else if(minIndex==13){// b1.z * b2.y
-	            nx=aex; ny=aey; nz=aez;
-	            n1x=a3x; n1y=a3y; n1z=a3z;
-	            n2x=a5x; n2y=a5y; n2z=a5z;
-	        }
-	        else if(minIndex==14){// b1.z * b2.z
-	            nx=afx; ny=afy; nz=afz;
-	            n1x=a3x; n1y=a3y; n1z=a3z;
-	            n2x=a6x; n2y=a6y; n2z=a6z;
+	        switch ( minIndex ){
+	            case 0:// b1.x * b2
+	                n.copy( v[0] );
+	                if( right ){
+	                    c.add( p1, v[3] );
+	                }else{
+	                    c.sub( p1, v[3] );
+	                    n.negate();
+	                }
+	                s1.copy( v[4] );
+	                s2.copy( v[5] );
+	                n1.copy( v[1] ).negate();
+	                n2.copy( v[2] ).negate();
+	            break;
+	            case 1:// b1.y * b2
+	                n.copy( v[1] );
+	                if( right ){
+	                    c.add( p1, v[4] );
+	                }else{
+	                    c.sub( p1, v[4] );
+	                    n.negate();
+	                }
+	                s1.copy( v[3] );
+	                s2.copy( v[5] );
+	                n1.copy( v[0] ).negate();
+	                n2.copy( v[2] ).negate();
+	            break;
+	            case 2:// b1.z * b2
+	                n.copy( v[2] );
+	                if( right ){
+	                    c.add( p1, v[5] );
+	                }else{
+	                    c.sub( p1, v[5] );
+	                    n.negate();
+	                }
+	                s1.copy( v[3] );
+	                s2.copy( v[4] );
+	                n1.copy( v[0] ).negate();
+	                n2.copy( v[1] ).negate();
+	            break;
+	            case 3:// b2.x * b1
+	                n.copy( v[6] );
+	                if( !right ){
+	                    c.add( p2, v[9] );
+	                }else{
+	                    c.sub( p2, v[9] );
+	                    n.negate();
+	                }
+	                s1.copy( v[10] );
+	                s2.copy( v[11] );
+	                n1.copy( v[7] ).negate();
+	                n2.copy( v[8] ).negate();
+	                swap = true;
+	            break;
+	            case 4:// b2.y * b1
+	                n.copy( v[7] );
+	                if( !right ){
+	                    c.add( p2, v[10] );
+	                }else{
+	                    c.sub( p2, v[10] );
+	                    n.negate();
+	                }
+	                s1.copy( v[9] );
+	                s2.copy( v[11] );
+	                n1.copy( v[6] ).negate();
+	                n2.copy( v[8] ).negate();
+	                swap = true;
+	            break;
+	            case 5:// b2.z * b1
+	                n.copy( v[8] );
+	                if( !right ){
+	                    c.add( p2, v[11] );
+	                }else{
+	                    c.sub( p2, v[11] );
+	                    n.negate();
+	                }
+	                s1.copy( v[9] );
+	                s2.copy( v[10] );
+	                n1.copy( v[6] ).negate();
+	                n2.copy( v[7] ).negate();
+	                swap = true;
+	            break;
+	            case 6:// b1.x * b2.x
+	                n.copy( v[12] );
+	                n1.copy( v[0] );
+	                n2.copy( v[6] );
+	            break;
+	            case 7:// b1.x * b2.y
+	                n.copy( v[13] );
+	                n1.copy( v[0] );
+	                n2.copy( v[7] );
+	            break;
+	            case 8:// b1.x * b2.z
+	                n.copy( v[14] );
+	                n1.copy( v[0] );
+	                n2.copy( v[8] );
+	            break;
+	            case 9:// b1.y * b2.x
+	                n.copy( v[15] );
+	                n1.copy( v[1] );
+	                n2.copy( v[6] );
+	            break;
+	            case 10:// b1.y * b2.y
+	                n.copy( v[16] );
+	                n1.copy( v[1] );
+	                n2.copy( v[7] );
+	            break;
+	            case 11:// b1.y * b2.z
+	                n.copy( v[17] );
+	                n1.copy( v[1] );
+	                n2.copy( v[8] );
+	            break;
+	            case 12:// b1.z * b2.x
+	                n.copy( v[18] );
+	                n1.copy( v[2] );
+	                n2.copy( v[6] );
+	            break;
+	            case 13:// b1.z * b2.y
+	                n.copy( v[19] );
+	                n1.copy( v[2] );
+	                n2.copy( v[7] );
+	            break;
+	            case 14:// b1.z * b2.z
+	                n.copy( v[20] );
+	                n1.copy( v[2] );
+	                n2.copy( v[8] );
+	            break;
+
 	        }
 
 	        //__________________________________________
 
 	        //var v;
 	        if(minIndex>5){
-	            if(!right){
-	                nx=-nx; ny=-ny; nz=-nz;
-	            }
+
+	            if( !right ) n.negate();
+	               
 	            var distance;
 	            var maxDistance;
 	            var vx;
@@ -8034,267 +8264,176 @@
 	            var v2z;
 	            //vertex1;
 	            v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
-	            maxDistance=nx*v1x+ny*v1y+nz*v1z;
+	            maxDistance=n.x*v1x+n.y*v1y+n.z*v1z;
 	            //vertex2;
 	            vx=V1[3]; vy=V1[4]; vz=V1[5];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex3;
 	            vx=V1[6]; vy=V1[7]; vz=V1[8];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex4;
 	            vx=V1[9]; vy=V1[10]; vz=V1[11];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex5;
 	            vx=V1[12]; vy=V1[13]; vz=V1[14];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex6;
 	            vx=V1[15]; vy=V1[16]; vz=V1[17];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex7;
 	            vx=V1[18]; vy=V1[19]; vz=V1[20];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex8;
 	            vx=V1[21]; vy=V1[22]; vz=V1[23];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance>maxDistance){
 	                maxDistance=distance;
 	                v1x=vx; v1y=vy; v1z=vz;
 	            }
 	            //vertex1;
 	            v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
-	            maxDistance=nx*v2x+ny*v2y+nz*v2z;
+	            maxDistance=n.x*v2x+n.y*v2y+n.z*v2z;
 	            //vertex2;
 	            vx=V2[3]; vy=V2[4]; vz=V2[5];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            //vertex3;
 	            vx=V2[6]; vy=V2[7]; vz=V2[8];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            //vertex4;
 	            vx=V2[9]; vy=V2[10]; vz=V2[11];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            //vertex5;
 	            vx=V2[12]; vy=V2[13]; vz=V2[14];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            //vertex6;
 	            vx=V2[15]; vy=V2[16]; vz=V2[17];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            //vertex7;
 	            vx=V2[18]; vy=V2[19]; vz=V2[20];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            //vertex8;
 	            vx=V2[21]; vy=V2[22]; vz=V2[23];
-	            distance=nx*vx+ny*vy+nz*vz;
+	            distance=n.x*vx+n.y*vy+n.z*vz;
 	            if(distance<maxDistance){
 	                maxDistance=distance;
 	                v2x=vx; v2y=vy; v2z=vz;
 	            }
 	            vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
-	            dot1=n1x*n2x+n1y*n2y+n1z*n2z;
-	            var t=(vx*(n1x-n2x*dot1)+vy*(n1y-n2y*dot1)+vz*(n1z-n2z*dot1))/(1-dot1*dot1);
-	            manifold.addPoint(v1x+n1x*t+nx*depth*0.5,v1y+n1y*t+ny*depth*0.5,v1z+n1z*t+nz*depth*0.5,nx,ny,nz,depth,false);
+	            dot1=n1.x*n2.x+n1.y*n2.y+n1.z*n2.z;
+	            var t=(vx*(n1.x-n2.x*dot1)+vy*(n1.y-n2.y*dot1)+vz*(n1.z-n2.z*dot1))/(1-dot1*dot1);
+
+	            //n.set( n.x, n.y, n.z );
+	            p.set(
+	                v1x+n1.x*t+n.x*depth*0.5,
+	                v1y+n1.y*t+n.y*depth*0.5,
+	                v1z+n1.z*t+n.z*depth*0.5
+	            );
+	            manifold.addPointVec( p, n, depth, false );
 	            return;
 	        }
+
 	        // now detect face-face collision...
 	        // target quad
-	        var q1x;
-	        var q1y;
-	        var q1z;
-	        var q2x;
-	        var q2y;
-	        var q2z;
-	        var q3x;
-	        var q3y;
-	        var q3z;
-	        var q4x;
-	        var q4y;
-	        var q4z;
+	        var ar;
 	        // search support face and vertex
-	        var minDot=1;
-	        var dot=0;
-	        var minDotIndex=0;
-	        if(swap){
-	            dot=a1x*nx+a1y*ny+a1z*nz;
-	            if(dot<minDot){
-	                minDot=dot;
-	                minDotIndex=0;
-	            }
-	            if(-dot<minDot){
-	                minDot=-dot;
-	                minDotIndex=1;
-	            }
-	            dot=a2x*nx+a2y*ny+a2z*nz;
-	            if(dot<minDot){
-	                minDot=dot;
-	                minDotIndex=2;
-	            }
-	            if(-dot<minDot){
-	                minDot=-dot;
-	                minDotIndex=3;
-	            }
-	            dot=a3x*nx+a3y*ny+a3z*nz;
-	            if(dot<minDot){
-	                minDot=dot;
-	                minDotIndex=4;
-	            }
-	            if(-dot<minDot){
-	                minDot=-dot;
-	                minDotIndex=5;
-	            }
+	        var minDot = 1;
+	        var dot = 0;
+	        var minDotId = 0;
 
-	            if(minDotIndex==0){// x+ face
-	                q1x=V1[0]; q1y=V1[1]; q1z=V1[2];//vertex1
-	                q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex3
-	                q3x=V1[9]; q3y=V1[10]; q3z=V1[11];//vertex4
-	                q4x=V1[3]; q4y=V1[4]; q4z=V1[5];//vertex2
-	            }
-	            else if(minDotIndex==1){// x- face
-	                q1x=V1[15]; q1y=V1[16]; q1z=V1[17];//vertex6
-	                q2x=V1[21]; q2y=V1[22]; q2z=V1[23];//vertex8
-	                q3x=V1[18]; q3y=V1[19]; q3z=V1[20];//vertex7
-	                q4x=V1[12]; q4y=V1[13]; q4z=V1[14];//vertex5
-	            }
-	            else if(minDotIndex==2){// y+ face
-	                q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
-	                q2x=V1[0]; q2y=V1[1]; q2z=V1[2];//vertex1
-	                q3x=V1[3]; q3y=V1[4]; q3z=V1[5];//vertex2
-	                q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
-	            }
-	            else if(minDotIndex==3){// y- face
-	                q1x=V1[21]; q1y=V1[22]; q1z=V1[23];//vertex8
-	                q2x=V1[9]; q2y=V1[10]; q2z=V1[11];//vertex4
-	                q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
-	                q4x=V1[18]; q4y=V1[19]; q4z=V1[20];//vertex7
-	            }
-	            else if(minDotIndex==4){// z+ face
-	                q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
-	                q2x=V1[18]; q2y=V1[19]; q2z=V1[20];//vertex7
-	                q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
-	                q4x=V1[0]; q4y=V1[1]; q4z=V1[2];//vertex1
-	            }
-	            else if(minDotIndex==5){// z- face
-	                q1x=V1[3]; q1y=V1[4]; q1z=V1[5];//vertex2
-	                q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4
-	                q3x=V1[21]; q3y=V1[22]; q3z=V1[23];//vertex8
-	                q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
-	            }
+	        if( swap ){
+
+	            dot = mdot( v[0], n );
+	            if(dot<minDot){ minDot = dot; minDotId = 0; }
+	            if(-dot<minDot){  minDot = -dot; minDotId = 1; }
+
+	            dot = mdot( v[1], n ); 
+	            if(dot<minDot){ minDot = dot;  minDotId = 2; }
+	            if(-dot<minDot){ minDot = -dot; minDotId = 3; }
+
+	            dot = mdot( v[2], n );
+	            if(dot<minDot){ minDot = dot; minDotId = 4; }
+	            if(-dot<minDot){ minDot = -dot; minDotId = 5; }
+
+	            ar = V1;
 
 	        }else{
-	            dot=a4x*nx+a4y*ny+a4z*nz;
-	            if(dot<minDot){
-	                minDot=dot;
-	                minDotIndex=0;
-	            }
-	            if(-dot<minDot){
-	                minDot=-dot;
-	                minDotIndex=1;
-	            }
-	            dot=a5x*nx+a5y*ny+a5z*nz;
-	            if(dot<minDot){
-	                minDot=dot;
-	                minDotIndex=2;
-	            }
-	            if(-dot<minDot){
-	                minDot=-dot;
-	                minDotIndex=3;
-	            }
-	            dot=a6x*nx+a6y*ny+a6z*nz;
-	            if(dot<minDot){
-	                minDot=dot;
-	                minDotIndex=4;
-	            }
-	            if(-dot<minDot){
-	                minDot=-dot;
-	                minDotIndex=5;
-	            }
 
-	            //______________________________________________________
+	            dot = mdot( v[6], n );
+	            if(dot<minDot){ minDot = dot; minDotId = 0; }
+	            if(-dot<minDot){ minDot=-dot; minDotId = 1; }
 
-	            if(minDotIndex==0){// x+ face
-	                q1x=V2[0]; q1y=V2[1]; q1z=V2[2];//vertex1
-	                q2x=V2[6]; q2y=V2[7]; q2z=V2[8];//vertex3
-	                q3x=V2[9]; q3y=V2[10]; q3z=V2[11];//vertex4
-	                q4x=V2[3]; q4y=V2[4]; q4z=V2[5];//vertex2
-	            }
-	            else if(minDotIndex==1){// x- face
-	                q1x=V2[15]; q1y=V2[16]; q1z=V2[17];//vertex6
-	                q2x=V2[21]; q2y=V2[22]; q2z=V2[23]; //vertex8
-	                q3x=V2[18]; q3y=V2[19]; q3z=V2[20];//vertex7
-	                q4x=V2[12]; q4y=V2[13]; q4z=V2[14];//vertex5
-	            }
-	            else if(minDotIndex==2){// y+ face
-	                q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
-	                q2x=V2[0]; q2y=V2[1]; q2z=V2[2];//vertex1
-	                q3x=V2[3]; q3y=V2[4]; q3z=V2[5];//vertex2
-	                q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
-	            }
-	            else if(minDotIndex==3){// y- face
-	                q1x=V2[21]; q1y=V2[22]; q1z=V2[23];//vertex8
-	                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
-	                q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
-	                q4x=V2[18]; q4y=V2[19]; q4z=V2[20];//vertex7
-	            }
-	            else if(minDotIndex==4){// z+ face
-	                q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
-	                q2x=V2[18]; q2y=V2[19]; q2z=V2[20];//vertex7
-	                q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
-	                q4x=V2[0]; q4y=V2[1]; q4z=V2[2];//vertex1
-	            }
-	            else if(minDotIndex==5){// z- face
-	                q1x=V2[3]; q1y=V2[4]; q1z=V2[5];//vertex2
-	                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
-	                q3x=V2[21]; q3y=V2[22]; q3z=V2[23];//vertex8
-	                q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
-	            }
+	            dot = mdot( v[7], n );
+	            if(dot<minDot){ minDot=dot; minDotId = 2; }
+	            if(-dot<minDot){ minDot=-dot; minDotId = 3; }
+
+	            dot = mdot( v[8], n );
+	            if(dot<minDot){ minDot=dot; minDotId = 4; }
+	            if(-dot<minDot){ minDot=-dot; minDotId = 5; }
+
+	            ar = V2;
 	      
 	        }
+
+	        switch ( minDotId ){
+
+	            case 0: this.qqq.set( [ ar[0], ar[1], ar[2], ar[6], ar[7], ar[8], ar[9], ar[10], ar[11], ar[3], ar[4], ar[5] ] );           break; // x+ face  vertex 1 3 4 2
+	            case 1: this.qqq.set( [ ar[15], ar[16], ar[17], ar[21], ar[22], ar[23], ar[18], ar[19], ar[20], ar[12], ar[13], ar[14] ] ); break; // x- face vertex 6 8 7 5
+	            case 2: this.qqq.set( [ ar[12], ar[13], ar[14], ar[0], ar[1], ar[2], ar[3], ar[4], ar[5], ar[15], ar[16], ar[17] ] );       break; // y+ face vertex 5 1 2 6
+	            case 3: this.qqq.set( [ ar[21], ar[22], ar[23], ar[9], ar[10], ar[11], ar[6], ar[7], ar[8], ar[18], ar[19], ar[20] ] );     break; // y- face vertex 8 4 3 7
+	            case 4: this.qqq.set( [ ar[12], ar[13], ar[14], ar[18], ar[19], ar[20], ar[6], ar[7], ar[8], ar[0], ar[1], ar[2] ] );       break; // z+ face vertex 5 7 3 1
+	            case 5: this.qqq.set( [ ar[3], ar[4], ar[5], ar[9], ar[10], ar[11], ar[21], ar[22], ar[23], ar[15], ar[16], ar[17] ] );     break; // z- face vertex 2 4 8 6
+	            
+	        }
+
+
 	        // clip vertices
 	        var numClipVertices;
 	        var numAddedClipVertices;
@@ -8305,23 +8444,13 @@
 	        var x2;
 	        var y2;
 	        var z2;
-	        this.clipVertices1[0]=q1x;
-	        this.clipVertices1[1]=q1y;
-	        this.clipVertices1[2]=q1z;
-	        this.clipVertices1[3]=q2x;
-	        this.clipVertices1[4]=q2y;
-	        this.clipVertices1[5]=q2z;
-	        this.clipVertices1[6]=q3x;
-	        this.clipVertices1[7]=q3y;
-	        this.clipVertices1[8]=q3z;
-	        this.clipVertices1[9]=q4x;
-	        this.clipVertices1[10]=q4y;
-	        this.clipVertices1[11]=q4z;
+
+	        this.clipVertices1.set( this.qqq );
 	        numAddedClipVertices=0;
-	        x1=this.clipVertices1[9];
-	        y1=this.clipVertices1[10];
-	        z1=this.clipVertices1[11];
-	        dot1=(x1-cx-s1x)*n1x+(y1-cy-s1y)*n1y+(z1-cz-s1z)*n1z;
+	        x1 = this.clipVertices1[9];
+	        y1 = this.clipVertices1[10];
+	        z1 = this.clipVertices1[11];
+	        dot1=(x1-c.x-s1.x)*n1.x+(y1-c.y-s1.y)*n1.y+(z1-c.z-s1.z)*n1.z;
 
 	        //var i = 4;
 	        //while(i--){
@@ -8330,7 +8459,7 @@
 	            x2=this.clipVertices1[index];
 	            y2=this.clipVertices1[index+1];
 	            z2=this.clipVertices1[index+2];
-	            dot2=(x2-cx-s1x)*n1x+(y2-cy-s1y)*n1y+(z2-cz-s1z)*n1z;
+	            dot2=(x2-c.x-s1.x)*n1.x+(y2-c.y-s1.y)*n1.y+(z2-c.z-s1.z)*n1.z;
 	            if(dot1>0){
 	                if(dot2>0){
 	                    index=numAddedClipVertices*3;
@@ -8374,7 +8503,7 @@
 	        x1=this.clipVertices2[index];
 	        y1=this.clipVertices2[index+1];
 	        z1=this.clipVertices2[index+2];
-	        dot1=(x1-cx-s2x)*n2x+(y1-cy-s2y)*n2y+(z1-cz-s2z)*n2z;
+	        dot1=(x1-c.x-s2.x)*n2.x+(y1-c.y-s2.y)*n2.y+(z1-c.z-s2.z)*n2.z;
 
 	        //i = numClipVertices;
 	        //while(i--){
@@ -8383,7 +8512,7 @@
 	            x2=this.clipVertices2[index];
 	            y2=this.clipVertices2[index+1];
 	            z2=this.clipVertices2[index+2];
-	            dot2=(x2-cx-s2x)*n2x+(y2-cy-s2y)*n2y+(z2-cz-s2z)*n2z;
+	            dot2=(x2-c.x-s2.x)*n2.x+(y2-c.y-s2.y)*n2.y+(z2-c.z-s2.z)*n2.z;
 	            if(dot1>0){
 	                if(dot2>0){
 	                    index=numAddedClipVertices*3;
@@ -8427,16 +8556,16 @@
 	        x1=this.clipVertices1[index];
 	        y1=this.clipVertices1[index+1];
 	        z1=this.clipVertices1[index+2];
-	        dot1=(x1-cx+s1x)*-n1x+(y1-cy+s1y)*-n1y+(z1-cz+s1z)*-n1z;
+	        dot1=(x1-c.x+s1.x)*-n1.x+(y1-c.y+s1.y)*-n1.y+(z1-c.z+s1.z)*-n1.z;
 
 	        //i = numClipVertices;
 	        //while(i--){
 	        for(i=0;i<numClipVertices;i++){
 	            index=i*3;
-	            x2=this.clipVertices1[index];
-	            y2=this.clipVertices1[index+1];
-	            z2=this.clipVertices1[index+2];
-	            dot2=(x2-cx+s1x)*-n1x+(y2-cy+s1y)*-n1y+(z2-cz+s1z)*-n1z;
+	            x2 = this.clipVertices1[index];
+	            y2 = this.clipVertices1[index+1];
+	            z2 = this.clipVertices1[index+2];
+	            dot2=(x2-c.x+s1.x)*-n1.x+(y2-c.y+s1.y)*-n1.y+(z2-c.z+s1.z)*-n1.z;
 	            if(dot1>0){
 	                if(dot2>0){
 	                    index=numAddedClipVertices*3;
@@ -8480,7 +8609,7 @@
 	        x1=this.clipVertices2[index];
 	        y1=this.clipVertices2[index+1];
 	        z1=this.clipVertices2[index+2];
-	        dot1=(x1-cx+s2x)*-n2x+(y1-cy+s2y)*-n2y+(z1-cz+s2z)*-n2z;
+	        dot1=(x1-c.x+s2.x)*-n2.x+(y1-c.y+s2.y)*-n2.y+(z1-c.z+s2.z)*-n2.z;
 
 	        //i = numClipVertices;
 	        //while(i--){
@@ -8489,7 +8618,7 @@
 	            x2=this.clipVertices2[index];
 	            y2=this.clipVertices2[index+1];
 	            z2=this.clipVertices2[index+2];
-	            dot2=(x2-cx+s2x)*-n2x+(y2-cy+s2y)*-n2y+(z2-cz+s2z)*-n2z;
+	            dot2=(x2-c.x+s2.x)*-n2.x+(y2-c.y+s2.y)*-n2.y+(z2-c.z+s2.z)*-n2.z;
 	            if(dot1>0){
 	                if(dot2>0){
 	                    index=numAddedClipVertices*3;
@@ -8526,24 +8655,30 @@
 	            dot1=dot2;
 	        }
 
-	        numClipVertices=numAddedClipVertices;
+	        numClipVertices = numAddedClipVertices;
 	        if(swap){
 	            var tb=b1;
 	            b1=b2;
 	            b2=tb;
 	        }
-	        if(numClipVertices==0)return;
-	        var flipped=b1!=shape1;
-	        if(numClipVertices>4){
-	            x1=(q1x+q2x+q3x+q4x)*0.25;
-	            y1=(q1y+q2y+q3y+q4y)*0.25;
-	            z1=(q1z+q2z+q3z+q4z)*0.25;
-	            n1x=q1x-x1;
-	            n1y=q1y-y1;
-	            n1z=q1z-z1;
-	            n2x=q2x-x1;
-	            n2y=q2y-y1;
-	            n2z=q2z-z1;
+	        if(numClipVertices==0) return;
+
+	        var flipped = b1!=shape1;
+
+	        //n.set( n.x, n.y, n.z );
+
+	        if( numClipVertices > 4 ){
+
+	            x1 = (this.qqq[0]+this.qqq[3]+this.qqq[6]+this.qqq[9])*0.25;
+	            y1 = (this.qqq[1]+this.qqq[4]+this.qqq[7]+this.qqq[10])*0.25;
+	            z1 = (this.qqq[2]+this.qqq[5]+this.qqq[8]+this.qqq[11])*0.25;
+	            n1.x = this.qqq[0]-x1;
+	            n1.y = this.qqq[1]-y1;
+	            n1.z = this.qqq[2]-z1;
+	            n2.x = this.qqq[3]-x1;
+	            n2.y = this.qqq[4]-y1;
+	            n2.z = this.qqq[5]-z1;
+
 	            var index1=0;
 	            var index2=0;
 	            var index3=0;
@@ -8559,7 +8694,7 @@
 	                x1=this.clipVertices1[index];
 	                y1=this.clipVertices1[index+1];
 	                z1=this.clipVertices1[index+2];
-	                dot=x1*n1x+y1*n1y+z1*n1z;
+	                dot=x1*n1.x+y1*n1.y+z1*n1.z;
 	                if(dot<minDot){
 	                    minDot=dot;
 	                    index1=i;
@@ -8583,7 +8718,7 @@
 	                x1=this.clipVertices1[index];
 	                y1=this.clipVertices1[index+1];
 	                z1=this.clipVertices1[index+2];
-	                dot=x1*n2x+y1*n2y+z1*n2z;
+	                dot=x1*n2.x+y1*n2.y+z1*n2.z;
 	                if(dot<minDot){
 	                    minDot=dot;
 	                    index2=i;
@@ -8598,31 +8733,36 @@
 	            x1=this.clipVertices1[index];
 	            y1=this.clipVertices1[index+1];
 	            z1=this.clipVertices1[index+2];
-	            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-	            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+	            p.set( x1, y1, z1 );
+	            dot = (x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
+	            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
 	            
 	            index=index2*3;
 	            x1=this.clipVertices1[index];
 	            y1=this.clipVertices1[index+1];
 	            z1=this.clipVertices1[index+2];
-	            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-	            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+	            p.set( x1, y1, z1 );
+	            dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
+	            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
 	            
 	            index=index3*3;
 	            x1=this.clipVertices1[index];
 	            y1=this.clipVertices1[index+1];
 	            z1=this.clipVertices1[index+2];
-	            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-	            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+	            p.set( x1, y1, z1 );
+	            dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
+	            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
 	            
 	            index=index4*3;
 	            x1=this.clipVertices1[index];
 	            y1=this.clipVertices1[index+1];
 	            z1=this.clipVertices1[index+2];
-	            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-	            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+	            p.set( x1, y1, z1 );
+	            dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
+	            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
 	            
 	        }else{
+	            //n.set( n.x, n.y, n.z );
 	            //i = numClipVertices;
 	            //while(i--){
 	            for(i=0;i<numClipVertices;i++){
@@ -8630,8 +8770,9 @@
 	                x1=this.clipVertices1[index];
 	                y1=this.clipVertices1[index+1];
 	                z1=this.clipVertices1[index+2];
-	                dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
-	                if(dot<0)manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
+	                p.set( x1, y1, z1 );
+	                dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
+	                if(dot<0) manifold.addPointVec( p, n, dot, flipped );
 	            }
 	        }
 
@@ -10484,6 +10625,12 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between sphere and box.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SphereBoxCollisionDetector ( flip ) {
 	    
 	    CollisionDetector.call( this );
@@ -10550,6 +10697,7 @@
 	        if( overlap === 7 ){
 
 	            // center of sphere is in the box
+	            
 	            n.set(
 	                cc.x < 0 ? hw + cc.x : hw - cc.x,
 	                cc.y < 0 ? hh + cc.y : hh - cc.y,
@@ -10599,7 +10747,7 @@
 	            }
 
 	            p.copy( s.position ).addScale( n, rad );
-	            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len-rad, this.flip );
+	            manifold.addPointVec( p, n, len-rad, this.flip );
 
 	        }else{
 
@@ -10619,7 +10767,7 @@
 	                n.scaleEqual( 1/len );
 
 	                p.copy( s.position ).addScale( n, rad );
-	                manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len-rad, this.flip );
+	                manifold.addPointVec( p, n, len-rad, this.flip );
 
 	            }
 	        }
@@ -10691,7 +10839,7 @@
 
 	            //n.normalize();
 	            p.copy( s.position ).addScale( n, rads );
-	            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len - rads, this.flip );
+	            manifold.addPointVec( p, n, len - rads, this.flip );
 
 	        }
 
@@ -10699,6 +10847,12 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan 
+	 * @author lo-th
+	 */
+	 
 	function SphereSphereCollisionDetector (){
 
 	    CollisionDetector.call( this );
@@ -10731,13 +10885,87 @@
 
 	            //n.normalize();
 	            p.copy( s1.position ).addScale( n, s1.radius );
-	            manifold.addPoint( p.x, p.y, p.z, n.x, n.y, n.z, len - rad, false );
+	            manifold.addPointVec( p, n, len - rad, false );
 
 	        }
 
 	    }
 
 	});
+
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan 
+	 * @author lo-th
+	 */
+	 
+	function SpherePlaneCollisionDetector ( flip ){
+
+	    CollisionDetector.call( this );
+
+	    this.flip = flip;
+
+	    this.n = new Vec3();
+	    this.p = new Vec3();
+
+	}
+
+	SpherePlaneCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
+
+	    constructor: SpherePlaneCollisionDetector,
+
+	    detectCollision: function ( shape1, shape2, manifold ) {
+
+	        var n = this.n;
+	        var p = this.p;
+
+	        var s = this.flip ? shape2 : shape1;
+	        var pn = this.flip ? shape1 : shape2;
+	        var rad = s.radius;
+	        var len;
+
+	        n.sub( s.position, pn.position );
+	        //var h = _Math.dotVectors( pn.normal, n );
+
+	        n.x *= pn.normal.x;//+ rad;
+	        n.y *= pn.normal.y;
+	        n.z *= pn.normal.z;//+ rad;
+
+	        
+	        var len = n.lengthSq();
+	        
+	        if( len > 0 && len < rad * rad){//&& h > rad*rad ){
+
+	            
+	            len = _Math.sqrt( len );
+	            //len = _Math.sqrt( h );
+	            n.copy(pn.normal).negate();
+	            //n.scaleEqual( 1/len );
+
+	            //(0, -1, 0)
+
+	            //n.normalize();
+	            p.copy( s.position ).addScale( n, rad );
+	            manifold.addPointVec( p, n, len - rad, this.flip );
+
+	        }
+
+	    }
+
+	});
+
+	//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
+
+	//import { TetraShape } from '../collision/shape/TetraShape';
+
+	/**
+	 * The class of physical computing world. 
+	 * You must be added to the world physical all computing objects
+	 * @author saharan
+	 * @author lo-th
+	 */
+
+	 // timestep, broadphase, iterations, worldscale, random, stat
 
 	function World ( o ) {
 
@@ -10821,6 +11049,9 @@
 
 	    this.detectors[SHAPE_CYLINDER][SHAPE_SPHERE] = new SphereCylinderCollisionDetector(true);
 	    this.detectors[SHAPE_SPHERE][SHAPE_CYLINDER] = new SphereCylinderCollisionDetector(false);
+
+	    this.detectors[SHAPE_PLANE][SHAPE_SPHERE] = new SpherePlaneCollisionDetector(true);
+	    this.detectors[SHAPE_SPHERE][SHAPE_PLANE] = new SpherePlaneCollisionDetector(false);
 
 	    // TETRA add
 	    //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
@@ -10960,7 +11191,7 @@
 	            printError("World", "It is not possible to be added alone to shape world");
 	        }
 
-	        shape.proxy = this.broadPhase.createProxy(shape);
+	        shape.proxy = this.broadPhase.createProxy( shape );
 	        shape.updateProxy();
 	        this.broadPhase.addProxy( shape.proxy );
 
@@ -11496,6 +11727,7 @@
 	                case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
 	                case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
 	                case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
+	                case "plane": shapes[i] = new Plane( sc ); break
 	            }
 	            body.addShape( shapes[i] );
 	            if( i > 0 ){
