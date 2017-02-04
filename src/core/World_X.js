@@ -13,6 +13,7 @@ import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCo
 import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector_X';
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector_X';
 import { SpherePlaneCollisionDetector } from '../collision/narrowphase/SpherePlaneCollisionDetector_X';
+import { BoxPlaneCollisionDetector } from '../collision/narrowphase/BoxPlaneCollisionDetector_X';
 //import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
 
 import { _Math } from '../math/Math';
@@ -109,7 +110,7 @@ function World ( o ) {
 
     
 
-    var numShapeTypes = 5;//4;//3;
+    var numShapeTypes = 6;//4;//3;
     this.detectors=[];
     this.detectors.length = numShapeTypes;
     var i = numShapeTypes;
@@ -133,8 +134,13 @@ function World ( o ) {
     this.detectors[SHAPE_CYLINDER][SHAPE_SPHERE] = new SphereCylinderCollisionDetector(true);
     this.detectors[SHAPE_SPHERE][SHAPE_CYLINDER] = new SphereCylinderCollisionDetector(false);
 
+    // PLANE add
+
     this.detectors[SHAPE_PLANE][SHAPE_SPHERE] = new SpherePlaneCollisionDetector(true);
     this.detectors[SHAPE_SPHERE][SHAPE_PLANE] = new SpherePlaneCollisionDetector(false);
+
+    this.detectors[SHAPE_PLANE][SHAPE_BOX] = new BoxPlaneCollisionDetector(true);
+    this.detectors[SHAPE_BOX][SHAPE_PLANE] = new BoxPlaneCollisionDetector(false);
 
     // TETRA add
     //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
