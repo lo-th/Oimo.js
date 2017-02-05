@@ -981,7 +981,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             }
             else if(minDotIndex==5){// z- face
                 q1x=V1[3]; q1y=V1[4]; q1z=V1[5];//vertex2
-                q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4
+                //2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4 !!!
+                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
                 q3x=V1[21]; q3y=V1[22]; q3z=V1[23];//vertex8
                 q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
             }

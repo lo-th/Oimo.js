@@ -50,7 +50,7 @@ function addTower(o){
 			rad = radius;
 			angle = (Math.PI * 2 / detail * (i + (j & 1) * 0.5));
 			px = tx + Math.cos(angle) * rad;
-			py = ty + (sy) + j * sy;
+			py = (ty + (sy) + j * sy) - (sy*0.5);
 			pz = tz + -Math.sin(angle) * rad;
 
 			add({
@@ -59,7 +59,9 @@ function addTower(o){
                 size:[sx,sy,sz],
                 pos:[px,py,pz],
                 rot:[0,angle*(180 / Math.PI),0],
-                density:mass
+                density:mass,
+                restitution:0.1, 
+
             });
 		}
 	}

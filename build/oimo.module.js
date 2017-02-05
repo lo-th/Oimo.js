@@ -7502,10 +7502,12 @@ Object.assign( CollisionDetector.prototype, {
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
-    this.clipVertices1 = new Float32Array( 12 ); // 4 x vertices x,y,z
-    this.clipVertices2 = new Float32Array( 12 );
-    this.qqq = new Float32Array( 12 );
 
+    // clip Vertices  8 x vertices x,y,z
+    this.cvs1 = new Float32Array( 24 );
+    this.cvs2 = new Float32Array( 24 );
+
+    this.qqq = new Float32Array( 12 );
     this.used = new Float32Array( 8 );
 
     this.v = [];
@@ -7530,6 +7532,10 @@ function BoxBoxCollisionDetector() {
 
     this.d1 = new Vec3();
     this.d2 = new Vec3();
+
+    this.tmp0 = new Vec3();
+    this.tmp1 = new Vec3();
+    this.tmp2 = new Vec3();
 
 }
 
@@ -7557,8 +7563,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         cross = dot1*axis.x + dot2*axis.y + dot3*axis.z;
 
-        len1 = rev ? cross : axe;
-        len2 = rev ? axe : cross;
+        len1 = axe;//rev ? cross : axe;
+        len2 = cross;//rev ? axe : cross;
         
         overlaps[n] = len - len1 - len2;
 
@@ -7576,6 +7582,7 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         if( len > epsilon ){
 
             v[a].multiplyScalar( 1 / _Math.sqrt( len ) );
+
             len = mdot( v[a], this.d );
 
             rights[n] = len > 0 ? true : false;
@@ -7595,15 +7602,14 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
             len2 = dot1*axe3 + dot2*axe4;
 
-            overlaps[n] = len-len1-len2;
+            overlaps[n] = len - len1 - len2;
             invalid[n] = false;
-            //if( overlaps[n] > 0 ) return;
 
         } else {
 
-            rights[n] = false;
             overlaps[n] = 0;
             invalid[n] = true;
+            rights[n] = false;
 
         }
 
@@ -7637,9 +7643,13 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // For potential collision points of all, to examine the distance between the surface A 
         // • If you were on the inside surface of A, and the collision point
 
+        var i, k;
+
+
         var n = this.n;
         var p = this.p;
         var v = this.v;
+        var d = this.d;
 
         var n1 = this.n1;
         var n2 = this.n2;
@@ -7649,13 +7659,17 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         var d1 = this.d1;
         var d2 = this.d2;
 
+        var tmp0 = this.tmp0;
+        var tmp1 = this.tmp1;
+        var tmp2 = this.tmp2;
+
         // center of current face
         var c = this.c;
         // face side
         var s1 = this.s1;
         var s2 = this.s2;
 
-        var d = this.d;
+        
 
         var b1;
         var b2;
@@ -7725,7 +7739,32 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         var rights = [];
         // overlapping distances
         var overlaps = [];
+        // invalid flags
         var invalid = [];
+
+        /*var faces = [
+
+            [ 0, 6, 7, 8, d1.x, d2 ],
+            [ 1, 6, 7, 8, d1.y, d2 ],
+            [ 2, 6, 7, 8, d1.z, d2 ],
+
+            [ 6, 0, 1, 2, d2.x, d1 ],
+            [ 7, 0, 1, 2, d2.y, d1 ],
+            [ 8, 0, 1, 2, d2.z, d1 ],
+
+            [ 12, 1, 2, 7, 8, d1.y, d1.z, d2.y, d2.z ],
+            [ 13, 1, 2, 6, 8, d1.y, d1.z, d2.x, d2.z ],
+            [ 14, 1, 2, 6, 7, d1.y, d1.z, d2.x, d2.y ],
+
+            [ 15, 0, 2, 7, 8, d1.x, d1.z, d2.y, d2.z ],
+            [ 16, 0, 2, 6, 8, d1.x, d1.z, d2.x, d2.z ],
+            [ 17, 0, 2, 6, 7, d1.x, d1.z, d2.x, d2.y ],
+
+            [ 18, 0, 1, 7, 8, d1.x, d1.y, d2.y, d2.z ],
+            [ 19, 0, 1, 6, 8, d1.x, d1.y, d2.x, d2.z ],
+            [ 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y ],
+
+        ]*/
 
         var mdot = _Math.dotVectors;
 
@@ -8018,135 +8057,54 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         //__________________________________________
 
+        var distance, maxD1, maxD2, t;
+
         //var v;
-        if(minIndex>5){
+        if( minIndex > 5 ){
 
             if( !right ) n.negate();
                
-            var distance;
-            var maxDistance;
-            var vx;
-            var vy;
-            var vz;
-            var v1x;
-            var v1y;
-            var v1z;
-            var v2x;
-            var v2y;
-            var v2z;
-            //vertex1;
-            v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
-            maxDistance=n.x*v1x+n.y*v1y+n.z*v1z;
-            //vertex2;
-            vx=V1[3]; vy=V1[4]; vz=V1[5];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
+            tmp1.set( V1[0], V1[1], V1[2] );
+            maxD1 = mdot( n, tmp1 );
+
+            tmp2.set( V2[0], V2[1], V2[2] );
+            maxD2 = mdot( n, tmp2 );
+
+            for( i = 1; i < 8; i++ ){
+
+                k = i * 3;
+
+                tmp0.set( V1[k], V1[k+1], V1[k+2] );
+                distance = mdot( n, tmp0 );
+
+                if( distance > maxD1 ){
+
+                    maxD1 = distance;
+                    tmp1.copy( tmp0 );
+
+                }
+
+                tmp0.set( V2[k], V2[k+1], V2[k+2] );
+                distance = mdot( n, tmp0 );
+
+                if( distance > maxD2 ){
+
+                    maxD2 = distance;
+                    tmp2.copy( tmp0 );
+
+                }
+
             }
-            //vertex3;
-            vx=V1[6]; vy=V1[7]; vz=V1[8];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex4;
-            vx=V1[9]; vy=V1[10]; vz=V1[11];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex5;
-            vx=V1[12]; vy=V1[13]; vz=V1[14];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex6;
-            vx=V1[15]; vy=V1[16]; vz=V1[17];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex7;
-            vx=V1[18]; vy=V1[19]; vz=V1[20];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex8;
-            vx=V1[21]; vy=V1[22]; vz=V1[23];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex1;
-            v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
-            maxDistance=n.x*v2x+n.y*v2y+n.z*v2z;
-            //vertex2;
-            vx=V2[3]; vy=V2[4]; vz=V2[5];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex3;
-            vx=V2[6]; vy=V2[7]; vz=V2[8];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex4;
-            vx=V2[9]; vy=V2[10]; vz=V2[11];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex5;
-            vx=V2[12]; vy=V2[13]; vz=V2[14];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex6;
-            vx=V2[15]; vy=V2[16]; vz=V2[17];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex7;
-            vx=V2[18]; vy=V2[19]; vz=V2[20];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex8;
-            vx=V2[21]; vy=V2[22]; vz=V2[23];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
-            dot1=n1.x*n2.x+n1.y*n2.y+n1.z*n2.z;
-            var t=(vx*(n1.x-n2.x*dot1)+vy*(n1.y-n2.y*dot1)+vz*(n1.z-n2.z*dot1))/(1-dot1*dot1);
+
+            tmp0.sub( tmp2, tmp1 );
+            dot1 = mdot( n1, n2 );
+            t = ( tmp0.x*(n1.x-n2.x*dot1) + tmp0.y*(n1.y-n2.y*dot1) + tmp0.z*(n1.z-n2.z*dot1) ) / ( 1-dot1*dot1 );
 
             //n.set( n.x, n.y, n.z );
             p.set(
-                v1x+n1.x*t+n.x*depth*0.5,
-                v1y+n1.y*t+n.y*depth*0.5,
-                v1z+n1.z*t+n.z*depth*0.5
+                tmp1.x + n1.x*t + n.x*depth*0.5,
+                tmp1.y + n1.y*t + n.y*depth*0.5,
+                tmp1.z + n1.z*t + n.z*depth*0.5
             );
             manifold.addPointVec( p, n, depth, false );
             return;
@@ -8207,224 +8165,206 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
 
         // clip vertices
+        var cvs1 = this.cvs1;
+        var cvs2 = this.cvs2;
+
         var numClipVertices;
         var numAddedClipVertices;
-        var index;
-        var x1;
-        var y1;
-        var z1;
-        var x2;
-        var y2;
-        var z2;
+        //var k;
 
-        this.clipVertices1.set( this.qqq );
+        cvs1.set( this.qqq );
         numAddedClipVertices=0;
-        x1 = this.clipVertices1[9];
-        y1 = this.clipVertices1[10];
-        z1 = this.clipVertices1[11];
-        dot1=(x1-c.x-s1.x)*n1.x+(y1-c.y-s1.y)*n1.y+(z1-c.z-s1.z)*n1.z;
+        tmp1.set( cvs1[9], cvs1[10], cvs1[11] );
+   
+        dot1=(tmp1.x-c.x-s1.x)*n1.x + (tmp1.y-c.y-s1.y)*n1.y + (tmp1.z-c.z-s1.z)*n1.z;
 
         //var i = 4;
         //while(i--){
         for(var i=0;i<4;i++){
-            index=i*3;
-            x2=this.clipVertices1[index];
-            y2=this.clipVertices1[index+1];
-            z2=this.clipVertices1[index+2];
-            dot2=(x2-c.x-s1.x)*n1.x+(y2-c.y-s1.y)*n1.y+(z2-c.z-s1.z)*n1.z;
+            k=i*3;
+            tmp2.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+            dot2=(tmp2.x-c.x-s1.x)*n1.x+(tmp2.y-c.y-s1.y)*n1.y+(tmp2.z-c.z-s1.z)*n1.z;
             if(dot1>0){
                 if(dot2>0){
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    this.clipVertices2[index]=x2;
-                    this.clipVertices2[index+1]=y2;
-                    this.clipVertices2[index+2]=z2;
+                    cvs2[k]=tmp2.x;
+                    cvs2[k+1]=tmp2.y;
+                    cvs2[k+2]=tmp2.z;
                 }else{
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    this.clipVertices2[index]=x1+(x2-x1)*t;
-                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
                 }
             }else{
                 if(dot2>0){
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    this.clipVertices2[index]=x1+(x2-x1)*t;
-                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
-                    index=numAddedClipVertices*3;
+                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    this.clipVertices2[index]=x2;
-                    this.clipVertices2[index+1]=y2;
-                    this.clipVertices2[index+2]=z2;
+                    cvs2[k]=tmp2.x;
+                    cvs2[k+1]=tmp2.y;
+                    cvs2[k+2]=tmp2.z;
                 }
             }
-            x1=x2;
-            y1=y2;
-            z1=z2;
-            dot1=dot2;
+
+            tmp1.copy( tmp2 );
+            dot1 = dot2;
+        }
+
+        numClipVertices = numAddedClipVertices;
+        if( numClipVertices === 0 ) return;
+
+        numAddedClipVertices = 0;
+        k=(numClipVertices-1)*3;
+        tmp1.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
+        dot1=(tmp1.x-c.x-s2.x)*n2.x+(tmp1.y-c.y-s2.y)*n2.y+(tmp1.z-c.z-s2.z)*n2.z;
+
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            k=i*3;
+            tmp2.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
+            dot2=(tmp2.x-c.x-s2.x)*n2.x+(tmp2.y-c.y-s2.y)*n2.y+(tmp2.z-c.z-s2.z)*n2.z;
+            if(dot1>0){
+                if(dot2>0){
+                    k=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    cvs1[k]=tmp2.x;
+                    cvs1[k+1]=tmp2.y;
+                    cvs1[k+2]=tmp2.z;
+                }else{
+                    k=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                }
+            }else{
+                if(dot2>0){
+                    k=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    k=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    cvs1[k]=tmp2.x;
+                    cvs1[k+1]=tmp2.y;
+                    cvs1[k+2]=tmp2.z;
+                }
+            }
+
+            tmp1.copy( tmp2 );
+            dot1 = dot2;
+
         }
 
         numClipVertices=numAddedClipVertices;
         if(numClipVertices==0)return;
         numAddedClipVertices=0;
-        index=(numClipVertices-1)*3;
-        x1=this.clipVertices2[index];
-        y1=this.clipVertices2[index+1];
-        z1=this.clipVertices2[index+2];
-        dot1=(x1-c.x-s2.x)*n2.x+(y1-c.y-s2.y)*n2.y+(z1-c.z-s2.z)*n2.z;
+        k=(numClipVertices-1)*3;
+        tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+        dot1=(tmp1.x-c.x+s1.x)*-n1.x+(tmp1.y-c.y+s1.y)*-n1.y+(tmp1.z-c.z+s1.z)*-n1.z;
 
         //i = numClipVertices;
         //while(i--){
         for(i=0;i<numClipVertices;i++){
-            index=i*3;
-            x2=this.clipVertices2[index];
-            y2=this.clipVertices2[index+1];
-            z2=this.clipVertices2[index+2];
-            dot2=(x2-c.x-s2.x)*n2.x+(y2-c.y-s2.y)*n2.y+(z2-c.z-s2.z)*n2.z;
+            k=i*3;
+            tmp2.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+            dot2=(tmp2.x-c.x+s1.x)*-n1.x+(tmp2.y-c.y+s1.y)*-n1.y+(tmp2.z-c.z+s1.z)*-n1.z;
             if(dot1>0){
                 if(dot2>0){
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    this.clipVertices1[index]=x2;
-                    this.clipVertices1[index+1]=y2;
-                    this.clipVertices1[index+2]=z2;
+                    cvs2[k]=tmp2.x;
+                    cvs2[k+1]=tmp2.y;
+                    cvs2[k+2]=tmp2.z;
                 }else{
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    this.clipVertices1[index]=x1+(x2-x1)*t;
-                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
                 }
             }else{
                 if(dot2>0){
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    this.clipVertices1[index]=x1+(x2-x1)*t;
-                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
-                    index=numAddedClipVertices*3;
+                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    this.clipVertices1[index]=x2;
-                    this.clipVertices1[index+1]=y2;
-                    this.clipVertices1[index+2]=z2;
+                    cvs2[k]=tmp2.x;
+                    cvs2[k+1]=tmp2.y;
+                    cvs2[k+2]=tmp2.z;
                 }
             }
-            x1=x2;
-            y1=y2;
-            z1=z2;
-            dot1=dot2;
+
+            tmp1.copy( tmp2 );
+            dot1 = dot2;
+
         }
 
         numClipVertices=numAddedClipVertices;
         if(numClipVertices==0)return;
         numAddedClipVertices=0;
-        index=(numClipVertices-1)*3;
-        x1=this.clipVertices1[index];
-        y1=this.clipVertices1[index+1];
-        z1=this.clipVertices1[index+2];
-        dot1=(x1-c.x+s1.x)*-n1.x+(y1-c.y+s1.y)*-n1.y+(z1-c.z+s1.z)*-n1.z;
+        k=(numClipVertices-1)*3;
+        tmp1.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
+        dot1=(tmp1.x-c.x+s2.x)*-n2.x+(tmp1.y-c.y+s2.y)*-n2.y+(tmp1.z-c.z+s2.z)*-n2.z;
 
         //i = numClipVertices;
         //while(i--){
         for(i=0;i<numClipVertices;i++){
-            index=i*3;
-            x2 = this.clipVertices1[index];
-            y2 = this.clipVertices1[index+1];
-            z2 = this.clipVertices1[index+2];
-            dot2=(x2-c.x+s1.x)*-n1.x+(y2-c.y+s1.y)*-n1.y+(z2-c.z+s1.z)*-n1.z;
+            k=i*3;
+            tmp2.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
+            dot2=(tmp2.x-c.x+s2.x)*-n2.x+(tmp2.y-c.y+s2.y)*-n2.y+(tmp2.z-c.z+s2.z)*-n2.z;
             if(dot1>0){
                 if(dot2>0){
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    this.clipVertices2[index]=x2;
-                    this.clipVertices2[index+1]=y2;
-                    this.clipVertices2[index+2]=z2;
+                    cvs1[k]=tmp2.x;
+                    cvs1[k+1]=tmp2.y;
+                    cvs1[k+2]=tmp2.z;
                 }else{
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    this.clipVertices2[index]=x1+(x2-x1)*t;
-                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
                 }
             }else{
                 if(dot2>0){
-                    index=numAddedClipVertices*3;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    this.clipVertices2[index]=x1+(x2-x1)*t;
-                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
-                    index=numAddedClipVertices*3;
+                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
+                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
+                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    k=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    this.clipVertices2[index]=x2;
-                    this.clipVertices2[index+1]=y2;
-                    this.clipVertices2[index+2]=z2;
+                    cvs1[k]=tmp2.x;
+                    cvs1[k+1]=tmp2.y;
+                    cvs1[k+2]=tmp2.z;
                 }
             }
-            x1=x2;
-            y1=y2;
-            z1=z2;
-            dot1=dot2;
-        }
 
-        numClipVertices=numAddedClipVertices;
-        if(numClipVertices==0)return;
-        numAddedClipVertices=0;
-        index=(numClipVertices-1)*3;
-        x1=this.clipVertices2[index];
-        y1=this.clipVertices2[index+1];
-        z1=this.clipVertices2[index+2];
-        dot1=(x1-c.x+s2.x)*-n2.x+(y1-c.y+s2.y)*-n2.y+(z1-c.z+s2.z)*-n2.z;
+            tmp1.copy( tmp2 );
+            dot1 = dot2;
 
-        //i = numClipVertices;
-        //while(i--){
-        for(i=0;i<numClipVertices;i++){
-            index=i*3;
-            x2=this.clipVertices2[index];
-            y2=this.clipVertices2[index+1];
-            z2=this.clipVertices2[index+2];
-            dot2=(x2-c.x+s2.x)*-n2.x+(y2-c.y+s2.y)*-n2.y+(z2-c.z+s2.z)*-n2.z;
-            if(dot1>0){
-                if(dot2>0){
-                    index=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    this.clipVertices1[index]=x2;
-                    this.clipVertices1[index+1]=y2;
-                    this.clipVertices1[index+2]=z2;
-                }else{
-                    index=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    t=dot1/(dot1-dot2);
-                    this.clipVertices1[index]=x1+(x2-x1)*t;
-                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
-                }
-            }else{
-                if(dot2>0){
-                    index=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    t=dot1/(dot1-dot2);
-                    this.clipVertices1[index]=x1+(x2-x1)*t;
-                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
-                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
-                    index=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    this.clipVertices1[index]=x2;
-                    this.clipVertices1[index+1]=y2;
-                    this.clipVertices1[index+2]=z2;
-                }
-            }
-            x1=x2;
-            y1=y2;
-            z1=z2;
-            dot1=dot2;
         }
 
         numClipVertices = numAddedClipVertices;
@@ -8441,20 +8381,20 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         if( numClipVertices > 4 ){
 
-            x1 = (this.qqq[0]+this.qqq[3]+this.qqq[6]+this.qqq[9])*0.25;
-            y1 = (this.qqq[1]+this.qqq[4]+this.qqq[7]+this.qqq[10])*0.25;
-            z1 = (this.qqq[2]+this.qqq[5]+this.qqq[8]+this.qqq[11])*0.25;
-            n1.x = this.qqq[0]-x1;
-            n1.y = this.qqq[1]-y1;
-            n1.z = this.qqq[2]-z1;
-            n2.x = this.qqq[3]-x1;
-            n2.y = this.qqq[4]-y1;
-            n2.z = this.qqq[5]-z1;
+            tmp1.x = (this.qqq[0]+this.qqq[3]+this.qqq[6]+this.qqq[9])*0.25;
+            tmp1.y = (this.qqq[1]+this.qqq[4]+this.qqq[7]+this.qqq[10])*0.25;
+            tmp1.z = (this.qqq[2]+this.qqq[5]+this.qqq[8]+this.qqq[11])*0.25;
+            n1.x = this.qqq[0]-tmp1.x;
+            n1.y = this.qqq[1]-tmp1.y;
+            n1.z = this.qqq[2]-tmp1.z;
+            n2.x = this.qqq[3]-tmp1.x;
+            n2.y = this.qqq[4]-tmp1.y;
+            n2.z = this.qqq[5]-tmp1.z;
 
-            var index1=0;
-            var index2=0;
-            var index3=0;
-            var index4=0;
+            var id_1=0;
+            var id_2=0;
+            var id_3=0;
+            var id_4=0;
             var maxDot=-this.INF;
             minDot=this.INF;
 
@@ -8462,90 +8402,82 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             //while(i--){
             for(i=0;i<numClipVertices;i++){
                 this.used[i]=false;
-                index=i*3;
-                x1=this.clipVertices1[index];
-                y1=this.clipVertices1[index+1];
-                z1=this.clipVertices1[index+2];
-                dot=x1*n1.x+y1*n1.y+z1*n1.z;
+                k=i*3;
+                tmp1.x=cvs1[k];
+                tmp1.y=cvs1[k+1];
+                tmp1.z=cvs1[k+2];
+                dot=tmp1.x*n1.x+tmp1.y*n1.y+tmp1.z*n1.z;
                 if(dot<minDot){
                     minDot=dot;
-                    index1=i;
+                    id_1=i;
                 }
                 if(dot>maxDot){
                     maxDot=dot;
-                    index3=i;
+                    id_3=i;
                 }
             }
 
-            this.used[index1]=true;
-            this.used[index3]=true;
+            this.used[id_1]=true;
+            this.used[id_3]=true;
             maxDot=-this.INF;
             minDot=this.INF;
 
-            //i = numClipVertices;
-            //while(i--){
-            for(i=0;i<numClipVertices;i++){
-                if(this.used[i])continue;
-                index=i*3;
-                x1=this.clipVertices1[index];
-                y1=this.clipVertices1[index+1];
-                z1=this.clipVertices1[index+2];
-                dot=x1*n2.x+y1*n2.y+z1*n2.z;
+            for( i=0; i<numClipVertices; i++ ){
+
+                if( this.used[i] ) continue;
+                k=i*3;
+                tmp1.x=cvs1[k];
+                tmp1.y=cvs1[k+1];
+                tmp1.z=cvs1[k+2];
+                dot=tmp1.x*n2.x+tmp1.y*n2.y+tmp1.z*n2.z;
                 if(dot<minDot){
                     minDot=dot;
-                    index2=i;
+                    id_2=i;
                 }
                 if(dot>maxDot){
                     maxDot=dot;
-                    index4=i;
+                    id_4=i;
                 }
+
             }
 
-            index=index1*3;
-            x1=this.clipVertices1[index];
-            y1=this.clipVertices1[index+1];
-            z1=this.clipVertices1[index+2];
-            p.set( x1, y1, z1 );
-            dot = (x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
-            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
+            k = id_1*3;
+            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+            p.copy( tmp1 );
+            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
+            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
             
-            index=index2*3;
-            x1=this.clipVertices1[index];
-            y1=this.clipVertices1[index+1];
-            z1=this.clipVertices1[index+2];
-            p.set( x1, y1, z1 );
-            dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
-            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
+            k = id_2*3;
+            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+            p.copy( tmp1 );
+            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
+            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
             
-            index=index3*3;
-            x1=this.clipVertices1[index];
-            y1=this.clipVertices1[index+1];
-            z1=this.clipVertices1[index+2];
-            p.set( x1, y1, z1 );
-            dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
-            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
+            k = id_3*3;
+            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+            p.copy( tmp1 );
+            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
+            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
             
-            index=index4*3;
-            x1=this.clipVertices1[index];
-            y1=this.clipVertices1[index+1];
-            z1=this.clipVertices1[index+2];
-            p.set( x1, y1, z1 );
-            dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
-            if(dot<0) manifold.addPointVec( p, n, dot, flipped );
+            k = id_4*3;
+            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+            p.copy( tmp1 );
+            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
+            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
             
         }else{
-            //n.set( n.x, n.y, n.z );
-            //i = numClipVertices;
-            //while(i--){
-            for(i=0;i<numClipVertices;i++){
-                index=i*3;
-                x1=this.clipVertices1[index];
-                y1=this.clipVertices1[index+1];
-                z1=this.clipVertices1[index+2];
-                p.set( x1, y1, z1 );
-                dot=(x1-c.x)*n.x+(y1-c.y)*n.y+(z1-c.z)*n.z;
-                if(dot<0) manifold.addPointVec( p, n, dot, flipped );
+
+            for( i = 0; i < numClipVertices; i++ ){
+
+                k = i*3;
+                tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
+                
+                p.copy( tmp1 );
+                dot = (tmp1.x-c.x)*n.x + (tmp1.y-c.y)*n.y + (tmp1.z-c.z)*n.z;
+                if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
+
             }
+
         }
 
     }

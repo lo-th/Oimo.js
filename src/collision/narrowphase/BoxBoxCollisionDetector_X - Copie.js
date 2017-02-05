@@ -9,8 +9,8 @@ import { Vec3 } from '../../math/Vec3';
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
-    this.clipVertices1 = new Float32Array( 12 ); // 4 x vertices x,y,z
-    this.clipVertices2 = new Float32Array( 12 );
+    this.clipVertices1 = new Float32Array( 24 ); // 8 x vertices x,y,z
+    this.clipVertices2 = new Float32Array( 24 );
     this.qqq = new Float32Array( 12 );
 
     this.used = new Float32Array( 8 );
@@ -38,6 +38,10 @@ function BoxBoxCollisionDetector() {
     this.d1 = new Vec3();
     this.d2 = new Vec3();
 
+    this.tmp0 = new Vec3();
+    this.tmp1 = new Vec3();
+    this.tmp2 = new Vec3();
+
 };
 
 BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
@@ -64,8 +68,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         cross = dot1*axis.x + dot2*axis.y + dot3*axis.z;
 
-        len1 = rev ? cross : axe;
-        len2 = rev ? axe : cross;
+        len1 = axe;//rev ? cross : axe;
+        len2 = cross;//rev ? axe : cross;
         
         overlaps[n] = len - len1 - len2;
 
@@ -76,13 +80,14 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         var v = this.v;
         var mdot = _Math.dotVectors;
         var epsilon = _Math.EPZ;
-        var len, len1, len2, dot1, dot2, dot3, cross;
+        var len, len1, len2, dot1, dot2;
 
         len = v[a].lengthSq();
 
         if( len > epsilon ){
 
             v[a].multiplyScalar( 1 / _Math.sqrt( len ) );
+
             len = mdot( v[a], this.d );
 
             rights[n] = len > 0 ? true : false;
@@ -102,15 +107,14 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
             len2 = dot1*axe3 + dot2*axe4;
 
-            overlaps[n] = len-len1-len2;
+            overlaps[n] = len - len1 - len2;
             invalid[n] = false;
-            //if( overlaps[n] > 0 ) return;
 
         } else {
 
-            rights[n] = false;
             overlaps[n] = 0;
             invalid[n] = true;
+            rights[n] = false;
 
         }
 
@@ -144,9 +148,13 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // For potential collision points of all, to examine the distance between the surface A 
         // • If you were on the inside surface of A, and the collision point
 
+        var i, k;
+
+
         var n = this.n;
         var p = this.p;
         var v = this.v;
+        var d = this.d;
 
         var n1 = this.n1;
         var n2 = this.n2;
@@ -156,13 +164,17 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         var d1 = this.d1;
         var d2 = this.d2;
 
+        var tmp0 = this.tmp0;
+        var tmp1 = this.tmp1;
+        var tmp2 = this.tmp2;
+
         // center of current face
         var c = this.c;
         // face side
         var s1 = this.s1;
         var s2 = this.s2;
 
-        var d = this.d;
+        
 
         var b1;
         var b2;
@@ -181,6 +193,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         var D1 = b1.dimentions;
         var D2 = b2.dimentions;
 
+        var dot1, dot2;
+
         //n.sub( b2.position, b1.position );
 
         p1.copy( b1.position );
@@ -189,16 +203,9 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // diff
         d.sub( p2, p1 );
 
-        // distance
+        // mid distance
         d1.set( b1.halfWidth, b1.halfHeight, b1.halfDepth );
         d2.set( b2.halfWidth, b2.halfHeight, b2.halfDepth );
-        /*var d1.x=b1.halfWidth;
-        var d1.y=b1.halfHeight;
-        var d1=b1.halfDepth;
-        var d2.x=b2.halfWidth;
-        var d2.y=b2.halfHeight;
-        var d2=b2.halfDepth;*/
-        // direction
 
         // ----------------------------
         // 15 separating axes
@@ -206,7 +213,6 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // 7~f: edge
         // http://marupeke296.com/COL_3D_No13_OBBvsOBB.html
         // ----------------------------
-
 
         v[0].set( D1[0], D1[1], D1[2] );
         v[1].set( D1[3], D1[4], D1[5] );
@@ -238,32 +244,34 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         var rights = [];
         // overlapping distances
         var overlaps = [];
-
+        // invalid flags
         var invalid = [];
 
-        var epsilon = _Math.EPZ;
+        var faces = [
+
+            [ 0, 6, 7, 8, d1.x, d2 ],
+            [ 1, 6, 7, 8, d1.y, d2 ],
+            [ 2, 6, 7, 8, d1.z, d2 ],
+
+            [ 6, 0, 1, 2, d2.x, d1 ],
+            [ 7, 0, 1, 2, d2.y, d1 ],
+            [ 8, 0, 1, 2, d2.z, d1 ],
+
+            [ 12, 1, 2, 7, 8, d1.y, d1.z, d2.y, d2.z ],
+            [ 13, 1, 2, 6, 8, d1.y, d1.z, d2.x, d2.z ],
+            [ 14, 1, 2, 6, 7, d1.y, d1.z, d2.x, d2.y ],
+
+            [ 15, 0, 2, 7, 8, d1.x, d1.z, d2.y, d2.z ],
+            [ 16, 0, 2, 6, 8, d1.x, d1.z, d2.x, d2.z ],
+            [ 17, 0, 2, 6, 7, d1.x, d1.z, d2.x, d2.y ],
+
+            [ 18, 0, 1, 7, 8, d1.x, d1.y, d2.y, d2.z ],
+            [ 19, 0, 1, 6, 8, d1.x, d1.y, d2.x, d2.z ],
+            [ 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y ],
+
+        ]
+
         var mdot = _Math.dotVectors;
-
-
-        // invalid flags
-        invalid[6]=false;
-        invalid[7]=false;
-        invalid[8]=false;
-        invalid[9]=false;
-        invalid[10]=false;
-        invalid[11]=false;
-        invalid[12]=false;
-        invalid[13]=false;
-        invalid[14]=false;
-
-        // temporary variables
-        
-        var len;
-        var len1;
-        var len2;
-        var dot1;
-        var dot2;
-        var dot3;
 
         // try axis 1
         this.tryAxis( 0, 0, 6, 7, 8, d1.x, d2, rights, overlaps );
@@ -327,349 +335,12 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         this.tryAxisComp( 14, 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y, rights, overlaps, invalid );
         if( !invalid[14] && overlaps[14] > 0 ) return;
 
-        // try axis 1
-        /*len = mdot( v[0], d );
-        rights[0] = len > 0 ? true : false;
-        len = rights[0] ? len : -len;
-        //if(!rights[0])len=-len;
-        
-        dot1 = mdot( v[0], v[6] );
-        dot2 = mdot( v[0], v[7] );
-        dot3 = mdot( v[0], v[8] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-        len1 = d1.x;
-        len2 = dot1*d2.x + dot2*d2.y + dot3*d2.z;
-        overlaps[0] = len-len1-len2;
-        if( overlaps[0] > 0 ) return;
-
-        // try axis 2
-        len =  mdot( v[1], d );
-        rights[1]=len>0;
-        if(!rights[1])len=-len;
-        dot1 = mdot( v[1], v[6] );
-        dot2 = mdot( v[1], v[7] );
-        dot3 = mdot( v[1], v[8] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-        len1 = d1.y;
-        len2 = dot1*d2.x + dot2*d2.y + dot3*d2.z;
-        overlaps[1] = len-len1-len2;
-        if(overlaps[1]>0) return;
-
-        // try axis 3
-        len = mdot( v[2], d );
-        rights[2]=len>0;
-        if(!rights[2])len=-len;
-        dot1 = mdot( v[2], v[6] );
-        dot2 = mdot( v[2], v[7] );
-        dot3 = mdot( v[2], v[8] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-        len1 = d1.z;
-        len2 = dot1*d2.x + dot2*d2.y + dot3*d2.z;
-        overlaps[2] = len-len1-len2;
-        if(overlaps[2]>0)return;
-
-        // try axis 4
-        len =  mdot( v[6], d );
-        rights[3]=len>0;
-        if(!rights[3])len=-len;
-        dot1 = mdot( v[6], v[0] );
-        dot2 = mdot( v[6], v[1] );
-        dot3 = mdot( v[6], v[2] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-        len1 = dot1*d1.x + dot2*d1.y + dot3*d1.z;
-        len2 = d2.x;
-        overlaps[3] = (len-len1-len2)*1.0;
-        if(overlaps[3]>0)return;
-
-        // try axis 5
-        len =  mdot( v[7], d );
-        rights[4]=len>0;
-        if(!rights[4])len=-len;
-        dot1 = mdot( v[7], v[0] );
-        dot2 = mdot( v[7], v[1] );
-        dot3 = mdot( v[7], v[2] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-        len1 = dot1*d1.x + dot2*d1.y + dot3*d1.z;
-        len2 = d2.y;
-        overlaps[4]=(len-len1-len2)*1.0;
-        if(overlaps[4]>0) return;
-
-        // try axis 6
-        len =  mdot( v[8], d ); 
-        rights[5]=len>0;
-        if(!rights[5])len=-len;
-        dot1 = mdot( v[8], v[0] );
-        dot2 = mdot( v[8], v[1] );
-        dot3 = mdot( v[8], v[2] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-        len1 = dot1*d1.x + dot2*d1.y + dot3*d1.z;
-        len2 = d2.z;
-        overlaps[5] = (len-len1-len2)*1.0;
-        if(overlaps[5]>0) return;*/
-
-        
-
-        // try axis 7
-        /*len = v[12].lengthSq();
-        if( len > epsilon ){
-
-            v[12].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[12], d );
-
-            rights[6]=len>0;
-            if(!rights[6])len=-len;
-            dot1 = mdot( v[12], v[1] );
-            dot2 = mdot( v[12], v[2] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.y+dot2*d1.z;
-            dot1 = mdot( v[12], v[7] );
-            dot2 = mdot( v[12], v[8] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.y+dot2*d2.z;
-            overlaps[6]=len-len1-len2;
-            if(overlaps[6]>0)return;
-        }else{
-            rights[6]=false;
-            overlaps[6]=0;
-            invalid[6]=true;
-        }
-
-        // try axis 8
-        len = v[13].lengthSq();
-        if(len>epsilon){
-
-            v[13].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[13], d );
-
-            rights[7]=len>0;
-            if(!rights[7])len=-len;
-            dot1 = mdot( v[13], v[1] );
-            dot2 = mdot( v[13], v[2] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.y+dot2*d1.z;
-            dot1 = mdot( v[13], v[6] );
-            dot2 = mdot( v[13], v[8] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.x+dot2*d2.z;
-            overlaps[7]=len-len1-len2;
-            if(overlaps[7]>0)return;
-        }else{
-            rights[7]=false;
-            overlaps[7]=0;
-            invalid[7]=true;
-        }
-
-        // try axis 9
-        len = v[14].lengthSq();
-        if( len > epsilon ){
-
-            v[14].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[14], d );
-
-            rights[8]=len>0;
-            if(!rights[8])len=-len;
-            dot1 = mdot( v[14], v[1] );
-            dot2 = mdot( v[14], v[2] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.y+dot2*d1.z;
-            dot1 = mdot( v[14], v[6] );
-            dot2 = mdot( v[14], v[7] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.x+dot2*d2.y;
-            overlaps[8]=len-len1-len2;
-            if(overlaps[8]>0)return;
-        }else{
-            rights[8]=false;
-            overlaps[8]=0;
-            invalid[8]=true;
-        }
-
-        // try axis 10
-        len = v[15].lengthSq();
-        if( len > epsilon ){
-
-            v[15].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[15], d );
-
-            rights[9]=len>0;
-            if(!rights[9])len=-len;
-            dot1 = mdot( v[15], v[0] );
-            dot2 = mdot( v[15], v[2] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.x+dot2*d1.z;
-            dot1 = mdot( v[15], v[7] );
-            dot2 = mdot( v[15], v[8] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.y+dot2*d2.z;
-            overlaps[9]=len-len1-len2;
-            if(overlaps[9]>0)return;
-        }else{
-            rights[9]=false;
-            overlaps[9]=0;
-            invalid[9]=true;
-        }
-
-        // try axis 11
-        len = v[16].lengthSq();
-        if(len>epsilon){
-
-            v[16].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[16], d );
-
-            rights[10]=len>0;
-            if(!rights[10])len=-len;
-            dot1 = mdot( v[16], v[0] );
-            dot2 = mdot( v[16], v[2] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.x+dot2*d1.z;
-            dot1 = mdot( v[16], v[6] );
-            dot2 = mdot( v[16], v[8] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.x+dot2*d2.z;
-            overlaps[10]=len-len1-len2;
-            if( overlaps[10] > 0 ) return;
-        }else{
-            rights[10] = false;
-            overlaps[10] = 0;
-            invalid[10] = true;
-        }
-
-        // try axis 12
-        len = v[17].lengthSq();
-        if(len>epsilon){
-
-            v[17].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[17], d );
-
-            rights[11]=len>0;
-            if(!rights[11])len=-len;
-            dot1 = mdot( v[17], v[0] );
-            dot2 = mdot( v[17], v[2] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.x+dot2*d1.z;
-            dot1 = mdot( v[17], v[6] );
-            dot2 = mdot( v[17], v[7] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.x+dot2*d2.y;
-            overlaps[11]=len-len1-len2;
-            if(overlaps[11]>0)return;
-        }else{
-            rights[11] = false;
-            overlaps[11] = 0;
-            invalid[11]=true;
-        }
-
-        // try axis 13
-        len = v[18].lengthSq();
-        if(len>epsilon){
-
-            v[18].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[18], d );
-
-            rights[12]=len>0;
-            if(!rights[12])len=-len;
-            dot1 = mdot( v[18], v[0] );
-            dot2 = mdot( v[18], v[1] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.x+dot2*d1.y;
-            dot1 = mdot( v[18], v[7] );
-            dot2 = mdot( v[18], v[8] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.y+dot2*d2.z;
-            overlaps[12]=len-len1-len2;
-            if(overlaps[12]>0)return;
-        }else{
-            rights[12]=false;
-            overlaps[12]=0;
-            invalid[12]=true;
-        }
-
-        // try axis 14
-        len =  v[19].lengthSq();
-        if(len>epsilon){
-
-            v[19].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[19], d );
-
-            rights[13]=len>0;
-            if(!rights[13])len=-len;
-            dot1 = mdot( v[19], v[0] );
-            dot2 = mdot( v[19], v[1] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.x+dot2*d1.y;
-            dot1 = mdot( v[19], v[6] );
-            dot2 = mdot( v[19], v[8] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.x+dot2*d2.z;
-            overlaps[13]=len-len1-len2;
-            if(overlaps[13]>0)return;
-        }else{
-            rights[13]=false;
-            overlaps[13]=0;
-            invalid[13]=true;
-        }
-
-        // try axis 15
-        len = v[20].lengthSq();
-        if( len > epsilon ){
-
-            v[20].multiplyScalar( 1 / _Math.sqrt(len) );
-            len = mdot( v[20], d );
-
-            rights[14]=len>0;
-            if(!rights[14])len=-len;
-            dot1 = mdot( v[20], v[0] );
-            dot2 = mdot( v[20], v[1] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len1=dot1*d1.x+dot2*d1.y;
-            dot1 = mdot( v[20], v[6] );
-            dot2 = mdot( v[20], v[7] );
-            if(dot1<0)dot1=-dot1;
-            if(dot2<0)dot2=-dot2;
-            len2=dot1*d2.x+dot2*d2.y;
-            overlaps[14]=len-len1-len2;
-            if(overlaps[14]>0)return;
-        }else{
-            rights[14]=false;
-            overlaps[14]=0;
-            invalid[14]=true;
-        }*/
-
-
         // boxes are overlapping
         var depth=overlaps[0];
         var depth2=overlaps[0];
         var minIndex=0;
         var right=rights[0];
+        
         if(overlaps[1]>depth2){
             depth=overlaps[1];
             depth2=overlaps[1];
@@ -891,135 +562,54 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         //__________________________________________
 
+        var distance, maxD1, maxD2, t;
+
         //var v;
-        if(minIndex>5){
+        if( minIndex > 5 ){
 
             if( !right ) n.negate();
                
-            var distance;
-            var maxDistance;
-            var vx;
-            var vy;
-            var vz;
-            var v1x;
-            var v1y;
-            var v1z;
-            var v2x;
-            var v2y;
-            var v2z;
-            //vertex1;
-            v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
-            maxDistance=n.x*v1x+n.y*v1y+n.z*v1z;
-            //vertex2;
-            vx=V1[3]; vy=V1[4]; vz=V1[5];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
+            tmp1.set( V1[0], V1[1], V1[2] );
+            maxD1 = mdot( n, tmp1 );
+
+            tmp2.set( V2[0], V2[1], V2[2] );
+            maxD2 = mdot( n, tmp2 );;
+
+            for( i = 1; i < 8; i++ ){
+
+                k = i * 3;
+
+                tmp0.set( V1[k], V1[k+1], V1[k+2] );
+                distance = mdot( n, tmp0 );
+
+                if( distance > maxD1 ){
+
+                    maxD1 = distance;
+                    tmp1.copy( tmp0 );
+
+                }
+
+                tmp0.set( V2[k], V2[k+1], V2[k+2] );
+                distance = mdot( n, tmp0 );
+
+                if( distance > maxD2 ){
+
+                    maxD2 = distance;
+                    tmp2.copy( tmp0 );
+
+                }
+
             }
-            //vertex3;
-            vx=V1[6]; vy=V1[7]; vz=V1[8];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex4;
-            vx=V1[9]; vy=V1[10]; vz=V1[11];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex5;
-            vx=V1[12]; vy=V1[13]; vz=V1[14];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex6;
-            vx=V1[15]; vy=V1[16]; vz=V1[17];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex7;
-            vx=V1[18]; vy=V1[19]; vz=V1[20];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex8;
-            vx=V1[21]; vy=V1[22]; vz=V1[23];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance>maxDistance){
-                maxDistance=distance;
-                v1x=vx; v1y=vy; v1z=vz;
-            }
-            //vertex1;
-            v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
-            maxDistance=n.x*v2x+n.y*v2y+n.z*v2z;
-            //vertex2;
-            vx=V2[3]; vy=V2[4]; vz=V2[5];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex3;
-            vx=V2[6]; vy=V2[7]; vz=V2[8];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex4;
-            vx=V2[9]; vy=V2[10]; vz=V2[11];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex5;
-            vx=V2[12]; vy=V2[13]; vz=V2[14];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex6;
-            vx=V2[15]; vy=V2[16]; vz=V2[17];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex7;
-            vx=V2[18]; vy=V2[19]; vz=V2[20];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            //vertex8;
-            vx=V2[21]; vy=V2[22]; vz=V2[23];
-            distance=n.x*vx+n.y*vy+n.z*vz;
-            if(distance<maxDistance){
-                maxDistance=distance;
-                v2x=vx; v2y=vy; v2z=vz;
-            }
-            vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
-            dot1=n1.x*n2.x+n1.y*n2.y+n1.z*n2.z;
-            var t=(vx*(n1.x-n2.x*dot1)+vy*(n1.y-n2.y*dot1)+vz*(n1.z-n2.z*dot1))/(1-dot1*dot1);
+
+            tmp0.sub( tmp2, tmp1 );
+            dot1 = mdot( n1, n2 );
+            t = ( tmp0.x*(n1.x-n2.x*dot1) + tmp0.y*(n1.y-n2.y*dot1) + tmp0.z*(n1.z-n2.z*dot1) ) / ( 1-dot1*dot1 );
 
             //n.set( n.x, n.y, n.z );
             p.set(
-                v1x+n1.x*t+n.x*depth*0.5,
-                v1y+n1.y*t+n.y*depth*0.5,
-                v1z+n1.z*t+n.z*depth*0.5
+                tmp1.x + n1.x*t + n.x*depth*0.5,
+                tmp1.y + n1.y*t + n.y*depth*0.5,
+                tmp1.z + n1.z*t + n.z*depth*0.5
             );
             manifold.addPointVec( p, n, depth, false );
             return;
@@ -1095,7 +685,7 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         x1 = this.clipVertices1[9];
         y1 = this.clipVertices1[10];
         z1 = this.clipVertices1[11];
-        dot1=(x1-c.x-s1.x)*n1.x+(y1-c.y-s1.y)*n1.y+(z1-c.z-s1.z)*n1.z;
+        dot1=(x1-c.x-s1.x)*n1.x + (y1-c.y-s1.y)*n1.y + (z1-c.z-s1.z)*n1.z;
 
         //var i = 4;
         //while(i--){
