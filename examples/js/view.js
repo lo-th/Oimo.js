@@ -42,7 +42,7 @@ var count = 0;
 var fps = 0;
 
 var canvas, renderer, scene, camera, controls, debug;
-var ray, mouse, content, targetMouse, rayCallBack, moveplane, isWithRay = false;;
+var ray, mTarget, mouse, content, targetMouse, rayCallBack, moveplane, isWithRay = false;;
 var vs = { w:1, h:1, l:0, x:0 };
 
 var helper;
@@ -218,6 +218,7 @@ view = {
 
         ray = new THREE.Raycaster();
         mouse = new THREE.Vector2();
+        mTarget = new THREE.Vector3();
 
         // GEOMETRY
 
@@ -349,30 +350,31 @@ view = {
     // RAYCAST
 
     removeRay: function(){
-        if(isWithRay){
-            isWithRay = false;
 
-            canvas.removeEventListener( 'mousemove', _V.rayTest, false );
-            rayCallBack = null;
+        if( !isWithRay ) return;
 
-            content.remove(moveplane);
-            scene.remove(targetMouse);
+        isWithRay = false;
 
-        }
+        canvas.removeEventListener( 'mousemove', _V.rayTest, false );
+        rayCallBack = null;
+
+        content.remove( moveplane );
+        scene.remove( targetMouse );
+
     },
 
     activeRay: function ( callback ) {
 
         isWithRay = true;
 
-        var g = new THREE.PlaneBufferGeometry(100,100);
+        var g = new THREE.PlaneBufferGeometry( 100, 100 );
         g.rotateX( -Math.PI90 );
         moveplane = new THREE.Mesh( g,  new THREE.MeshBasicMaterial({ color:0xFFFFFF, transparent:true, opacity:0 }));
         content.add(moveplane);
         //moveplane.visible = false;
 
-        targetMouse = new THREE.Mesh( geo['box'] ,  new THREE.MeshBasicMaterial({color:0xFF0000}));
-        scene.add(targetMouse);
+        targetMouse = new THREE.Mesh( geo['box'],  new THREE.MeshBasicMaterial({color:0xFF0000}) );
+        scene.add( targetMouse );
 
         canvas.addEventListener( 'mousemove', _V.rayTest, false );
 
@@ -387,11 +389,13 @@ view = {
 
         ray.setFromCamera( mouse, camera );
         var intersects = ray.intersectObjects( content.children, true );
-        if ( intersects.length) {
-            targetMouse.position.copy( intersects[0].point )
-            //paddel.position.copy( intersects[0].point.add(new THREE.Vector3( 0, 20, 0 )) );
 
+        if ( intersects.length ) {
+
+            mTarget.copy( intersects[0].point );
+            targetMouse.position.copy( mTarget );
             rayCallBack( targetMouse );
+
         }
     },
 

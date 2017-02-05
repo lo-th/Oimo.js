@@ -9459,7 +9459,7 @@
 	        var t2x;
 	        var t2y;
 	        var t2z;
-	        var sup=new Vec3();
+	        var sup = new Vec3();
 	        var len;
 	        var p1x;
 	        var p1y;
@@ -9471,15 +9471,15 @@
 	        if( d.lengthSq() === 0 ) d.y = 0.001;
 	        n.copy( d ).negate();
 	        
-	        this.supportPoint( c1,-n.x,-n.y,-n.z, sup );
+	        this.supportPoint( c1, n, sup, true );
 	        tmp1.copy( sup );
 
-	        this.supportPoint( c2,n.x,n.y,n.z,sup);
+	        this.supportPoint( c2, n, sup );
 	        tmp2.copy( sup );
 
 	        tmp0.sub( tmp2, tmp1 );
 
-	        if( tmp0.x*n.x+tmp0.y*n.y+tmp0.z*n.z <= 0 ) return false;
+	        if( _Math.dotVectors( tmp0, n ) <= 0 ) return false;
 
 	        n.cross( tmp0, d );
 
@@ -9491,11 +9491,11 @@
 	            return true;
 	        }
 
-	        this.supportPoint( c1,-n.x,-n.y,-n.z,sup );
+	        this.supportPoint( c1, n, sup, true );
 	        var v21x=sup.x;
 	        var v21y=sup.y;
 	        var v21z=sup.z;
-	        this.supportPoint( c2,n.x,n.y,n.z,sup );
+	        this.supportPoint( c2, n, sup );
 	        var v22x=sup.x;
 	        var v22y=sup.y;
 	        var v22z=sup.z;
@@ -9550,11 +9550,11 @@
 	        while(true){
 	            if( ++iterations > 100 ) return false;
 	            
-	            this.supportPoint(c1,-n.x,-n.y,-n.z,sup);
+	            this.supportPoint( c1, n, sup, true );
 	            var v31x=sup.x;
 	            var v31y=sup.y;
 	            var v31z=sup.z;
-	            this.supportPoint(c2,n.x,n.y,n.z,sup);
+	            this.supportPoint( c2, n, sup );
 	            var v32x=sup.x;
 	            var v32y=sup.y;
 	            var v32z=sup.z;
@@ -9643,11 +9643,11 @@
 	                p2z=(p2.z*b0+tmp2.z*b1+v22z*b2+v32z*b3)*inv;
 	                hit=true;
 	                }
-	                this.supportPoint(c1,-n.x,-n.y,-n.z,sup);
+	                this.supportPoint( c1, n, sup, true);
 	                var v41x=sup.x;
 	                var v41y=sup.y;
 	                var v41z=sup.z;
-	                this.supportPoint(c2,n.x,n.y,n.z,sup);
+	                this.supportPoint( c2, n, sup );
 	                var v42x=sup.x;
 	                var v42y=sup.y;
 	                var v42z=sup.z;
@@ -9705,47 +9705,26 @@
 	        //return false;
 	    },
 
-	    supportPoint: function ( c, dx, dy, dz, out ) {
-
-	        var rot=c.rotation.elements;
-	        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-	        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-	        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
-	        var radx=ldx;
-	        var radz=ldz;
-	        var len=radx*radx+radz*radz;
-	        var rad=c.radius;
-	        var hh=c.halfHeight;
-	        var ox;
-	        var oy;
-	        var oz;
-	        if(len==0){
-	            if(ldy<0){
-	                ox=rad;
-	                oy=-hh;
-	                oz=0;
-	            }else{
-	                ox=rad;
-	                oy=hh;
-	                oz=0;
-	            }
-	        }else{
-	            len=c.radius/_Math.sqrt(len);
-	            if(ldy<0){
-	                ox=radx*len;
-	                oy=-hh;
-	                oz=radz*len;
-	            }else{
-	                ox=radx*len;
-	                oy=hh;
-	                oz=radz*len;
-	            }
-	        }
+	    supportPoint: function ( c, n, out, revers ) {
 	        
-	        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-	        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-	        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
-	        out.set( ldx, ldy, ldz );
+	        var ld = n.clone();
+	        var o = new Vec3();
+	        if( revers ) ld.negate();
+
+	        ld.applyMatrix3( c.rotation );
+
+	        var len = ld.x*ld.x + ld.z*ld.z;
+	     
+	        if( len === 0 ){
+	            o.set( c.radius, 0, 0 );
+	        }else{
+	            len = c.radius/_Math.sqrt( len );
+	            o.set( ld.x*len, 0, ld.z*len );
+	        }
+
+	        o.y = ld.y < 0 ? -c.halfHeight : c.halfHeight;
+	        ld.mulMat( c.rotation, o ).addEqual( c.position );
+	        out.set( ld.x, ld.y, ld.z );
 
 	    },
 

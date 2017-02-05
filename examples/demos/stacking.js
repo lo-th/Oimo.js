@@ -31,8 +31,8 @@ function demo() {
     for(j = 0; j<z; j++){
     for(i = 0; i<x; i++){
         pos = [ i*d + decaleX, (k*d + d)-0.5, j*d + decaleZ ];
-        add ({ type:'box', geometry:geo.dice, size:[d-m,d-m,d-m], pos:pos, friction:0.4, restitution:0.1, move:true, sleep:0 });
-        //add ({ type:'cylinder', size:[(d-m)*0.5,d-m,(d-m)*0.5], pos:pos, friction:0.4, restitution:0.1, move:true, sleep:0 });
+        //add ({ type:'box', geometry:geo.dice, size:[d-m,d-m,d-m], pos:pos, friction:0.4, restitution:0.1, move:true, sleep:0 });
+        add ({ type:'cylinder', size:[(d-m)*0.5,d-m,(d-m)*0.5], pos:pos, friction:0.4, restitution:0.1, move:true, sleep:0 });
         //add ({ type:'sphere', size:[(d-m)*0.5], pos:pos, friction:0.4, restitution:0.1, move:true, sleep:0 });
     }}}
 

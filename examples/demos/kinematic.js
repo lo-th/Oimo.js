@@ -35,7 +35,7 @@ function demo() {
 
 function rayMove ( m ) {
 
-    mpaddle.position.copy( m.position ).add(decal);
+    mpaddle.position.copy( m.position ).add( decal );
     mpaddle.quaternion.copy( m.quaternion );
 
 };
