@@ -7,8 +7,8 @@ import { SAPBroadPhase } from '../collision/broadphase/sap/SAPBroadPhase_X';
 import { DBVTBroadPhase } from '../collision/broadphase/dbvt/DBVTBroadPhase_X';
 
 import { BoxBoxCollisionDetector } from '../collision/narrowphase/BoxBoxCollisionDetector_X';
-import { BoxCylinderCollisionDetector } from '../collision/narrowphase/BoxCylinderCollisionDetector';
-import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/CylinderCylinderCollisionDetector';
+import { BoxCylinderCollisionDetector } from '../collision/narrowphase/BoxCylinderCollisionDetector_X';
+import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/CylinderCylinderCollisionDetector_X';
 import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector_X';
 import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector_X';
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector_X';

@@ -50,7 +50,74 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
     constructor: BoxBoxCollisionDetector,
 
-    tryAxis: function ( n, a, b, c, d, axe, axis, rights, overlaps, rev ) {
+    tryAxisOO: function ( f ) {
+
+        var v = this.v;
+        var mdot = _Math.dotVectors;
+        var len, len1, len2, dot1, dot2, dot3, right;
+
+        len = mdot( v[f[0]], this.d );
+
+        right = len > 0 ? true : false;
+        len = right ? len : -len;
+        
+        dot1 = mdot( v[f[0]], v[f[1]] );
+        dot2 = mdot( v[f[0]], v[f[2]] );
+        dot3 = mdot( v[f[0]], v[f[3]] );
+        dot1 = dot1 < 0 ? -dot1 : dot1;
+        dot2 = dot2 < 0 ? -dot2 : dot2;
+        dot3 = dot3 < 0 ? -dot3 : dot3;
+
+        len1 = f[4];
+        len2 = dot1*f[5] + dot2*f[6] + dot3*f[7];
+        
+        return { o:len - len1 - len2, r: right };
+
+    },
+
+    tryAxisCompOO: function ( f ) {
+
+        var v = this.v;
+        var mdot = _Math.dotVectors;
+        var epsilon = _Math.EPZ;
+        var len, len1, len2, dot1, dot2, right;
+
+        len = v[f[0]].lengthSq();
+
+        if( len > epsilon ){
+
+            v[f[0]].multiplyScalar( 1 / _Math.sqrt( len ) );
+
+            len = mdot( v[f[0]], this.d );
+
+            right = len > 0 ? true : false;
+            len = right ? len : -len;
+
+            dot1 = mdot( v[f[0]], v[f[1]] );
+            dot2 = mdot( v[f[0]], v[f[2]] );
+            dot1 = dot1 < 0 ? -dot1 : dot1;
+            dot2 = dot2 < 0 ? -dot2 : dot2;
+
+            len1 = dot1*f[5] + dot2*f[6];
+
+            dot1 = mdot( v[f[0]], v[f[3]] );
+            dot2 = mdot( v[f[0]], v[f[4]] );
+            dot1 = dot1 < 0 ? -dot1 : dot1;
+            dot2 = dot2 < 0 ? -dot2 : dot2;
+
+            len2 = dot1*f[7] + dot2*f[8];
+
+            return { o: len - len1 - len2, r: right, inv:false };
+
+        } else {
+
+            return { o: 0, r: false, inv: true };
+
+        }
+
+    },
+
+    /*tryAxis: function ( n, a, b, c, d, axe1, axe2, axe3, axe4, rights, overlaps, rev ) {
 
         var v = this.v;
         var mdot = _Math.dotVectors;
@@ -68,9 +135,9 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         dot2 = dot2 < 0 ? -dot2 : dot2;
         dot3 = dot3 < 0 ? -dot3 : dot3;
 
-        cross = dot1*axis.x + dot2*axis.y + dot3*axis.z;
+        cross = dot1*axe2 + dot2*axe3 + dot3*axe4;
 
-        len1 = axe;//rev ? cross : axe;
+        len1 = axe1;//rev ? cross : axe;
         len2 = cross;//rev ? axe : cross;
         
         overlaps[n] = len - len1 - len2;
@@ -120,7 +187,7 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         }
 
-    },
+    },*/
 
     detectCollision: function ( shape1, shape2, manifold ) {
         // What you are doing 
@@ -249,15 +316,15 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // invalid flags
         var invalid = [];
 
-        /*var faces = [
+        var faces = [
 
-            [ 0, 6, 7, 8, d1.x, d2 ],
-            [ 1, 6, 7, 8, d1.y, d2 ],
-            [ 2, 6, 7, 8, d1.z, d2 ],
+            [ 0, 6, 7, 8, d1.x, d2.x, d2.y, d2.z ],
+            [ 1, 6, 7, 8, d1.y, d2.x, d2.y, d2.z ],
+            [ 2, 6, 7, 8, d1.z, d2.x, d2.y, d2.z ],
 
-            [ 6, 0, 1, 2, d2.x, d1 ],
-            [ 7, 0, 1, 2, d2.y, d1 ],
-            [ 8, 0, 1, 2, d2.z, d1 ],
+            [ 6, 0, 1, 2, d2.x, d1.x, d1.y, d1.z ],
+            [ 7, 0, 1, 2, d2.y, d1.x, d1.y, d1.z ],
+            [ 8, 0, 1, 2, d2.z, d1.x, d1.y, d1.z ],
 
             [ 12, 1, 2, 7, 8, d1.y, d1.z, d2.y, d2.z ],
             [ 13, 1, 2, 6, 8, d1.y, d1.z, d2.x, d2.z ],
@@ -271,32 +338,60 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             [ 19, 0, 1, 6, 8, d1.x, d1.y, d2.x, d2.z ],
             [ 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y ],
 
-        ]*/
+        ];
 
         var mdot = _Math.dotVectors;
 
+        var no = false, over;
+
+        for( i = 0; i < 15; i++ ){
+
+            if( i < 6 ){
+
+                over = this.tryAxisOO( faces[i] );
+                if( over.o > 0 ) { no = true; break; }
+                else{ 
+                    overlaps[i] = over.o;
+                    rights[i] = over.r;
+                }
+
+            } else {
+
+                over = this.tryAxisCompOO( faces[i] );
+                if( !over.inv && over.o > 0 ) { no = true; break; }
+                else{ 
+                    overlaps[i] = over.o;
+                    rights[i] = over.r;
+                    invalid[i] = over.inv;
+                }
+
+            }
+        }
+
+        if( no ) return;
+
         // try axis 1
-        this.tryAxis( 0, 0, 6, 7, 8, d1.x, d2, rights, overlaps );
+        /*this.tryAxis( 0, 0, 6, 7, 8, d1.x, d2.x, d2.y, d2.z, rights, overlaps );
         if( overlaps[0] > 0 ) return;
 
         // try axis 2
-        this.tryAxis( 1, 1, 6, 7, 8, d1.y, d2, rights, overlaps );
+        this.tryAxis( 1, 1, 6, 7, 8, d1.y, d2.x, d2.y, d2.z, rights, overlaps );
         if( overlaps[1] > 0 ) return;
 
         // try axis 3
-        this.tryAxis( 2, 2, 6, 7, 8, d1.z, d2, rights, overlaps );
+        this.tryAxis( 2, 2, 6, 7, 8, d1.z, d2.x, d2.y, d2.z, rights, overlaps );
         if( overlaps[2] > 0 ) return;
 
         // try axis 4
-        this.tryAxis( 3, 6, 0, 1, 2, d2.x, d1, rights, overlaps, true );
+        this.tryAxis( 3, 6, 0, 1, 2, d2.x, d1.x, d1.y, d1.z, rights, overlaps, true );
         if( overlaps[3] > 0 ) return;
 
         // try axis 5
-        this.tryAxis( 4, 7, 0, 1, 2, d2.y, d1, rights, overlaps, true );
+        this.tryAxis( 4, 7, 0, 1, 2, d2.y, d1.x, d1.y, d1.z, rights, overlaps, true );
         if( overlaps[4] > 0 ) return;
 
         // try axis 6
-        this.tryAxis( 5, 8, 0, 1, 2, d2.z, d1, rights, overlaps, true );
+        this.tryAxis( 5, 8, 0, 1, 2, d2.z, d1.x, d1.y, d1.z, rights, overlaps, true );
         if( overlaps[5] > 0 ) return;
 
         //
@@ -336,7 +431,7 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // try axis 15
         this.tryAxisComp( 14, 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y, rights, overlaps, invalid );
         if( !invalid[14] && overlaps[14] > 0 ) return;
-
+*/
         // boxes are overlapping
         var depth=overlaps[0];
         var depth2=overlaps[0];

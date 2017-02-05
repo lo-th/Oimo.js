@@ -250,8 +250,6 @@ function printError( clazz, msg ){
     console.error("[OIMO] " + clazz + ": " + msg);
 }
 
-// A performance evaluator
-
 function InfoDisplay(world){
 
     this.parent = world;
@@ -1480,13 +1478,6 @@ Object.assign( Mat33.prototype, {
 
 } );
 
-/**
- * An axis-aligned bounding box.
- *
- * @author saharan
- * @author lo-th
- */
-
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
     this.elements = new Float32Array( 6 );
@@ -1722,12 +1713,6 @@ Object.assign( Shape.prototype, {
 
 });
 
-/**
- * Box shape.
- * @author saharan
- * @author lo-th
- */
- 
 function Box ( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
@@ -1866,12 +1851,6 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 });
 
-/**
- * Sphere shape
- * @author saharan
- * @author lo-th
- */
-
 function Sphere( config, radius ) {
 
     Shape.call( this, config );
@@ -1917,12 +1896,6 @@ Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 
 });
-
-/**
- * Cylinder shape
- * @author saharan
- * @author lo-th
- */
 
 function Cylinder ( config, radius, height ) {
 
@@ -2001,11 +1974,6 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * Plane shape.
- * @author lo-th
- */
-
 function Plane( config, normal ) {
 
     Shape.call( this, config );
@@ -2055,11 +2023,6 @@ Plane.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A Particule shape
- * @author lo-th
- */
-
 function Particle( config, normal ) {
 
     Shape.call( this, config );
@@ -2101,14 +2064,6 @@ Particle.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A shape configuration holds common configuration data for constructing a shape.
- * These configurations can be reused safely.
- *
- * @author saharan
- * @author lo-th
- */
- 
 function ShapeConfig(){
 
     // position of the shape in parent's coordinate system.
@@ -2187,13 +2142,6 @@ Object.assign( LimitMotor.prototype, {
 
 });
 
-/**
- * The base class of all type of the constraints.
- *
- * @author saharan
- * @author lo-th
- */
-
 function Constraint(){
 
     // parent world of the constraint.
@@ -2249,13 +2197,6 @@ function JointLink ( joint ){
     this.joint = joint;
 
 }
-
-/**
- * Joints are used to constrain the motion between two rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function Joint ( config ){
 
@@ -2429,10 +2370,6 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
 });
 
-/**
-* A linear constraint for all axes for various joints.
-* @author saharan
-*/
 function LinearConstraint ( joint ){
 
     this.m1=NaN;
@@ -3242,13 +3179,6 @@ Object.assign( Rotational3Constraint.prototype, {
     
 } );
 
-/**
- * A hinge joint allows only for relative rotation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
     Joint.call( this, config );
@@ -3345,13 +3275,6 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function BallAndSocketJoint ( config ){
 
@@ -3672,13 +3595,6 @@ Object.assign( TranslationalConstraint.prototype, {
     }
 } );
 
-/**
- * A distance joint limits the distance between two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
-
 function DistanceJoint ( config, minDistance, maxDistance ){
 
     Joint.call( this, config );
@@ -3723,11 +3639,6 @@ DistanceJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
-* An angular constraint for all axes for various joints.
-* @author saharan
-*/
 
 function AngularConstraint( joint, targetOrientation ) {
 
@@ -4518,13 +4429,6 @@ Object.assign( Translational3Constraint.prototype, {
     
 } );
 
-/**
- * A prismatic joint allows only for relative translation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
     Joint.call( this, config );
@@ -4593,13 +4497,6 @@ PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4698,14 +4595,6 @@ SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A wheel joint allows for relative rotation between two rigid bodies along two axes.
- * The wheel joint also allows for relative translation for the suspension.
- *
- * @author saharan
- * @author lo-th
- */
 
 function WheelJoint ( config ){
 
@@ -4843,12 +4732,6 @@ function JointConfig(){
 
 }
 
-/**
- * This class holds mass information of a shape.
- * @author lo-th
- * @author saharan
- */
-
 function MassInfo (){
 
     // Mass of the shape.
@@ -4886,11 +4769,6 @@ function ImpulseDataBuffer (){
 
 }
 
-/**
-* The class holds details of the contact point.
-* @author saharan
-*/
-
 function ManifoldPoint(){
 
     // Whether this manifold point is persisting or not.
@@ -4923,12 +4801,6 @@ function ManifoldPoint(){
     this.penetration = 0;
 
 }
-
-/**
-* A contact manifold between two shapes.
-* @author saharan
-* @author lo-th
-*/
 
 function ContactManifold () {
 
@@ -5045,11 +4917,6 @@ function ContactPointDataBuffer (){
 
 }
 
-/**
-* ...
-* @author saharan
-* @author lo-th
-*/
 function ContactConstraint ( manifold ){
     
     Constraint.call( this );
@@ -5427,13 +5294,6 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
 });
 
-/**
-* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
-*
-* @author saharan
-* @author lo-th
-*/
-
 function Contact(){
 
     // The first shape.
@@ -5643,14 +5503,6 @@ Object.assign( Contact.prototype, {
     }
 
 } );
-
-/**
-* The class of rigid body.
-* Rigid body has the shape of a single or multiple collision processing,
-* I can set the parameters individually.
-* @author saharan
-*/
-
 
 function RigidBody ( Position, Rotation ) {
 
@@ -6271,11 +6123,7 @@ function Pair ( s1, s2 ){
 
 }
 
-/**
-* The broad-phase is used for collecting all possible pairs for collision.
-*/
-
- function BroadPhase(){
+function BroadPhase(){
 
     this.types = BR_NULL;
     this.numPairChecks = 0;
@@ -6393,12 +6241,6 @@ Object.assign( Proxy.prototype, {
 
 });
 
-/**
-* A basic implementation of proxies.
-*
-* @author saharan
-*/
-
 function BasicProxy ( shape ) {
 
     Proxy.call( this, shape );
@@ -6416,11 +6258,6 @@ BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
-* A broad-phase algorithm with brute-force search.
-* This always checks for all possible pairs.
-*/
 
 function BruteForceBroadPhase(){
 
@@ -6476,11 +6313,6 @@ BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.protot
     }
 
 });
-
-/**
- * A projection axis for sweep and prune broad-phase.
- * @author saharan
- */
 
 function SAPAxis (){
 
@@ -6673,12 +6505,6 @@ function SAPElement ( proxy, max ) {
 
 }
 
-/**
- * A proxy for sweep and prune broad-phase.
- * @author saharan
- * @author lo-th
- */
-
 function SAPProxy ( sap, shape ){
 
     Proxy.call( this, shape );
@@ -6745,13 +6571,6 @@ SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
- * A broad-phase collision detection algorithm using sweep and prune.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SAPBroadPhase () {
 
@@ -6959,11 +6778,6 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
 
 });
 
-/**
-* A node of the dynamic bounding volume tree.
-* @author saharan
-*/
-
 function DBVTNode(){
     
 	// The first child node of this node.
@@ -6980,13 +6794,6 @@ function DBVTNode(){
     this.aabb = new AABB();
 
 }
-
-/**
- * A dynamic bounding volume tree for the broad-phase algorithm.
- *
- * @author saharan
- * @author lo-th
- */
 
 function DBVT(){
 
@@ -7328,11 +7135,6 @@ Object.assign( DBVT.prototype, {
     
 });
 
-/**
-* A proxy for dynamic bounding volume tree broad-phase.
-* @author saharan
-*/
-
 function DBVTProxy ( shape ) {
 
     Proxy.call( this, shape);
@@ -7351,12 +7153,6 @@ DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
- * A broad-phase algorithm using dynamic bounding volume tree.
- * @author saharan
- * @author lo-th
- */
 
 function DBVTBroadPhase(){
 
@@ -7495,10 +7291,6 @@ Object.assign( CollisionDetector.prototype, {
 
 } );
 
-/**
- * A collision detector which detects collisions between two boxes.
- * @author saharan
- */
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
@@ -7543,7 +7335,74 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
     constructor: BoxBoxCollisionDetector,
 
-    tryAxis: function ( n, a, b, c, d, axe, axis, rights, overlaps, rev ) {
+    tryAxisOO: function ( f ) {
+
+        var v = this.v;
+        var mdot = _Math.dotVectors;
+        var len, len1, len2, dot1, dot2, dot3, right;
+
+        len = mdot( v[f[0]], this.d );
+
+        right = len > 0 ? true : false;
+        len = right ? len : -len;
+        
+        dot1 = mdot( v[f[0]], v[f[1]] );
+        dot2 = mdot( v[f[0]], v[f[2]] );
+        dot3 = mdot( v[f[0]], v[f[3]] );
+        dot1 = dot1 < 0 ? -dot1 : dot1;
+        dot2 = dot2 < 0 ? -dot2 : dot2;
+        dot3 = dot3 < 0 ? -dot3 : dot3;
+
+        len1 = f[4];
+        len2 = dot1*f[5] + dot2*f[6] + dot3*f[7];
+        
+        return { o:len - len1 - len2, r: right };
+
+    },
+
+    tryAxisCompOO: function ( f ) {
+
+        var v = this.v;
+        var mdot = _Math.dotVectors;
+        var epsilon = _Math.EPZ;
+        var len, len1, len2, dot1, dot2, right;
+
+        len = v[f[0]].lengthSq();
+
+        if( len > epsilon ){
+
+            v[f[0]].multiplyScalar( 1 / _Math.sqrt( len ) );
+
+            len = mdot( v[f[0]], this.d );
+
+            right = len > 0 ? true : false;
+            len = right ? len : -len;
+
+            dot1 = mdot( v[f[0]], v[f[1]] );
+            dot2 = mdot( v[f[0]], v[f[2]] );
+            dot1 = dot1 < 0 ? -dot1 : dot1;
+            dot2 = dot2 < 0 ? -dot2 : dot2;
+
+            len1 = dot1*f[5] + dot2*f[6];
+
+            dot1 = mdot( v[f[0]], v[f[3]] );
+            dot2 = mdot( v[f[0]], v[f[4]] );
+            dot1 = dot1 < 0 ? -dot1 : dot1;
+            dot2 = dot2 < 0 ? -dot2 : dot2;
+
+            len2 = dot1*f[7] + dot2*f[8];
+
+            return { o: len - len1 - len2, r: right, inv:false };
+
+        } else {
+
+            return { o: 0, r: false, inv: true };
+
+        }
+
+    },
+
+    /*tryAxis: function ( n, a, b, c, d, axe1, axe2, axe3, axe4, rights, overlaps, rev ) {
 
         var v = this.v;
         var mdot = _Math.dotVectors;
@@ -7561,9 +7420,9 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         dot2 = dot2 < 0 ? -dot2 : dot2;
         dot3 = dot3 < 0 ? -dot3 : dot3;
 
-        cross = dot1*axis.x + dot2*axis.y + dot3*axis.z;
+        cross = dot1*axe2 + dot2*axe3 + dot3*axe4;
 
-        len1 = axe;//rev ? cross : axe;
+        len1 = axe1;//rev ? cross : axe;
         len2 = cross;//rev ? axe : cross;
         
         overlaps[n] = len - len1 - len2;
@@ -7613,7 +7472,7 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
 
         }
 
-    },
+    },*/
 
     detectCollision: function ( shape1, shape2, manifold ) {
         // What you are doing 
@@ -7742,15 +7601,15 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // invalid flags
         var invalid = [];
 
-        /*var faces = [
+        var faces = [
 
-            [ 0, 6, 7, 8, d1.x, d2 ],
-            [ 1, 6, 7, 8, d1.y, d2 ],
-            [ 2, 6, 7, 8, d1.z, d2 ],
+            [ 0, 6, 7, 8, d1.x, d2.x, d2.y, d2.z ],
+            [ 1, 6, 7, 8, d1.y, d2.x, d2.y, d2.z ],
+            [ 2, 6, 7, 8, d1.z, d2.x, d2.y, d2.z ],
 
-            [ 6, 0, 1, 2, d2.x, d1 ],
-            [ 7, 0, 1, 2, d2.y, d1 ],
-            [ 8, 0, 1, 2, d2.z, d1 ],
+            [ 6, 0, 1, 2, d2.x, d1.x, d1.y, d1.z ],
+            [ 7, 0, 1, 2, d2.y, d1.x, d1.y, d1.z ],
+            [ 8, 0, 1, 2, d2.z, d1.x, d1.y, d1.z ],
 
             [ 12, 1, 2, 7, 8, d1.y, d1.z, d2.y, d2.z ],
             [ 13, 1, 2, 6, 8, d1.y, d1.z, d2.x, d2.z ],
@@ -7764,32 +7623,60 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             [ 19, 0, 1, 6, 8, d1.x, d1.y, d2.x, d2.z ],
             [ 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y ],
 
-        ]*/
+        ];
 
         var mdot = _Math.dotVectors;
 
+        var no = false, over;
+
+        for( i = 0; i < 15; i++ ){
+
+            if( i < 6 ){
+
+                over = this.tryAxisOO( faces[i] );
+                if( over.o > 0 ) { no = true; break; }
+                else{ 
+                    overlaps[i] = over.o;
+                    rights[i] = over.r;
+                }
+
+            } else {
+
+                over = this.tryAxisCompOO( faces[i] );
+                if( !over.inv && over.o > 0 ) { no = true; break; }
+                else{ 
+                    overlaps[i] = over.o;
+                    rights[i] = over.r;
+                    invalid[i] = over.inv;
+                }
+
+            }
+        }
+
+        if( no ) return;
+
         // try axis 1
-        this.tryAxis( 0, 0, 6, 7, 8, d1.x, d2, rights, overlaps );
+        /*this.tryAxis( 0, 0, 6, 7, 8, d1.x, d2.x, d2.y, d2.z, rights, overlaps );
         if( overlaps[0] > 0 ) return;
 
         // try axis 2
-        this.tryAxis( 1, 1, 6, 7, 8, d1.y, d2, rights, overlaps );
+        this.tryAxis( 1, 1, 6, 7, 8, d1.y, d2.x, d2.y, d2.z, rights, overlaps );
         if( overlaps[1] > 0 ) return;
 
         // try axis 3
-        this.tryAxis( 2, 2, 6, 7, 8, d1.z, d2, rights, overlaps );
+        this.tryAxis( 2, 2, 6, 7, 8, d1.z, d2.x, d2.y, d2.z, rights, overlaps );
         if( overlaps[2] > 0 ) return;
 
         // try axis 4
-        this.tryAxis( 3, 6, 0, 1, 2, d2.x, d1, rights, overlaps, true );
+        this.tryAxis( 3, 6, 0, 1, 2, d2.x, d1.x, d1.y, d1.z, rights, overlaps, true );
         if( overlaps[3] > 0 ) return;
 
         // try axis 5
-        this.tryAxis( 4, 7, 0, 1, 2, d2.y, d1, rights, overlaps, true );
+        this.tryAxis( 4, 7, 0, 1, 2, d2.y, d1.x, d1.y, d1.z, rights, overlaps, true );
         if( overlaps[4] > 0 ) return;
 
         // try axis 6
-        this.tryAxis( 5, 8, 0, 1, 2, d2.z, d1, rights, overlaps, true );
+        this.tryAxis( 5, 8, 0, 1, 2, d2.z, d1.x, d1.y, d1.z, rights, overlaps, true );
         if( overlaps[5] > 0 ) return;
 
         //
@@ -7829,7 +7716,7 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // try axis 15
         this.tryAxisComp( 14, 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y, rights, overlaps, invalid );
         if( !invalid[14] && overlaps[14] > 0 ) return;
-
+*/
         // boxes are overlapping
         var depth=overlaps[0];
         var depth2=overlaps[0];
@@ -9523,6 +9410,18 @@ function CylinderCylinderCollisionDetector() {
     
     CollisionDetector.call( this );
 
+    this.n = new Vec3();
+    this.p = new Vec3();
+    this.d = new Vec3();
+    this.p1 = new Vec3();
+    this.p2 = new Vec3();
+
+    this.tmp0 = new Vec3();
+    this.tmp1 = new Vec3();
+    this.tmp2 = new Vec3();
+
+
+
 }
 
 CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
@@ -9531,6 +9430,22 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
 
     getSep: function ( c1, c2, sep, pos, dep ) {
+
+        var n = this.n;
+        var p = this.p;
+        var d = this.d;
+        var p1 = this.p1;
+        var p2 = this.p2;
+
+        var tmp0 = this.tmp0;
+        var tmp1 = this.tmp1;
+        var tmp2 = this.tmp2;
+
+        p1.copy( c1.position );
+        p2.copy( c2.position );
+
+        // diff
+        d.sub( p2, p1 );
 
         var t1x;
         var t1y;
@@ -9546,273 +9461,240 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
         var p2x;
         var p2y;
         var p2z;
-        var v01x=c1.position.x;
-        var v01y=c1.position.y;
-        var v01z=c1.position.z;
-        var v02x=c2.position.x;
-        var v02y=c2.position.y;
-        var v02z=c2.position.z;
-        var v0x=v02x-v01x;
-        var v0y=v02y-v01y;
-        var v0z=v02z-v01z;
-        if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
-        var nx=-v0x;
-        var ny=-v0y;
-        var nz=-v0z;
-        this.supportPoint(c1,-nx,-ny,-nz,sup);
-        var v11x=sup.x;
-        var v11y=sup.y;
-        var v11z=sup.z;
-        this.supportPoint(c2,nx,ny,nz,sup);
-        var v12x=sup.x;
-        var v12y=sup.y;
-        var v12z=sup.z;
-        var v1x=v12x-v11x;
-        var v1y=v12y-v11y;
-        var v1z=v12z-v11z;
-        if(v1x*nx+v1y*ny+v1z*nz<=0){
-        return false;
+
+        if( d.lengthSq() === 0 ) d.y = 0.001;
+        n.copy( d ).negate();
+        
+        this.supportPoint( c1,-n.x,-n.y,-n.z, sup );
+        tmp1.copy( sup );
+
+        this.supportPoint( c2,n.x,n.y,n.z,sup);
+        tmp2.copy( sup );
+
+        tmp0.sub( tmp2, tmp1 );
+
+        if( tmp0.x*n.x+tmp0.y*n.y+tmp0.z*n.z <= 0 ) return false;
+
+        n.cross( tmp0, d );
+
+        if( n.lengthSq() == 0 ){
+            sep.sub( tmp0, d ).normalize();
+            pos.add( tmp1, tmp2 ).scaleEqual( 0.5 );
+            //sep.set( tmp0.x-d.x, tmp0.y-d.y, tmp0.z-d.z ).normalize();
+            //pos.set( (tmp1.x+tmp2.x)*0.5, (tmp1.y+tmp2.y)*0.5, (tmp1.z+tmp2.z)*0.5 );
+            return true;
         }
-        nx=v1y*v0z-v1z*v0y;
-        ny=v1z*v0x-v1x*v0z;
-        nz=v1x*v0y-v1y*v0x;
-        if(nx*nx+ny*ny+nz*nz==0){
-        sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
-        pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
-        return true;
-        }
-        this.supportPoint(c1,-nx,-ny,-nz,sup);
+
+        this.supportPoint( c1,-n.x,-n.y,-n.z,sup );
         var v21x=sup.x;
         var v21y=sup.y;
         var v21z=sup.z;
-        this.supportPoint(c2,nx,ny,nz,sup);
+        this.supportPoint( c2,n.x,n.y,n.z,sup );
         var v22x=sup.x;
         var v22y=sup.y;
         var v22z=sup.z;
         var v2x=v22x-v21x;
         var v2y=v22y-v21y;
         var v2z=v22z-v21z;
-        if(v2x*nx+v2y*ny+v2z*nz<=0){
-        return false;
+
+        if(v2x*n.x+v2y*n.y+v2z*n.z<=0) return false;
+        
+        t1x=tmp0.x-d.x;
+        t1y=tmp0.y-d.y;
+        t1z=tmp0.z-d.z;
+        t2x=v2x-d.x;
+        t2y=v2y-d.y;
+        t2z=v2z-d.z;
+        n.x=t1y*t2z-t1z*t2y;
+        n.y=t1z*t2x-t1x*t2z;
+        n.z=t1x*t2y-t1y*t2x;
+        if(n.x*d.x+n.y*d.y+n.z*d.z>0){
+            t1x=tmp0.x;
+            t1y=tmp0.y;
+            t1z=tmp0.z;
+            tmp0.x=v2x;
+            tmp0.y=v2y;
+            tmp0.z=v2z;
+            v2x=t1x;
+            v2y=t1y;
+            v2z=t1z;
+            t1x=tmp1.x;
+            t1y=tmp1.y;
+            t1z=tmp1.z;
+            tmp1.x=v21x;
+            tmp1.y=v21y;
+            tmp1.z=v21z;
+            v21x=t1x;
+            v21y=t1y;
+            v21z=t1z;
+            t1x=tmp2.x;
+            t1y=tmp2.y;
+            t1z=tmp2.z;
+            tmp2.x=v22x;
+            tmp2.y=v22y;
+            tmp2.z=v22z;
+            v22x=t1x;
+            v22y=t1y;
+            v22z=t1z;
+
+            n.negate();
         }
-        t1x=v1x-v0x;
-        t1y=v1y-v0y;
-        t1z=v1z-v0z;
-        t2x=v2x-v0x;
-        t2y=v2y-v0y;
-        t2z=v2z-v0z;
-        nx=t1y*t2z-t1z*t2y;
-        ny=t1z*t2x-t1x*t2z;
-        nz=t1x*t2y-t1y*t2x;
-        if(nx*v0x+ny*v0y+nz*v0z>0){
-        t1x=v1x;
-        t1y=v1y;
-        t1z=v1z;
-        v1x=v2x;
-        v1y=v2y;
-        v1z=v2z;
-        v2x=t1x;
-        v2y=t1y;
-        v2z=t1z;
-        t1x=v11x;
-        t1y=v11y;
-        t1z=v11z;
-        v11x=v21x;
-        v11y=v21y;
-        v11z=v21z;
-        v21x=t1x;
-        v21y=t1y;
-        v21z=t1z;
-        t1x=v12x;
-        t1y=v12y;
-        t1z=v12z;
-        v12x=v22x;
-        v12y=v22y;
-        v12z=v22z;
-        v22x=t1x;
-        v22y=t1y;
-        v22z=t1z;
-        nx=-nx;
-        ny=-ny;
-        nz=-nz;
-        }
+
         var iterations=0;
         while(true){
-        if(++iterations>100){
-        return false;
-        }
-        this.supportPoint(c1,-nx,-ny,-nz,sup);
-        var v31x=sup.x;
-        var v31y=sup.y;
-        var v31z=sup.z;
-        this.supportPoint(c2,nx,ny,nz,sup);
-        var v32x=sup.x;
-        var v32y=sup.y;
-        var v32z=sup.z;
-        var v3x=v32x-v31x;
-        var v3y=v32y-v31y;
-        var v3z=v32z-v31z;
-        if(v3x*nx+v3y*ny+v3z*nz<=0){
-        return false;
-        }
-        if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
-        v2x=v3x;
-        v2y=v3y;
-        v2z=v3z;
-        v21x=v31x;
-        v21y=v31y;
-        v21z=v31z;
-        v22x=v32x;
-        v22y=v32y;
-        v22z=v32z;
-        t1x=v1x-v0x;
-        t1y=v1y-v0y;
-        t1z=v1z-v0z;
-        t2x=v3x-v0x;
-        t2y=v3y-v0y;
-        t2z=v3z-v0z;
-        nx=t1y*t2z-t1z*t2y;
-        ny=t1z*t2x-t1x*t2z;
-        nz=t1x*t2y-t1y*t2x;
-        continue;
-        }
-        if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
-        v1x=v3x;
-        v1y=v3y;
-        v1z=v3z;
-        v11x=v31x;
-        v11y=v31y;
-        v11z=v31z;
-        v12x=v32x;
-        v12y=v32y;
-        v12z=v32z;
-        t1x=v3x-v0x;
-        t1y=v3y-v0y;
-        t1z=v3z-v0z;
-        t2x=v2x-v0x;
-        t2y=v2y-v0y;
-        t2z=v2z-v0z;
-        nx=t1y*t2z-t1z*t2y;
-        ny=t1z*t2x-t1x*t2z;
-        nz=t1x*t2y-t1y*t2x;
-        continue;
-        }
-        var hit=false;
-        while(true){
-        t1x=v2x-v1x;
-        t1y=v2y-v1y;
-        t1z=v2z-v1z;
-        t2x=v3x-v1x;
-        t2y=v3y-v1y;
-        t2z=v3z-v1z;
-        nx=t1y*t2z-t1z*t2y;
-        ny=t1z*t2x-t1x*t2z;
-        nz=t1x*t2y-t1y*t2x;
-        len=1/_Math.sqrt(nx*nx+ny*ny+nz*nz);
-        nx*=len;
-        ny*=len;
-        nz*=len;
-        if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
-        var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
-        var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
-        var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
-        var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
-        var sum=b0+b1+b2+b3;
-        if(sum<=0){
-        b0=0;
-        b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
-        b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
-        b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
-        sum=b1+b2+b3;
-        }
-        var inv=1/sum;
-        p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
-        p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
-        p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
-        p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
-        p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
-        p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
-        hit=true;
-        }
-        this.supportPoint(c1,-nx,-ny,-nz,sup);
-        var v41x=sup.x;
-        var v41y=sup.y;
-        var v41z=sup.z;
-        this.supportPoint(c2,nx,ny,nz,sup);
-        var v42x=sup.x;
-        var v42y=sup.y;
-        var v42z=sup.z;
-        var v4x=v42x-v41x;
-        var v4y=v42y-v41y;
-        var v4z=v42z-v41z;
-        var separation=-(v4x*nx+v4y*ny+v4z*nz);
-        if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
-        if(hit){
-        sep.set( -nx, -ny, -nz );
-        pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
-        dep.x=separation;
-        return true;
-        }
-        return false;
-        }
-        if(
-        (v4y*v1z-v4z*v1y)*v0x+
-        (v4z*v1x-v4x*v1z)*v0y+
-        (v4x*v1y-v4y*v1x)*v0z<0
-        ){
-        if(
-        (v4y*v2z-v4z*v2y)*v0x+
-        (v4z*v2x-v4x*v2z)*v0y+
-        (v4x*v2y-v4y*v2x)*v0z<0
-        ){
-        v1x=v4x;
-        v1y=v4y;
-        v1z=v4z;
-        v11x=v41x;
-        v11y=v41y;
-        v11z=v41z;
-        v12x=v42x;
-        v12y=v42y;
-        v12z=v42z;
-        }else{
-        v3x=v4x;
-        v3y=v4y;
-        v3z=v4z;
-        v31x=v41x;
-        v31y=v41y;
-        v31z=v41z;
-        v32x=v42x;
-        v32y=v42y;
-        v32z=v42z;
-        }
-        }else{
-        if(
-        (v4y*v3z-v4z*v3y)*v0x+
-        (v4z*v3x-v4x*v3z)*v0y+
-        (v4x*v3y-v4y*v3x)*v0z<0
-        ){
-        v2x=v4x;
-        v2y=v4y;
-        v2z=v4z;
-        v21x=v41x;
-        v21y=v41y;
-        v21z=v41z;
-        v22x=v42x;
-        v22y=v42y;
-        v22z=v42z;
-        }else{
-        v1x=v4x;
-        v1y=v4y;
-        v1z=v4z;
-        v11x=v41x;
-        v11y=v41y;
-        v11z=v41z;
-        v12x=v42x;
-        v12y=v42y;
-        v12z=v42z;
-        }
-        }
-        }
+            if( ++iterations > 100 ) return false;
+            
+            this.supportPoint(c1,-n.x,-n.y,-n.z,sup);
+            var v31x=sup.x;
+            var v31y=sup.y;
+            var v31z=sup.z;
+            this.supportPoint(c2,n.x,n.y,n.z,sup);
+            var v32x=sup.x;
+            var v32y=sup.y;
+            var v32z=sup.z;
+            var v3x=v32x-v31x;
+            var v3y=v32y-v31y;
+            var v3z=v32z-v31z;
+            if(v3x*n.x+v3y*n.y+v3z*n.z<=0) return false;
+            
+            if((tmp0.y*v3z-tmp0.z*v3y)*d.x+(tmp0.z*v3x-tmp0.x*v3z)*d.y+(tmp0.x*v3y-tmp0.y*v3x)*d.z<0){
+                v2x=v3x;
+                v2y=v3y;
+                v2z=v3z;
+                v21x=v31x;
+                v21y=v31y;
+                v21z=v31z;
+                v22x=v32x;
+                v22y=v32y;
+                v22z=v32z;
+                t1x=tmp0.x-d.x;
+                t1y=tmp0.y-d.y;
+                t1z=tmp0.z-d.z;
+                t2x=v3x-d.x;
+                t2y=v3y-d.y;
+                t2z=v3z-d.z;
+                n.x=t1y*t2z-t1z*t2y;
+                n.y=t1z*t2x-t1x*t2z;
+                n.z=t1x*t2y-t1y*t2x;
+                continue;
+            }
+            if((v3y*v2z-v3z*v2y)*d.x+(v3z*v2x-v3x*v2z)*d.y+(v3x*v2y-v3y*v2x)*d.z<0){
+                tmp0.x=v3x;
+                tmp0.y=v3y;
+                tmp0.z=v3z;
+                tmp1.x=v31x;
+                tmp1.y=v31y;
+                tmp1.z=v31z;
+                tmp2.x=v32x;
+                tmp2.y=v32y;
+                tmp2.z=v32z;
+                t1x=v3x-d.x;
+                t1y=v3y-d.y;
+                t1z=v3z-d.z;
+                t2x=v2x-d.x;
+                t2y=v2y-d.y;
+                t2z=v2z-d.z;
+                n.x=t1y*t2z-t1z*t2y;
+                n.y=t1z*t2x-t1x*t2z;
+                n.z=t1x*t2y-t1y*t2x;
+                continue;
+            }
+
+            var hit=false;
+            while( true ){
+                t1x=v2x-tmp0.x;
+                t1y=v2y-tmp0.y;
+                t1z=v2z-tmp0.z;
+                t2x=v3x-tmp0.x;
+                t2y=v3y-tmp0.y;
+                t2z=v3z-tmp0.z;
+                n.x=t1y*t2z-t1z*t2y;
+                n.y=t1z*t2x-t1x*t2z;
+                n.z=t1x*t2y-t1y*t2x;
+                len=1/_Math.sqrt(n.x*n.x+n.y*n.y+n.z*n.z);
+                n.x*=len;
+                n.y*=len;
+                n.z*=len;
+                if(n.x*tmp0.x+n.y*tmp0.y+n.z*tmp0.z>=0&&!hit){
+                var b0=(tmp0.y*v2z-tmp0.z*v2y)*v3x+(tmp0.z*v2x-tmp0.x*v2z)*v3y+(tmp0.x*v2y-tmp0.y*v2x)*v3z;
+                var b1=(v3y*v2z-v3z*v2y)*d.x+(v3z*v2x-v3x*v2z)*d.y+(v3x*v2y-v3y*v2x)*d.z;
+                var b2=(d.y*tmp0.z-d.z*tmp0.y)*v3x+(d.z*tmp0.x-d.x*tmp0.z)*v3y+(d.x*tmp0.y-d.y*tmp0.x)*v3z;
+                var b3=(v2y*tmp0.z-v2z*tmp0.y)*d.x+(v2z*tmp0.x-v2x*tmp0.z)*d.y+(v2x*tmp0.y-v2y*tmp0.x)*d.z;
+                var sum=b0+b1+b2+b3;
+                if(sum<=0){
+                    b0=0;
+                    b1=(v2y*v3z-v2z*v3y)*n.x+(v2z*v3x-v2x*v3z)*n.y+(v2x*v3y-v2y*v3x)*n.z;
+                    b2=(v3y*v2z-v3z*v2y)*n.x+(v3z*v2x-v3x*v2z)*n.y+(v3x*v2y-v3y*v2x)*n.z;
+                    b3=(tmp0.y*v2z-tmp0.z*v2y)*n.x+(tmp0.z*v2x-tmp0.x*v2z)*n.y+(tmp0.x*v2y-tmp0.y*v2x)*n.z;
+                    sum=b1+b2+b3;
+                }
+                var inv=1/sum;
+                p1x=(p1.x*b0+tmp1.x*b1+v21x*b2+v31x*b3)*inv;
+                p1y=(p1.y*b0+tmp1.y*b1+v21y*b2+v31y*b3)*inv;
+                p1z=(p1.z*b0+tmp1.z*b1+v21z*b2+v31z*b3)*inv;
+                p2x=(p2.x*b0+tmp2.x*b1+v22x*b2+v32x*b3)*inv;
+                p2y=(p2.y*b0+tmp2.y*b1+v22y*b2+v32y*b3)*inv;
+                p2z=(p2.z*b0+tmp2.z*b1+v22z*b2+v32z*b3)*inv;
+                hit=true;
+                }
+                this.supportPoint(c1,-n.x,-n.y,-n.z,sup);
+                var v41x=sup.x;
+                var v41y=sup.y;
+                var v41z=sup.z;
+                this.supportPoint(c2,n.x,n.y,n.z,sup);
+                var v42x=sup.x;
+                var v42y=sup.y;
+                var v42z=sup.z;
+                var v4x=v42x-v41x;
+                var v4y=v42y-v41y;
+                var v4z=v42z-v41z;
+                var separation=-(v4x*n.x+v4y*n.y+v4z*n.z);
+                if((v4x-v3x)*n.x+(v4y-v3y)*n.y+(v4z-v3z)*n.z<=0.01||separation>=0){
+                    if(hit){
+                        sep.set( -n.x, -n.y, -n.z );
+                        pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
+                        dep.x=separation;
+                        return true;
+                    }
+                    return false;
+                }
+
+                if( (v4y*tmp0.z-v4z*tmp0.y)*d.x+ (v4z*tmp0.x-v4x*tmp0.z)*d.y+ (v4x*tmp0.y-v4y*tmp0.x)*d.z<0 ){
+                    if( (v4y*v2z-v4z*v2y)*d.x+ (v4z*v2x-v4x*v2z)*d.y+ (v4x*v2y-v4y*v2x)*d.z<0 ){
+
+                        tmp0.set( v4x, v4y, v4z );
+                        tmp1.set( v41x, v41y, v41z );
+                        tmp2.set( v42x, v42y, v42z );
+
+                    }else{
+                        v3x=v4x;
+                        v3y=v4y;
+                        v3z=v4z;
+                        v31x=v41x;
+                        v31y=v41y;
+                        v31z=v41z;
+                        v32x=v42x;
+                        v32y=v42y;
+                        v32z=v42z;
+                    }
+                }else{
+                    if( (v4y*v3z-v4z*v3y)*d.x+ (v4z*v3x-v4x*v3z)*d.y+ (v4x*v3y-v4y*v3x)*d.z<0 ){
+                        v2x=v4x;
+                        v2y=v4y;
+                        v2z=v4z;
+                        v21x=v41x;
+                        v21y=v41y;
+                        v21z=v41z;
+                        v22x=v42x;
+                        v22y=v42y;
+                        v22z=v42z;
+                    }else{
+                        tmp0.set( v4x, v4y, v4z );
+                        tmp1.set( v41x, v41y, v41z );
+                        tmp2.set( v42x, v42y, v42z );
+                    }
+                }
+            }
         }
         //return false;
     },
@@ -9832,27 +9714,28 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
         var oy;
         var oz;
         if(len==0){
-        if(ldy<0){
-        ox=rad;
-        oy=-hh;
-        oz=0;
+            if(ldy<0){
+                ox=rad;
+                oy=-hh;
+                oz=0;
+            }else{
+                ox=rad;
+                oy=hh;
+                oz=0;
+            }
         }else{
-        ox=rad;
-        oy=hh;
-        oz=0;
+            len=c.radius/_Math.sqrt(len);
+            if(ldy<0){
+                ox=radx*len;
+                oy=-hh;
+                oz=radz*len;
+            }else{
+                ox=radx*len;
+                oy=hh;
+                oz=radz*len;
+            }
         }
-        }else{
-        len=c.radius/_Math.sqrt(len);
-        if(ldy<0){
-        ox=radx*len;
-        oy=-hh;
-        oz=radz*len;
-        }else{
-        ox=radx*len;
-        oy=hh;
-        oz=radz*len;
-        }
-        }
+        
         ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
         ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
         ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
@@ -10329,12 +10212,6 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
 });
 
-/**
- * A collision detector which detects collisions between sphere and box.
- * @author saharan
- * @author lo-th
- */
-
 function SphereBoxCollisionDetector ( flip ) {
     
     CollisionDetector.call( this );
@@ -10551,12 +10428,6 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
- */
- 
 function SphereSphereCollisionDetector (){
 
     CollisionDetector.call( this );
@@ -10597,12 +10468,6 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
- */
- 
 function SpherePlaneCollisionDetector ( flip ){
 
     CollisionDetector.call( this );
@@ -10658,12 +10523,6 @@ SpherePlaneCollisionDetector.prototype = Object.assign( Object.create( Collision
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
- */
- 
 function BoxPlaneCollisionDetector ( flip ){
 
     CollisionDetector.call( this );
@@ -10793,19 +10652,6 @@ BoxPlaneCollisionDetector.prototype = Object.assign( Object.create( CollisionDet
     }
 
 });
-
-//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
-
-//import { TetraShape } from '../collision/shape/TetraShape';
-
-/**
- * The class of physical computing world. 
- * You must be added to the world physical all computing objects
- * @author saharan
- * @author lo-th
- */
-
- // timestep, broadphase, iterations, worldscale, random, stat
 
 function World ( o ) {
 
