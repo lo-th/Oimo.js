@@ -45,7 +45,8 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
     crossX: function ( a, b, c ) {
 
-        return this.tmp3.crossVectors( a, b ).scaleVectorEqual( c ).addition();
+        this.tmp3.crossVectors( a, b ).scaleVectorEqual( c );
+        return this.tmp3.x+this.tmp3.y+this.tmp3.z;
 
     },
 
@@ -341,12 +342,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
             else state = 2;
         }
 
-        var depth = this.sep;
-
-        var ms = 0.96;
-        var m0 = 1.5;
-        var m1 = 0.5;
-        var m2 = 0.866025403;
+        var depth = this.sep;//dep.x;
 
         var pd;
         var a;
@@ -359,16 +355,15 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                 manifold.addPointVec( p, n, depth, false );
             break;
             case 1:
-                n.copy( n1 );
                 if( right1 ){
                     cc1.add( p1, d1 );
-                    //n.copy( n1 );
+                    n.copy( n1 );
                 }else{
                     cc1.sub( p1, d1 );
-                    n.negate();
+                    n.copy( n1 ).negate();
                 }
                 dot = _Math.dotVectors( n, n2 );
-                if(dot<0) len=h2;
+                if(dot<0)len=h2;
                 else len=-h2;
 
                 cc2.x = p2.x+len*n2.x;
@@ -378,56 +373,76 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
                 if(dot2>=0.999999) v[0].x=-n.y;
                 
-                len = _Math.dotVectors( v[0], n2 );
-                d.copy( n2 ).scaleEqual( len ).subEqual( v[0] );
-                len = d.length();
-                if( len === 0 ) break;
-                len = r2/len;
-                d.scaleEqual( len );
-                v[0].add( cc2, d );
 
-                if(dot<-ms||dot>ms){
+                len = _Math.dotVectors( v[0], n2 );
+                d.x=len*n2.x-v[0].x;
+                d.y=len*n2.y-v[0].y;
+                d.z=len*n2.z-v[0].z;
+                len = d.length();
+                if(len==0) break;
+                len=r2/len;
+                d.x*=len;
+                d.y*=len;
+                d.z*=len;
+                v[0].x=cc2.x+d.x;
+                v[0].y=cc2.y+d.y;
+                v[0].z=cc2.z+d.z;
+
+
+                if(dot<-0.96||dot>0.96){
                     rtt.set(
-                        n2.x*n2.x*m0-m1,
-                        n2.x*n2.y*m0-n2.z*m2,
-                        n2.x*n2.z*m0+n2.y*m2,
-                        n2.y*n2.x*m0+n2.z*m2,
-                        n2.y*n2.y*m0-m1,
-                        n2.y*n2.z*m0-n2.x*m2,
-                        n2.z*n2.x*m0-n2.y*m2,
-                        n2.z*n2.y*m0+n2.x*m2,
-                        n2.z*n2.z*m0-m1
+                        n2.x*n2.x*1.5-0.5,
+                        n2.x*n2.y*1.5-n2.z*0.866025403,
+                        n2.x*n2.z*1.5+n2.y*0.866025403,
+                        n2.y*n2.x*1.5+n2.z*0.866025403,
+                        n2.y*n2.y*1.5-0.5,
+                        n2.y*n2.z*1.5-n2.x*0.866025403,
+                        n2.z*n2.x*1.5-n2.y*0.866025403,
+                        n2.z*n2.y*1.5+n2.x*0.866025403,
+                        n2.z*n2.z*1.5-0.5
                     )
 
                     v[3].copy( v[0] );
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
-                    v[0].set(
-                        v[3].x-pd*n.x-cc1.x,
-                        v[3].y-pd*n.y-cc1.y,
-                        v[3].z-pd*n.z-cc1.z
-                    );
-                    len = v[0].lengthSq();
-                    if( len > r1*r1 ){
-                        len = r1/_Math.sqrt(len);
-                        v[0].scaleEqual( len );
+                    v[5].sub( v[3], cc1 ).scaleVectorEqual( n );
+
+                    pd = v[5].lengthSq();
+
+                    //pd = n.x*(v[3].x-cc1.x)+n.y*(v[3].y-cc1.y)+n.z*(v[3].z-cc1.z);
+                    v[0].x=v[3].x-pd*n.x-cc1.x;
+                    v[0].y=v[3].y-pd*n.y-cc1.y;
+                    v[0].z=v[3].z-pd*n.z-cc1.z;
+                    len= v[0].lengthSq();
+                    if(len>r1*r1){
+                        len=r1/_Math.sqrt(len);
+                        v[0].x*=len;
+                        v[0].y*=len;
+                        v[0].z*=len;
                     }
-                    v[3].add( cc1, v[0] );
+                    v[3].x=cc1.x+v[0].x;
+                    v[3].y=cc1.y+v[0].y;
+                    v[3].z=cc1.z+v[0].z;
                     manifold.addPointVec( v[3], n, pd, false );
 
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc2 );
+                    v[5].sub( v[3], cc1 ).scaleVectorEqual( n );
+                    //v[3].copy(d).applyMatrix3( rtt );
 
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    //v[3].x=(d.x=v[3].x)+cc2.x;
+                    //v[3].y=(d.y=v[3].y)+cc2.y;
+                    //v[3].z=(d.z=v[3].z)+cc2.z;
+
+                    pd = v[5].lengthSq();//n.x*(v[3].x-cc1.x)+n.y*(v[3].y-cc1.y)+n.z*(v[3].z-cc1.z);
                     if(pd<=0){
-                        v[0].set(
-                            v[3].x - pd*n.x - cc1.x,
-                            v[3].y - pd*n.y - cc1.y,
-                            v[3].z - pd*n.z - cc1.z
-                        );
-                        len = v[0].lengthSq();
-                        if( len > r1*r1 ){
-                            len = r1/_Math.sqrt(len);
-                            v[0].scaleEqual( len );
+                        v[0].x=v[3].x - pd*n.x - cc1.x;
+                        v[0].y=v[3].y - pd*n.y - cc1.y;
+                        v[0].z=v[3].z - pd*n.z - cc1.z;
+                        len=v[0].x*v[0].x+v[0].y*v[0].y+v[0].z*v[0].z;
+                        if(len>r1*r1){
+                            len=r1/_Math.sqrt(len);
+                            v[0].x*=len;
+                            v[0].y*=len;
+                            v[0].z*=len;
                         }
                         v[3].add( cc1, v[0] );
                         manifold.addPointVec( v[3], n, pd, false );
@@ -435,34 +450,53 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc2 );
+                    v[5].sub( v[3], cc1 ).scaleVectorEqual( n );
 
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    /*v[3].copy(d).applyMatrix3( rtt );
+                    d.copy( v[3] );
+
+                    v[3].x=(d.x=v[3].x)+cc2.x;
+                    v[3].y=(d.y=v[3].y)+cc2.y;
+                    v[3].z=(d.z=v[3].z)+cc2.z;*/
+                    pd = v[5].lengthSq();//n.x*(v[3].x-cc1.x)+n.y*(v[3].y-cc1.y)+n.z*(v[3].z-cc1.z);
                     if( pd <= 0 ){
-                        v[0].set(
-                            v[3].x-pd*n.x-cc1.x,
-                            v[3].y-pd*n.y-cc1.y,
-                            v[3].z-pd*n.z-cc1.z
-                        );
+                        v[0].x=v[3].x-pd*n.x-cc1.x;
+                        v[0].y=v[3].y-pd*n.y-cc1.y;
+                        v[0].z=v[3].z-pd*n.z-cc1.z;
                         len = v[0].lengthSq();
-                        if( len > r1*r1 ){
-                            len = r1/_Math.sqrt(len);
-                            v[0].scaleEqual( len )
+                        if(len>r1*r1){
+                            len=r1/_Math.sqrt(len);
+                            v[0].x*=len;
+                            v[0].y*=len;
+                            v[0].z*=len;
                         }
                         v[3].add( cc1, v[0] );
+                        //.x=cc1.x+v[0].x;
+                        //v[3].y=cc1.y+v[0].y;
+                        //v[3].z=cc1.z+v[0].z;
                         manifold.addPointVec( v[3], n, pd, false );
                     }
                 }else{
 
                     v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc1 ).scaleV( n ).addition();
+                    v[5].sub( v[1], cc1 ).scaleVectorEqual( n );
+                    depth1 = v[5].lengthSq();// n.x*(v[1].x-cc1.x)+n.y*(v[1].y-cc1.y)+n.z*(v[1].z-cc1.z);
                     v[1].x-=depth1*n.x;
                     v[1].y-=depth1*n.y;
                     v[1].z-=depth1*n.z;
-
-                    if(dot>0) v[2].add( v[0], n2 ).scaleEqual( h2*2 );
-                    else v[2].sub( v[0], n2 ).scaleEqual( h2*2 );
-
-                    depth2 = v[5].sub( v[2], cc1 ).scaleV( n ).addition();
+                    if(dot>0){
+                        v[2].add( v[0], n2 ).scaleEqual( h2*2 );
+                        //v[2].x=v[0].x+n2.x*h2*2;
+                        //v[2].y=v[0].y+n2.y*h2*2;
+                        //v[2].z=v[0].z+n2.z*h2*2;
+                    }else{
+                        v[2].sub( v[0], n2 ).scaleEqual( h2*2 );
+                        //v[2].x=v[0].x-n2.x*h2*2;
+                        //v[2].y=v[0].y-n2.y*h2*2;
+                        //v[2].z=v[0].z-n2.z*h2*2;
+                    }
+                    v[5].sub( v[2], cc1 ).scaleVectorEqual( n );
+                    depth2 = v[5].lengthSq();//n.x*(v[2].x-cc1.x)+n.y*(v[2].y-cc1.y)+n.z*(v[2].z-cc1.z);
                     v[2].x-=depth2*n.x;
                     v[2].y-=depth2*n.y;
                     v[2].z-=depth2*n.z;
@@ -483,8 +517,8 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                         t1=t2;
                         t2=len;
                     }
-                    if(t2>1) t2 = 1;
-                    if(t1<0) t1 = 0;
+                    if(t2>1)t2=1;
+                    if(t1<0)t1=0;
                     v[0].x=v[1].x+(v[2].x-v[1].x)*t1;
                     v[0].y=v[1].y+(v[2].y-v[1].y)*t1;
                     v[0].z=v[1].z+(v[2].z-v[1].z)*t1;
@@ -494,103 +528,96 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     v[1].x=v[0].x;
                     v[1].y=v[0].y;
                     v[1].z=v[0].z;
-                    len = depth1+(depth2-depth1)*t1;
-                    depth2 = depth1+(depth2-depth1)*t2;
-                    depth1 = len;
+                    len=depth1+(depth2-depth1)*t1;
+                    depth2=depth1+(depth2-depth1)*t2;
+                    depth1=len;
                     if(depth1<0) manifold.addPointVec( v[1], n, pd, false );
                     if(depth2<0) manifold.addPointVec( v[2], n, pd, false );
                 
                 }
             break;
             case 2:
-                n.copy( n2 );
-
                 if(right2){
                     cc2.sub( p2, d2 );
-                    n.negate();
+                    n.copy( n2 ).negate();
                 }else{
                     cc2.add( p2, d2 );
-                    //n.copy( n2 );
+                    n.copy( n2 );
                 }
 
                 dot = _Math.dotVectors( n, n1 );
-                if( dot<0 ) len = h1;
-                else len = -h1;
+                if( dot<0 ) len=h1;
+                else len=-h1;
                 cc1.x = p1.x+len*n1.x;
                 cc1.y = p1.y+len*n1.y;
                 cc1.z = p1.z+len*n1.z;
 
                 v[0].copy( n );
-
-                if( dot1 >= 0.999999 ) v[0].x=-n.y;
+                if( dot1 >= 0.999999 ){
+                    v[0].x=-n.y;
+                }
 
                 len = _Math.dotVectors( v[0], n1 );
-                d.copy( n1 ).scaleEqual( len ).subEqual( v[0] );
+                d.x = len*n1.x-v[0].x;
+                d.y = len*n1.y-v[0].y;
+                d.z = len*n1.z-v[0].z;
                 len = d.length();
                 if( len === 0 ) break;
-                len = r1/len;
-                d.scaleEqual( len );
+                len=r1/len;
+                d.x*=len;
+                d.y*=len;
+                d.z*=len;
                 v[0].add( cc1, d );
 
-                if( dot < -ms || dot > ms ){
+                if(dot<-0.96||dot>0.96){
 
                     rtt.set(
-                        n1.x*n1.x*m0-m1,
-                        n1.x*n1.y*m0-n1.z*m2,
-                        n1.x*n1.z*m0+n1.y*m2,
-                        n1.y*n1.x*m0+n1.z*m2,
-                        n1.y*n1.y*m0-m1,
-                        n1.y*n1.z*m0-n1.x*m2,
-                        n1.z*n1.x*m0-n1.y*m2,
-                        n1.z*n1.y*m0+n1.x*m2,
-                        n1.z*n1.z*m0-m1
+                        n1.x*n1.x*1.5-0.5,
+                        n1.x*n1.y*1.5-n1.z*0.866025403,
+                        n1.x*n1.z*1.5+n1.y*0.866025403,
+                        n1.y*n1.x*1.5+n1.z*0.866025403,
+                        n1.y*n1.y*1.5-0.5,
+                        n1.y*n1.z*1.5-n1.x*0.866025403,
+                        n1.z*n1.x*1.5-n1.y*0.866025403,
+                        n1.z*n1.y*1.5+n1.x*0.866025403,
+                        n1.z*n1.z*1.5-0.5
                     )
 
                     v[3].copy( v[0] );
+                    v[5].sub( v[3], cc2 ).scaleVectorEqual( n );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
-                    v[0].set(
-                        v[3].x-pd*n.x-cc2.x,
-                        v[3].y-pd*n.y-cc2.y,
-                        v[3].z-pd*n.z-cc2.z
-                    );
-                    len = v[0].lengthSq();
-                    if( len > r2*r2 ){
+                    pd = v[5].lengthSq();//   )n.x*(v[3].x-cc2.x)+n.y*(v[3].y-cc2.y)+n.z*(v[3].z-cc2.z);
+                    v[0].x=v[3].x-pd*n.x-cc2.x;
+                    v[0].y=v[3].y-pd*n.y-cc2.y;
+                    v[0].z=v[3].z-pd*n.z-cc2.z;
+                    len = v[0].lengthSq();//  .x*v[0].x+v[0].y*v[0].y+v[0].z*v[0].z;
+                    if(len>r2*r2){
                         len = r2/_Math.sqrt(len);
-                        v[0].scaleEqual( len );
+                        v[0].x*=len;
+                        v[0].y*=len;
+                        v[0].z*=len;
                     }
-
                     v[3].add( cc2, v[0] );
+                    //v[3].x=cc2.x+v[0].x;
+                    //v[3].y=cc2.y+v[0].y;
+                    //v[3].z=cc2.z+v[0].z;
                     manifold.addPointVec( v[3], n.negate(), pd, false );
 
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc1 );
+                    v[5].sub( v[3], cc2 ).scaleVectorEqual( n );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
-                    if(pd<=0){
-                        v[0].set(
-                            v[3].x-pd*n.x-cc2.x,
-                            v[3].y-pd*n.y-cc2.y,
-                            v[3].z-pd*n.z-cc2.z
-                        );
-                        len = v[0].lengthSq();
-                        if(len > r2*r2 ){
-                            len = r2/_Math.sqrt(len);
-                            v[0].scaleEqual( len );
-                        }
-                        v[3].add( cc2, v[0] );
-                        manifold.addPointVec( v[3], n.negate(), pd, false );
-                    }
+                    //v[3].copy(d).applyMatrix3( rtt );
 
-                    d.applyMatrix3( rtt );
-                    v[3].add( d, cc1 );
-
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    //v[3].x=(d.x=v[3].x)+cc1.x;
+                    //v[3].y=(d.y=v[3].y)+cc1.y;
+                    //v[3].z=(d.z=v[3].z)+cc1.z;
+                    pd = v[5].lengthSq();//n.x*(v[3].x-cc2.x)+n.y*(v[3].y-cc2.y)+n.z*(v[3].z-cc2.z);
                     if(pd<=0){
                         v[0].x=v[3].x-pd*n.x-cc2.x;
                         v[0].y=v[3].y-pd*n.y-cc2.y;
                         v[0].z=v[3].z-pd*n.z-cc2.z;
-                        len = v[0].lengthSq();
+                        len=v[0].x*v[0].x+v[0].y*v[0].y+v[0].z*v[0].z;
                         if(len>r2*r2){
                             len=r2/_Math.sqrt(len);
                             v[0].x*=len;
@@ -600,16 +627,41 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                         v[3].add( cc2, v[0] );
                         manifold.addPointVec( v[3], n.negate(), pd, false );
                     }
+
+                    d.applyMatrix3( rtt );
+                    v[3].add( d, cc1 );
+                    v[6].sub( v[3], cc2 ).scaleVectorEqual( n );
+
+                    //v[3].copy(d).applyMatrix3( rtt );
+
+                    //v[3].x=(d.x=v[3].x)+cc1.x;
+                    //v[3].y=(d.y=v[3].y)+cc1.y;
+                    //v[3].z=(d.z=v[3].z)+cc1.z;
+                    pd = v[6].lengthSq();// n.x*(v[3].x-cc2.x)+n.y*(v[3].y-cc2.y)+n.z*(v[3].z-cc2.z);
+                    if(pd<=0){
+                        v[0].x=v[3].x - pd*n.x - cc2.x;
+                        v[0].y=v[3].y - pd*n.y - cc2.y;
+                        v[0].z=v[3].z - pd*n.z - cc2.z;
+                        len = v[0].lengthSq();
+                        if(len>r2*r2){
+                            len = r2/_Math.sqrt(len);
+                            v[0].x*=len;
+                            v[0].y*=len;
+                            v[0].z*=len;
+                        }
+                        v[3].add( cc2, v[0] );
+                        manifold.addPointVec( v[3], n.negate(), pd, false );
+                    }
                 }else{
                     v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc2 ).scaleV( n ).addition();
+                    depth1=n.x*(v[1].x-cc2.x)+n.y*(v[1].y-cc2.y)+n.z*(v[1].z-cc2.z);
                     v[1].x-=depth1*n.x;
                     v[1].y-=depth1*n.y;
                     v[1].z-=depth1*n.z;
                     if(dot>0) v[2].add( v[0], n1 ).scaleEqual( h1*2 );
                     else v[2].sub( v[0], n1 ).scaleEqual( h1*2 );
-
-                    depth2 = v[5].sub( v[2], cc2 ).scaleV( n ).addition();
+                    
+                    depth2 = n.x*(v[2].x-cc2.x)+n.y*(v[2].y-cc2.y)+n.z*(v[2].z-cc2.z);
                     v[2].x-=depth2*n.x;
                     v[2].y-=depth2*n.y;
                     v[2].z-=depth2*n.z;

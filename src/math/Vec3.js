@@ -101,6 +101,24 @@ Object.assign( Vec3.prototype, {
         return this;
 
     },
+
+    scaleV: function( v ){
+
+        this.x*=v.x;
+        this.y*=v.y;
+        this.z*=v.z;
+        return this;
+
+    },
+
+    scaleVectorEqual: function( v ){
+
+        this.x*=v.x;
+        this.y*=v.y;
+        this.z*=v.z;
+        return this;
+
+    },
    
     cross: function( a, b ) {
 
@@ -196,6 +214,12 @@ Object.assign( Vec3.prototype, {
     dot: function ( v ) {
 
         return this.x * v.x + this.y * v.y + this.z * v.z;
+
+    },
+
+    addition: function () {
+
+        return this.x + this.y + this.z;
 
     },
 
