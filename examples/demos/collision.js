@@ -20,9 +20,6 @@ function demo() {
 
     // basic geometry body
 
-    console.log(1e-5)
-    //console.log(2.220446049250313e-16)
-
     var i = 500, d, h, w, o;
     
     while( i-- ) {

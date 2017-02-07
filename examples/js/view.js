@@ -230,7 +230,7 @@ view = {
             hardbox:    new THREE.BoxBufferGeometry(1,1,1),
             cone:       new THREE.CylinderBufferGeometry( 0,1,0.5 ),
             wheel:      new THREE.CylinderBufferGeometry( 1,1,1, 18 ),
-            sphere:     new THREE.SphereBufferGeometry( 1, 16, 12 ),
+            sphere:     new THREE.SphereBufferGeometry( 1, 24, 18 ),
             highsphere: new THREE.SphereBufferGeometry( 1, 32, 24 ),
             cylinder:   new THREE.CylinderBufferGeometry( 1,1,1,12,1 ),
 
@@ -440,8 +440,8 @@ view = {
                 });
                 if( !isWirframe ){
                     mat[name].envMap = envMap;
-                    mat[name].metalness = 0.8;
-                    mat[name].roughness = 0.2;
+                    mat[name].metalness = 0.6;
+                    mat[name].roughness = 0.4;
                 }
 
                 m.dispose();
