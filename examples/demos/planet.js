@@ -5,6 +5,7 @@ function demo() {
     cam ( 0, 10, 40 );
 
     view.hideGrid();
+    view.hideGroundShadow();
 
     world = new OIMO.World({ 
         timestep: 1/60, 

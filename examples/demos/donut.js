@@ -46,6 +46,8 @@ function demo() {
 
         donutsGeo[i] = new THREE.Tubular({ start:[px,0,pz], end:[px,-40,pz+40], numSegment:mx }, (mx)*3, radius, 12, true );
         donuts[i] = new THREE.Mesh( donutsGeo[i], mat.donut );
+        donuts[i].castShadow = true;
+        donuts[i].receiveShadow = true;
         view.addMesh( donuts[i] );
 
         pos.push([])

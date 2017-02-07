@@ -58,6 +58,7 @@ var currentFollow = null;
 var cameraGroup;
 
 var extraMesh;
+var matStatic;
 
 //var azimut = 0, oldAzimut = 0;
 //var polar = 0, oldPolar = 0;
@@ -224,6 +225,7 @@ view = {
 
         geo = {
 
+            plane:      new THREE.PlaneBufferGeometry( 1, 1 ),
             box:        new THREE.BoxBufferGeometry(1,1,1),
             hardbox:    new THREE.BoxBufferGeometry(1,1,1),
             cone:       new THREE.CylinderBufferGeometry( 0,1,0.5 ),
@@ -232,28 +234,37 @@ view = {
             highsphere: new THREE.SphereBufferGeometry( 1, 32, 24 ),
             cylinder:   new THREE.CylinderBufferGeometry( 1,1,1,12,1 ),
 
+            mouse:      new THREE.CylinderBufferGeometry( 0.25,0,0.5 ),
+
         }
 
-        geo.wheel.rotateZ( -Math.PI90 );
+        geo.plane.rotateX( -Math.PI90 );
+        geo.wheel.rotateZ( -Math.PI90 ); 
+        geo.mouse.translate( 0,0.25,0 );
 
         // MATERIAL
 
         mat = {
 
-            move: new THREE.MeshBasicMaterial({ color:0x999999, name:'move', wireframe:true }),
-            sleep: new THREE.MeshBasicMaterial({ color:0x9999FF, name:'sleep', wireframe:true }),
-            statique: new THREE.MeshBasicMaterial({ color:0x333399, name:'statique', wireframe:true, transparent:true, opacity:0.6 }),
-            donut: new THREE.MeshBasicMaterial({ color:0xFFD700, name:'donut', wireframe:true }),
+            shadow: new THREE.ShaderMaterial( THREE.ShaderShadow ),
+            hide: new THREE.MeshBasicMaterial({ transparent:true, opacity:0 }),
+            mouse: new THREE.MeshBasicMaterial({ name:'mouse', color:0xFF0000 }),
+
+            move: new THREE.MeshBasicMaterial({ name:'move', color:0x999999 }),
+            sleep: new THREE.MeshBasicMaterial({ name:'sleep', color:0x9999FF }),
+            statique: new THREE.MeshBasicMaterial({ name:'statique', color:0x333399, transparent:true, opacity:0.6 }),
+            donut: new THREE.MeshBasicMaterial({ name:'donut', color:0xFFD700 }),
+            kinematic: new THREE.MeshBasicMaterial({ name:'kinematic', color:0x33AA33, transparent:true, opacity:0.6 }),
 
         }
+
+        matStatic = [ 'hide', 'shadow', 'mouse' ];
 
         // GROUND
 
         helper = new THREE.GridHelper( 50, 20, 0xFFFFFF, 0x333333 );
         helper.material = new THREE.LineBasicMaterial( { vertexColors: THREE.VertexColors, transparent:true, opacity:0.1 } );
         scene.add( helper );
-
-        
 
         if( !isDocs ) this.initEnv();
 
@@ -272,18 +283,6 @@ view = {
     switchMaterial: function ( m, name ){
 
         if( m.material.name !== name ) m.material = mat[name];
-
-    },
-
-    addLights: function(){
-
-        light = new THREE.DirectionalLight( 0xffffff, 1 );
-        light.position.set( -3, 50, 5 );
-        light.lookAt( new THREE.Vector3() );
-        scene.add( light );
-
-        ambient = new THREE.AmbientLight( 0x444444 );
-        scene.add( ambient );
 
     },
 
@@ -319,8 +318,6 @@ view = {
 
     },
 
-    
-
     addMap: function( name, matName ) {
 
         var map = imagesLoader.load( './examples/assets/textures/' + name );
@@ -347,7 +344,11 @@ view = {
 
     },
 
-    // RAYCAST
+    //--------------------------------------
+    //
+    //     RAYCAST
+    //
+    //--------------------------------------
 
     removeRay: function(){
 
@@ -358,8 +359,8 @@ view = {
         canvas.removeEventListener( 'mousemove', _V.rayTest, false );
         rayCallBack = null;
 
-        content.remove( moveplane );
-        scene.remove( targetMouse );
+        if( moveplane ) content.remove( moveplane );
+        if( targetMouse ) scene.remove( targetMouse );
 
     },
 
@@ -367,13 +368,12 @@ view = {
 
         isWithRay = true;
 
-        var g = new THREE.PlaneBufferGeometry( 100, 100 );
-        g.rotateX( -Math.PI90 );
-        moveplane = new THREE.Mesh( g,  new THREE.MeshBasicMaterial({ color:0xFFFFFF, transparent:true, opacity:0 }));
+        moveplane = new THREE.Mesh( geo.plane, mat.hide );
+        moveplane.scale.multiplyScalar( 100 );
         content.add(moveplane);
         //moveplane.visible = false;
 
-        targetMouse = new THREE.Mesh( geo['box'],  new THREE.MeshBasicMaterial({color:0xFF0000}) );
+        targetMouse = new THREE.Mesh( geo.mouse, mat.mouse );
         scene.add( targetMouse );
 
         canvas.addEventListener( 'mousemove', _V.rayTest, false );
@@ -399,8 +399,12 @@ view = {
         }
     },
 
-    // MATERIAL
-
+    //--------------------------------------
+    //
+    //     MATERIAL
+    //
+    //--------------------------------------
+    
     changeMaterial: function ( type ) {
 
         var m, matType, name, i, j, k;
@@ -421,7 +425,8 @@ view = {
 
             m = mat[ old ];
             name = m.name;
-            if(name!=='debug'){
+
+            if( matStatic.indexOf( name ) === -1 ){
                 mat[ name ] = new THREE[ matType ]({ 
                     name:name, 
                     envMap:null,
@@ -444,6 +449,20 @@ view = {
 
         }
 
+        this.reApplyMaterial();
+
+    },
+
+    reApplyMaterial: function () {
+
+        var i = extraMesh.children.length, m, name;
+
+        while( i-- ){
+            m = extraMesh.children[i];
+            name = m.material.name; 
+            if( mat[ name ] ) m.material = mat[ name ];
+        }
+
     },
 
     needFocus: function () {
@@ -458,7 +477,11 @@ view = {
 
     },
 
-    // ENVMAP
+    //--------------------------------------
+    //
+    //     ENVMAP
+    //
+    //--------------------------------------
 
     initEnv: function () {
 
@@ -524,7 +547,7 @@ view = {
 
     //--------------------------------------
     //
-    //   LOAD SEA3D
+    //   LOAD SEA3D / BVH
     //
     //--------------------------------------
 
@@ -600,8 +623,6 @@ view = {
     //--------------------------------------
 
     controlUpdate: function(){
-
-        
 
         if( !isCamFollow ) return;
         if( currentFollow === null ) return;
@@ -867,20 +888,37 @@ view = {
     },
 
     //--------------------------------------
+    //
+    //   LIGHT
+    //
+    //--------------------------------------
+
+
+    addLights: function(){
+
+        light = new THREE.DirectionalLight( 0xffffff, 1 );
+        light.position.set( -3, 100, 5 );
+        light.lookAt( new THREE.Vector3() );
+        scene.add( light );
+
+        ambient = new THREE.AmbientLight( 0x444444 );
+        scene.add( ambient );
+
+    },
+
+    //--------------------------------------
+    //
     //   SHADOW
+    //
     //--------------------------------------
 
     removeShadow: function(){
 
-        if(!isWithShadow) return;
+        if( !isWithShadow ) return;
 
         isWithShadow = false;
         renderer.shadowMap.enabled = false;
-        //light.shadowMap.enabled = false;
-
         if( shadowGround ) scene.remove( shadowGround );
-        //scene.remove(light);
-        //scene.remove(ambient);
 
     },
 
@@ -910,25 +948,20 @@ view = {
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.shadowMap.renderReverseSided = false;
 
-        /*if( !terrains.length ){
-            var planemat = new THREE.ShaderMaterial( THREE.ShaderShadow );
-            shadowGround = new THREE.Mesh( new THREE.PlaneBufferGeometry( 200, 200, 1, 1 ), planemat );
-            shadowGround.geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI*0.5));
-            shadowGround.position.y = spy;
-            shadowGround.castShadow = false;
-            shadowGround.receiveShadow = true;
-            scene.add( shadowGround );
-        }*/
+        shadowGround = new THREE.Mesh( geo.plane, mat.shadow );
+        shadowGround.scale.multiplyScalar( 500 );
+        shadowGround.position.y = spy;
+        shadowGround.castShadow = false;
+        shadowGround.receiveShadow = true;
+        scene.add( shadowGround );
 
         light.castShadow = true;
-        var d = 70;
+        var d = 100;
         var camShadow = new THREE.OrthographicCamera( d, -d, d, -d,  25, 170 );
         light.shadow = new THREE.LightShadow( camShadow );
-
-        light.shadow.mapSize.width = 1024;
-        light.shadow.mapSize.height = 1024;
+        light.shadow.mapSize.width = 512;//1024;
+        light.shadow.mapSize.height = 512;//1024;
         //light.shadow.bias = 0.0001;
-
 
     },
 

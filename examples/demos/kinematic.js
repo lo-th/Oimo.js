@@ -9,7 +9,7 @@ function demo() {
     var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
 
     decal = new THREE.Vector3(0,1,0);
-    var o = { type:'box', size:[2, 2, 2], pos:[0,1,0], density:1, move:true, kinematic:true, material:'donut' }
+    var o = { type:'box', size:[2, 2, 2], pos:[0,1,0], density:1, move:true, kinematic:true, material:'kinematic' }
     paddle = world.add( o );
     mpaddle =  view.add( o );
 
