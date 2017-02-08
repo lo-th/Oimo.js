@@ -95,7 +95,7 @@
 	 * the physics engine.
 	 */
 
-	var REVISION = '1.0.5';
+	var REVISION = '1.0.6';
 
 	// BroadPhase
 	var BR_NULL = 0;
@@ -255,6 +255,8 @@
 	function printError( clazz, msg ){
 	    console.error("[OIMO] " + clazz + ": " + msg);
 	}
+
+	// A performance evaluator
 
 	function InfoDisplay(world){
 
@@ -1508,6 +1510,13 @@
 
 	} );
 
+	/**
+	 * An axis-aligned bounding box.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
 	    this.elements = new Float32Array( 6 );
@@ -1743,6 +1752,12 @@
 
 	});
 
+	/**
+	 * Box shape.
+	 * @author saharan
+	 * @author lo-th
+	 */
+	 
 	function Box ( config, Width, Height, Depth ) {
 
 	    Shape.call( this, config );
@@ -1881,6 +1896,12 @@
 		}
 	});
 
+	/**
+	 * Sphere shape
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function Sphere( config, radius ) {
 
 	    Shape.call( this, config );
@@ -1926,6 +1947,12 @@
 		}
 
 	});
+
+	/**
+	 * Cylinder shape
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function Cylinder ( config, radius, height ) {
 
@@ -2004,6 +2031,11 @@
 
 	});
 
+	/**
+	 * Plane shape.
+	 * @author lo-th
+	 */
+
 	function Plane( config, normal ) {
 
 	    Shape.call( this, config );
@@ -2053,6 +2085,11 @@
 
 	});
 
+	/**
+	 * A Particule shape
+	 * @author lo-th
+	 */
+
 	function Particle( config, normal ) {
 
 	    Shape.call( this, config );
@@ -2094,6 +2131,14 @@
 
 	});
 
+	/**
+	 * A shape configuration holds common configuration data for constructing a shape.
+	 * These configurations can be reused safely.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+	 
 	function ShapeConfig(){
 
 	    // position of the shape in parent's coordinate system.
@@ -2172,6 +2217,13 @@
 
 	});
 
+	/**
+	 * The base class of all type of the constraints.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function Constraint(){
 
 	    // parent world of the constraint.
@@ -2227,6 +2279,13 @@
 	    this.joint = joint;
 
 	}
+
+	/**
+	 * Joints are used to constrain the motion between two rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function Joint ( config ){
 
@@ -2400,6 +2459,10 @@
 
 	});
 
+	/**
+	* A linear constraint for all axes for various joints.
+	* @author saharan
+	*/
 	function LinearConstraint ( joint ){
 
 	    this.m1=NaN;
@@ -3209,6 +3272,13 @@
 	    
 	} );
 
+	/**
+	 * A hinge joint allows only for relative rotation of rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
 	    Joint.call( this, config );
@@ -3305,6 +3375,13 @@
 	    }
 
 	});
+
+	/**
+	 * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function BallAndSocketJoint ( config ){
 
@@ -3625,6 +3702,13 @@
 	    }
 	} );
 
+	/**
+	 * A distance joint limits the distance between two anchor points on rigid bodies.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function DistanceJoint ( config, minDistance, maxDistance ){
 
 	    Joint.call( this, config );
@@ -3669,6 +3753,11 @@
 	    }
 
 	});
+
+	/**
+	* An angular constraint for all axes for various joints.
+	* @author saharan
+	*/
 
 	function AngularConstraint( joint, targetOrientation ) {
 
@@ -4459,6 +4548,13 @@
 	    
 	} );
 
+	/**
+	 * A prismatic joint allows only for relative translation of rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
 	    Joint.call( this, config );
@@ -4527,6 +4623,13 @@
 	    }
 
 	});
+
+	/**
+	 * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4625,6 +4728,14 @@
 	    }
 
 	});
+
+	/**
+	 * A wheel joint allows for relative rotation between two rigid bodies along two axes.
+	 * The wheel joint also allows for relative translation for the suspension.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function WheelJoint ( config ){
 
@@ -4762,6 +4873,12 @@
 
 	}
 
+	/**
+	 * This class holds mass information of a shape.
+	 * @author lo-th
+	 * @author saharan
+	 */
+
 	function MassInfo (){
 
 	    // Mass of the shape.
@@ -4799,6 +4916,11 @@
 
 	}
 
+	/**
+	* The class holds details of the contact point.
+	* @author saharan
+	*/
+
 	function ManifoldPoint(){
 
 	    // Whether this manifold point is persisting or not.
@@ -4831,6 +4953,12 @@
 	    this.penetration = 0;
 
 	}
+
+	/**
+	* A contact manifold between two shapes.
+	* @author saharan
+	* @author lo-th
+	*/
 
 	function ContactManifold () {
 
@@ -4947,6 +5075,11 @@
 
 	}
 
+	/**
+	* ...
+	* @author saharan
+	* @author lo-th
+	*/
 	function ContactConstraint ( manifold ){
 	    
 	    Constraint.call( this );
@@ -5324,6 +5457,13 @@
 
 	});
 
+	/**
+	* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
+	*
+	* @author saharan
+	* @author lo-th
+	*/
+
 	function Contact(){
 
 	    // The first shape.
@@ -5344,6 +5484,10 @@
 	    this.constraint = null;
 	    // Whether the shapes are touching or not.
 	    this.touching = false;
+	    // shapes is very close and touching 
+	    this.close = false;
+
+	    this.dist = _Math.INF;
 
 	    this.b1Link = new ContactLink( this );
 	    this.b2Link = new ContactLink( this );
@@ -5371,20 +5515,22 @@
 
 	    Contact: true,
 
-	    mixRestitution: function ( restitution1, restitution2 ) {
+	    mixRestitution: function ( a, b ) {
 
-	        return _Math.sqrt( restitution1 * restitution2 );
+	        return _Math.sqrt( a * b );
 
 	    },
 
-	    mixFriction: function ( friction1, friction2 ) {
+	    mixFriction: function ( a, b ) {
 
-	        return _Math.sqrt( friction1 * friction2 );
+	        return _Math.sqrt( a * b );
 
 	    },
 
 	    // Update the contact manifold.
 	    updateManifold: function () {
+
+	        
 
 	        var i, j, b, p, num, numBuffers, distance1, distance2, index, minDistance, tmp;
 
@@ -5407,14 +5553,20 @@
 
 	        this.manifold.numPoints = 0;
 	        this.detector.detectCollision( this.shape1, this.shape2, this.manifold );
-	        var num = this.manifold.numPoints;
+
+	        
+
+	        num = this.manifold.numPoints;
 	        if( num === 0 ){
 	            this.touching = false;
+	            this.close = false;
 	            return;
 	        }
 
+	        
+	        if( this.touching || this.dist < 0.001 ) this.close = true;
 	        this.touching = true;
-
+	        
 	        i = num;
 
 	        while( i-- ){
@@ -5434,16 +5586,23 @@
 	                distance2 = _Math.distanceVector( b.lp2, p.localPoint2 );
 
 	                if( distance1 < distance2 ){
+	                    
 	                    if( distance1 < minDistance ){
 	                        minDistance = distance1;
 	                        index = j;
 	                    }
+
 	                }else{
+
 	                    if(distance2 < minDistance){
 	                        minDistance = distance2;
 	                        index = j;
 	                    }
+
 	                }
+
+	                if( minDistance < this.dist ) this.dist = minDistance;
+
 	            }
 
 	            if( index !== -1 ){
@@ -5529,10 +5688,24 @@
 	        this.body1 = null;
 	        this.body2 = null;
 	        this.detector = null;
+	        this.constraint = null;
+
+	        this.persisting = false;
+	        this.sleeping = false;
+	        this.touching = false;
+	        this.close = false;
 	        
 	    }
 
 	} );
+
+	/**
+	* The class of rigid body.
+	* Rigid body has the shape of a single or multiple collision processing,
+	* I can set the parameters individually.
+	* @author saharan
+	*/
+
 
 	function RigidBody ( Position, Rotation ) {
 
@@ -6153,7 +6326,11 @@
 
 	}
 
-	function BroadPhase(){
+	/**
+	* The broad-phase is used for collecting all possible pairs for collision.
+	*/
+
+	 function BroadPhase(){
 
 	    this.types = BR_NULL;
 	    this.numPairChecks = 0;
@@ -6271,6 +6448,12 @@
 
 	});
 
+	/**
+	* A basic implementation of proxies.
+	*
+	* @author saharan
+	*/
+
 	function BasicProxy ( shape ) {
 
 	    Proxy.call( this, shape );
@@ -6288,6 +6471,11 @@
 	    }
 
 	});
+
+	/**
+	* A broad-phase algorithm with brute-force search.
+	* This always checks for all possible pairs.
+	*/
 
 	function BruteForceBroadPhase(){
 
@@ -6343,6 +6531,11 @@
 	    }
 
 	});
+
+	/**
+	 * A projection axis for sweep and prune broad-phase.
+	 * @author saharan
+	 */
 
 	function SAPAxis (){
 
@@ -6535,6 +6728,12 @@
 
 	}
 
+	/**
+	 * A proxy for sweep and prune broad-phase.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SAPProxy ( sap, shape ){
 
 	    Proxy.call( this, shape );
@@ -6601,6 +6800,13 @@
 	    }
 
 	});
+
+	/**
+	 * A broad-phase collision detection algorithm using sweep and prune.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function SAPBroadPhase () {
 
@@ -6808,6 +7014,11 @@
 
 	});
 
+	/**
+	* A node of the dynamic bounding volume tree.
+	* @author saharan
+	*/
+
 	function DBVTNode(){
 	    
 		// The first child node of this node.
@@ -6824,6 +7035,13 @@
 	    this.aabb = new AABB();
 
 	}
+
+	/**
+	 * A dynamic bounding volume tree for the broad-phase algorithm.
+	 *
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVT(){
 
@@ -7165,6 +7383,11 @@
 	    
 	});
 
+	/**
+	* A proxy for dynamic bounding volume tree broad-phase.
+	* @author saharan
+	*/
+
 	function DBVTProxy ( shape ) {
 
 	    Proxy.call( this, shape);
@@ -7183,6 +7406,12 @@
 	    }
 
 	});
+
+	/**
+	 * A broad-phase algorithm using dynamic bounding volume tree.
+	 * @author saharan
+	 * @author lo-th
+	 */
 
 	function DBVTBroadPhase(){
 
@@ -7321,6 +7550,10 @@
 
 	} );
 
+	/**
+	 * A collision detector which detects collisions between two boxes.
+	 * @author saharan
+	 */
 	function BoxBoxCollisionDetector() {
 
 	    CollisionDetector.call( this );
@@ -10084,6 +10317,12 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between sphere and box.
+	 * @author saharan
+	 * @author lo-th
+	 */
+
 	function SphereBoxCollisionDetector ( flip ) {
 	    
 	    CollisionDetector.call( this );
@@ -10300,6 +10539,12 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan 
+	 * @author lo-th
+	 */
+	 
 	function SphereSphereCollisionDetector (){
 
 	    CollisionDetector.call( this );
@@ -10340,6 +10585,12 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan 
+	 * @author lo-th
+	 */
+	 
 	function SpherePlaneCollisionDetector ( flip ){
 
 	    CollisionDetector.call( this );
@@ -10395,6 +10646,12 @@
 
 	});
 
+	/**
+	 * A collision detector which detects collisions between two spheres.
+	 * @author saharan 
+	 * @author lo-th
+	 */
+	 
 	function BoxPlaneCollisionDetector ( flip ){
 
 	    CollisionDetector.call( this );
@@ -10524,6 +10781,19 @@
 	    }
 
 	});
+
+	//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
+
+	//import { TetraShape } from '../collision/shape/TetraShape';
+
+	/**
+	 * The class of physical computing world. 
+	 * You must be added to the world physical all computing objects
+	 * @author saharan
+	 * @author lo-th
+	 */
+
+	 // timestep, broadphase, iterations, worldscale, random, stat
 
 	function World ( o ) {
 
@@ -10841,7 +11111,7 @@
 
 	    removeContact: function ( contact, ar ) {
 
-	        if( ar===undefined ) this.contacts.splice( this.contacts.indexOf(contact), 1 );
+	        if( ar === undefined ) this.contacts.splice( this.contacts.indexOf( contact ), 1 );
 
 	        //var prev = contact.prev;
 	        //var next = contact.next;
@@ -10858,18 +11128,45 @@
 
 	    },
 
+	    getContact: function ( b1, b2 ) {
+
+	        var n1, n2, i, isR1, isR2;
+	        var contact, ct = null;
+	        var isR1 = b1.constructor === RigidBody ? true : false;
+	        var isR2 = b2.constructor === RigidBody ? true : false;
+	      
+	        i = this.contacts.length;
+	        while(i--){
+	            contact = this.contacts[i];
+	            n1 = isR1 ? contact.body1 : contact.body1.name;
+	            n2 = isR2 ? contact.body2 : contact.body2.name;
+	            if(( n1 === b1 && n2 === b2 ) || ( n2 === b1 && n1 === b2 )){
+	                if( contact.touching ){ 
+	                    ct = contact;
+	                    break;
+	                }
+	            }
+	        }
+
+	        return ct;
+
+	    },
+
 	    checkContact: function ( name1, name2 ) {
 
-	        var n1, n2;
-	        var i = this.contacts.length, contact;
+	        var n1, n2, contact, ct = false;
+	        var i = this.contacts.length;
 	        while(i--){
 	            contact = this.contacts[i];
 	            n1 = contact.body1.name;
 	            n2 = contact.body2.name;
-	            if((n1===name1 && n2===name2) || (n2===name1 && n1===name2)){ if(contact.touching) return true; else return false;}
+	            if(( n1 === name1 && n2 === name2 ) || ( n2 === name1 && n1 === name2 )){
+	                ct = contact.touching;
+	                break;
+	            }
 	        }
 
-	        return false;
+	        return ct;
 
 	    },
 
@@ -10885,6 +11182,7 @@
 	    /**
 	    * I will proceed only time step seconds time of World.
 	    */
+
 	    step: function () {
 
 	        var stat = this.isStat;
@@ -10900,110 +11198,92 @@
 	            body = this.rigidBodies[i]; 
 	            body.addedToIsland = false;
 	            if( body.sleeping ) body.testWakeUp();
-	            //if( body.isKinematic ) body.forceTransforme();
 
 	        }
 
-	        
-
-	        //------------------------------------------------------
-	        //   UPDATE BROADPHASE CONTACT
-	        //------------------------------------------------------
+	        // --- UPDATE BROADPHASE CONTACT
 	        
 	        if( stat ) this.performance.setTime( 1 );
 
 	        this.broadPhase.detectPairs();
 
+	        var idtest, pair, s1, s2, link, s1L, s2L, exists, contact, b1, b2;
+
 	        var pairs = this.broadPhase.pairs;
 
 	        i = this.broadPhase.numPairs;
-	        //do{
-	        while(i--){
-	        //for(var i=0, l=numPairs; i<l; i++){
-	            var pair = pairs[i];
-	            var s1;
-	            var s2;
-	            if(pair.shape1.id<pair.shape2.id){
-	                s1 = pair.shape1;
-	                s2 = pair.shape2;
-	            }else{
-	                s1 = pair.shape2;
-	                s2 = pair.shape1;
-	            }
 
-	            var link;
-	            var s1L = s1.contactLink.length;
-	            var s2L = s2.contactLink.length;
+	        while( i-- ){
 
-	            if( s1L < s2L ) link = s1.contactLink;
-	            else link = s2.contactLink;
-	            
-	            var exists = false;
+	            pair = pairs[i];
+	            idtest = pair.shape1.id < pair.shape2.id ? true : false;
+
+	            s1 = idtest ? pair.shape1 : pair.shape2;
+	            s2 = idtest ? pair.shape2 : pair.shape1;
+
+	            s1L = s1.contactLink.length;
+	            s2L = s2.contactLink.length;
+
+	            link = s1L < s2L ? s1.contactLink : s2.contactLink;
+
+	            exists = false;
 	            j = link.length;
-	            while(j--){
-	                var contact = link[j].contact;
-	                if( contact.shape1 == s1 && contact.shape2 == s2 ){
+
+	            while( j-- ){
+
+	                contact = link[j].contact;
+	                if( contact.shape1 === s1 && contact.shape2 === s2 ){
+	                    // contact already exists
 	                    contact.persisting = true;
-	                    exists = true;// contact already exists
+	                    exists = true; 
 	                    break;
 	                }
-	                //link = link.next;
+
 	            }
-	            if(!exists){
-	                this.addContact( s1, s2 );
-	            }
-	        }// while(i-- >0);
+
+	            if( !exists ) this.addContact( s1, s2 );
+	            
+	        }
 
 	        if( stat ) this.performance.calcBroadPhase();
 
-	        //------------------------------------------------------
-	        //   UPDATE NARROWPHASE CONTACT
-	        //------------------------------------------------------
+	        // --- UPDATE NARROWPHASE CONTACT
 
-	        // update & narrow phase
 	        this.numContactPoints = 0;
-	        //contact = this.contacts;
 	        i = this.contacts.length;
+
 	        while( i-- ){
+
 	            contact = this.contacts[i];
-	        //while( contact!==null ){
-	            if(!contact.persisting){
+	            if( !contact.persisting ){
 	                if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
-	                /*var aabb1=contact.shape1.aabb;
-	                var aabb2=contact.shape2.aabb;
-	                if(
-		                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
-		                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
-		                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
-	                ){*/
-	                    //var next = contact.next;
+	             
 	                    this.removeContact( contact );
-	                    //contact = next;
 	                    continue;
+
 	                }
 	            }
-	            var b1 = contact.body1;
-	            var b2 = contact.body2;
+
+	            b1 = contact.body1;
+	            b2 = contact.body2;
 
 	            if( b1.isDynamic && !b1.sleeping || b2.isDynamic && !b2.sleeping ) contact.updateManifold();
 	            
 	            this.numContactPoints += contact.manifold.numPoints;
 	            contact.persisting = false;
 	            contact.constraint.addedToIsland = false;
-	           // contact = contact.next;
 
 	        }
 
 	        if( stat ) this.performance.calcNarrowPhase();
 
-	        //------------------------------------------------------
-	        //   SOLVE ISLANDS
-	        //------------------------------------------------------
+	        // --- SOLVE ISLANDS
 
 	        var invTimeStep = 1 / this.timeStep;
-	        var constraint;
+	        var constraint, islandNumRigidBodies, islandNumConstraints, stackCount, gVel, swap, sleepTime;
 
 	        i = this.joints.length;
+
 	        while( i-- ){
 	            this.joints[i].addedToIsland = false;
 	        }
@@ -11018,21 +11298,19 @@
 
 	        this.numIslands = 0;
 
-	        // build and solve simulation islands
+	        // --- BUILD & SOLVE ISLANDS
+
 	        i = this.rigidBodies.length;
-	        //while( body !== null ){
+
 	        while( i-- ){
+
 	            base = this.rigidBodies[i]; 
-	        //for( var base = this.rigidBodies; base !== null; base = base.next ){
 
 	            if( base.addedToIsland || base.isStatic || base.sleeping ) continue;// ignore
 	            
 	            if( base.isLonely() ){// update single body
 	                if( base.isDynamic && !base.isKinematic ){
 	                    base.linearVelocity.addScale( this.gravity, this.timeStep );
-	                    /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
-	                    base.linearVelocity.y+=this.gravity.y*this.timeStep;
-	                    base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
 	                }
 	                if( this.callSleep( base ) ) {
 	                    base.sleepTime += this.timeStep;
@@ -11046,30 +11324,34 @@
 	                continue;
 	            }
 
-	            var islandNumRigidBodies = 0;
-	            var islandNumConstraints = 0;
-	            var stackCount = 1;
+	            islandNumRigidBodies = 0;
+	            islandNumConstraints = 0;
+	            stackCount = 1;
+
 	            // add rigid body to stack
 	            this.islandStack[0] = base;
 	            base.addedToIsland = true;
 
 	            // build an island
+
+	            //while( stackCount > 0 ){
 	            do{
 	                // get rigid body from stack
 	                body = this.islandStack[--stackCount];
-	                this.islandStack[stackCount] = null;
+	                this.islandStack[ stackCount ] = null;
 	                body.sleeping = false;
+
 	                // add rigid body to the island
-	                this.islandRigidBodies[islandNumRigidBodies++] = body;
-	                if(body.isStatic) continue;
-
-
+	                this.islandRigidBodies[ islandNumRigidBodies++ ] = body;
+	                if( body.isStatic ) continue;
 	                
 	                // search connections
 	                j = body.contactLink.length;
+
 	                while(j--){
+
 	                    cs = body.contactLink[j];
-	                    var contact = cs.contact;
+	                    contact = cs.contact;
 	                    constraint = contact.constraint;
 	                    if( constraint.addedToIsland || !contact.touching ) continue;// ignore
 	                    
@@ -11078,11 +11360,12 @@
 	                    constraint.addedToIsland = true;
 	                    next = cs.body;
 
-	                    if(next.addedToIsland) continue;
+	                    if( next.addedToIsland ) continue;
 	                    
 	                    // add rigid body to stack
 	                    this.islandStack[stackCount++] = next;
 	                    next.addedToIsland = true;
+
 	                }
 
 	                k = body.jointLink.length;
@@ -11105,67 +11388,71 @@
 	                    next.addedToIsland = true;
 
 	                }
+
 	            } while( stackCount != 0 );
 
-	            // update velocities
-	            var gVel = new Vec3().addScale( this.gravity, this.timeStep );
-	            /*var gx=this.gravity.x*this.timeStep;
-	            var gy=this.gravity.y*this.timeStep;
-	            var gz=this.gravity.z*this.timeStep;*/
+
+	            // update gravity velocities
+
+	            gVel = new Vec3().addScale( this.gravity, this.timeStep );
+
 	            j = islandNumRigidBodies;
-	            while (j--){
-	            //or(var j=0, l=islandNumRigidBodies; j<l; j++){
+
+	            while ( j-- ){
+
 	                body = this.islandRigidBodies[j];
-	                if( body.isDynamic && !body.isKinematic ){
-	                    body.linearVelocity.addEqual(gVel);
-	                    /*body.linearVelocity.x+=gx;
-	                    body.linearVelocity.y+=gy;
-	                    body.linearVelocity.z+=gz;*/
-	                }
+	                if( body.isDynamic && !body.isKinematic ) body.linearVelocity.addEqual( gVel );
+	                
 	            }
 
 	            // randomizing order
-	            if(this.enableRandomizer){
-	                //for(var j=1, l=islandNumConstraints; j<l; j++){
+
+	            if( this.enableRandomizer ){
+
 	                j = islandNumConstraints;
-	                while(j--){ if(j!==0){     
-	                        var swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
+	                while(j--){ 
+
+	                    if( j > 0 ){   
+
+	                        swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
 	                        constraint = this.islandConstraints[j];
 	                        this.islandConstraints[j] = this.islandConstraints[swap];
 	                        this.islandConstraints[swap] = constraint;
+
 	                    }
+
 	                }
+
 	            }
 
 	            // solve contraints
 
 	            j = islandNumConstraints;
 	            while(j--){
-	            //for(j=0, l=islandNumConstraints; j<l; j++){
 	                this.islandConstraints[j].preSolve( this.timeStep, invTimeStep );// pre-solve
 	            }
+
 	            k = this.numIterations;
 	            while(k--){
-	            //for(var k=0, l=this.numIterations; k<l; k++){
 	                j = islandNumConstraints;
 	                while(j--){
-	                //for(j=0, m=islandNumConstraints; j<m; j++){
 	                    this.islandConstraints[j].solve();// main-solve
 	                }
 	            }
+
 	            j = islandNumConstraints;
 	            while(j--){
-	            //for(j=0, l=islandNumConstraints; j<l; j++){
 	                this.islandConstraints[j].postSolve();// post-solve
 	                this.islandConstraints[j] = null;// gc
 	            }
 
 	            // sleeping check
 
-	            var sleepTime = 10;
+	            sleepTime = 10;
 	            j = islandNumRigidBodies;
+
 	            while(j--){
-	            //for(j=0, l=islandNumRigidBodies;j<l;j++){
+
 	                body = this.islandRigidBodies[j];
 	                if( this.callSleep( body ) ){
 	                    body.sleepTime += this.timeStep;
@@ -11176,29 +11463,35 @@
 	                    continue;
 	                }
 	            }
+
 	            if(sleepTime > 0.5){
+
 	                // sleep the island
 	                j = islandNumRigidBodies;
 	                while(j--){
-	                //for(j=0, l=islandNumRigidBodies;j<l;j++){
+
 	                    this.islandRigidBodies[j].sleep();
 	                    this.islandRigidBodies[j] = null;// gc
+
 	                }
+
 	            }else{
+
 	                // update positions
 	                j = islandNumRigidBodies;
 	                while(j--){
-	                //for(j=0, l=islandNumRigidBodies;j<l;j++){
+
 	                    this.islandRigidBodies[j].updatePosition( this.timeStep );
 	                    this.islandRigidBodies[j] = null;// gc
+
 	                }
 	            }
+
 	            this.numIslands++;
+
 	        }
 
-	        //------------------------------------------------------
-	        //   END SIMULATION
-	        //------------------------------------------------------
+	        // --- END SIMULATION
 
 	        if( stat ) this.performance.calcEnd();
 

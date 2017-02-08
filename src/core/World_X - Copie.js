@@ -384,45 +384,21 @@ Object.assign( World.prototype, {
 
     },
 
-    getContact: function ( b1, b2 ) {
-
-        var n1, n2, i, isR1, isR2;
-        var contact, ct = null;
-        var isR1 = b1.constructor === RigidBody ? true : false;
-        var isR2 = b2.constructor === RigidBody ? true : false;
-      
-        i = this.contacts.length;
-        while(i--){
-            contact = this.contacts[i];
-            n1 = isR1 ? contact.body1 : contact.body1.name;
-            n2 = isR2 ? contact.body2 : contact.body2.name;
-            if(( n1 === b1 && n2 === b2 ) || ( n2 === b1 && n1 === b2 )){
-                if( contact.touching ){ 
-                    ct = contact;
-                    break;
-                }
-            }
-        }
-
-        return ct;
-
-    },
-
     checkContact: function ( name1, name2 ) {
 
-        var n1, n2, contact, ct = false;
+        var n1, n2, contact;
         var i = this.contacts.length;
         while(i--){
             contact = this.contacts[i];
             n1 = contact.body1.name;
             n2 = contact.body2.name;
             if(( n1 === name1 && n2 === name2 ) || ( n2 === name1 && n1 === name2 )){
-                ct = contact.touching;
+                return contact.touching ? true : false;
                 break;
             }
         }
 
-        return ct;
+        return false;
 
     },
 
@@ -589,23 +565,20 @@ Object.assign( World.prototype, {
             base.addedToIsland = true;
 
             // build an island
-
-            //while( stackCount > 0 ){
             do{
                 // get rigid body from stack
                 body = this.islandStack[--stackCount];
-                this.islandStack[ stackCount ] = null;
+                this.islandStack[stackCount] = null;
                 body.sleeping = false;
-
                 // add rigid body to the island
                 this.islandRigidBodies[ islandNumRigidBodies++ ] = body;
-                if( body.isStatic ) continue;
+                if(body.isStatic) continue;
+
+
                 
                 // search connections
                 j = body.contactLink.length;
-
                 while(j--){
-
                     cs = body.contactLink[j];
                     contact = cs.contact;
                     constraint = contact.constraint;
@@ -616,12 +589,11 @@ Object.assign( World.prototype, {
                     constraint.addedToIsland = true;
                     next = cs.body;
 
-                    if( next.addedToIsland ) continue;
+                    if(next.addedToIsland) continue;
                     
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
-
                 }
 
                 k = body.jointLink.length;
@@ -644,37 +616,37 @@ Object.assign( World.prototype, {
                     next.addedToIsland = true;
 
                 }
-
             } while( stackCount != 0 );
 
-
-            // update gravity velocities
-
+            // update velocities
             gVel = new Vec3().addScale( this.gravity, this.timeStep );
-
+            /*var gx=this.gravity.x*this.timeStep;
+            var gy=this.gravity.y*this.timeStep;
+            var gz=this.gravity.z*this.timeStep;*/
             j = islandNumRigidBodies;
-
-            while ( j-- ){
-
+            while (j--){
+            //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
-                if( body.isDynamic && !body.isKinematic ) body.linearVelocity.addEqual( gVel );
-                
+                if( body.isDynamic && !body.isKinematic ){
+                    body.linearVelocity.addEqual(gVel);
+                    /*body.linearVelocity.x+=gx;
+                    body.linearVelocity.y+=gy;
+                    body.linearVelocity.z+=gz;*/
+                }
             }
 
             // randomizing order
 
-            if( this.enableRandomizer ){
+            if(this.enableRandomizer){
 
                 j = islandNumConstraints;
                 while(j--){ 
 
-                    if( j > 0 ){   
-
+                    if( j !== 0 ){     
                         swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                         constraint = this.islandConstraints[j];
                         this.islandConstraints[j] = this.islandConstraints[swap];
                         this.islandConstraints[swap] = constraint;
-
                     }
 
                 }
@@ -685,19 +657,21 @@ Object.assign( World.prototype, {
 
             j = islandNumConstraints;
             while(j--){
+            //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].preSolve( this.timeStep, invTimeStep );// pre-solve
             }
-
             k = this.numIterations;
             while(k--){
+            //for(var k=0, l=this.numIterations; k<l; k++){
                 j = islandNumConstraints;
                 while(j--){
+                //for(j=0, m=islandNumConstraints; j<m; j++){
                     this.islandConstraints[j].solve();// main-solve
                 }
             }
-
             j = islandNumConstraints;
             while(j--){
+            //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].postSolve();// post-solve
                 this.islandConstraints[j] = null;// gc
             }
@@ -706,9 +680,8 @@ Object.assign( World.prototype, {
 
             sleepTime = 10;
             j = islandNumRigidBodies;
-
             while(j--){
-
+            //for(j=0, l=islandNumRigidBodies;j<l;j++){
                 body = this.islandRigidBodies[j];
                 if( this.callSleep( body ) ){
                     body.sleepTime += this.timeStep;
@@ -719,35 +692,29 @@ Object.assign( World.prototype, {
                     continue;
                 }
             }
-
             if(sleepTime > 0.5){
-
                 // sleep the island
                 j = islandNumRigidBodies;
                 while(j--){
-
+                //for(j=0, l=islandNumRigidBodies;j<l;j++){
                     this.islandRigidBodies[j].sleep();
                     this.islandRigidBodies[j] = null;// gc
-
                 }
-
             }else{
-
                 // update positions
                 j = islandNumRigidBodies;
                 while(j--){
-
+                //for(j=0, l=islandNumRigidBodies;j<l;j++){
                     this.islandRigidBodies[j].updatePosition( this.timeStep );
                     this.islandRigidBodies[j] = null;// gc
-
                 }
             }
-
             this.numIslands++;
-
         }
 
-        // --- END SIMULATION
+        //------------------------------------------------------
+        //   END SIMULATION
+        //------------------------------------------------------
 
         if( stat ) this.performance.calcEnd();
 

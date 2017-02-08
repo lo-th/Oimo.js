@@ -31,6 +31,10 @@ function Contact(){
     this.constraint = null;
     // Whether the shapes are touching or not.
     this.touching = false;
+    // shapes is very close and touching 
+    this.close = false;
+
+    this.dist = _Math.INF;
 
     this.b1Link = new ContactLink( this );
     this.b2Link = new ContactLink( this );
@@ -58,20 +62,22 @@ Object.assign( Contact.prototype, {
 
     Contact: true,
 
-    mixRestitution: function ( restitution1, restitution2 ) {
+    mixRestitution: function ( a, b ) {
 
-        return _Math.sqrt( restitution1 * restitution2 );
+        return _Math.sqrt( a * b );
 
     },
 
-    mixFriction: function ( friction1, friction2 ) {
+    mixFriction: function ( a, b ) {
 
-        return _Math.sqrt( friction1 * friction2 );
+        return _Math.sqrt( a * b );
 
     },
 
     // Update the contact manifold.
     updateManifold: function () {
+
+        
 
         var i, j, b, p, num, numBuffers, distance1, distance2, index, minDistance, tmp;
 
@@ -94,14 +100,20 @@ Object.assign( Contact.prototype, {
 
         this.manifold.numPoints = 0;
         this.detector.detectCollision( this.shape1, this.shape2, this.manifold );
-        var num = this.manifold.numPoints;
+
+        
+
+        num = this.manifold.numPoints;
         if( num === 0 ){
             this.touching = false;
+            this.close = false;
             return;
         }
 
+        
+        if( this.touching || this.dist < 0.001 ) this.close = true;
         this.touching = true;
-
+        
         i = num;
 
         while( i-- ){
@@ -121,16 +133,23 @@ Object.assign( Contact.prototype, {
                 distance2 = _Math.distanceVector( b.lp2, p.localPoint2 );
 
                 if( distance1 < distance2 ){
+                    
                     if( distance1 < minDistance ){
                         minDistance = distance1;
                         index = j;
                     }
+
                 }else{
+
                     if(distance2 < minDistance){
                         minDistance = distance2;
                         index = j;
                     }
+
                 }
+
+                if( minDistance < this.dist ) this.dist = minDistance;
+
             }
 
             if( index !== -1 ){
@@ -216,6 +235,12 @@ Object.assign( Contact.prototype, {
         this.body1 = null;
         this.body2 = null;
         this.detector = null;
+        this.constraint = null;
+
+        this.persisting = false;
+        this.sleeping = false;
+        this.touching = false;
+        this.close = false;
         
     }
 

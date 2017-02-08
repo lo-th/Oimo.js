@@ -38,6 +38,7 @@ var isDocs = false;
 function init(){
 
     user.init();
+    sound.init();
     view.init( next );
 
     mat = view.getMat();

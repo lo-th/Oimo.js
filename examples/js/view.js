@@ -251,6 +251,7 @@ view = {
             mouse: new THREE.MeshBasicMaterial({ name:'mouse', color:0xFF0000 }),
 
             move: new THREE.MeshBasicMaterial({ name:'move', color:0x999999 }),
+            contact: new THREE.MeshBasicMaterial({ name:'contact', color:0xA8BB19 }),
             sleep: new THREE.MeshBasicMaterial({ name:'sleep', color:0x9999FF }),
             statique: new THREE.MeshBasicMaterial({ name:'statique', color:0x333399, transparent:true, opacity:0.6 }),
             donut: new THREE.MeshBasicMaterial({ name:'donut', color:0xFFD700 }),
