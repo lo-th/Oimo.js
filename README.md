@@ -82,4 +82,7 @@ myMesh.quaternion.copy( body.getQuaternion() );
 ### Note ###
 
 Oimo Physics uses international system units: 0.1 to 10 meters max for dynamic body.<br>
-In basic demo with THREE, I scaled all by 100 so objects are between 10 to 1000 in THREE units.<br>
+In basic demo with THREE, I scaled all by 100 so objects are between 10 to 1000 in THREE units.<br><br>
+
+/!\ Shape name change in last version <br>
+SphereShape to Sphere, BoxShape to Box, CylinderShape to Cylinder <br>
