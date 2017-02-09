@@ -13,7 +13,7 @@ function demo() {
 
 
     // just a try !!
-    // plane is only with sphere and is buggy
+    // plane is only with sphere 
 
     var ground = world.add({type:'plane', pos:[0,0,0], density:1, friction:0.9, restitution:0.1 });
     //var ground = world.add({type:'box', pos:[0,-5,0], size:[50, 10, 50], density:1 })
@@ -64,24 +64,14 @@ function demo() {
 
     }
 
+    // world internal loop
+
+    world.postLoop = postLoop;
+    world.play();
+
 };
 
-function add( o ){
-
-    var b = world.add(o);
-    var m = view.add(o);
-
-    // ! \\ update directly mesh matrix
-    b.connectMesh( m );
-
-    bodys.push( b );
-    //meshs.push( m );
-
-}
-
-function update () {
-
-    world.step();
+function postLoop () {
 
     var m;
 
@@ -89,13 +79,10 @@ function update () {
 
         if( b.type === 1 ){
 
-            m = b.mesh;//meshs[id];
+            m = b.mesh;
 
             if( b.sleeping ) switchMat( m, 'sleep' );
             else switchMat( m, 'move' );
-
-            //m.position.copy( b.getPosition() );
-            //m.quaternion.copy( b.getQuaternion() );
 
             if( m.position.y < -30 ){
                 b.resetPosition( Math.rand(-5,5), 30, Math.rand(-5,5) );

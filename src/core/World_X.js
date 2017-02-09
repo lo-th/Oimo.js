@@ -61,6 +61,9 @@ function World ( o ) {
 
     // The time between each step
     this.timeStep = o.timestep || 0.01666; // 1/60;
+    this.timerate = this.timeStep * 1000;
+    this.timer = null;
+
     // The number of iterations for constraint solvers.
     this.numIterations = o.iterations || 8;
 
@@ -86,37 +89,40 @@ function World ( o ) {
 
 
     // The rigid body list
-    this.rigidBodies=[];//null;
+    this.rigidBodies = [];
     // number of rigid body
-    this.numRigidBodies=0;
+    this.numRigidBodies = 0;
+
     // The contact list
-    this.contacts=[];//null;
-    //this.unusedContacts=null;
+    this.contacts = [];
     // The number of contact
-    this.numContacts=0;
-    // The number of contact points
-    this.numContactPoints=0;
+    this.numContacts = 0;
+
+    
     //  The joint list
-    this.joints=[];//null;
+    this.joints = [];
     // The number of joints.
-    this.numJoints=0;
+    this.numJoints = 0;
+
+    // The number of contact points
+    this.numContactPoints = 0;
     // The number of simulation islands.
-    this.numIslands=0;
+    this.numIslands = 0;
     
    
     // The gravity in the world.
-    this.gravity = new Vec3(0,-9.8,0);
+    this.gravity = new Vec3(0,-9.81,0);
     if( o.gravity !== undefined ) this.gravity.fromArray( o.gravity );
 
     
 
     var numShapeTypes = 6;//4;//3;
-    this.detectors=[];
-    this.detectors.length = numShapeTypes;
+    this.detectors = [];
+    //this.detectors.length = numShapeTypes;
     var i = numShapeTypes;
     while(i--){
         this.detectors[i]=[];
-        this.detectors[i].length = numShapeTypes;
+        //this.detectors[i].length = numShapeTypes;
     }
 
 
@@ -154,11 +160,35 @@ function World ( o ) {
     this.islandStack = [];
     this.islandConstraints = [];
 
+    this.preLoop = null;//function(){};
+    this.postLoop = null;//function(){};
+
 }
 
 Object.assign( World.prototype, {
 
     World: true,
+
+    play: function(){
+ 
+        if( this.timer !== null ) return;
+
+        var _this = this;
+        this.timer = setInterval( function(){ _this.step(); } , this.timerate );
+        //this.timer = setInterval( this.loop.bind(this) , this.timerate );
+
+    },
+
+    stop: function(){
+
+        if( this.timer === null ) return;
+
+        clearInterval( this.timer );
+        this.timer = null;
+
+    },
+
+    //
 
     getInfo: function(){
 
@@ -166,38 +196,39 @@ Object.assign( World.prototype, {
 
     },
 
-    /**
-    * Reset the randomizer and remove all rigid bodies, shapes, joints and any object from the world.
-	*/
+    // Reset world and any object from the world.
+	
     clear:function(){
+
+        this.stop();
+        this.preLoop = null;
+        this.postLoop = null;
 
         this.randX = 65535;
 
-        /*while(this.joints!==null){
-            this.removeJoint( this.joints );
-        }
-        while(this.contacts!==null){
-            this.removeContact( this.contacts );
-        }
-        /*while(this.rigidBodies!==null){
-            this.removeRigidBody( this.rigidBodies );
-        }*/
-
-        while( this.joints.length > 0 ) this.removeJoint( this.joints.pop() );
+        while( this.joints.length > 0 ) this.removeJoint( this.joints.pop(), true );
         while( this.contacts.length > 0 ) this.removeContact( this.contacts.pop(), true );
-        while( this.rigidBodies.length > 0 ) this.removeRigidBody( this.rigidBodies.pop() );
+        while( this.rigidBodies.length > 0 ) this.removeRigidBody( this.rigidBodies.pop(), true );
+
+        this.numRigidBodies = 0;
+        this.numContacts = 0;
+        this.numJoints = 0;
 
     },
-    /**
-    * I'll add a rigid body to the world. 
-    * Rigid body that has been added will be the operands of each step.
-    * @param  rigidBody  Rigid body that you want to add
-    */
+
+    patchId: function ( ar ) {
+
+        var i = ar.length;
+        while( i-- ) ar[i].setId( i );
+        
+    },
+
+    // --- RIGIDBODY
+
     addRigidBody:function( rigidBody ){
 
-        if( rigidBody.parent ){
-            printError("World", "It is not possible to be added to more than one world one of the rigid body");
-        }
+        if( rigidBody.parent ) printError("World", "It is not possible to be added to more than one world one of the rigid body");
+        
 
         rigidBody.setParent( this );
 
@@ -205,46 +236,40 @@ Object.assign( World.prototype, {
 
         while(i--){
 
-            this.addShape(rigidBody.shapes[i]);
+            this.addShape( rigidBody.shapes[i] );
 
         }
 
         this.rigidBodies.push( rigidBody );
-
-        this.numRigidBodies = this.rigidBodies.length;
+        this.numRigidBodies++;
 
     },
-    /**
-    * I will remove the rigid body from the world. 
-    * Rigid body that has been deleted is excluded from the calculation on a step-by-step basis.
-    * @param  rigidBody  Rigid body to be removed
-    */
-    removeRigidBody:function( rigidBody ){
 
-        var remove = rigidBody;
-        if(remove.parent!==this) return;
-        remove.awake();
+    removeRigidBody: function ( body, all ) {
 
-        var i = remove.jointLink.length;
-        while(i--){
-	        this.removeJoint(remove.jointLink[i]);
+        if( body.parent !== this ) return;
+
+        var i;
+
+        body.awake();
+
+        i = body.jointLink.length;
+        while( i-- ){
+	        this.removeJoint( body.jointLink[i] );
         }
 
-        i = remove.shapes.length;
-        while(i--){
-            this.removeShape(remove.shapes[i]);
+        i = body.shapes.length;
+        while( i-- ){
+            this.removeShape( body.shapes[i] );
         }
-        /*var prev=remove.prev;
-        var next=remove.next;
-        if(prev!==null) prev.next=next;
-        if(next!==null) next.prev=prev;
-        if(this.rigidBodies==remove) this.rigidBodies=next;
-        remove.prev=null;
-        remove.next=null;*/
-        remove.parent = null;
 
-        this.numRigidBodies = this.rigidBodies.length;
-        //this.numRigidBodies--;
+        body.parent = null;
+
+        if( !all ){ 
+            this.rigidBodies.splice( body.id, 1 );
+            this.patchId( this.rigidBodies );
+            this.numRigidBodies--;
+        }
 
     },
 
@@ -268,12 +293,12 @@ Object.assign( World.prototype, {
 
     },
 
-    /**
-    * I'll add a shape to the world..
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
-    * Shape will be added to the world automatically, please do not call from outside this method.
-    * @param  shape  Shape you want to add
-    */
+    // --- SHAPE
+
+    // add a shape to the world..
+    // Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
+    // Shape will be added to the world automatically, please do not call from outside this method.
+ 
     addShape:function ( shape ){
 
         if(!shape.parent || !shape.parent.parent){
@@ -286,12 +311,9 @@ Object.assign( World.prototype, {
 
     },
 
-    /**
-    * I will remove the shape from the world.
-    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
-    * Shape will be added to the world automatically, please do not call from outside this method.
-    * @param  shape  Shape you want to delete
-    */
+    // remove the shape from the world.
+    // please do not call from outside this method.
+  
     removeShape: function ( shape ){
 
         this.broadPhase.removeProxy( shape.proxy );
@@ -299,49 +321,41 @@ Object.assign( World.prototype, {
 
     },
 
-    /**
-    * I'll add a joint to the world. 
-    * Joint that has been added will be the operands of each step.
-    * @param  shape Joint to be added
-    */
+    // --- JOINT
+
     addJoint: function ( joint ) {
 
-        if(joint.parent){
-            printError("World", "It is not possible to be added to more than one world one of the joint");
-        }
-        //if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
-        //this.joints=joint;
+        if( joint.parent ) printError("World", "It is not possible to be added to more than one world one of the joint");
+        
+        joint.setParent( this );
 
-        joint.parent = this;
-        //this.numJoints++;
         joint.awake();
         joint.attach( true );
 
         this.joints.push( joint );
+        this.numJoints++;
 
     },
 
-    /**
-    * I will remove the joint from the world. 
-    * Joint that has been added will be the operands of each step.
-    * @param  shape Joint to be deleted
-    */
-    removeJoint: function ( joint ) {
+    // remove the joint from the world. 
 
-        
-        /*var prev=remove.prev;
-        var next=remove.next;
-        if(prev!==null)prev.next=next;
-        if(next!==null)next.prev=prev;
-        if(this.joints==remove)this.joints=next;
-        remove.prev=null;
-        remove.next=null;
-        this.numJoints--;*/
+    removeJoint: function ( joint, all ) {
+
+        if( joint.parent !== this ) return;
+
         joint.awake();
         joint.detach( true );
         joint.parent = null;
 
+        if( !all ){
+            this.joints.splice( joint.id, 1 );
+            this.patchId( this.joints );
+            this.numJoints--;
+        }
+
     },
+
+    // --- CONTACT
 
     addContact: function ( s1, s2 ) {
 
@@ -359,43 +373,33 @@ Object.assign( World.prototype, {
         //this.contacts = newContact;
         this.contacts.push( newContact );
 
-        this.numContacts = this.contacts.length;
+        this.numContacts++;// = this.contacts.length;
 
         
 
     },
 
-    removeContact: function ( contact, ar ) {
+    removeContact: function ( contact, all ) {
 
-        if( ar === undefined ) this.contacts.splice( this.contacts.indexOf( contact ), 1 );
+        if( all === undefined ) this.contacts.splice( this.contacts.indexOf( contact ), 1 );
 
-        //var prev = contact.prev;
-        //var next = contact.next;
-        //if(next) next.prev = prev;
-        //if(prev) prev.next = next;
-        //if(this.contacts == contact) this.contacts = next;
-        //contact.prev = null;
-        //contact.next = null;
         contact.detach();
-        //contact.next = this.unusedContacts;
-        //this.unusedContacts = contact;
-        this.numContacts = this.contacts.length;
-
+        this.numContacts--;// = this.contacts.length;
 
     },
 
     getContact: function ( b1, b2 ) {
 
-        var n1, n2, i, isR1, isR2;
+        var n1, n2, i;
         var contact, ct = null;
-        var isR1 = b1.constructor === RigidBody ? true : false;
-        var isR2 = b2.constructor === RigidBody ? true : false;
+        b1 = b1.constructor === RigidBody ? b1.name : b1;
+        b2 = b2.constructor === RigidBody ? b2.name : b2;
       
         i = this.contacts.length;
         while(i--){
             contact = this.contacts[i];
-            n1 = isR1 ? contact.body1 : contact.body1.name;
-            n2 = isR2 ? contact.body2 : contact.body2.name;
+            n1 = contact.body1.name;
+            n2 = contact.body2.name;
             if(( n1 === b1 && n2 === b2 ) || ( n2 === b1 && n1 === b2 )){
                 if( contact.touching ){ 
                     ct = contact;
@@ -435,11 +439,13 @@ Object.assign( World.prototype, {
 
     },
 
-    /**
-    * I will proceed only time step seconds time of World.
-    */
+
+    // --- WORLD STEP
+    //  I will proceed only time step seconds time of World.
 
     step: function () {
+
+        if( this.preLoop !== null ) this.preLoop();
 
         var stat = this.isStat;
 
@@ -467,7 +473,7 @@ Object.assign( World.prototype, {
 
         var pairs = this.broadPhase.pairs;
 
-        i = this.broadPhase.numPairs;
+        i = pairs.length;//this.broadPhase.numPairs;
 
         while( i-- ){
 
@@ -506,11 +512,13 @@ Object.assign( World.prototype, {
         // --- UPDATE NARROWPHASE CONTACT
 
         this.numContactPoints = 0;
+
         i = this.contacts.length;
 
         while( i-- ){
 
             contact = this.contacts[i];
+
             if( !contact.persisting ){
                 if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
              
@@ -751,6 +759,8 @@ Object.assign( World.prototype, {
 
         if( stat ) this.performance.calcEnd();
 
+        if( this.postLoop !== null ) this.postLoop();
+
     },
 
     /**
@@ -872,7 +882,8 @@ Object.assign( World.prototype, {
         }
         
         if( o.name !== undefined ) body.name = o.name;
-        else if( o.move ) body.name = this.rigidBodies.length;
+        //else if( o.move ) body.name = this.rigidBodies.length;
+
         
         // finaly add to physics world
         this.addRigidBody( body );

@@ -38,25 +38,13 @@ function demo() {
 
     add({ type:'sphere', geometry: geo.highsphere, size:[s], pos:[0,100,0], move:true, density:10, friction:0.3, restitution:0.3 });
 
-    
+    // world internal loop
+    world.postLoop = postLoop;
+    world.play();
 
 };
 
-function add( o ){
-
-    var b = world.add(o);
-    var m = view.add(o);
-
-    // ! \\ update directly mesh matrix
-    b.connectMesh( m );
-
-    bodys.push( b );
-
-}
-
-function update () {
-
-    world.step();
+function postLoop () {
 
     var force;
     var center = new THREE.Vector3();
@@ -70,11 +58,8 @@ function update () {
             if( b.sleeping ) m.material = mat.sleep;
             else m.material = mat.move;
 
-            //meshs[id].position.copy( b.getPosition() );
-            //meshs[id].quaternion.copy( b.getQuaternion() );
-
             if(m.position.y<-10){
-                b.resetPosition( Math.rand(-5,5), Math.rand(10,20), Math.rand(-5,5) );
+                b.resetPosition( rand(-5,5), rand(10,20), rand(-5,5) );
             }
 
         }

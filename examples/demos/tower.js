@@ -4,10 +4,10 @@ function demo() {
 
     world = new OIMO.World({
         timestep: 1/60,
-        iterations: 10,
+        iterations: 8,
         broadphase: 2, // 1: brute force, 2: sweep & prune, 3: volume tree
         worldscale: 1,
-        random: false,
+        random: true,
         info:true // display statistique
     });
 
@@ -16,16 +16,15 @@ function demo() {
     add({type:'sphere',move:true,density:0.6,size:[2],pos:[-45,25,0]})
     add({size:[2, 40, 50], pos:[-30,10,0], rot:[0,0,60], density:1, restitution:0.2  })
     world.add({size:[50, 10, 50], pos:[0,-5,0], rot:[0,0,0], density:1, restitution:0.5  });
+
+    // world internal loop
+    world.postLoop = postLoop;
+    world.play();
+
 };
 
-function add( o ){
-
-    bodys.push( world.add(o) );
-    meshs.push( view.add(o) );
-
-}
-
 function addTower(o){
+
 	if(o.radius > 45)return;
 
 	var tx, ty, tz;
@@ -54,6 +53,7 @@ function addTower(o){
 			pz = tz + -Math.sin(angle) * rad;
 
 			add({
+
                 type:"box",
                 move:true,
                 size:[sx,sy,sz],
@@ -67,24 +67,24 @@ function addTower(o){
 	}
 }
 
-function update () {
+function postLoop () {
 
-    world.step();
+    var m;
 
     bodys.forEach( function ( b, id ) {
 
         if(b.type===1){
 
-            if( b.sleeping ) meshs[id].material = mat.sleep;
-            else meshs[id].material = mat.move;
+            m = b.mesh;
 
-            meshs[id].position.copy( b.getPosition() );
-            meshs[id].quaternion.copy( b.getQuaternion() );
+            if( b.sleeping ) m.material = mat.sleep;
+            else m.material = mat.move;
 
-            if(meshs[id].position.y<-10){
+            m.position.copy( b.getPosition() );
+            m.quaternion.copy( b.getQuaternion() );
 
-                b.resetPosition(
-                    Math.random()*40-20,Math.random()*10+30,Math.random()*40-20);
+            if( m.position.y<-10 ){
+                b.resetPosition( rand(-5,5), 30, rand(-5,5) );
             }
         }
 

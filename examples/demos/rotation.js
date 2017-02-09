@@ -6,24 +6,18 @@ function demo() {
 
     world = new OIMO.World({ info:true });
 
-    g1 = add({ size:[50, 10, 20], pos:[0,-5,12], rot:[0,0,-1], density:1, restitution:0.4, name:'groundA' });
-    g2 = add({ size:[50, 10, 20], pos:[0,-5,-12], rot:[0,0,1], density:1, restitution:0.6, name:'groundB' });
+    g1 = add({ size:[50, 10, 20], pos:[0,-5,12], rot:[0,0,-1], density:1, restitution:0.4 });
+    g2 = add({ size:[50, 10, 20], pos:[0,-5,-12], rot:[0,0,1], density:1, restitution:0.6 });
 
     // basic geometry body
-    b1 = add({ type:'sphere', size:[1], pos:[0,60,12], move:true, restitution:0.4, name:'ballA' });
-    b2 = add({ type:'sphere', size:[1], pos:[0,20,-12], move:true, restitution:0.6, name:'ballB' });
+    b1 = add({ type:'sphere', size:[1], pos:[0,60,12], move:true, restitution:0.4 });
+    b2 = add({ type:'sphere', size:[1], pos:[0,20,-12], move:true, restitution:0.6 });
+
+    // world internal loop
+    world.postLoop = postLoop;
+    world.play();
 
 };
-
-function add( o ){
-
-    var b = world.add(o);
-    var m = view.add(o);
-    b.connectMesh( m );
-    bodys.push( b );
-    return b;
-
-}
 
 function contact () {
 
@@ -42,19 +36,16 @@ function contact () {
         
 }
 
-function update () {
-
-    world.step();
+function postLoop () {
 
     bodys.forEach( function ( b, id ) {
 
         if( b.type === 1 ){
 
             m = b.mesh;
-            if( m.position.y < -10 ) b.resetPosition( 0, Math.randInt(20,100),m.position.z>0? 11:-11 );
+            if( m.position.y < -10 ) b.resetPosition( 0, randInt(20,100),m.position.z>0? 11:-11 );
             
         }
-
 
     });
 

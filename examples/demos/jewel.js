@@ -11,10 +11,6 @@ function demo() {
         info:true // display statistique
     });
 
-    
-
-    // basic geometry body
-
     var i, x, y, z, s, b;
 
     var mx = 150;
@@ -40,24 +36,20 @@ function demo() {
     
     
     for( i = 0; i<40; i++ ){
-        x = Math.rand(-50, 50);
-        z = Math.rand(-50, 50);
-        s = Math.rand(5, 15);
+        x = rand(-50, 50);
+        z = rand(-50, 50);
+        s = rand(5, 15);
         add({ type:'box', geometry:geo.dice, size:[s,s,s], pos:[x,s*0.5,z], move:true });
     }
 
+    // world internal loop
+
+    world.postLoop = postLoop;
+    world.play();
+
 };
 
-function add( o ){
-
-    bodys.push( world.add(o) );
-    meshs.push( view.add(o) );
-
-}
-
-function update () {
-
-    world.step();
+function postLoop () {
 
     var m;
 
@@ -65,20 +57,14 @@ function update () {
 
         if(b.type===1){
 
-            m = meshs[id];
+            m = b.mesh;
 
             if( b.sleeping ) switchMat( m, 'sleep');
             else switchMat( m, 'move');
 
-            m.position.copy( b.getPosition() );
-            m.quaternion.copy( b.getQuaternion() );
-
             if(m.position.y<-10){
-
-                x = Math.rand(-5,5);
-                z = Math.rand(-5,5);
-                y = Math.rand(10,20);
-                b.resetPosition(x,y,z);
+                
+                b.resetPosition(rand(-5,5),rand(10,20),rand(-5,5));
                 
             }
         }

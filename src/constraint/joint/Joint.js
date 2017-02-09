@@ -14,11 +14,12 @@ function Joint ( config ){
 
     Constraint.call( this );
 
-    this.scale = config.scale;
-    this.invScale = config.invScale;
+    this.scale = 1;
+    this.invScale = 1;
 
     // joint name
     this.name = "";
+    this.id = NaN;
 
     // The type of the joint.
     this.type = JOINT_NULL;
@@ -53,6 +54,22 @@ function Joint ( config ){
 Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
     constructor: Joint,
+
+    setId: function ( n ) { 
+
+        this.id = i; 
+
+    },
+
+    setParent: function ( world ) {
+
+        this.parent = world;
+        this.scale = this.parent.scale;
+        this.invScale = this.parent.invScale;
+        this.id = this.parent.numJoints;
+        if( !this.name ) this.name = 'J' +  this.id;
+
+    },
 
     // Update all the anchor points.
 

@@ -39,10 +39,10 @@ function demo() {
 
         n = i*mx;
         py = (60 + (i*10));
-        px = Math.rand(-40, 40);
-        pz = Math.rand(-40, 40);
+        px = rand(-40, 40);
+        pz = rand(-40, 40);
 
-        isBall = Math.randInt(0, 1);
+        isBall = randInt(0, 1);
 
         donutsGeo[i] = new THREE.Tubular({ start:[px,0,pz], end:[px,-40,pz+40], numSegment:mx }, (mx)*3, radius, 12, true );
         donuts[i] = new THREE.Mesh( donutsGeo[i], mat.donut );
@@ -58,7 +58,7 @@ function demo() {
             y = py; //+ Math.sin(j*0.5);
             z = (Math.cos(j*a) * rayon) + pz;
 
-            add({ type:'sphere', size:[radius], pos:[x, y, z], move:1 }, true);
+            add({ type:'sphere', size:[radius], pos:[x, y, z], move:1 }, true );
 
             if(isBall){
 
@@ -85,24 +85,21 @@ function demo() {
     
     
     for( i = 0; i<40; i++ ){
-        x = Math.rand(-50, 50);
-        z = Math.rand(-50, 50);
-        s = Math.rand(5, 15);
+        x = rand(-50, 50);
+        z = rand(-50, 50);
+        s = rand(5, 15);
         add({ type:'box', geometry:geo.dice, size:[s,s,s], pos:[x,s*0.5,z], move:true });
     }
 
+    // world internal loop
+    world.postLoop = postLoop;
+    world.play();
+
 };
 
-function add( o, notToThree ){
+function postLoop () {
 
-    bodys.push( world.add(o) );
-    if(!notToThree)meshs.push( view.add(o) );
-
-}
-
-function update () {
-
-    world.step();
+    //world.step();
 
     var v, n, cx, m;
 
@@ -121,19 +118,16 @@ function update () {
 
                 var mid = id - maxp
 
-                m = meshs[mid]; 
+                m = b.mesh;//meshs[mid]; 
 
                 if( b.sleeping ) switchMat( m, 'sleep');
                 else switchMat( m, 'move');
 
-                m.position.copy( b.getPosition() );
-                m.quaternion.copy( b.getQuaternion() );
+                //m.position.copy( b.getPosition() );
+                //m.quaternion.copy( b.getQuaternion() );
 
                 if( m.position.y < -10 ){
-                    x = Math.rand(-5,5);
-                    z = Math.rand(-5,5);
-                    y = Math.rand(10,20);
-                    b.resetPosition(x,y,z);
+                    b.resetPosition(rand(-5,5),rand(10,20),rand(-5,5));
                 }
             }
         }

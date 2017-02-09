@@ -67,6 +67,22 @@ h3{
     transition:border 0.3s ease;
 }
 
+.playButton {
+
+    position:absolute;
+    width:30px;
+    height:30px;
+    right:5px;
+    top:5px;
+    padding: 5px 5px;
+    border-radius: 3px;
+    border: 1px solid #3f3f3f;
+    cursor:pointer;
+    pointer-events:auto;
+    transition:background 0.3s ease;
+
+}
+
 .bigContent {
     padding: 10px 40px;
     width:100%;
@@ -112,7 +128,8 @@ h3{
     display: inline-block;
     margin-left: 40px;
     margin-right: -20px;
-    transition:all 0.3s ease;
+    transition:background 0.3s ease;
+    transition:color 0.3s ease;
     border-radius: 3px;
 }
 

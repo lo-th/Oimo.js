@@ -10,7 +10,7 @@
 
 var editor = ( function () {
 
-var content, codeContent, code, separator, menuCode, debug, title; 
+var content, codeContent, code, separator, menuCode, debug, title, playButton; 
 var callback = function(){};
 var callbackReset = function(){};
 var isSelfDrag = false;
@@ -41,6 +41,10 @@ var icon_Github = [
     "<path d='M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z' fill='currentColor' id='octo-body'></path></svg>",
 ].join("\n");
 
+var playIcon = "<svg width='18px' height='17px'><path fill='#CCC' d='M 14 8 L 5 3 4 4 4 13 5 14 14 9 14 8 Z'/></svg>";
+var pauseIcon = "<svg width='18px' height='17px'><path fill='#CCC' d='M 14 4 L 13 3 11 3 10 4 10 13 11 14 13 14 14 13 14 4 M 8 4 L 7 3 5 3 4 4 4 13 5 14 7 14 8 13 8 4 Z'/></svg>";
+
+
 
 editor = {
 
@@ -50,6 +54,8 @@ editor = {
         if(CallbackReset) callbackReset = CallbackReset;
 
         isWithCode = withCode || false;
+
+
 
         // big menu
 
@@ -80,7 +86,7 @@ editor = {
 
         title = document.createElement( 'div' );
         title.className = 'title';
-         document.body.appendChild( title );
+        document.body.appendChild( title );
 
         // editor
 
@@ -104,6 +110,9 @@ editor = {
 
         
 
+
+        
+
         menuCode = document.createElement('div');
         menuCode.className = 'menuCode';
         if(!isDocs) content.appendChild( menuCode );
@@ -119,12 +128,14 @@ editor = {
         code.on('dragstart', function () { isSelfDrag = true; } );
 
         if(isWithCode){
+
             if( !isDocs) left = ~~ (window.innerWidth*0.4);
             else left = ~~ (window.innerWidth*0.5);
             content.style.display = 'block';
             separator.style.display = 'block';
             this.addSeparatorEvent();
             this.resize();
+
         }
 
         bigmenu.style.width = window.innerWidth - left +'px';
@@ -146,6 +157,56 @@ editor = {
             document.body.appendChild( b2 );
 
         }
+
+        // play/pause button
+
+        playButton = document.createElement('div');
+        playButton.className = 'playButton';
+        content.appendChild( playButton );
+
+        playButton.addEventListener('mouseover', editor.play_over, false );
+        playButton.addEventListener('mouseout', editor.play_out, false );
+        playButton.addEventListener('mousedown', editor.play_down, false );
+
+        this.setPlay();
+
+    },
+
+    setPlay: function(){
+
+        playButton.innerHTML = isPlaying ? pauseIcon : playIcon;
+        playButton.childNodes[0].childNodes[0].setAttribute('fill', selectColor);
+
+    },
+
+    play_over: function ( e ) { 
+
+        playButton.style.border = "1px solid " + selectColor;
+        playButton.style.background = selectColor;
+        playButton.childNodes[0].childNodes[0].setAttribute('fill', '#FFFFFF');
+
+    },
+
+    play_out: function ( e ) { 
+
+        playButton.style.border = "1px solid #3f3f3f";
+        playButton.style.background = 'none';
+        playButton.childNodes[0].childNodes[0].setAttribute('fill', selectColor);
+
+    },
+
+    play_down: function () {
+
+        if( isPlaying ){ 
+            isPlaying = false;
+            stop();
+        } else {
+            isPlaying = true;
+            play();
+        }
+
+        playButton.innerHTML = isPlaying ? pauseIcon : playIcon;
+
 
     },
 
@@ -334,7 +395,7 @@ editor = {
     Bover: function( e ){
 
         e.target.style.border = "1px solid "+selectColor;
-        e.target.style.background = selectColor;;
+        e.target.style.background = selectColor;
         e.target.style.color = "#FFFFFF";
 
     },
@@ -517,6 +578,8 @@ editor = {
         document.getElementsByTagName('BODY').item(0).appendChild(oScript);
 
         menuCode.innerHTML = '&bull; ' + fileName;
+
+        
         //title.innerHTML = fileName.charAt(0).toUpperCase() + fileName.substring(1).toLowerCase();
 
         callback( fileName );

@@ -59,34 +59,28 @@ function demo() {
 
     }
 
+    // world internal loop
+
+    world.postLoop = postLoop;
+    world.play();
+
 };
 
-function add( o ){
+function postLoop () {
 
-    bodys.push( world.add(o) );
-    meshs.push( view.add(o) );
-
-}
-
-function update () {
-
-    world.step();
-
-    var force;
+    var force, m;
     var center = new THREE.Vector3();
 
     bodys.forEach( function ( b, id ) {
 
         if( b.type === 1 ){
 
-            if( b.sleeping ) meshs[id].material = mat.sleep;
-            else meshs[id].material = mat.move;
+            m = b.mesh;
 
-            meshs[id].position.copy( b.getPosition() );
-            meshs[id].quaternion.copy( b.getQuaternion() );
+            if( b.sleeping ) m.material = mat.sleep;
+            else m.material = mat.move;
 
-            force = meshs[id].position.clone().negate().normalize().multiplyScalar(0.1);
-
+            force = m.position.clone().negate().normalize().multiplyScalar(0.1);
             b.applyImpulse( center, force );
 
         }

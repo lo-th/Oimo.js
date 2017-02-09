@@ -19,34 +19,34 @@ function demo() {
     
     while( i-- ) {
 
-        w = Math.rand(0.1,1);
-        h = Math.rand(0.1,4);
-        d = Math.rand(0.1,1);
+        w = rand(0.3,1);
+        h = rand(0.3,4);
+        d = rand(0.3,1);
 
         o = {
 
             move:true, 
             density:1,
             pos : [ 
-                Math.rand(-5,5),
-                Math.rand(2,20) + ( i*h ),
-                Math.rand(-5,5),
+                rand(-5,5),
+                rand(2,10) + ( i*h ),
+                rand(-5,5),
             ],
             rot : [
-                Math.randInt(0,360),
-                Math.randInt(0,360),
-                Math.randInt(0,360),
+                randInt(0,360),
+                randInt(0,360),
+                randInt(0,360),
             ]
 
         };
 
         rot = [
-            Math.randInt(0,360),
-            Math.randInt(0,360),
-            Math.randInt(0,360),
+            randInt(0,360),
+            randInt(0,360),
+            randInt(0,360),
         ];
 
-        switch( Math.randInt(0,2) ){
+        switch( randInt(0,2) ){
 
             case 0 : o.type = 'sphere'; o.size = [w]; break;
             case 1 : o.type = 'box';  o.size = [w,w,d]; break;
@@ -54,28 +54,22 @@ function demo() {
 
         }
 
+        // see main.js
         add( o );
 
     }
 
+
+    // world internal loop
+
+    world.postLoop = postLoop;
+    world.play();
+
 };
 
-function add( o ){
+function postLoop () {
 
-    var b = world.add(o);
-    var m = view.add(o);
-
-    // ! \\ update directly mesh matrix
-    b.connectMesh( m );
-
-    bodys.push( b );
-    //meshs.push( m );
-
-}
-
-function update () {
-
-    world.step();
+    //world.step();
 
     var m;
 
@@ -83,19 +77,15 @@ function update () {
 
         if( b.type === 1 ){
 
-            m = b.mesh;//meshs[id];
+            m = b.mesh;
 
             if( b.sleeping ) switchMat( m, 'sleep' );
             else switchMat( m, 'move' );
 
-            //m.position.copy( b.getPosition() );
-            //m.quaternion.copy( b.getQuaternion() );
-
             if( m.position.y < -10 ){
-                b.resetPosition( Math.rand(-5,5), 30, Math.rand(-5,5) );
+                b.resetPosition( rand(-5,5), 30, rand(-5,5) );
             }
         }
-
 
     });
 

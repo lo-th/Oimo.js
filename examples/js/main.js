@@ -11,14 +11,14 @@
 var world = null;
 var scene = null;
 var bodys = [];
-var meshs = [];
+//var meshs = [];
 
 var mat, geo;
 
 var demos = [ 
     'basic', 'planet', 'donut', 'rotation', 'stacking', 'jewel',
     'empty', 'tower', 'kinematic', 'kinematic2', 'kinematic3',
-    'collision'
+    'collision', 'test',
 ];
 
 demos.sort();
@@ -27,6 +27,9 @@ var demo;
 var update = function () {};
 var postUpdate = function () {};
 
+var rand = Math.rand;
+var randInt = Math.randInt;
+
 var demoName = 'basic';
 
 //////////////////////////////
@@ -34,6 +37,7 @@ var demoName = 'basic';
 var direct = false;
 var isWithCode = false;
 var isDocs = false;
+var isPlaying = true;
 
 function init(){
 
@@ -60,7 +64,7 @@ function loop () {
 
     requestAnimationFrame( loop );
 
-    update();
+    if( isPlaying ) update();
     view.render();
 
 };
@@ -74,7 +78,7 @@ function reset () {
     if( world ) world.clear();
 
     bodys = [];
-    meshs = [];
+    //meshs = [];
 
 }
 
@@ -89,9 +93,33 @@ function ready () {
 function launch ( name ) {
 
     demo = new window['demo'];
+    isPlaying = true;
+    editor.setPlay();
 
 };
+
+// add body to simulation and mesh on three 
+
+function add( o, noMesh ){
+
+    if( world ){
+        var b = world.add( o );
+        bodys.push( b );
+    }
+
+    if( !noMesh ){
+        var m = view.add( o );
+        if( world ) b.connectMesh( m );
+    }
+
+    if( world ) return b;
+
+}
+
 
 function cam ( h,v,d,t ){ view.moveCamera( h, v, d, t || [0,0,0] ); };
 
 function switchMat ( obj, name ){ view.switchMaterial( obj, name ); };
+
+function play () { if( world !== null ) world.play(); }
+function stop () { if( world !== null ) world.stop(); }

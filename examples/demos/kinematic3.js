@@ -6,7 +6,7 @@ function demo() {
 
     world = new OIMO.World({ info:true });
 
-    var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
+    
 
     view.load_bvh( 'action', initAnimation );
 
@@ -43,9 +43,9 @@ function initSkeleton () {
 
     var p1 = new THREE.Vector3();
     var p2 = new THREE.Vector3();
-    var i = bones.length, name, bone, child, o, d, w;
+    var i, lng = bones.length, name, bone, child, o, d, w;
 
-    while(i--){
+    for( i = 0; i<lng; i++ ){
 
         bone = bones[i];
         name = bone.name;
@@ -80,7 +80,7 @@ function initSkeleton () {
             material:'donut'
         }
 
-        addID( o , i );
+        add( o );
 
         //console.log(name, i);
 
@@ -90,6 +90,11 @@ function initSkeleton () {
 
     addHair()
     addExtra();
+
+    // world internal loop
+
+    world.postLoop = postLoop;
+    world.play();
 
 }
 
@@ -127,6 +132,8 @@ function addExtra () {
         add( { type:'sphere', size:[w*0.5], pos:[x,y,z], move:true } );
 
     }
+
+    var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
 }
 
 function updateSkeleton () {
@@ -175,35 +182,12 @@ function updateSkeleton () {
 
 }
 
-function add( o ){
+function postLoop () {
 
-    var b = world.add( o )
-
-    bodys.push( b );
-    meshs.push( view.add(o) );
-
-    return b
-
-}
-
-function addID( o, i ){
-
-    bodys[i] = world.add(o);
-    meshs[i] = view.add(o);
-
-}
-
-function update () {
-
-    world.step();
+    //world.step();
 
     if ( mixer ) mixer.update( 0.003 );
-    if ( loaded ){ 
-
-        //skeletonHelper.update();
-        updateSkeleton();
-
-    }
+    if ( loaded ) updateSkeleton();
 
     var m;
 
@@ -211,15 +195,15 @@ function update () {
 
         if( b.type === 1 ){
 
-            m = meshs[id];
+            m = b.mesh;//meshs[id];
 
             if( !b.isKinematic ){
                 if( b.sleeping ) switchMat( m, 'sleep' );
                 else switchMat( m, 'move' );
             }
 
-            m.position.copy( b.getPosition() );
-            m.quaternion.copy( b.getQuaternion() );
+            //m.position.copy( b.getPosition() );
+            //m.quaternion.copy( b.getQuaternion() );
 
             if( m.position.y < -10 ){
                 b.resetPosition( Math.rand(-10,10), Math.rand(60,100), Math.rand(-10,10) );

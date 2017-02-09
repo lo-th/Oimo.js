@@ -54,7 +54,8 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
         if( dot < -halfh ) dot = -halfh;
         else if( dot > halfh ) dot = halfh;
 
-        cc.addEqual( n2 );
+        //cc.addEqual( n2 );
+        cc.copy( c.position ).addScale( c.normalDirection, dot ).addEqual( n2 );
         n.sub( cc, s.position );
         len = n.lengthSq();
 

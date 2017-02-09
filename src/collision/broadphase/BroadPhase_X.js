@@ -84,7 +84,7 @@ Object.assign( BroadPhase.prototype, {
     addPair: function ( s1, s2 ) {
 
         var pair = new Pair( s1, s2 );
-        this.pairs.push(pair);
+        this.pairs.push( pair );
         this.numPairs++;
 
     }

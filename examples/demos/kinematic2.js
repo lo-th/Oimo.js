@@ -1,4 +1,4 @@
-var paddle, mpaddle, decal;
+var paddle, rpaddle;
 
 function demo() {
 
@@ -8,10 +8,8 @@ function demo() {
 
     var ground = world.add({size:[50, 10, 50], pos:[0,-5,0], density:1000 });
 
-    decal = new THREE.Vector3(0,1,0);
-    var o = { type:'box', size:[50, 2, 2], pos:[0,1,0], density:1, move:true, kinematic:true, material:'donut' }
-    paddle = world.add( o );
-    mpaddle =  view.add( o );
+    paddle = add({ type:'box', size:[50, 2, 2], pos:[0,1,0], density:1, move:true, kinematic:true, material:'kinematic' });
+    rpaddle = view.add({ type:'box', pos:[0,1,0], material:'hide' });
 
     // basic geometry body
 
@@ -29,36 +27,19 @@ function demo() {
 
     }
 
-    //view.activeRay( rayMove );
+    // world internal loop
+    world.postLoop = postLoop;
+    world.play();
 
 };
 
-/*function rayMove ( m ) {
-
-    mpaddle.position.copy( m.position ).add(decal);
-    mpaddle.quaternion.copy( m.quaternion );
-
-};*/
-
-function add( o ){
-
-    bodys.push( world.add(o) );
-    meshs.push( view.add(o) );
-
+function update () {
+    rpaddle.rotation.y += 0.01;
 }
 
-function update () {
+function postLoop () {
 
-    mpaddle.rotation.y += 0.01;
-
-    //paddle.setPosition( mpaddle.position );
-    //paddle.setQuaternion( mpaddle.quaternion );
-
-    world.step();
-
-    mpaddle.quaternion.copy( paddle.getQuaternion() );
-
-    
+    paddle.setQuaternion( rpaddle.quaternion );
 
     var m;
 
@@ -66,13 +47,12 @@ function update () {
 
         if( b.type === 1 ){
 
-            m = meshs[id];
+            m = b.mesh;
 
-            if( b.sleeping ) switchMat( m, 'sleep' );
-            else switchMat( m, 'move' );
-
-            m.position.copy( b.getPosition() );
-            m.quaternion.copy( b.getQuaternion() );
+            if(!b.isKinematic){
+                if( b.sleeping ) switchMat( m, 'sleep' );
+                else switchMat( m, 'move' );
+            }
 
             if( m.position.y < -10 ){
                 b.resetPosition( Math.rand(-5,5), Math.rand(10,20), Math.rand(-5,5) );
@@ -82,9 +62,8 @@ function update () {
 
     });
 
+    
     editor.tell( world.getInfo() );
-
-    paddle.setQuaternion( mpaddle.quaternion );
 
 
 }

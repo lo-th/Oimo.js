@@ -1,6 +1,6 @@
 {
   "name": "oimo",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "JavaScript 3D physics engine.",
   "main": "build/oimo.js",
   "repository": "lo-th/oimo",
