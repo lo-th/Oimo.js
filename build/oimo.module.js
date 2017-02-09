@@ -250,8 +250,6 @@ function printError( clazz, msg ){
     console.error("[OIMO] " + clazz + ": " + msg);
 }
 
-// A performance evaluator
-
 function InfoDisplay(world){
 
     this.parent = world;
@@ -1504,13 +1502,6 @@ Object.assign( Mat33.prototype, {
 
 } );
 
-/**
- * An axis-aligned bounding box.
- *
- * @author saharan
- * @author lo-th
- */
-
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
     this.elements = new Float32Array( 6 );
@@ -1746,12 +1737,6 @@ Object.assign( Shape.prototype, {
 
 });
 
-/**
- * Box shape.
- * @author saharan
- * @author lo-th
- */
- 
 function Box ( config, Width, Height, Depth ) {
 
     Shape.call( this, config );
@@ -1890,12 +1875,6 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 });
 
-/**
- * Sphere shape
- * @author saharan
- * @author lo-th
- */
-
 function Sphere( config, radius ) {
 
     Shape.call( this, config );
@@ -1941,12 +1920,6 @@ Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 	}
 
 });
-
-/**
- * Cylinder shape
- * @author saharan
- * @author lo-th
- */
 
 function Cylinder ( config, radius, height ) {
 
@@ -2025,11 +1998,6 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * Plane shape.
- * @author lo-th
- */
-
 function Plane( config, normal ) {
 
     Shape.call( this, config );
@@ -2079,11 +2047,6 @@ Plane.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A Particule shape
- * @author lo-th
- */
-
 function Particle( config, normal ) {
 
     Shape.call( this, config );
@@ -2125,14 +2088,6 @@ Particle.prototype = Object.assign( Object.create( Shape.prototype ), {
 
 });
 
-/**
- * A shape configuration holds common configuration data for constructing a shape.
- * These configurations can be reused safely.
- *
- * @author saharan
- * @author lo-th
- */
- 
 function ShapeConfig(){
 
     // position of the shape in parent's coordinate system.
@@ -2211,13 +2166,6 @@ Object.assign( LimitMotor.prototype, {
 
 });
 
-/**
- * The base class of all type of the constraints.
- *
- * @author saharan
- * @author lo-th
- */
-
 function Constraint(){
 
     // parent world of the constraint.
@@ -2273,13 +2221,6 @@ function JointLink ( joint ){
     this.joint = joint;
 
 }
-
-/**
- * Joints are used to constrain the motion between two rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function Joint ( config ){
 
@@ -2453,10 +2394,6 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
 });
 
-/**
-* A linear constraint for all axes for various joints.
-* @author saharan
-*/
 function LinearConstraint ( joint ){
 
     this.m1=NaN;
@@ -3266,13 +3203,6 @@ Object.assign( Rotational3Constraint.prototype, {
     
 } );
 
-/**
- * A hinge joint allows only for relative rotation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
 
     Joint.call( this, config );
@@ -3369,13 +3299,6 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A ball-and-socket joint limits relative translation on two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
 
 function BallAndSocketJoint ( config ){
 
@@ -3696,13 +3619,6 @@ Object.assign( TranslationalConstraint.prototype, {
     }
 } );
 
-/**
- * A distance joint limits the distance between two anchor points on rigid bodies.
- *
- * @author saharan
- * @author lo-th
- */
-
 function DistanceJoint ( config, minDistance, maxDistance ){
 
     Joint.call( this, config );
@@ -3747,11 +3663,6 @@ DistanceJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
-* An angular constraint for all axes for various joints.
-* @author saharan
-*/
 
 function AngularConstraint( joint, targetOrientation ) {
 
@@ -4542,13 +4453,6 @@ Object.assign( Translational3Constraint.prototype, {
     
 } );
 
-/**
- * A prismatic joint allows only for relative translation of rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
-
 function PrismaticJoint( config, lowerTranslation, upperTranslation ){
 
     Joint.call( this, config );
@@ -4617,13 +4521,6 @@ PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A slider joint allows for relative translation and relative rotation between two rigid bodies along the axis.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SliderJoint( config, lowerTranslation, upperTranslation ){
 
@@ -4722,14 +4619,6 @@ SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
     }
 
 });
-
-/**
- * A wheel joint allows for relative rotation between two rigid bodies along two axes.
- * The wheel joint also allows for relative translation for the suspension.
- *
- * @author saharan
- * @author lo-th
- */
 
 function WheelJoint ( config ){
 
@@ -4867,12 +4756,6 @@ function JointConfig(){
 
 }
 
-/**
- * This class holds mass information of a shape.
- * @author lo-th
- * @author saharan
- */
-
 function MassInfo (){
 
     // Mass of the shape.
@@ -4910,11 +4793,6 @@ function ImpulseDataBuffer (){
 
 }
 
-/**
-* The class holds details of the contact point.
-* @author saharan
-*/
-
 function ManifoldPoint(){
 
     // Whether this manifold point is persisting or not.
@@ -4947,12 +4825,6 @@ function ManifoldPoint(){
     this.penetration = 0;
 
 }
-
-/**
-* A contact manifold between two shapes.
-* @author saharan
-* @author lo-th
-*/
 
 function ContactManifold () {
 
@@ -5069,11 +4941,6 @@ function ContactPointDataBuffer (){
 
 }
 
-/**
-* ...
-* @author saharan
-* @author lo-th
-*/
 function ContactConstraint ( manifold ){
     
     Constraint.call( this );
@@ -5451,13 +5318,6 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
 });
 
-/**
-* A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
-*
-* @author saharan
-* @author lo-th
-*/
-
 function Contact(){
 
     // The first shape.
@@ -5737,8 +5597,8 @@ function RigidBody ( Position, Rotation ) {
     this.tmpQuat = new Quat();
 
 
-    this.quaternion = new Quat();
-    this.pos = new Vec3();
+    this.quaternion = new Quat().copy(this.orientation);
+    this.pos = new Vec3().copy(this.position);
 
 
 
@@ -6086,7 +5946,7 @@ Object.assign( RigidBody.prototype, {
                     //this.linearVelocity.x = (this.newPosition.x - this.position.x)/timeStep;
                     //this.linearVelocity.y = (this.newPosition.y - this.position.y)/timeStep;
                     //this.linearVelocity.z = (this.newPosition.z - this.position.z)/timeStep;
-                    
+
                     //this.position.copy( this.newPosition );
                     this.controlPos = false;
 
@@ -6188,7 +6048,7 @@ Object.assign( RigidBody.prototype, {
 
     },*/
 
-    
+
 
     //---------------------------------------------
     // APPLY IMPULSE FORCE
@@ -6320,11 +6180,7 @@ function Pair ( s1, s2 ){
 
 }
 
-/**
-* The broad-phase is used for collecting all possible pairs for collision.
-*/
-
- function BroadPhase(){
+function BroadPhase(){
 
     this.types = BR_NULL;
     this.numPairChecks = 0;
@@ -6442,12 +6298,6 @@ Object.assign( Proxy.prototype, {
 
 });
 
-/**
-* A basic implementation of proxies.
-*
-* @author saharan
-*/
-
 function BasicProxy ( shape ) {
 
     Proxy.call( this, shape );
@@ -6465,11 +6315,6 @@ BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
-* A broad-phase algorithm with brute-force search.
-* This always checks for all possible pairs.
-*/
 
 function BruteForceBroadPhase(){
 
@@ -6525,11 +6370,6 @@ BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.protot
     }
 
 });
-
-/**
- * A projection axis for sweep and prune broad-phase.
- * @author saharan
- */
 
 function SAPAxis (){
 
@@ -6722,12 +6562,6 @@ function SAPElement ( proxy, max ) {
 
 }
 
-/**
- * A proxy for sweep and prune broad-phase.
- * @author saharan
- * @author lo-th
- */
-
 function SAPProxy ( sap, shape ){
 
     Proxy.call( this, shape );
@@ -6794,13 +6628,6 @@ SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
- * A broad-phase collision detection algorithm using sweep and prune.
- *
- * @author saharan
- * @author lo-th
- */
 
 function SAPBroadPhase () {
 
@@ -7008,11 +6835,6 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
 
 });
 
-/**
-* A node of the dynamic bounding volume tree.
-* @author saharan
-*/
-
 function DBVTNode(){
     
 	// The first child node of this node.
@@ -7029,13 +6851,6 @@ function DBVTNode(){
     this.aabb = new AABB();
 
 }
-
-/**
- * A dynamic bounding volume tree for the broad-phase algorithm.
- *
- * @author saharan
- * @author lo-th
- */
 
 function DBVT(){
 
@@ -7377,11 +7192,6 @@ Object.assign( DBVT.prototype, {
     
 });
 
-/**
-* A proxy for dynamic bounding volume tree broad-phase.
-* @author saharan
-*/
-
 function DBVTProxy ( shape ) {
 
     Proxy.call( this, shape);
@@ -7400,12 +7210,6 @@ DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
     }
 
 });
-
-/**
- * A broad-phase algorithm using dynamic bounding volume tree.
- * @author saharan
- * @author lo-th
- */
 
 function DBVTBroadPhase(){
 
@@ -7544,10 +7348,6 @@ Object.assign( CollisionDetector.prototype, {
 
 } );
 
-/**
- * A collision detector which detects collisions between two boxes.
- * @author saharan
- */
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
@@ -10311,12 +10111,6 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
 });
 
-/**
- * A collision detector which detects collisions between sphere and box.
- * @author saharan
- * @author lo-th
- */
-
 function SphereBoxCollisionDetector ( flip ) {
     
     CollisionDetector.call( this );
@@ -10533,12 +10327,6 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
- */
- 
 function SphereSphereCollisionDetector (){
 
     CollisionDetector.call( this );
@@ -10579,12 +10367,6 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
- */
- 
 function SpherePlaneCollisionDetector ( flip ){
 
     CollisionDetector.call( this );
@@ -10640,12 +10422,6 @@ SpherePlaneCollisionDetector.prototype = Object.assign( Object.create( Collision
 
 });
 
-/**
- * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
- */
- 
 function BoxPlaneCollisionDetector ( flip ){
 
     CollisionDetector.call( this );
@@ -10775,19 +10551,6 @@ BoxPlaneCollisionDetector.prototype = Object.assign( Object.create( CollisionDet
     }
 
 });
-
-//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
-
-//import { TetraShape } from '../collision/shape/TetraShape';
-
-/**
- * The class of physical computing world. 
- * You must be added to the world physical all computing objects
- * @author saharan
- * @author lo-th
- */
-
- // timestep, broadphase, iterations, worldscale, random, stat
 
 function World ( o ) {
 
@@ -11713,4 +11476,4 @@ Object.assign( World.prototype, {
 
 } );
 
-export { _Math as Math, Vec3, Quat, Mat33, Shape, Box, Sphere, Cylinder, ShapeConfig, LimitMotor, HingeJoint, BallAndSocketJoint, DistanceJoint, PrismaticJoint, SliderJoint, WheelJoint, JointConfig, RigidBody, World, REVISION, BR_NULL, BR_BRUTE_FORCE, BR_SWEEP_AND_PRUNE, BR_BOUNDING_VOLUME_TREE, BODY_NULL, BODY_DYNAMIC, BODY_STATIC, BODY_KINEMATIC, BODY_GHOST, SHAPE_NULL, SHAPE_SPHERE, SHAPE_BOX, SHAPE_CYLINDER, SHAPE_PLANE, SHAPE_PARTICLE, SHAPE_TETRA, JOINT_NULL, JOINT_DISTANCE, JOINT_BALL_AND_SOCKET, JOINT_HINGE, JOINT_WHEEL, JOINT_SLIDER, JOINT_PRISMATIC, AABB_PROX, printError, InfoDisplay };
+export { _Math as Math, Vec3, Quat, Mat33, Shape, Box, Sphere, Cylinder, Plane, Particle, ShapeConfig, LimitMotor, HingeJoint, BallAndSocketJoint, DistanceJoint, PrismaticJoint, SliderJoint, WheelJoint, JointConfig, RigidBody, World, REVISION, BR_NULL, BR_BRUTE_FORCE, BR_SWEEP_AND_PRUNE, BR_BOUNDING_VOLUME_TREE, BODY_NULL, BODY_DYNAMIC, BODY_STATIC, BODY_KINEMATIC, BODY_GHOST, SHAPE_NULL, SHAPE_SPHERE, SHAPE_BOX, SHAPE_CYLINDER, SHAPE_PLANE, SHAPE_PARTICLE, SHAPE_TETRA, JOINT_NULL, JOINT_DISTANCE, JOINT_BALL_AND_SOCKET, JOINT_HINGE, JOINT_WHEEL, JOINT_SLIDER, JOINT_PRISMATIC, AABB_PROX, printError, InfoDisplay };

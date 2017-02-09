@@ -55,8 +55,8 @@ function RigidBody ( Position, Rotation ) {
     this.tmpQuat = new Quat();
 
 
-    this.quaternion = new Quat();
-    this.pos = new Vec3();
+    this.quaternion = new Quat().copy(this.orientation);
+    this.pos = new Vec3().copy(this.position);
 
 
 
