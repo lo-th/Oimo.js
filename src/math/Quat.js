@@ -1,4 +1,5 @@
 import { _Math } from './Math';
+import { Vec3 } from './Vec3';
 
 function Quat ( x, y, z, w ){
 
@@ -25,70 +26,21 @@ Object.assign( Quat.prototype, {
 
     },
 
-    add: function( q1, q2 ){
-
-        this.w=q1.w+q2.w;
-        this.x=q1.x+q2.x;
-        this.y=q1.y+q2.y;
-        this.z=q1.z+q2.z;
-        return this;
-
-    },
-
     addTime: function( v, t ){
 
-        var ax = v.x;
-        var ay = v.y;
-        var az = v.z;
-        var qw = this.w;
-        var qx = this.x;
-        var qy = this.y;
-        var qz = this.z;
-
-        t *= 0.5;
-        
+        var ax = v.x, ay = v.y, az = v.z;
+        var qw = this.w, qx = this.x, qy = this.y, qz = this.z;
+        t *= 0.5;    
         this.x += t * (  ax*qw + ay*qz - az*qy );
         this.y += t * (  ay*qw + az*qx - ax*qz );
         this.z += t * (  az*qw + ax*qy - ay*qx );
         this.w += t * ( -ax*qx - ay*qy - az*qz );
-
         this.normalize();
-
         return this;
 
     },
 
-    sub: function( q1, q2 ){
-
-        this.w=q1.w-q2.w;
-        this.x=q1.x-q2.x;
-        this.y=q1.y-q2.y;
-        this.z=q1.z-q2.z;
-        return this;
-
-    },
-
-    scale: function( q, s ){
-
-        this.w=q.w*s;
-        this.x=q.x*s;
-        this.y=q.y*s;
-        this.z=q.z*s;
-        return this;
-
-    },
-
-    scaleEqual: function( s ){
-
-        this.w*=s;
-        this.x*=s;
-        this.y*=s;
-        this.z*=s;
-        return this;
-
-    },
-
-    mul: function( q1, q2 ){
+    /*mul: function( q1, q2 ){
 
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,
         bx = q2.x, by = q2.y, bz = q2.z, bs = q2.w;
@@ -98,81 +50,165 @@ Object.assign( Quat.prototype, {
         this.w = as * bs - ax * bx - ay * by - az * bz;
         return this;
 
+    },*/
+
+    multiply: function ( q, p ) {
+
+        if ( p !== undefined ) return this.multiplyQuaternions( q, p );
+        return this.multiplyQuaternions( this, q );
+
     },
 
-    arc: function( v1, v2 ){
+    multiplyQuaternions: function ( a, b ) {
 
-        var x1=v1.x;
-        var y1=v1.y;
-        var z1=v1.z;
-        var x2=v2.x;
-        var y2=v2.y;
-        var z2=v2.z;
-        var d=x1*x2+y1*y2+z1*z2;
-        if(d==-1){
-            x2=y1*x1-z1*z1;
-            y2=-z1*y1-x1*x1;
-            z2=x1*z1+y1*y1;
-            d=1/_Math.sqrt(x2*x2+y2*y2+z2*z2);
-            this.w=0;
-            this.x=x2*d;
-            this.y=y2*d;
-            this.z=z2*d;
-            return this;
-        }
-        var cx=y1*z2-z1*y2;
-        var cy=z1*x2-x1*z2;
-        var cz=x1*y2-y1*x2;
-        this.w=_Math.sqrt((1+d)*0.5);
-        d=0.5/this.w;
-        this.x=cx*d;
-        this.y=cy*d;
-        this.z=cz*d;
+        var qax = a.x, qay = a.y, qaz = a.z, qaw = a.w;
+        var qbx = b.x, qby = b.y, qbz = b.z, qbw = b.w;
+
+        this.x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+        this.y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+        this.z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+        this.w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
         return this;
 
     },
+
+    setFromUnitVectors: function( v1, v2 ) {
+
+        var vx = new Vec3();
+        var r = v1.dot( v2 ) + 1;
+
+        if ( r < _Math.EPS2 ) {
+
+            r = 0;
+            if ( _Math.abs( v1.x ) > _Math.abs( v1.z ) ) vx.set( - v1.y, v1.x, 0 );
+            else vx.set( 0, - v1.z, v1.y );
+
+        } else {
+
+            vx.crossVectors( v1, v2 );
+
+        }
+
+        this._x = vx.x;
+        this._y = vx.y;
+        this._z = vx.z;
+        this._w = r;
+
+        return this.normalize();
+
+    },
+
+    /*arc: function( v1, v2 ){
+
+        var x1 = v1.x;
+        var y1 = v1.y;
+        var z1 = v1.z;
+        var x2 = v2.x;
+        var y2 = v2.y;
+        var z2 = v2.z;
+        var d = x1*x2 + y1*y2 + z1*z2;
+        if( d==-1 ){
+            x2 = y1*x1 - z1*z1;
+            y2 = -z1*y1 - x1*x1;
+            z2 = x1*z1 + y1*y1;
+            d = 1 / _Math.sqrt( x2*x2 + y2*y2 + z2*z2 );
+            this.w = 0;
+            this.x = x2*d;
+            this.y = y2*d;
+            this.z = z2*d;
+            return this;
+        }
+        var cx = y1*z2 - z1*y2;
+        var cy = z1*x2 - x1*z2;
+        var cz = x1*y2 - y1*x2;
+        this.w = _Math.sqrt( ( 1 + d) * 0.5 );
+        d = 0.5 / this.w;
+        this.x = cx * d;
+        this.y = cy * d;
+        this.z = cz * d;
+        return this;
+
+    },*/
 
     normalize: function(){
 
-        var len=_Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
-        if(len>0){len=1/len;}
-        this.w=this.w*len;
-        this.x=this.x*len;
-        this.y=this.y*len;
-        this.z=this.z*len;
+        var l = this.length();
+        if ( l === 0 ) {
+            this.set( 0, 0, 0, 1 );
+        } else {
+            l = 1 / l;
+            this.x = this.x * l;
+            this.y = this.y * l;
+            this.z = this.z * l;
+            this.w = this.w * l;
+        }
         return this;
 
     },
 
-    invert: function(q){
+    inverse: function () {
 
+        return this.conjugate().normalize();
+
+    },
+
+    invert: function ( q ) {
+
+        this.x = q.x;
+        this.y = q.y;
+        this.z = q.z;
         this.w = q.w;
-        this.x=-q.x;
-        this.y=-q.y;
-        this.z=-q.z;
+        this.conjugate().normalize();
+        return this;
+
+    },
+
+    conjugate: function () {
+
+        this.x *= - 1;
+        this.y *= - 1;
+        this.z *= - 1;
         return this;
 
     },
 
     length: function(){
-        return _Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
+
+        return _Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w  );
+
+    },
+
+    lengthSq: function () {
+
+        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+
     },
     
     copy: function( q ){
-        this.w=q.w;
-        this.x=q.x;
-        this.y=q.y;
-        this.z=q.z;
+        
+        this.x = q.x;
+        this.y = q.y;
+        this.z = q.z;
+        this.w = q.w;
         return this;
+
     },
 
-    testDiff: function(q){
-        if( this.w!==q.w || this.x!==q.x || this.y!==q.y || this.z!==q.z ) return true;
-        else return false;
-    },
     clone: function( q ){
 
         return new Quat( this.x, this.y, this.z, this.w );
+
+    },
+
+    testDiff: function ( q ) {
+
+        return this.equals( q ) ? false : true;
+
+    },
+
+    equals: function ( q ) {
+
+        return this.x === q.x && this.y === q.y && this.z === q.z && this.w === q.w;
 
     },
 
@@ -201,79 +237,55 @@ Object.assign( Quat.prototype, {
 
     },
     
-    setFromAxis: function ( rad, ax, ay, az ) {
+    setFromAxis: function ( axis, rad ) {
 
-        var len = ax*ax+ay*ay+az*az; 
-        if(len>0){
-            len=1/_Math.sqrt(len);
-            ax*=len;
-            ay*=len;
-            az*=len;
-        }
-        var sin = _Math.sin( rad*0.5 );
-        this.x = sin*ax;
-        this.y = sin*ay;
-        this.z = sin*az;
-        this.w = _Math.cos( rad*0.5 );
-
+        axis.normalize();
+        rad = rad * 0.5;
+        var s = _Math.sin( rad );
+        this.x = s * axis.x;
+        this.y = s * axis.y;
+        this.z = s * axis.z;
+        this.w = _Math.cos( rad );
         return this;
 
     },
 
-    setFromRotationMatrix: function ( m ) {
+    setFromMat33: function ( m ) {
 
-        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-
-        // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-
-        var te = m.elements,
-
-            m11 = te[ 0 ], m12 = te[ 1 ], m13 = te[ 2 ],
-            m21 = te[ 3 ], m22 = te[ 4 ], m23 = te[ 5 ],
-            m31 = te[ 6 ], m32 = te[ 7 ], m33 = te[ 8 ],
-
-            trace = m11 + m22 + m33,
-            s;
+        var trace = m[0] + m[4] + m[8];
+        var s;
 
         if ( trace > 0 ) {
 
-            s = 0.5 / _Math.sqrt( trace + 1.0 );
-
-            this.w = 0.25 / s;
-            this.x = ( m32 - m23 ) * s;
-            this.y = ( m13 - m31 ) * s;
-            this.z = ( m21 - m12 ) * s;
-
-        } else if ( m11 > m22 && m11 > m33 ) {
-
-            s = 2.0 * _Math.sqrt( 1.0 + m11 - m22 - m33 );
-
-            this.w = ( m32 - m23 ) / s;
-            this.x = 0.25 * s;
-            this.y = ( m12 + m21 ) / s;
-            this.z = ( m13 + m31 ) / s;
-
-        } else if ( m22 > m33 ) {
-
-            s = 2.0 * _Math.sqrt( 1.0 + m22 - m11 - m33 );
-
-            this.w = ( m13 - m31 ) / s;
-            this.x = ( m12 + m21 ) / s;
-            this.y = 0.25 * s;
-            this.z = ( m23 + m32 ) / s;
+            s = _Math.sqrt( trace + 1.0 );
+            this.w = 0.5 / s;
+            s = 0.5 / s;
+            this.x = ( m[5] - m[7] ) * s;
+            this.y = ( m[6] - m[2] ) * s;
+            this.z = ( m[1] - m[3] ) * s;
 
         } else {
 
-            s = 2.0 * _Math.sqrt( 1.0 + m33 - m11 - m22 );
+            var out = [];
+            var i = 0;
+            if ( m[4] > m[0] ) i = 1;
+            if ( m[8] > m[i*3+i] ) i = 2;
 
-            this.w = ( m21 - m12 ) / s;
-            this.x = ( m13 + m31 ) / s;
-            this.y = ( m23 + m32 ) / s;
-            this.z = 0.25 * s;
+            var j = (i+1)%3;
+            var k = (i+2)%3;
+            
+            s = _Math.sqrt( m[i*3+i] - m[j*3+j] - m[k*3+k] + 1.0 );
+            out[i] = 0.5 * fRoot;
+            s = 0.5 / fRoot;
+            this.w = ( m[j*3+k] - m[k*3+j] ) * s;
+            out[j] = ( m[j*3+i] + m[i*3+j] ) * s;
+            out[k] = ( m[k*3+i] + m[i*3+k] ) * s;
+
+            this.x = out[1];
+            this.y = out[2];
+            this.z = out[3];
 
         }
-
-        //this.onChangeCallback();
 
         return this;
 
@@ -298,6 +310,6 @@ Object.assign( Quat.prototype, {
 
     }
 
-} );
+});
 
 export { Quat };

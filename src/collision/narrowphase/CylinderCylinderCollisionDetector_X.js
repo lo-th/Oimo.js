@@ -45,7 +45,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
     crossX: function ( a, b, c ) {
 
-        return this.tmp3.crossVectors( a, b ).scaleVectorEqual( c ).addition();
+        return this.tmp3.crossVectors( a, b ).multiply( c ).addition();
 
     },
 
@@ -268,8 +268,8 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
         }
 
         o.y = ld.y < 0 ? -c.halfHeight : c.halfHeight;
-        ld.mulMat( c.rotation, o ).addEqual( c.position );
-        out.set( ld.x, ld.y, ld.z );
+        ld.copy( o ).applyMatrix3( c.rotation, true ).addEqual( c.position );
+        out.copy( ld );
 
     },
 
@@ -400,7 +400,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     )
 
                     v[3].copy( v[0] );
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
                     v[0].set(
                         v[3].x-pd*n.x-cc1.x,
                         v[3].y-pd*n.y-cc1.y,
@@ -417,7 +417,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc2 );
 
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
                     if(pd<=0){
                         v[0].set(
                             v[3].x - pd*n.x - cc1.x,
@@ -436,7 +436,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc2 );
 
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
                     if( pd <= 0 ){
                         v[0].set(
                             v[3].x-pd*n.x-cc1.x,
@@ -454,7 +454,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                 }else{
 
                     v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc1 ).scaleV( n ).addition();
+                    depth1 = v[5].sub( v[1], cc1 ).multiply( n ).addition();
                     v[1].x-=depth1*n.x;
                     v[1].y-=depth1*n.y;
                     v[1].z-=depth1*n.z;
@@ -462,7 +462,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     if(dot>0) v[2].add( v[0], n2 ).scaleEqual( h2*2 );
                     else v[2].sub( v[0], n2 ).scaleEqual( h2*2 );
 
-                    depth2 = v[5].sub( v[2], cc1 ).scaleV( n ).addition();
+                    depth2 = v[5].sub( v[2], cc1 ).multiply( n ).addition();
                     v[2].x-=depth2*n.x;
                     v[2].y-=depth2*n.y;
                     v[2].z-=depth2*n.z;
@@ -548,7 +548,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
                     v[3].copy( v[0] );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
                     v[0].set(
                         v[3].x-pd*n.x-cc2.x,
                         v[3].y-pd*n.y-cc2.y,
@@ -566,7 +566,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc1 );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
                     if(pd<=0){
                         v[0].set(
                             v[3].x-pd*n.x-cc2.x,
@@ -585,7 +585,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc1 );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
                     if(pd<=0){
                         v[0].x=v[3].x-pd*n.x-cc2.x;
                         v[0].y=v[3].y-pd*n.y-cc2.y;
@@ -602,14 +602,14 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     }
                 }else{
                     v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc2 ).scaleV( n ).addition();
+                    depth1 = v[5].sub( v[1], cc2 ).multiply( n ).addition();
                     v[1].x-=depth1*n.x;
                     v[1].y-=depth1*n.y;
                     v[1].z-=depth1*n.z;
                     if(dot>0) v[2].add( v[0], n1 ).scaleEqual( h1*2 );
                     else v[2].sub( v[0], n1 ).scaleEqual( h1*2 );
 
-                    depth2 = v[5].sub( v[2], cc2 ).scaleV( n ).addition();
+                    depth2 = v[5].sub( v[2], cc2 ).multiply( n ).addition();
                     v[2].x-=depth2*n.x;
                     v[2].y-=depth2*n.y;
                     v[2].z-=depth2*n.z;

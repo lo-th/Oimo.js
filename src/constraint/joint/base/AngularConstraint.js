@@ -52,41 +52,42 @@ Object.assign( AngularConstraint.prototype, {
             v[4]*v[8]-v[5]*v[7], v[2]*v[7]-v[1]*v[8], v[1]*v[5]-v[2]*v[4],
             v[5]*v[6]-v[3]*v[8], v[0]*v[8]-v[2]*v[6], v[2]*v[3]-v[0]*v[5],
             v[3]*v[7]-v[4]*v[6], v[1]*v[6]-v[0]*v[7], v[0]*v[4]-v[1]*v[3]
-        ).multiply(inv);
+        ).multiplyScalar( inv );
         
-        this.relativeOrientation.invert(this.b1.orientation);
-        this.relativeOrientation.mul(this.targetOrientation,this.relativeOrientation);
-        this.relativeOrientation.mul(this.b2.orientation,this.relativeOrientation);
+        this.relativeOrientation.invert( this.b1.orientation ).multiply( this.targetOrientation ).multiply( this.b2.orientation );
+
         inv = this.relativeOrientation.w*2;
 
-        this.vel.scale( this.relativeOrientation, inv );
+        this.vel.copy( this.relativeOrientation ).multiplyScalar( inv );
 
         len = this.vel.length();
 
-        if( len>0.02 ) {
+        if( len > 0.02 ) {
             len = (0.02-len)/len*invTimeStep*0.05;
-            this.vel.scaleEqual(len);
+            this.vel.multiplyScalar( len );
         }else{
             this.vel.set(0,0,0);
         }
 
-        this.rn1.mulMat(this.ii1, this.imp);
-        this.rn2.mulMat(this.ii2, this.imp);
+        this.rn1.copy( this.imp ).applyMatrix3( this.ii1, true );
+        this.rn2.copy( this.imp ).applyMatrix3( this.ii2, true );
 
-        this.a1.addEqual(this.rn1);
-        this.a2.subEqual(this.rn2);
+        this.a1.add( this.rn1 );
+        this.a2.sub( this.rn2 );
 
     },
 
     solve: function () {
 
-        var r = this.a2.clone().subEqual(this.a1).subEqual(this.vel);
-        this.rn0.mulMat(this.dd, r);
-        this.rn1.mulMat(this.ii1, this.rn0);
-        this.rn2.mulMat(this.ii2, this.rn0);
-        this.imp.addEqual(this.rn0);
-        this.a1.addEqual(this.rn1);
-        this.a2.subEqual(this.rn2);
+        var r = this.a2.clone().sub( this.a1 ).sub( this.vel );
+
+        this.rn0.copy( r ).applyMatrix3( this.dd, true );
+        this.rn1.copy( this.rn0 ).applyMatrix3( this.ii1, true );
+        this.rn2.copy( this.rn0 ).applyMatrix3( this.ii2, true );
+
+        this.imp.add( this.rn0 );
+        this.a1.add( this.rn1 );
+        this.a2.sub( this.rn2 );
 
     }
 

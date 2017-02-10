@@ -40,7 +40,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
         if ( dot < -halfh - rads || dot > halfh + rads ) return;
 
-        cc.copy( c.position ).addScale( c.normalDirection, dot );
+        cc.copy( c.position ).addScaledVector( c.normalDirection, dot );
         n2.sub( s.position, cc );
         len = n2.lengthSq();
 
@@ -55,7 +55,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
         else if( dot > halfh ) dot = halfh;
 
         //cc.addEqual( n2 );
-        cc.copy( c.position ).addScale( c.normalDirection, dot ).addEqual( n2 );
+        cc.copy( c.position ).addScaledVector( c.normalDirection, dot ).addEqual( n2 );
         n.sub( cc, s.position );
         len = n.lengthSq();
 
@@ -65,7 +65,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
             n.scaleEqual( 1/len );
 
             //n.normalize();
-            p.copy( s.position ).addScale( n, rads );
+            p.copy( s.position ).addScaledVector( n, rads );
             manifold.addPointVec( p, n, len - rads, this.flip );
 
         }

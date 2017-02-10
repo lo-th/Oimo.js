@@ -29,9 +29,9 @@ function SliderJoint( config, lowerTranslation, upperTranslation ){
     this.localAxis2 = config.localAxis2.clone().normalize();
 
     // make angle axis
-    var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    var arc = new Mat33().setQuat( new Quat().setFromUnitVectors( this.localAxis1, this.localAxis2 ) );
     this.localAngle1 = new Vec3().tangent( this.localAxis1 ).normalize();
-    this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
+    this.localAngle2 = this.localAngle1.clone().applyMatrix3( arc, true );
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
@@ -64,11 +64,11 @@ SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
         this.updateAnchorPoints();
 
-        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
+        this.ax1.copy( this.localAxis1 ).applyMatrix3( this.body1.rotation, true );
+        this.an1.copy( this.localAngle1 ).applyMatrix3( this.body1.rotation, true );
 
-        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
-        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
+        this.ax2.copy( this.localAxis2 ).applyMatrix3( this.body2.rotation, true );
+        this.an2.copy( this.localAngle2 ).applyMatrix3( this.body2.rotation, true );
 
         // normal tangent binormal
 

@@ -194,13 +194,13 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             i1 = this.body1.inverseInertia;
             i2 = this.body2.inverseInertia;
 
-            c.norTU1.mulMat( i1, c.norT1 );
-            c.tanTU1.mulMat( i1, c.tanT1 );
-            c.binTU1.mulMat( i1, c.binT1 );
+            c.norTU1.copy( c.norT1 ).applyMatrix3( i1, true );
+            c.tanTU1.copy( c.tanT1 ).applyMatrix3( i1, true );
+            c.binTU1.copy( c.binT1 ).applyMatrix3( i1, true );
 
-            c.norTU2.mulMat( i2, c.norT2 );
-            c.tanTU2.mulMat( i2, c.tanT2 );
-            c.binTU2.mulMat( i2, c.binT2 );
+            c.norTU2.copy( c.norT2 ).applyMatrix3( i2, true );
+            c.tanTU2.copy( c.tanT2 ).applyMatrix3( i2, true );
+            c.binTU2.copy( c.binT2 ).applyMatrix3( i2, true );
 
             this.tmpC1.crossVectors( c.norTU1, this.tmpP1 );
             this.tmpC2.crossVectors( c.norTU2, this.tmpP2 );
@@ -221,11 +221,11 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
                 norImp = p.normalImpulse;
 
-                this.lv1.addScale( c.norU1, norImp );
-                this.av1.addScale( c.norTU1, norImp );
+                this.lv1.addScaledVector( c.norU1, norImp );
+                this.av1.addScaledVector( c.norTU1, norImp );
 
-                this.lv2.subScale( c.norU2, norImp );
-                this.av2.subScale( c.norTU2, norImp );
+                this.lv2.subScaledVector( c.norU2, norImp );
+                this.av2.subScaledVector( c.norTU2, norImp );
 
                 c.norImp = norImp;
                 c.tanImp = 0;
@@ -342,10 +342,10 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             newImp1 = norImp - oldImp1;
 
-            this.tmplv1.addScale( c.norU1, newImp1 );
-            this.tmpav1.addScale( c.norTU1, newImp1 );
-            this.tmplv2.subScale( c.norU2, newImp1 );
-            this.tmpav2.subScale( c.norTU2, newImp1 );
+            this.tmplv1.addScaledVector( c.norU1, newImp1 );
+            this.tmpav1.addScaledVector( c.norTU1, newImp1 );
+            this.tmplv2.subScaledVector( c.norU2, newImp1 );
+            this.tmpav2.subScaledVector( c.norTU2, newImp1 );
 
             c.norImp = norImp;
             c.tanImp = tanImp;

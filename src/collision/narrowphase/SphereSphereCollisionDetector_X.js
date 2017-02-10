@@ -39,7 +39,7 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
             n.scaleEqual( 1/len );
 
             //n.normalize();
-            p.copy( s1.position ).addScale( n, s1.radius );
+            p.copy( s1.position ).addScaledVector( n, s1.radius );
             manifold.addPointVec( p, n, len - rad, false );
 
         }

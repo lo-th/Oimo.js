@@ -75,8 +75,8 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
     updateAnchorPoints: function () {
 
-        this.relativeAnchorPoint1.mulMat( this.body1.rotation, this.localAnchorPoint1 );
-        this.relativeAnchorPoint2.mulMat( this.body2.rotation, this.localAnchorPoint2 );
+        this.relativeAnchorPoint1.copy( this.localAnchorPoint1 ).applyMatrix3( this.body1.rotation, true );
+        this.relativeAnchorPoint2.copy( this.localAnchorPoint2 ).applyMatrix3( this.body2.rotation, true );
 
         this.anchorPoint1.add( this.relativeAnchorPoint1, this.body1.position );
         this.anchorPoint2.add( this.relativeAnchorPoint2, this.body2.position );

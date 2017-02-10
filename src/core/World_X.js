@@ -574,7 +574,7 @@ Object.assign( World.prototype, {
             
             if( base.isLonely() ){// update single body
                 if( base.isDynamic && !base.isKinematic ){
-                    base.linearVelocity.addScale( this.gravity, this.timeStep );
+                    base.linearVelocity.addScaledVector( this.gravity, this.timeStep );
                 }
                 if( this.callSleep( base ) ) {
                     base.sleepTime += this.timeStep;
@@ -658,7 +658,7 @@ Object.assign( World.prototype, {
 
             // update gravity velocities
 
-            gVel = new Vec3().addScale( this.gravity, this.timeStep );
+            gVel = new Vec3().addScaledVector( this.gravity, this.timeStep );
 
             j = islandNumRigidBodies;
 

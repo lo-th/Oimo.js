@@ -525,7 +525,7 @@ Object.assign( World.prototype, {
 
             if( base.isLonely() ){// update single body
                 if( base.isDynamic ){
-                    base.linearVelocity.addTime( this.gravity, this.timeStep );
+                    base.linearVelocity.addScaledVector( this.gravity, this.timeStep );
                     /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
                     base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
@@ -594,7 +594,7 @@ Object.assign( World.prototype, {
             } while( stackCount != 0 );
 
             // update velocities
-            var gVel = new Vec3().addTime( this.gravity, this.timeStep );
+            var gVel = new Vec3().addScaledVector( this.gravity, this.timeStep );
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/

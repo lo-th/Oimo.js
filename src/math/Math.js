@@ -23,6 +23,7 @@ var _Math = {
 
     INF      : Infinity,
     EPZ      : 0.00001,
+    EPZ2      : 0.000001,
 
     lerp: function ( x, y, t ) { 
 

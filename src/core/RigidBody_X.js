@@ -240,10 +240,10 @@ Object.assign( RigidBody.prototype, {
             shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
-            tmpV.addScale( shape.relativePosition, shapeMass );
+            tmpV.addScaledVector( shape.relativePosition, shapeMass );
             this.mass += shapeMass;
             this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
-            this.localInertia.addEqual( tmpM );
+            this.localInertia.add( tmpM );
 
             // add offset inertia
             this.localInertia.addOffset( shapeMass, shape.relativePosition );
@@ -254,7 +254,7 @@ Object.assign( RigidBody.prototype, {
         tmpV.scaleEqual( this.inverseMass );
 
         if( adjustPosition ){
-            this.position.addEqual(tmpV);
+            this.position.add( tmpV );
             i = this.shapes.length;
             while(i--){
                 this.shapes[i].relativePosition.subEqual( tmpV );
@@ -372,7 +372,7 @@ Object.assign( RigidBody.prototype, {
                     //this.linearVelocity.scale(this.tmpPos, 1/timeStep)
                     
                     this.controlPos = false;
-                    this.position.addTime( this.linearVelocity, timeStep );
+                    this.position.addScaledVector( this.linearVelocity, timeStep );
                 }
                 if( this.controlRot ){
 
@@ -409,7 +409,7 @@ Object.assign( RigidBody.prototype, {
 
                 }
 
-                this.position.addTime( this.linearVelocity, timeStep );
+                this.position.addScaledVector( this.linearVelocity, timeStep );
                 this.orientation.addTime( this.angularVelocity, timeStep );
 
                 this.updateMesh();
@@ -427,14 +427,14 @@ Object.assign( RigidBody.prototype, {
 
     getAxis: function () {
 
-        return new Vec3().mulMat( this.inverseLocalInertia, new Vec3(0,1,0) ).normalize();
+        return new Vec3( 0,1,0 ).applyMatrix3( this.inverseLocalInertia, true ).normalize();
 
     },
 
     rotateInertia: function ( rot, inertia, out ) {
 
-        this.tmpInertia.mul( rot, inertia );
-        out.mul( this.tmpInertia, rot, true );
+        this.tmpInertia.multiplyMatrices( rot, inertia );
+        out.multiplyMatrices( this.tmpInertia, rot, true );
 
     },
 
@@ -448,11 +448,9 @@ Object.assign( RigidBody.prototype, {
         while(i--){
 
             shape = this.shapes[i];
-            //shape.position.mul( this.position, shape.relativePosition, this.rotation );
-
-            shape.position.mulMat( this.rotation, shape.relativePosition ).addEqual( this.position );
+            shape.position.copy( shape.relativePosition ).applyMatrix3( this.rotation, true ).add( this.position );
             // add by QuaziKb
-            shape.rotation.mul( this.rotation, shape.relativeRotation );
+            shape.rotation.multiplyMatrices( this.rotation, shape.relativeRotation );
             shape.updateProxy();
 
         }
@@ -464,10 +462,9 @@ Object.assign( RigidBody.prototype, {
 
     applyImpulse: function ( position, force ) {
 
-        this.linearVelocity.addScale(force, this.inverseMass);
-        var rel = new Vec3();
-        rel.sub( position, this.position ).cross( rel, force ).mulMat( this.inverseInertia, rel );
-        this.angularVelocity.addEqual( rel );
+        this.linearVelocity.addScaledVector( force, this.inverseMass );
+        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        this.angularVelocity.add( rel );
 
     },
 

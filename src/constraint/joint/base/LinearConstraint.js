@@ -156,7 +156,7 @@ Object.assign( LinearConstraint.prototype, {
             k[4]*k[8]-k[5]*k[7], k[2]*k[7]-k[1]*k[8], k[1]*k[5]-k[2]*k[4],
             k[5]*k[6]-k[3]*k[8], k[0]*k[8]-k[2]*k[6], k[2]*k[3]-k[0]*k[5],
             k[3]*k[7]-k[4]*k[6], k[1]*k[6]-k[0]*k[7], k[0]*k[4]-k[1]*k[3]
-        ).multiply(inv);
+        ).scaleEqual( inv );
 
         this.velx = this.p2.x-this.p1.x;
         this.vely = this.p2.y-this.p1.y;

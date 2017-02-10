@@ -34,7 +34,7 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
     this.tan = new Vec3();
     this.bin = new Vec3();
 
-    this.ac = new AngularConstraint( this, new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    this.ac = new AngularConstraint( this, new Quat().setFromUnitVectors( this.localAxis1, this.localAxis2 ) );
 
     // The translational limit and motor information of the joint.
     this.limitMotor = new LimitMotor( this.nor, true );
@@ -52,8 +52,8 @@ PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
         this.updateAnchorPoints();
 
-        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+        this.ax1.copy( this.localAxis1 ).applyMatrix3( this.body1.rotation, true );
+        this.ax2.copy( this.localAxis2 ).applyMatrix3( this.body2.rotation, true );
 
         // normal tangent binormal
 

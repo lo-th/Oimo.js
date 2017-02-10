@@ -124,7 +124,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
                 }
             }
 
-            p.copy( s.position ).addScale( n, rad );
+            p.copy( s.position ).addScaledVector( n, rad );
             manifold.addPointVec( p, n, len-rad, this.flip );
 
         }else{
@@ -144,7 +144,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
                 len = _Math.sqrt( len );
                 n.scaleEqual( 1/len );
 
-                p.copy( s.position ).addScale( n, rad );
+                p.copy( s.position ).addScaledVector( n, rad );
                 manifold.addPointVec( p, n, len-rad, this.flip );
 
             }

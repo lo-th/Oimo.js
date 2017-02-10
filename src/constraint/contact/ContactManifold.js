@@ -44,8 +44,8 @@ ContactManifold.prototype = {
         var p = this.points[ this.numPoints++ ];
 
         p.position.copy( pos );
-        p.localPoint1.mulManifold( this.body1.rotation, pos.clone().subEqual( this.body1.position ) );
-        p.localPoint2.mulManifold( this.body2.rotation, pos.clone().subEqual( this.body2.position ) );
+        p.localPoint1.sub( pos, this.body1.position ).applyMatrix3( this.body1.rotation );
+        p.localPoint2.sub( pos, this.body2.position ).applyMatrix3( this.body2.rotation );
 
         p.normal.copy( norm );
         if( flip ) p.normal.negate();
@@ -62,9 +62,8 @@ ContactManifold.prototype = {
         var p = this.points[ this.numPoints++ ];
 
         p.position.set( x, y, z );
-
-        p.localPoint1.mulManifold( this.body1.rotation, new Vec3().sub( p.position, this.body1.position ) );
-        p.localPoint2.mulManifold( this.body2.rotation, new Vec3().sub( p.position, this.body2.position ) );
+        p.localPoint1.sub( p.position, this.body1.position ).applyMatrix3( this.body1.rotation );
+        p.localPoint2.sub( p.position, this.body2.position ).applyMatrix3( this.body2.rotation );
 
         p.normalImpulse = 0;
 

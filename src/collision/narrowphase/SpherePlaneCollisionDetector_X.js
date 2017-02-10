@@ -54,7 +54,7 @@ SpherePlaneCollisionDetector.prototype = Object.assign( Object.create( Collision
             //(0, -1, 0)
 
             //n.normalize();
-            p.copy( s.position ).addScale( n, rad );
+            p.copy( s.position ).addScaledVector( n, rad );
             manifold.addPointVec( p, n, len - rad, this.flip );
 
         }

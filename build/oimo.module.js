@@ -150,6 +150,7 @@ var _Math = {
 
     INF      : Infinity,
     EPZ      : 0.00001,
+    EPZ2      : 0.000001,
 
     lerp: function ( x, y, t ) { 
 
@@ -427,7 +428,7 @@ Object.assign( Vec3.prototype, {
 
     Vec3: true,
 
-    set: function(x,y,z){
+    set: function( x, y, z ){
 
         this.x = x;
         this.y = y;
@@ -436,113 +437,174 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    add: function(v1,v2){
+    add: function ( a, b ) {
 
-        this.x = v1.x + v2.x;
-        this.y = v1.y + v2.y;
-        this.z = v1.z + v2.z;
+        if ( b !== undefined ) return this.addVectors( a, b );
+
+        this.x += a.x;
+        this.y += a.y;
+        this.z += a.z;
+        return this;
+
+    },
+
+    addVectors: function ( a, b ) {
+
+        this.x = a.x + b.x;
+        this.y = a.y + b.y;
+        this.z = a.z + b.z;
         return this;
 
     },
 
     addEqual: function ( v ) {
 
-        this.x+=v.x;
-        this.y+=v.y;
-        this.z+=v.z;
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
         return this;
 
     },
 
-    addTime: function ( v, t ) {
+    sub: function ( a, b ) {
 
-        this.x+=v.x*t;
-        this.y+=v.y*t;
-        this.z+=v.z*t;
+        if ( b !== undefined ) return this.subVectors( a, b );
+
+        this.x -= a.x;
+        this.y -= a.y;
+        this.z -= a.z;
         return this;
 
     },
 
-    sub: function ( v1, v2 ) {
+    subVectors: function ( a, b ) {
 
-        this.x=v1.x-v2.x;
-        this.y=v1.y-v2.y;
-        this.z=v1.z-v2.z;
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
         return this;
 
     },
 
     subEqual: function ( v ) {
 
-        this.x-=v.x;
-        this.y-=v.y;
-        this.z-=v.z;
-        return this;
-
-    },
-
-    addScale: function ( v, s ) {
-
-        this.x+=v.x*s;
-        this.y+=v.y*s;
-        this.z+=v.z*s;
-        return this;
-
-    },
-
-    subScale: function ( v, s ) {
-
-        this.x-=v.x*s;
-        this.y-=v.y*s;
-        this.z-=v.z*s;
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
         return this;
 
     },
 
     scale: function ( v, s ) {
 
-        this.x=v.x*s;
-        this.y=v.y*s;
-        this.z=v.z*s;
+        this.x = v.x * s;
+        this.y = v.y * s;
+        this.z = v.z * s;
         return this;
 
     },
 
     scaleEqual: function( s ){
 
-        this.x*=s;
-        this.y*=s;
-        this.z*=s;
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
         return this;
 
     },
 
-    scaleV: function( v ){
+    multiply: function( v ){
 
-        this.x*=v.x;
-        this.y*=v.y;
-        this.z*=v.z;
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
+        return this;
+
+    },
+
+    multiplyScalar: function( s ){
+
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
+        return this;
+
+    },
+
+    /*scaleV: function( v ){
+
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
         return this;
 
     },
 
     scaleVectorEqual: function( v ){
 
-        this.x*=v.x;
-        this.y*=v.y;
-        this.z*=v.z;
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
+        return this;
+
+    },*/
+
+    addScaledVector: function ( v, s ) {
+
+        this.x += v.x * s;
+        this.y += v.y * s;
+        this.z += v.z * s;
+
         return this;
 
     },
+
+    subScaledVector: function ( v, s ) {
+
+        this.x -= v.x * s;
+        this.y -= v.y * s;
+        this.z -= v.z * s;
+
+        return this;
+
+    },
+
+    /*addTime: function ( v, t ) {
+
+        this.x += v.x * t;
+        this.y += v.y * t;
+        this.z += v.z * t;
+        return this;
+
+    },
+    
+    addScale: function ( v, s ) {
+
+        this.x += v.x * s;
+        this.y += v.y * s;
+        this.z += v.z * s;
+        return this;
+
+    },
+
+    subScale: function ( v, s ) {
+
+        this.x -= v.x * s;
+        this.y -= v.y * s;
+        this.z -= v.z * s;
+        return this;
+
+    },*/
    
     cross: function( a, b ) {
 
-        var ax = a.x, ay = a.y, az = a.z;
-        var bx = b.x, by = b.y, bz = b.z;
+        if ( b !== undefined ) return this.crossVectors( a, b );
 
-        this.x = ay * bz - az * by;
-        this.y = az * bx - ax * bz;
-        this.z = ax * by - ay * bx;
+        var x = this.x, y = this.y, z = this.z;
+
+        this.x = y * a.z - z * a.y;
+        this.y = z * a.x - x * a.z;
+        this.z = x * a.y - y * a.x;
 
         return this;
 
@@ -573,35 +635,9 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    mul: function( o, v, m ){
+    
 
-        var te = m.elements;
-        this.x = o.x + v.x*te[0] + v.y*te[1] + v.z*te[2];
-        this.y = o.y + v.x*te[3] + v.y*te[4] + v.z*te[5];
-        this.z = o.z + v.x*te[6] + v.y*te[7] + v.z*te[8];
-        return this;
-
-    },
-
-    mulMat: function( m, v ){
-
-        var te = m.elements;
-        this.x = te[0]*v.x + te[1]*v.y + te[2]*v.z;
-        this.y = te[3]*v.x + te[4]*v.y + te[5]*v.z;
-        this.z = te[6]*v.x + te[7]*v.y + te[8]*v.z;
-        return this;
-
-    },
-
-    mulManifold: function ( m, v ) {
-
-        var te = m.elements;
-        this.x = te[0]*v.x + te[3]*v.y + te[6]*v.z;
-        this.y = te[1]*v.x + te[4]*v.y + te[7]*v.z;
-        this.z = te[2]*v.x + te[5]*v.y + te[8]*v.z;
-        return this;
-
-    },
+    
 
     invert: function ( v ) {
 
@@ -611,11 +647,7 @@ Object.assign( Vec3.prototype, {
         return this;
 
     },
-    /*length: function(){
-        var x = this.x, y = this.y, z = this.z;
-        return OIMO.sqrt(x*x + y*y + z*z);
-    },*/
-    
+
     negate: function () {
 
         this.x = - this.x;
@@ -638,8 +670,6 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    
-
     lengthSq: function () {
 
         return this.x * this.x + this.y * this.y + this.z * this.z;
@@ -652,11 +682,6 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    /*len: function(){
-        var x = this.x, y = this.y, z = this.z;
-        return x*x + y*y + z*z;
-    },*/
-
     copy: function( v ){
 
         this.x = v.x;
@@ -666,129 +691,42 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    subQuatTime: function( q, t ){
+    /*mul: function( b, a, m ){
 
-        //
-
-       /* var angle = _Math.acos(q.w);
-        var s = _Math.asin(angle);
-        var x = q.x / s;
-        var y = q.y / s;
-        var z = q.z / s;
-
-        q.normalize();
-
-        var angle = 2 * _Math.acos(q.w)
-        var len = _Math.sqrt(1-q.w*q.w)
-        if(len>0) {len = 0;console.log('out')}//{len=1/len;}
-var x = q.x / len
-var y = q.y / len
-var z = q.z / len*/
-
-      // this.set( x, y, z ).normalize();
-
-       // console.log(this)
-
-        //q.normalize();
-
-        /*var w = 2 * Math.acos( q.w );
-        var s = Math.sqrt( 1 - q.w * q.w );
-
-        if ( s < 0.0001 ) {
-
-             this.x = 1;
-             this.y = 0;
-             this.z = 0;
-
-        } else {
-
-             this.x = q.x / s;
-             this.y = q.y / s;
-             this.z = q.z / s;
-
-        }*/
-
-        //this.normalize()
-
-     /*   var angle = 2 * _Math.acos(q.w)
-var x = q.x / _Math.sqrt(1-q.w*q.w)
-var y = q.y / _Math.sqrt(1-q.w*q.w)
-var z = q.z / _Math.sqrt(1-q.w*q.w)
-
-var x = 2 * ( q.x * q.z - q.w * q.y )
-var y = 2 * ( q.y * q.z + q.w * q.x )
-var z = 1 - 2 * ( q.x * q.x + q.y * q.y )*/
-
-        //this.set(0.5,0.5,0)
-        //this.set(0,1,0)
-
-        //this.applyQuaternion( new Quat(0,0,0,1) )
-        //this.set(0,0,1)
-       // this.set(x,y,z);//.normalize()
-        this.applyQuaternion( q.scaleEqual(t).normalize() );
-       // this.applyQuaternion( q.scaleEqual(t) )
-        //this.scaleEqual( 1/t );
-
-        //var v = new Vec3().applyQuaternion( q  );
-        //console.log(this)
-        //this.scale( v, t );
-
-        /*q.normalize();
-
-        var v = new Vec3(1, 1,1)
-
-        var xx = q.x * q.x;
-        var yy = q.y * q.y;
-        var zz = q.z * q.z;
-        var xy = q.x * q.y;
-        var yz = q.y * q.z;
-        var xz = q.x * q.z;
-        var sx = q.w * q.x;
-        var sy = q.w * q.y;
-        var sz = q.w * q.z;
-        var tx = v.x * (0.5 - yy - zz) + v.y * (xy - sz) + v.z * (xz + sy);
-        var ty = v.x * (xy + sz) + v.y * (0.5 - xx - zz) + v.z * (yz - sx);
-        var tz = v.x * (xz - sy) + v.y * (yz + sx) + v.z * (0.5 - xx - yy);
-
-        this.x = tx * 2;
-        this.y = ty * 2;
-        this.z = tz * 2;*/
-
-        //var x = this.x;
-        //var y = this.y;
-        //var z = this.z;*/
-
-        //this.applyQuaternion( q ).scaleEqual( t )//.//.scaleEqual( t ) );//.normalize()
-        //
-
-
-       /* var qx = q.x;
-        var qy = q.y;
-        var qz = q.z;
-        var qw = q.w;
-
-        t*=0.5;
-        var iw=(-x*qx - y*qy - z*qz)*t;
-        var ix=( x*qw + y*qz - z*qy)*t;
-        var iy=(-x*qz + y*qw + z*qx)*t;
-        var iz=( x*qy - y*qx + z*qw)*t;
-
-        this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
-        this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
-        this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;*/
-
-        return this;
+        return this.mulMat( m, a ).add( b );
 
     },
 
-    applyMatrix3: function ( m ) {
+    mulMat: function( m, a ){
 
+        var e = m.elements;
+        var x = a.x, y = a.y, z = a.z;
+
+        this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
+        this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
+        this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
+        return this;
+
+    },*/
+
+    applyMatrix3: function ( m, transpose ) {
+
+        //if( transpose ) m = m.clone().transpose();
         var x = this.x, y = this.y, z = this.z;
         var e = m.elements;
 
-        this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
-        this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
-        this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+        if( transpose ){
+            
+            this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
+            this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
+            this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
+
+        } else {
+      
+            this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+            this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+            this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+        }
 
         return this;
 
@@ -821,22 +759,23 @@ var z = 1 - 2 * ( q.x * q.x + q.y * q.y )*/
         return this;
 
     },
+
     testZero: function () {
 
         if(this.x!==0 || this.y!==0 || this.z!==0) return true;
         else return false;
 
     },
+
     testDiff: function( v ){
 
-        return ( ( v.x !== this.x ) || ( v.y !== this.y ) || ( v.z !== this.z ) );
-        //if(this.x!==v.x || this.y!==v.y || this.z!==v.z) return true;
-        //else return false;
+        return this.equals( v ) ? false : true;
+
     },
 
     equals: function ( v ) {
 
-        return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) );
+        return v.x === this.x && v.y === this.y && v.z === this.z;
 
     },
 
@@ -929,70 +868,21 @@ Object.assign( Quat.prototype, {
 
     },
 
-    add: function( q1, q2 ){
-
-        this.w=q1.w+q2.w;
-        this.x=q1.x+q2.x;
-        this.y=q1.y+q2.y;
-        this.z=q1.z+q2.z;
-        return this;
-
-    },
-
     addTime: function( v, t ){
 
-        var ax = v.x;
-        var ay = v.y;
-        var az = v.z;
-        var qw = this.w;
-        var qx = this.x;
-        var qy = this.y;
-        var qz = this.z;
-
-        t *= 0.5;
-        
+        var ax = v.x, ay = v.y, az = v.z;
+        var qw = this.w, qx = this.x, qy = this.y, qz = this.z;
+        t *= 0.5;    
         this.x += t * (  ax*qw + ay*qz - az*qy );
         this.y += t * (  ay*qw + az*qx - ax*qz );
         this.z += t * (  az*qw + ax*qy - ay*qx );
         this.w += t * ( -ax*qx - ay*qy - az*qz );
-
         this.normalize();
-
         return this;
 
     },
 
-    sub: function( q1, q2 ){
-
-        this.w=q1.w-q2.w;
-        this.x=q1.x-q2.x;
-        this.y=q1.y-q2.y;
-        this.z=q1.z-q2.z;
-        return this;
-
-    },
-
-    scale: function( q, s ){
-
-        this.w=q.w*s;
-        this.x=q.x*s;
-        this.y=q.y*s;
-        this.z=q.z*s;
-        return this;
-
-    },
-
-    scaleEqual: function( s ){
-
-        this.w*=s;
-        this.x*=s;
-        this.y*=s;
-        this.z*=s;
-        return this;
-
-    },
-
-    mul: function( q1, q2 ){
+    /*mul: function( q1, q2 ){
 
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,
         bx = q2.x, by = q2.y, bz = q2.z, bs = q2.w;
@@ -1002,81 +892,165 @@ Object.assign( Quat.prototype, {
         this.w = as * bs - ax * bx - ay * by - az * bz;
         return this;
 
+    },*/
+
+    multiply: function ( q, p ) {
+
+        if ( p !== undefined ) return this.multiplyQuaternions( q, p );
+        return this.multiplyQuaternions( this, q );
+
     },
 
-    arc: function( v1, v2 ){
+    multiplyQuaternions: function ( a, b ) {
 
-        var x1=v1.x;
-        var y1=v1.y;
-        var z1=v1.z;
-        var x2=v2.x;
-        var y2=v2.y;
-        var z2=v2.z;
-        var d=x1*x2+y1*y2+z1*z2;
-        if(d==-1){
-            x2=y1*x1-z1*z1;
-            y2=-z1*y1-x1*x1;
-            z2=x1*z1+y1*y1;
-            d=1/_Math.sqrt(x2*x2+y2*y2+z2*z2);
-            this.w=0;
-            this.x=x2*d;
-            this.y=y2*d;
-            this.z=z2*d;
-            return this;
-        }
-        var cx=y1*z2-z1*y2;
-        var cy=z1*x2-x1*z2;
-        var cz=x1*y2-y1*x2;
-        this.w=_Math.sqrt((1+d)*0.5);
-        d=0.5/this.w;
-        this.x=cx*d;
-        this.y=cy*d;
-        this.z=cz*d;
+        var qax = a.x, qay = a.y, qaz = a.z, qaw = a.w;
+        var qbx = b.x, qby = b.y, qbz = b.z, qbw = b.w;
+
+        this.x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+        this.y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+        this.z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+        this.w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
         return this;
 
     },
+
+    setFromUnitVectors: function( v1, v2 ) {
+
+        var vx = new Vec3();
+        var r = v1.dot( v2 ) + 1;
+
+        if ( r < _Math.EPS2 ) {
+
+            r = 0;
+            if ( _Math.abs( v1.x ) > _Math.abs( v1.z ) ) vx.set( - v1.y, v1.x, 0 );
+            else vx.set( 0, - v1.z, v1.y );
+
+        } else {
+
+            vx.crossVectors( v1, v2 );
+
+        }
+
+        this._x = vx.x;
+        this._y = vx.y;
+        this._z = vx.z;
+        this._w = r;
+
+        return this.normalize();
+
+    },
+
+    /*arc: function( v1, v2 ){
+
+        var x1 = v1.x;
+        var y1 = v1.y;
+        var z1 = v1.z;
+        var x2 = v2.x;
+        var y2 = v2.y;
+        var z2 = v2.z;
+        var d = x1*x2 + y1*y2 + z1*z2;
+        if( d==-1 ){
+            x2 = y1*x1 - z1*z1;
+            y2 = -z1*y1 - x1*x1;
+            z2 = x1*z1 + y1*y1;
+            d = 1 / _Math.sqrt( x2*x2 + y2*y2 + z2*z2 );
+            this.w = 0;
+            this.x = x2*d;
+            this.y = y2*d;
+            this.z = z2*d;
+            return this;
+        }
+        var cx = y1*z2 - z1*y2;
+        var cy = z1*x2 - x1*z2;
+        var cz = x1*y2 - y1*x2;
+        this.w = _Math.sqrt( ( 1 + d) * 0.5 );
+        d = 0.5 / this.w;
+        this.x = cx * d;
+        this.y = cy * d;
+        this.z = cz * d;
+        return this;
+
+    },*/
 
     normalize: function(){
 
-        var len=_Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
-        if(len>0){len=1/len;}
-        this.w=this.w*len;
-        this.x=this.x*len;
-        this.y=this.y*len;
-        this.z=this.z*len;
+        var l = this.length();
+        if ( l === 0 ) {
+            this.set( 0, 0, 0, 1 );
+        } else {
+            l = 1 / l;
+            this.x = this.x * l;
+            this.y = this.y * l;
+            this.z = this.z * l;
+            this.w = this.w * l;
+        }
         return this;
 
     },
 
-    invert: function(q){
+    inverse: function () {
 
+        return this.conjugate().normalize();
+
+    },
+
+    invert: function ( q ) {
+
+        this.x = q.x;
+        this.y = q.y;
+        this.z = q.z;
         this.w = q.w;
-        this.x=-q.x;
-        this.y=-q.y;
-        this.z=-q.z;
+        this.conjugate().normalize();
+        return this;
+
+    },
+
+    conjugate: function () {
+
+        this.x *= - 1;
+        this.y *= - 1;
+        this.z *= - 1;
         return this;
 
     },
 
     length: function(){
-        return _Math.sqrt(this.w*this.w+this.x*this.x+this.y*this.y+this.z*this.z);
+
+        return _Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w  );
+
+    },
+
+    lengthSq: function () {
+
+        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+
     },
     
     copy: function( q ){
-        this.w=q.w;
-        this.x=q.x;
-        this.y=q.y;
-        this.z=q.z;
+        
+        this.x = q.x;
+        this.y = q.y;
+        this.z = q.z;
+        this.w = q.w;
         return this;
+
     },
 
-    testDiff: function(q){
-        if( this.w!==q.w || this.x!==q.x || this.y!==q.y || this.z!==q.z ) return true;
-        else return false;
-    },
     clone: function( q ){
 
         return new Quat( this.x, this.y, this.z, this.w );
+
+    },
+
+    testDiff: function ( q ) {
+
+        return this.equals( q ) ? false : true;
+
+    },
+
+    equals: function ( q ) {
+
+        return this.x === q.x && this.y === q.y && this.z === q.z && this.w === q.w;
 
     },
 
@@ -1105,79 +1079,55 @@ Object.assign( Quat.prototype, {
 
     },
     
-    setFromAxis: function ( rad, ax, ay, az ) {
+    setFromAxis: function ( axis, rad ) {
 
-        var len = ax*ax+ay*ay+az*az; 
-        if(len>0){
-            len=1/_Math.sqrt(len);
-            ax*=len;
-            ay*=len;
-            az*=len;
-        }
-        var sin = _Math.sin( rad*0.5 );
-        this.x = sin*ax;
-        this.y = sin*ay;
-        this.z = sin*az;
-        this.w = _Math.cos( rad*0.5 );
-
+        axis.normalize();
+        rad = rad * 0.5;
+        var s = _Math.sin( rad );
+        this.x = s * axis.x;
+        this.y = s * axis.y;
+        this.z = s * axis.z;
+        this.w = _Math.cos( rad );
         return this;
 
     },
 
-    setFromRotationMatrix: function ( m ) {
+    setFromMat33: function ( m ) {
 
-        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-
-        // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-
-        var te = m.elements,
-
-            m11 = te[ 0 ], m12 = te[ 1 ], m13 = te[ 2 ],
-            m21 = te[ 3 ], m22 = te[ 4 ], m23 = te[ 5 ],
-            m31 = te[ 6 ], m32 = te[ 7 ], m33 = te[ 8 ],
-
-            trace = m11 + m22 + m33,
-            s;
+        var trace = m[0] + m[4] + m[8];
+        var s;
 
         if ( trace > 0 ) {
 
-            s = 0.5 / _Math.sqrt( trace + 1.0 );
-
-            this.w = 0.25 / s;
-            this.x = ( m32 - m23 ) * s;
-            this.y = ( m13 - m31 ) * s;
-            this.z = ( m21 - m12 ) * s;
-
-        } else if ( m11 > m22 && m11 > m33 ) {
-
-            s = 2.0 * _Math.sqrt( 1.0 + m11 - m22 - m33 );
-
-            this.w = ( m32 - m23 ) / s;
-            this.x = 0.25 * s;
-            this.y = ( m12 + m21 ) / s;
-            this.z = ( m13 + m31 ) / s;
-
-        } else if ( m22 > m33 ) {
-
-            s = 2.0 * _Math.sqrt( 1.0 + m22 - m11 - m33 );
-
-            this.w = ( m13 - m31 ) / s;
-            this.x = ( m12 + m21 ) / s;
-            this.y = 0.25 * s;
-            this.z = ( m23 + m32 ) / s;
+            s = _Math.sqrt( trace + 1.0 );
+            this.w = 0.5 / s;
+            s = 0.5 / s;
+            this.x = ( m[5] - m[7] ) * s;
+            this.y = ( m[6] - m[2] ) * s;
+            this.z = ( m[1] - m[3] ) * s;
 
         } else {
 
-            s = 2.0 * _Math.sqrt( 1.0 + m33 - m11 - m22 );
+            var out = [];
+            var i = 0;
+            if ( m[4] > m[0] ) i = 1;
+            if ( m[8] > m[i*3+i] ) i = 2;
 
-            this.w = ( m21 - m12 ) / s;
-            this.x = ( m13 + m31 ) / s;
-            this.y = ( m23 + m32 ) / s;
-            this.z = 0.25 * s;
+            var j = (i+1)%3;
+            var k = (i+2)%3;
+            
+            s = _Math.sqrt( m[i*3+i] - m[j*3+j] - m[k*3+k] + 1.0 );
+            out[i] = 0.5 * fRoot;
+            s = 0.5 / fRoot;
+            this.w = ( m[j*3+k] - m[k*3+j] ) * s;
+            out[j] = ( m[j*3+i] + m[i*3+j] ) * s;
+            out[k] = ( m[k*3+i] + m[i*3+k] ) * s;
+
+            this.x = out[1];
+            this.y = out[2];
+            this.z = out[3];
 
         }
-
-        //this.onChangeCallback();
 
         return this;
 
@@ -1202,15 +1152,15 @@ Object.assign( Quat.prototype, {
 
     }
 
-} );
+});
 
 function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
-    this.elements = new Float32Array( [
+    this.elements = [
         1, 0, 0,
         0, 1, 0,
         0, 0, 1
-    ]);
+    ];
 
     if ( arguments.length > 0 ) {
 
@@ -1233,20 +1183,22 @@ Object.assign( Mat33.prototype, {
         return this;
 
     },
+    
+    add: function ( a, b ) {
 
-    multiply: function ( s ) {
+        if( b !== undefined ) return this.addMatrixs( a, b );
 
-        var te = this.elements;
-        te[0] *= s; te[1] *= s; te[2] *= s;
-        te[3] *= s; te[4] *= s; te[5] *= s;
-        te[6] *= s; te[7] *= s; te[8] *= s;
+        var e = this.elements, te = a.elements;
+        e[0] += te[0]; e[1] += te[1]; e[2] += te[2];
+        e[3] += te[3]; e[4] += te[4]; e[5] += te[5];
+        e[6] += te[6]; e[7] += te[7]; e[8] += te[8];
         return this;
 
     },
-    
-    add: function ( m1, m2 ) {
 
-        var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
+    addMatrixs: function ( a, b ) {
+
+        var te = this.elements, tem1 = a.elements, tem2 = b.elements;
         te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
         te[3] = tem1[3] + tem2[3]; te[4] = tem1[4] + tem2[4]; te[5] = tem1[5] + tem2[5];
         te[6] = tem1[6] + tem2[6]; te[7] = tem1[7] + tem2[7]; te[8] = tem1[8] + tem2[8];
@@ -1264,9 +1216,21 @@ Object.assign( Mat33.prototype, {
 
     },
 
-    sub: function ( m1, m2 ) {
+    sub: function ( a, b ) {
 
-        var te = this.elements, tem1 = m1.elements, tem2 = m2.elements;
+        if( b !== undefined ) return this.subMatrixs( a, b );
+
+        var e = this.elements, te = a.elements;
+        e[0] -= te[0]; e[1] -= te[1]; e[2] -= te[2];
+        e[3] -= te[3]; e[4] -= te[4]; e[5] -= te[5];
+        e[6] -= te[6]; e[7] -= te[7]; e[8] -= te[8];
+        return this;
+
+    },
+
+    subMatrixs: function ( a, b ) {
+
+        var te = this.elements, tem1 = a.elements, tem2 = b.elements;
         te[0] = tem1[0] - tem2[0]; te[1] = tem1[1] - tem2[1]; te[2] = tem1[2] - tem2[2];
         te[3] = tem1[3] - tem2[3]; te[4] = tem1[4] - tem2[4]; te[5] = tem1[5] - tem2[5];
         te[6] = tem1[6] - tem2[6]; te[7] = tem1[7] - tem2[7]; te[8] = tem1[8] - tem2[8];
@@ -1294,7 +1258,7 @@ Object.assign( Mat33.prototype, {
 
     },
 
-    scaleEqual: function ( s ){
+    scaleEqual: function ( s ){// multiplyScalar
 
         var te = this.elements;
         te[0] *= s; te[1] *= s; te[2] *= s;
@@ -1304,12 +1268,13 @@ Object.assign( Mat33.prototype, {
 
     },
 
-    mul: function ( m1, m2, transpose ) {
+    multiplyMatrices: function ( m1, m2, transpose ) {
+
+        if( transpose ) m2 = m2.clone().transpose();
 
         var te = this.elements;
         var tm1 = m1.elements;
         var tm2 = m2.elements;
-        var tmp;
 
         var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
         var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
@@ -1319,7 +1284,38 @@ Object.assign( Mat33.prototype, {
         var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
         var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
 
-        if( transpose ){
+        te[0] = a0*b0 + a1*b3 + a2*b6;
+        te[1] = a0*b1 + a1*b4 + a2*b7;
+        te[2] = a0*b2 + a1*b5 + a2*b8;
+        te[3] = a3*b0 + a4*b3 + a5*b6;
+        te[4] = a3*b1 + a4*b4 + a5*b7;
+        te[5] = a3*b2 + a4*b5 + a5*b8;
+        te[6] = a6*b0 + a7*b3 + a8*b6;
+        te[7] = a6*b1 + a7*b4 + a8*b7;
+        te[8] = a6*b2 + a7*b5 + a8*b8;
+
+        return this;
+
+    },
+
+    /*mul: function ( m1, m2, transpose ) {
+
+        if( transpose ) m2 = m2.clone().transpose();
+
+        var te = this.elements;
+        var tm1 = m1.elements;
+        var tm2 = m2.elements;
+        //var tmp;
+
+        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
+        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
+        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+
+        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
+        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
+        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+
+        /*if( transpose ){
 
             tmp = b1; b1 = b3; b3 = tmp;
             tmp = b2; b2 = b6; b6 = tmp;
@@ -1339,7 +1335,29 @@ Object.assign( Mat33.prototype, {
 
         return this;
 
+    },*/
+
+    transpose: function ( m ) {
+        
+        if( m !== undefined ){
+            var a = m.elements;
+            this.set( a[0], a[3], a[6], a[1], a[4], a[7], a[2], a[5], a[8] );
+            return this;
+        }
+
+        var te = this.elements;
+        var a01 = te[1], a02 = te[2], a12 = te[5];
+        te[1] = te[3];
+        te[2] = te[6];
+        te[3] = a01;
+        te[5] = te[7];
+        te[6] = a02;
+        te[7] = a12;
+        return this;
+
     },
+
+
 
     /*mulScale: function ( m, sx, sy, sz, Prepend ) {
 
@@ -1393,28 +1411,34 @@ Object.assign( Mat33.prototype, {
 
     },
 
-    invert: function(m){
+    invert: function( m ) {
 
         var te = this.elements, tm = m.elements,
-        a0 = tm[0], a3 = tm[3], a6 = tm[6],
-        a1 = tm[1], a4 = tm[4], a7 = tm[7],
-        a2 = tm[2], a5 = tm[5], a8 = tm[8],
-        b01 = a4*a8-a7*a5,
-        b11 = a7*a2-a1*a8,
-        b21 = a1*a5-a4*a2,
-        dt= a0 * (b01) + a3 * (b11) + a6 * (b21);
+        a00 = tm[0], a10 = tm[3], a20 = tm[6],
+        a01 = tm[1], a11 = tm[4], a21 = tm[7],
+        a02 = tm[2], a12 = tm[5], a22 = tm[8],
+        b01 = a22 * a11 - a12 * a21,
+        b11 = -a22 * a10 + a12 * a20,
+        b21 = a21 * a10 - a11 * a20,
+        det = a00 * b01 + a01 * b11 + a02 * b21;
 
-        if(dt!=0){dt=1.0/dt;}
-        te[0] = dt*b01;//(a4*a8 - a5*a7);
-        te[1] = dt*b11;//(a2*a7 - a1*a8);
-        te[2] = dt*b21;//(a1*a5 - a2*a4);
-        te[3] = dt*(a5*a6 - a3*a8);
-        te[4] = dt*(a0*a8 - a2*a6);
-        te[5] = dt*(a2*a3 - a0*a5);
-        te[6] = dt*(a3*a7 - a4*a6);
-        te[7] = dt*(a1*a6 - a0*a7);
-        te[8] = dt*(a0*a4 - a1*a3);
+        if ( det === 0 ) {
+            console.log( "can't invert matrix, determinant is 0");
+            return this.identity();
+        }
+
+        det = 1.0 / det;
+        te[0] = b01 * det;
+        te[1] = (-a22 * a01 + a02 * a21) * det;
+        te[2] = (a12 * a01 - a02 * a11) * det;
+        te[3] = b11 * det;
+        te[4] = (a22 * a00 - a02 * a20) * det;
+        te[5] = (-a12 * a00 + a02 * a10) * det;
+        te[6] = b21 * det;
+        te[7] = (-a21 * a00 + a01 * a20) * det;
+        te[8] = (a11 * a00 - a01 * a10) * det;
         return this;
+
     },
 
     addOffset: function ( m, v ) {
@@ -1493,8 +1517,19 @@ Object.assign( Mat33.prototype, {
 
     copy: function ( m ) {
 
-        this.elements.set( m.elements );
+        for ( var i = 0; i < 9; i ++ ) this.elements[ i ] = m.elements[ i ];
         return this;
+
+    },
+
+    determinant: function () {
+
+        var te = this.elements;
+        var a = te[ 0 ], b = te[ 1 ], c = te[ 2 ],
+            d = te[ 3 ], e = te[ 4 ], f = te[ 5 ],
+            g = te[ 6 ], h = te[ 7 ], i = te[ 8 ];
+
+        return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g;
 
     },
 
@@ -1529,7 +1564,7 @@ Object.assign( Mat33.prototype, {
 
         array[ offset + 6 ] = te[ 6 ];
         array[ offset + 7 ] = te[ 7 ];
-        array[ offset + 8 ]  = te[ 8 ];
+        array[ offset + 8 ] = te[ 8 ];
 
         return array;
 
@@ -2380,8 +2415,8 @@ Joint.prototype = Object.assign( Object.create( Constraint.prototype ), {
 
     updateAnchorPoints: function () {
 
-        this.relativeAnchorPoint1.mulMat( this.body1.rotation, this.localAnchorPoint1 );
-        this.relativeAnchorPoint2.mulMat( this.body2.rotation, this.localAnchorPoint2 );
+        this.relativeAnchorPoint1.copy( this.localAnchorPoint1 ).applyMatrix3( this.body1.rotation, true );
+        this.relativeAnchorPoint2.copy( this.localAnchorPoint2 ).applyMatrix3( this.body2.rotation, true );
 
         this.anchorPoint1.add( this.relativeAnchorPoint1, this.body1.position );
         this.anchorPoint2.add( this.relativeAnchorPoint2, this.body2.position );
@@ -2659,7 +2694,7 @@ Object.assign( LinearConstraint.prototype, {
             k[4]*k[8]-k[5]*k[7], k[2]*k[7]-k[1]*k[8], k[1]*k[5]-k[2]*k[4],
             k[5]*k[6]-k[3]*k[8], k[0]*k[8]-k[2]*k[6], k[2]*k[3]-k[0]*k[5],
             k[3]*k[7]-k[4]*k[6], k[1]*k[6]-k[0]*k[7], k[0]*k[4]-k[1]*k[3]
-        ).multiply(inv);
+        ).scaleEqual( inv );
 
         this.velx = this.p2.x-this.p1.x;
         this.vely = this.p2.y-this.p1.y;
@@ -3336,9 +3371,9 @@ function HingeJoint ( config, lowerAngleLimit, upperAngleLimit ) {
     this.localAxis2 = config.localAxis2.clone().normalize();
 
     // make angle axis
-    var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    var arc = new Mat33().setQuat( new Quat().setFromUnitVectors( this.localAxis1, this.localAxis2 ) );
     this.localAngle1 = new Vec3().tangent( this.localAxis1 ).normalize();
-    this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
+    this.localAngle2 = this.localAngle1.clone().applyMatrix3( arc, true );
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
@@ -3369,11 +3404,11 @@ HingeJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
         this.updateAnchorPoints();
 
-        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+        this.ax1.copy( this.localAxis1 ).applyMatrix3( this.body1.rotation, true );
+        this.ax2.copy( this.localAxis2 ).applyMatrix3( this.body2.rotation, true );
 
-        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
-        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
+        this.an1.copy( this.localAngle1 ).applyMatrix3( this.body1.rotation, true );
+        this.an2.copy( this.localAngle2 ).applyMatrix3( this.body2.rotation, true );
 
         // normal tangent binormal
 
@@ -3849,41 +3884,42 @@ Object.assign( AngularConstraint.prototype, {
             v[4]*v[8]-v[5]*v[7], v[2]*v[7]-v[1]*v[8], v[1]*v[5]-v[2]*v[4],
             v[5]*v[6]-v[3]*v[8], v[0]*v[8]-v[2]*v[6], v[2]*v[3]-v[0]*v[5],
             v[3]*v[7]-v[4]*v[6], v[1]*v[6]-v[0]*v[7], v[0]*v[4]-v[1]*v[3]
-        ).multiply(inv);
+        ).multiplyScalar( inv );
         
-        this.relativeOrientation.invert(this.b1.orientation);
-        this.relativeOrientation.mul(this.targetOrientation,this.relativeOrientation);
-        this.relativeOrientation.mul(this.b2.orientation,this.relativeOrientation);
+        this.relativeOrientation.invert( this.b1.orientation ).multiply( this.targetOrientation ).multiply( this.b2.orientation );
+
         inv = this.relativeOrientation.w*2;
 
-        this.vel.scale( this.relativeOrientation, inv );
+        this.vel.copy( this.relativeOrientation ).multiplyScalar( inv );
 
         len = this.vel.length();
 
-        if( len>0.02 ) {
+        if( len > 0.02 ) {
             len = (0.02-len)/len*invTimeStep*0.05;
-            this.vel.scaleEqual(len);
+            this.vel.multiplyScalar( len );
         }else{
             this.vel.set(0,0,0);
         }
 
-        this.rn1.mulMat(this.ii1, this.imp);
-        this.rn2.mulMat(this.ii2, this.imp);
+        this.rn1.copy( this.imp ).applyMatrix3( this.ii1, true );
+        this.rn2.copy( this.imp ).applyMatrix3( this.ii2, true );
 
-        this.a1.addEqual(this.rn1);
-        this.a2.subEqual(this.rn2);
+        this.a1.add( this.rn1 );
+        this.a2.sub( this.rn2 );
 
     },
 
     solve: function () {
 
-        var r = this.a2.clone().subEqual(this.a1).subEqual(this.vel);
-        this.rn0.mulMat(this.dd, r);
-        this.rn1.mulMat(this.ii1, this.rn0);
-        this.rn2.mulMat(this.ii2, this.rn0);
-        this.imp.addEqual(this.rn0);
-        this.a1.addEqual(this.rn1);
-        this.a2.subEqual(this.rn2);
+        var r = this.a2.clone().sub( this.a1 ).sub( this.vel );
+
+        this.rn0.copy( r ).applyMatrix3( this.dd, true );
+        this.rn1.copy( this.rn0 ).applyMatrix3( this.ii1, true );
+        this.rn2.copy( this.rn0 ).applyMatrix3( this.ii2, true );
+
+        this.imp.add( this.rn0 );
+        this.a1.add( this.rn1 );
+        this.a2.sub( this.rn2 );
 
     }
 
@@ -4618,7 +4654,7 @@ function PrismaticJoint( config, lowerTranslation, upperTranslation ){
     this.tan = new Vec3();
     this.bin = new Vec3();
 
-    this.ac = new AngularConstraint( this, new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    this.ac = new AngularConstraint( this, new Quat().setFromUnitVectors( this.localAxis1, this.localAxis2 ) );
 
     // The translational limit and motor information of the joint.
     this.limitMotor = new LimitMotor( this.nor, true );
@@ -4636,8 +4672,8 @@ PrismaticJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
         this.updateAnchorPoints();
 
-        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+        this.ax1.copy( this.localAxis1 ).applyMatrix3( this.body1.rotation, true );
+        this.ax2.copy( this.localAxis2 ).applyMatrix3( this.body2.rotation, true );
 
         // normal tangent binormal
 
@@ -4688,9 +4724,9 @@ function SliderJoint( config, lowerTranslation, upperTranslation ){
     this.localAxis2 = config.localAxis2.clone().normalize();
 
     // make angle axis
-    var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+    var arc = new Mat33().setQuat( new Quat().setFromUnitVectors( this.localAxis1, this.localAxis2 ) );
     this.localAngle1 = new Vec3().tangent( this.localAxis1 ).normalize();
-    this.localAngle2 = new Vec3().mulMat( arc, this.localAngle1 );
+    this.localAngle2 = this.localAngle1.clone().applyMatrix3( arc, true );
 
     this.ax1 = new Vec3();
     this.ax2 = new Vec3();
@@ -4723,11 +4759,11 @@ SliderJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
         this.updateAnchorPoints();
 
-        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
+        this.ax1.copy( this.localAxis1 ).applyMatrix3( this.body1.rotation, true );
+        this.an1.copy( this.localAngle1 ).applyMatrix3( this.body1.rotation, true );
 
-        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
-        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
+        this.ax2.copy( this.localAxis2 ).applyMatrix3( this.body2.rotation, true );
+        this.an2.copy( this.localAngle2 ).applyMatrix3( this.body2.rotation, true );
 
         // normal tangent binormal
 
@@ -4814,9 +4850,9 @@ function WheelJoint ( config ){
 
     } else {
 
-        var arc = new Mat33().setQuat( new Quat().arc( this.localAxis1, this.localAxis2 ) );
+        var arc = new Mat33().setQuat( new Quat().setFromUnitVectors( this.localAxis1, this.localAxis2 ) );
         this.localAngle1.tangent( this.localAxis1 ).normalize();
-        this.localAngle2.mulMat( arc, this.localAngle1 );
+        this.localAngle2 = this.localAngle1.clone().applyMatrix3( arc, true );
 
     }
 
@@ -4854,11 +4890,11 @@ WheelJoint.prototype = Object.assign( Object.create( Joint.prototype ), {
 
         this.updateAnchorPoints();
 
-        this.ax1.mulMat( this.body1.rotation, this.localAxis1 );
-        this.ax2.mulMat( this.body2.rotation, this.localAxis2 );
+        this.ax1.copy( this.localAxis1 ).applyMatrix3( this.body1.rotation, true );
+        this.an1.copy( this.localAngle1 ).applyMatrix3( this.body1.rotation, true );
 
-        this.an1.mulMat( this.body1.rotation, this.localAngle1 );
-        this.an2.mulMat( this.body2.rotation, this.localAngle2 );
+        this.ax2.copy( this.localAxis2 ).applyMatrix3( this.body2.rotation, true );
+        this.an2.copy( this.localAngle2 ).applyMatrix3( this.body2.rotation, true );
 
         this.r3.limitMotor1.angle = _Math.dotVectors( this.ax1, this.ax2 );
 
@@ -5042,8 +5078,8 @@ ContactManifold.prototype = {
         var p = this.points[ this.numPoints++ ];
 
         p.position.copy( pos );
-        p.localPoint1.mulManifold( this.body1.rotation, pos.clone().subEqual( this.body1.position ) );
-        p.localPoint2.mulManifold( this.body2.rotation, pos.clone().subEqual( this.body2.position ) );
+        p.localPoint1.sub( pos, this.body1.position ).applyMatrix3( this.body1.rotation );
+        p.localPoint2.sub( pos, this.body2.position ).applyMatrix3( this.body2.rotation );
 
         p.normal.copy( norm );
         if( flip ) p.normal.negate();
@@ -5060,9 +5096,8 @@ ContactManifold.prototype = {
         var p = this.points[ this.numPoints++ ];
 
         p.position.set( x, y, z );
-
-        p.localPoint1.mulManifold( this.body1.rotation, new Vec3().sub( p.position, this.body1.position ) );
-        p.localPoint2.mulManifold( this.body2.rotation, new Vec3().sub( p.position, this.body2.position ) );
+        p.localPoint1.sub( p.position, this.body1.position ).applyMatrix3( this.body1.rotation );
+        p.localPoint2.sub( p.position, this.body2.position ).applyMatrix3( this.body2.rotation );
 
         p.normalImpulse = 0;
 
@@ -5311,13 +5346,13 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             i1 = this.body1.inverseInertia;
             i2 = this.body2.inverseInertia;
 
-            c.norTU1.mulMat( i1, c.norT1 );
-            c.tanTU1.mulMat( i1, c.tanT1 );
-            c.binTU1.mulMat( i1, c.binT1 );
+            c.norTU1.copy( c.norT1 ).applyMatrix3( i1, true );
+            c.tanTU1.copy( c.tanT1 ).applyMatrix3( i1, true );
+            c.binTU1.copy( c.binT1 ).applyMatrix3( i1, true );
 
-            c.norTU2.mulMat( i2, c.norT2 );
-            c.tanTU2.mulMat( i2, c.tanT2 );
-            c.binTU2.mulMat( i2, c.binT2 );
+            c.norTU2.copy( c.norT2 ).applyMatrix3( i2, true );
+            c.tanTU2.copy( c.tanT2 ).applyMatrix3( i2, true );
+            c.binTU2.copy( c.binT2 ).applyMatrix3( i2, true );
 
             this.tmpC1.crossVectors( c.norTU1, this.tmpP1 );
             this.tmpC2.crossVectors( c.norTU2, this.tmpP2 );
@@ -5338,11 +5373,11 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
                 norImp = p.normalImpulse;
 
-                this.lv1.addScale( c.norU1, norImp );
-                this.av1.addScale( c.norTU1, norImp );
+                this.lv1.addScaledVector( c.norU1, norImp );
+                this.av1.addScaledVector( c.norTU1, norImp );
 
-                this.lv2.subScale( c.norU2, norImp );
-                this.av2.subScale( c.norTU2, norImp );
+                this.lv2.subScaledVector( c.norU2, norImp );
+                this.av2.subScaledVector( c.norTU2, norImp );
 
                 c.norImp = norImp;
                 c.tanImp = 0;
@@ -5459,10 +5494,10 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             newImp1 = norImp - oldImp1;
 
-            this.tmplv1.addScale( c.norU1, newImp1 );
-            this.tmpav1.addScale( c.norTU1, newImp1 );
-            this.tmplv2.subScale( c.norU2, newImp1 );
-            this.tmpav2.subScale( c.norTU2, newImp1 );
+            this.tmplv1.addScaledVector( c.norU1, newImp1 );
+            this.tmpav1.addScaledVector( c.norTU1, newImp1 );
+            this.tmplv2.subScaledVector( c.norU2, newImp1 );
+            this.tmpav2.subScaledVector( c.norTU2, newImp1 );
 
             c.norImp = norImp;
             c.tanImp = tanImp;
@@ -5973,10 +6008,10 @@ Object.assign( RigidBody.prototype, {
             shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
-            tmpV.addScale( shape.relativePosition, shapeMass );
+            tmpV.addScaledVector( shape.relativePosition, shapeMass );
             this.mass += shapeMass;
             this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
-            this.localInertia.addEqual( tmpM );
+            this.localInertia.add( tmpM );
 
             // add offset inertia
             this.localInertia.addOffset( shapeMass, shape.relativePosition );
@@ -5987,7 +6022,7 @@ Object.assign( RigidBody.prototype, {
         tmpV.scaleEqual( this.inverseMass );
 
         if( adjustPosition ){
-            this.position.addEqual(tmpV);
+            this.position.add( tmpV );
             i = this.shapes.length;
             while(i--){
                 this.shapes[i].relativePosition.subEqual( tmpV );
@@ -6105,7 +6140,7 @@ Object.assign( RigidBody.prototype, {
                     //this.linearVelocity.scale(this.tmpPos, 1/timeStep)
                     
                     this.controlPos = false;
-                    this.position.addTime( this.linearVelocity, timeStep );
+                    this.position.addScaledVector( this.linearVelocity, timeStep );
                 }
                 if( this.controlRot ){
 
@@ -6142,7 +6177,7 @@ Object.assign( RigidBody.prototype, {
 
                 }
 
-                this.position.addTime( this.linearVelocity, timeStep );
+                this.position.addScaledVector( this.linearVelocity, timeStep );
                 this.orientation.addTime( this.angularVelocity, timeStep );
 
                 this.updateMesh();
@@ -6160,14 +6195,14 @@ Object.assign( RigidBody.prototype, {
 
     getAxis: function () {
 
-        return new Vec3().mulMat( this.inverseLocalInertia, new Vec3(0,1,0) ).normalize();
+        return new Vec3( 0,1,0 ).applyMatrix3( this.inverseLocalInertia, true ).normalize();
 
     },
 
     rotateInertia: function ( rot, inertia, out ) {
 
-        this.tmpInertia.mul( rot, inertia );
-        out.mul( this.tmpInertia, rot, true );
+        this.tmpInertia.multiplyMatrices( rot, inertia );
+        out.multiplyMatrices( this.tmpInertia, rot, true );
 
     },
 
@@ -6181,11 +6216,9 @@ Object.assign( RigidBody.prototype, {
         while(i--){
 
             shape = this.shapes[i];
-            //shape.position.mul( this.position, shape.relativePosition, this.rotation );
-
-            shape.position.mulMat( this.rotation, shape.relativePosition ).addEqual( this.position );
+            shape.position.copy( shape.relativePosition ).applyMatrix3( this.rotation, true ).add( this.position );
             // add by QuaziKb
-            shape.rotation.mul( this.rotation, shape.relativeRotation );
+            shape.rotation.multiplyMatrices( this.rotation, shape.relativeRotation );
             shape.updateProxy();
 
         }
@@ -6197,10 +6230,9 @@ Object.assign( RigidBody.prototype, {
 
     applyImpulse: function ( position, force ) {
 
-        this.linearVelocity.addScale(force, this.inverseMass);
-        var rel = new Vec3();
-        rel.sub( position, this.position ).cross( rel, force ).mulMat( this.inverseInertia, rel );
-        this.angularVelocity.addEqual( rel );
+        this.linearVelocity.addScaledVector( force, this.inverseMass );
+        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        this.angularVelocity.add( rel );
 
     },
 
@@ -9705,7 +9737,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
     crossX: function ( a, b, c ) {
 
-        return this.tmp3.crossVectors( a, b ).scaleVectorEqual( c ).addition();
+        return this.tmp3.crossVectors( a, b ).multiply( c ).addition();
 
     },
 
@@ -9928,8 +9960,8 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
         }
 
         o.y = ld.y < 0 ? -c.halfHeight : c.halfHeight;
-        ld.mulMat( c.rotation, o ).addEqual( c.position );
-        out.set( ld.x, ld.y, ld.z );
+        ld.copy( o ).applyMatrix3( c.rotation, true ).addEqual( c.position );
+        out.copy( ld );
 
     },
 
@@ -10060,7 +10092,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     );
 
                     v[3].copy( v[0] );
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
                     v[0].set(
                         v[3].x-pd*n.x-cc1.x,
                         v[3].y-pd*n.y-cc1.y,
@@ -10077,7 +10109,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc2 );
 
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
                     if(pd<=0){
                         v[0].set(
                             v[3].x - pd*n.x - cc1.x,
@@ -10096,7 +10128,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc2 );
 
-                    pd = v[5].sub( v[3], cc1 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
                     if( pd <= 0 ){
                         v[0].set(
                             v[3].x-pd*n.x-cc1.x,
@@ -10114,7 +10146,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                 }else{
 
                     v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc1 ).scaleV( n ).addition();
+                    depth1 = v[5].sub( v[1], cc1 ).multiply( n ).addition();
                     v[1].x-=depth1*n.x;
                     v[1].y-=depth1*n.y;
                     v[1].z-=depth1*n.z;
@@ -10122,7 +10154,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     if(dot>0) v[2].add( v[0], n2 ).scaleEqual( h2*2 );
                     else v[2].sub( v[0], n2 ).scaleEqual( h2*2 );
 
-                    depth2 = v[5].sub( v[2], cc1 ).scaleV( n ).addition();
+                    depth2 = v[5].sub( v[2], cc1 ).multiply( n ).addition();
                     v[2].x-=depth2*n.x;
                     v[2].y-=depth2*n.y;
                     v[2].z-=depth2*n.z;
@@ -10208,7 +10240,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 
                     v[3].copy( v[0] );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
                     v[0].set(
                         v[3].x-pd*n.x-cc2.x,
                         v[3].y-pd*n.y-cc2.y,
@@ -10226,7 +10258,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc1 );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
                     if(pd<=0){
                         v[0].set(
                             v[3].x-pd*n.x-cc2.x,
@@ -10245,7 +10277,7 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     d.applyMatrix3( rtt );
                     v[3].add( d, cc1 );
 
-                    pd = v[5].sub( v[3], cc2 ).scaleV( n ).addition();
+                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
                     if(pd<=0){
                         v[0].x=v[3].x-pd*n.x-cc2.x;
                         v[0].y=v[3].y-pd*n.y-cc2.y;
@@ -10262,14 +10294,14 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
                     }
                 }else{
                     v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc2 ).scaleV( n ).addition();
+                    depth1 = v[5].sub( v[1], cc2 ).multiply( n ).addition();
                     v[1].x-=depth1*n.x;
                     v[1].y-=depth1*n.y;
                     v[1].z-=depth1*n.z;
                     if(dot>0) v[2].add( v[0], n1 ).scaleEqual( h1*2 );
                     else v[2].sub( v[0], n1 ).scaleEqual( h1*2 );
 
-                    depth2 = v[5].sub( v[2], cc2 ).scaleV( n ).addition();
+                    depth2 = v[5].sub( v[2], cc2 ).multiply( n ).addition();
                     v[2].x-=depth2*n.x;
                     v[2].y-=depth2*n.y;
                     v[2].z-=depth2*n.z;
@@ -10432,7 +10464,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
                 }
             }
 
-            p.copy( s.position ).addScale( n, rad );
+            p.copy( s.position ).addScaledVector( n, rad );
             manifold.addPointVec( p, n, len-rad, this.flip );
 
         }else{
@@ -10452,7 +10484,7 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
                 len = _Math.sqrt( len );
                 n.scaleEqual( 1/len );
 
-                p.copy( s.position ).addScale( n, rad );
+                p.copy( s.position ).addScaledVector( n, rad );
                 manifold.addPointVec( p, n, len-rad, this.flip );
 
             }
@@ -10500,7 +10532,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
 
         if ( dot < -halfh - rads || dot > halfh + rads ) return;
 
-        cc.copy( c.position ).addScale( c.normalDirection, dot );
+        cc.copy( c.position ).addScaledVector( c.normalDirection, dot );
         n2.sub( s.position, cc );
         len = n2.lengthSq();
 
@@ -10515,7 +10547,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
         else if( dot > halfh ) dot = halfh;
 
         //cc.addEqual( n2 );
-        cc.copy( c.position ).addScale( c.normalDirection, dot ).addEqual( n2 );
+        cc.copy( c.position ).addScaledVector( c.normalDirection, dot ).addEqual( n2 );
         n.sub( cc, s.position );
         len = n.lengthSq();
 
@@ -10525,7 +10557,7 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
             n.scaleEqual( 1/len );
 
             //n.normalize();
-            p.copy( s.position ).addScale( n, rads );
+            p.copy( s.position ).addScaledVector( n, rads );
             manifold.addPointVec( p, n, len - rads, this.flip );
 
         }
@@ -10571,7 +10603,7 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
             n.scaleEqual( 1/len );
 
             //n.normalize();
-            p.copy( s1.position ).addScale( n, s1.radius );
+            p.copy( s1.position ).addScaledVector( n, s1.radius );
             manifold.addPointVec( p, n, len - rad, false );
 
         }
@@ -10632,7 +10664,7 @@ SpherePlaneCollisionDetector.prototype = Object.assign( Object.create( Collision
             //(0, -1, 0)
 
             //n.normalize();
-            p.copy( s.position ).addScale( n, rad );
+            p.copy( s.position ).addScaledVector( n, rad );
             manifold.addPointVec( p, n, len - rad, this.flip );
 
         }
@@ -10768,7 +10800,7 @@ BoxPlaneCollisionDetector.prototype = Object.assign( Object.create( CollisionDet
                 }
             }
 
-            p.copy( pn.position ).addScale( n, 1 );
+            p.copy( pn.position ).addScaledVector( n, 1 );
             manifold.addPointVec( p, n, len, this.flip );
 
         }
@@ -11313,7 +11345,7 @@ Object.assign( World.prototype, {
             
             if( base.isLonely() ){// update single body
                 if( base.isDynamic && !base.isKinematic ){
-                    base.linearVelocity.addScale( this.gravity, this.timeStep );
+                    base.linearVelocity.addScaledVector( this.gravity, this.timeStep );
                 }
                 if( this.callSleep( base ) ) {
                     base.sleepTime += this.timeStep;
@@ -11397,7 +11429,7 @@ Object.assign( World.prototype, {
 
             // update gravity velocities
 
-            gVel = new Vec3().addScale( this.gravity, this.timeStep );
+            gVel = new Vec3().addScaledVector( this.gravity, this.timeStep );
 
             j = islandNumRigidBodies;
 

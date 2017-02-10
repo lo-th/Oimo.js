@@ -129,7 +129,7 @@ BoxPlaneCollisionDetector.prototype = Object.assign( Object.create( CollisionDet
                 }
             }
 
-            p.copy( pn.position ).addScale( n, 1 );
+            p.copy( pn.position ).addScaledVector( n, 1 );
             manifold.addPointVec( p, n, len, this.flip );
 
         }
