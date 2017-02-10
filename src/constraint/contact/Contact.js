@@ -32,6 +32,10 @@ function Contact(){
     this.constraint = null;
     // Whether the shapes are touching or not.
     this.touching = false;
+    // shapes is very close and touching 
+    this.close = false;
+
+    this.dist = _Math.INF;
 
     this.b1Link = new ContactLink( this );
     this.b2Link = new ContactLink( this );
@@ -95,9 +99,13 @@ Object.assign( Contact.prototype, {
         this.detector.detectCollision(this.shape1,this.shape2,this.manifold);
         var num=this.manifold.numPoints;
         if(num==0){
-            this.touching=false;
+            this.touching = false;
+            this.close = false;
+            this.dist = _Math.INF;
             return;
         }
+
+        if( this.touching || this.dist < 0.001 ) this.close = true;
         this.touching=true;
         i = num;
         while(i--){
@@ -134,6 +142,9 @@ Object.assign( Contact.prototype, {
                         index=j;
                     }
                 }
+
+                if( minDistance < this.dist ) this.dist = minDistance;
+
             }
             if(index!=-1){
                 var tmp=this.buffer[index];

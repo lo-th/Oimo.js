@@ -107,6 +107,7 @@ Object.assign( Contact.prototype, {
         if( num === 0 ){
             this.touching = false;
             this.close = false;
+            this.dist = _Math.INF;
             return;
         }
 

@@ -93,7 +93,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.num = this.manifold.numPoints;
 
         var c = this.cs;
-        var p, rvn, len, norImp, norTar, sepV;
+        var p, rvn, len, norImp, norTar, sepV, i1, i2;;
 
         for( var i=0; i < this.num; i++ ){
 
@@ -153,6 +153,9 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.norT2.crossVectors( this.tmpP2, c.nor );
             c.tanT2.crossVectors( this.tmpP2, c.tan );
             c.binT2.crossVectors( this.tmpP2, c.bin );
+
+            i1 = this.i1;
+            i2 = this.i2;
 
             c.norTU1.copy( c.norT1 ).applyMatrix3( i1, true );
             c.tanTU1.copy( c.tanT1 ).applyMatrix3( i1, true );

@@ -64,6 +64,9 @@ function World ( o ) {
     this.timerate = this.timeStep * 1000;
     this.timer = null;
 
+    this.preLoop = null;//function(){};
+    this.postLoop = null;//function(){};
+
     // The number of iterations for constraint solvers.
     this.numIterations = o.iterations || 8;
 
@@ -160,8 +163,7 @@ function World ( o ) {
     this.islandStack = [];
     this.islandConstraints = [];
 
-    this.preLoop = null;//function(){};
-    this.postLoop = null;//function(){};
+    
 
 }
 

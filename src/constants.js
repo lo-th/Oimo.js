@@ -3,7 +3,7 @@
  * the physics engine.
  */
 
-export var REVISION = '1.0.7';
+export var REVISION = '1.0.8';
 
 // BroadPhase
 export var BR_NULL = 0;

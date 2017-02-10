@@ -396,8 +396,7 @@ Object.assign( RigidBody.prototype, {
 
                 if( this.controlPos ){
 
-                    this.tmpPos.sub( this.newPosition, this.position );
-                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
+                    this.linearVelocity.subVectors( this.newPosition, this.position ).multiplyScalar(1/timeStep);
                     this.controlPos = false;
 
                 }

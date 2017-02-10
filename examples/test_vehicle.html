@@ -87,9 +87,10 @@ var vehicle = function () {
             //var axis2 = new OIMO.Vec3( x[2], x[5], x[8]);
             var axis2 = new OIMO.Vec3( x[1], x[4], x[7]);
             //var axis2 = new OIMO.Vec3(  x[0], x[3], x[6]);
-            var axis3 = new OIMO.Vec3().sub(axis2, axis1.scaleEqual(axis1.dot(axis2)));
-            w.orientation.mul( new OIMO.Quat().arc(axis2, axis3.normalize(axis3)), w.orientation );
-            w.orientation.normalize( w.orientation );
+            var axis3 = new OIMO.Vec3().subVectors( axis2, axis1.scaleEqual( axis1.dot(axis2) ) ).normalize();
+            //w.orientation.multiply( new OIMO.Quat().arc( axis2, axis3 ) );
+            w.orientation.multiply( new OIMO.Quat().setFromUnitVectors( axis2, axis3 ) );
+            w.orientation.normalize();
         }
     }
 

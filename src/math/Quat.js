@@ -98,7 +98,7 @@ Object.assign( Quat.prototype, {
 
     },
 
-    /*arc: function( v1, v2 ){
+    arc: function( v1, v2 ){
 
         var x1 = v1.x;
         var y1 = v1.y;
@@ -128,7 +128,7 @@ Object.assign( Quat.prototype, {
         this.z = cz * d;
         return this;
 
-    },*/
+    },
 
     normalize: function(){
 

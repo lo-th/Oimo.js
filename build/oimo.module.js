@@ -940,7 +940,7 @@ Object.assign( Quat.prototype, {
 
     },
 
-    /*arc: function( v1, v2 ){
+    arc: function( v1, v2 ){
 
         var x1 = v1.x;
         var y1 = v1.y;
@@ -970,7 +970,7 @@ Object.assign( Quat.prototype, {
         this.z = cz * d;
         return this;
 
-    },*/
+    },
 
     normalize: function(){
 
@@ -4991,8 +4991,12 @@ function ContactLink ( contact ){
 
 function ImpulseDataBuffer (){
 
-    this.lp1 = new Vec3();
-    this.lp2 = new Vec3();
+    this.lp1X = NaN;
+    this.lp1Y = NaN;
+    this.lp1Z = NaN;
+    this.lp2X = NaN;
+    this.lp2Y = NaN;
+    this.lp2Z = NaN;
     this.impulse = NaN;
 
 }
@@ -5158,7 +5162,6 @@ function ContactPointDataBuffer (){
 /**
 * ...
 * @author saharan
-* @author lo-th
 */
 function ContactConstraint ( manifold ){
     
@@ -5166,14 +5169,20 @@ function ContactConstraint ( manifold ){
     // The contact manifold of the constraint.
     this.manifold = manifold;
     // The coefficient of restitution of the constraint.
-    this.restitution = 0;
+    this.restitution=NaN;
     // The coefficient of friction of the constraint.
-    this.friction = 0;
+    this.friction=NaN;
+    this.p1=null;
+    this.p2=null;
+    this.lv1=null;
+    this.lv2=null;
+    this.av1=null;
+    this.av2=null;
+    this.i1=null;
+    this.i2=null;
 
-    this.shape1 = null;
-    this.shape2 = null;
-    this.body1 = null;
-    this.body2 = null;
+    //this.ii1 = null;
+    //this.ii2 = null;
 
     this.tmp = new Vec3();
     this.tmpC1 = new Vec3();
@@ -5187,27 +5196,15 @@ function ContactConstraint ( manifold ){
     this.tmpav1 = new Vec3();
     this.tmpav2 = new Vec3();
 
-    //this.p1=null;
-    //this.p2=null;
-    this.lv1 = null;
-    this.lv2 = null;
-    this.av1 = null;
-    this.av2 = null;
-    //this.i1=null;
-    //this.i2=null;
-
-    this.m1 = 0;
-    this.m2 = 0;
-    this.num = 0;
-
+    this.m1=NaN;
+    this.m2=NaN;
+    this.num=0;
+    
     this.ps = manifold.points;
-    this.cs = [
-        new ContactPointDataBuffer(),
-        new ContactPointDataBuffer(),
-        new ContactPointDataBuffer(),
-        new ContactPointDataBuffer()
-    ];
-
+    this.cs = new ContactPointDataBuffer();
+    this.cs.next = new ContactPointDataBuffer();
+    this.cs.next.next = new ContactPointDataBuffer();
+    this.cs.next.next.next = new ContactPointDataBuffer();
 }
 
 ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype ), {
@@ -5215,59 +5212,34 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
     constructor: ContactConstraint,
 
     // Attach the constraint to the bodies.
-    attach: function ( shape1, shape2 ) {
+    attach: function(){
 
-        this.shape1 = shape1;
-        this.shape2 = shape2;
-        this.body1 = shape1.parent;
-        this.body2 = shape2.parent;
-
-        /*this.p1 = this.body1.position;
-        this.p2 = this.body2.position;
-        this.lv1 = this.body1.linearVelocity;
-        this.av1 = this.body1.angularVelocity;
-        this.lv2 = this.body2.linearVelocity;
-        this.av2 = this.body2.angularVelocity;
-        this.i1 = this.body1.inverseInertia;
-        this.i2 = this.body2.inverseInertia;*/
+        this.p1=this.body1.position;
+        this.p2=this.body2.position;
+        this.lv1=this.body1.linearVelocity;
+        this.av1=this.body1.angularVelocity;
+        this.lv2=this.body2.linearVelocity;
+        this.av2=this.body2.angularVelocity;
+        this.i1=this.body1.inverseInertia;
+        this.i2=this.body2.inverseInertia;
 
     },
 
     // Detach the constraint from the bodies.
     detach: function(){
 
-        /*this.p1 = null;
-        this.p2 = null;
-        this.lv1 = null;
-        this.lv2 = null;
-        this.av1 = null;
-        this.av2 = null;
-        this.i1 = null;
-        this.i2 = null;*/
-
-        this.shape1 = null;
-        this.shape2 = null;
-        this.body1 = null;
-        this.body2 = null;
+        this.p1=null;
+        this.p2=null;
+        this.lv1=null;
+        this.lv2=null;
+        this.av1=null;
+        this.av2=null;
+        this.i1=null;
+        this.i2=null;
 
     },
 
     preSolve: function( timeStep, invTimeStep ){
-
-        this.restitution = _Math.sqrt( this.shape1.restitution, this.shape2.restitution );
-        this.friction = _Math.sqrt( this.shape1.friction, this.shape2.friction );
-
-        /*this.p1 = this.body1.position;
-        this.p2 = this.body2.position;
-        this.i1 = this.body1.inverseInertia;
-        this.i2 = this.body2.inverseInertia;*/
-
-        this.lv1 = this.body1.linearVelocity;
-        this.av1 = this.body1.angularVelocity;
-        this.lv2 = this.body2.linearVelocity;
-        this.av2 = this.body2.angularVelocity;
-        
-
 
         this.m1 = this.body1.inverseMass;
         this.m2 = this.body2.inverseMass;
@@ -5276,21 +5248,15 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
         this.num = this.manifold.numPoints;
 
-        var i = this.num;
-
         var c = this.cs;
         var p, rvn, len, norImp, norTar, sepV, i1, i2;
 
-        while( i-- ) {
+        for( var i=0; i < this.num; i++ ){
 
-            c = this.cs[i];
             p = this.ps[i];
 
-            this.i1 = this.body1.inverseInertia;
-            this.i2 = this.body2.inverseInertia;
-
-            this.tmpP1.sub( p.position, this.body1.position );
-            this.tmpP2.sub( p.position, this.body2.position );
+            this.tmpP1.sub( p.position, this.p1 );
+            this.tmpP2.sub( p.position, this.p2 );
 
             this.tmpC1.crossVectors( this.av1, this.tmpP1 );
             this.tmpC2.crossVectors( this.av2, this.tmpP2 );
@@ -5312,15 +5278,16 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             rvn = _Math.dotVectors( c.nor, this.tmp );
 
             c.tan.set(
-                this.tmp.x-rvn*c.nor.x,
-                this.tmp.y-rvn*c.nor.y,
-                this.tmp.z-rvn*c.nor.z
+                this.tmp.x - rvn * c.nor.x,
+                this.tmp.y - rvn * c.nor.y,
+                this.tmp.z - rvn * c.nor.z
             );
 
             len = _Math.dotVectors( c.tan, c.tan );
 
-            if( len <= 0.04 ) c.tan.tangent( c.nor );
-            
+            if( len <= 0.04 ) {
+                c.tan.tangent( c.nor );
+            }
 
             c.tan.normalize();
 
@@ -5343,8 +5310,8 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.tanT2.crossVectors( this.tmpP2, c.tan );
             c.binT2.crossVectors( this.tmpP2, c.bin );
 
-            i1 = this.body1.inverseInertia;
-            i2 = this.body2.inverseInertia;
+            i1 = this.i1;
+            i2 = this.i2;
 
             c.norTU1.copy( c.norT1 ).applyMatrix3( i1, true );
             c.tanTU1.copy( c.tanT1 ).applyMatrix3( i1, true );
@@ -5353,6 +5320,14 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.norTU2.copy( c.norT2 ).applyMatrix3( i2, true );
             c.tanTU2.copy( c.tanT2 ).applyMatrix3( i2, true );
             c.binTU2.copy( c.binT2 ).applyMatrix3( i2, true );
+
+            /*c.norTU1.mulMat( this.i1, c.norT1 );
+            c.tanTU1.mulMat( this.i1, c.tanT1 );
+            c.binTU1.mulMat( this.i1, c.binT1 );
+
+            c.norTU2.mulMat( this.i2, c.norT2 );
+            c.tanTU2.mulMat( this.i2, c.tanT2 );
+            c.binTU2.mulMat( this.i2, c.binT2 );*/
 
             this.tmpC1.crossVectors( c.norTU1, this.tmpP1 );
             this.tmpC2.crossVectors( c.norTU2, this.tmpP2 );
@@ -5386,20 +5361,21 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             } else {
 
-                c.norImp = 0;
-                c.tanImp = 0;
-                c.binImp = 0;
+                c.norImp=0;
+                c.tanImp=0;
+                c.binImp=0;
 
             }
 
 
-            if( rvn > -1 ) rvn = 0; // disable bouncing
+            if(rvn>-1) rvn=0; // disable bouncing
             
             norTar = this.restitution*-rvn;
             sepV = -(p.penetration+0.005)*invTimeStep*0.05; // allow 0.5cm error
-            if( norTar < sepV ) norTar=sepV;
+            if(norTar<sepV) norTar=sepV;
             c.norTar = norTar;
-
+            c.last = i==this.num-1;
+            c = c.next;
         }
     },
 
@@ -5410,12 +5386,11 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.tmpav1.copy( this.av1 );
         this.tmpav2.copy( this.av2 );
 
-        var oldImp1, newImp1, oldImp2, newImp2, rvn, norImp, tanImp, binImp, max, len, c;
-        var i = this.num;
+        var oldImp1, newImp1, oldImp2, newImp2, rvn, norImp, tanImp, binImp, max, len;
 
-        while( i-- ){
+        var c = this.cs;
 
-            c = this.cs[i];
+        while(true){
 
             norImp = c.norImp;
             tanImp = c.tanImp;
@@ -5427,7 +5402,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             rvn = _Math.dotVectors( this.tmp, c.tan ) + _Math.dotVectors( this.tmpav2, c.tanT2 ) - _Math.dotVectors( this.tmpav1, c.tanT1 );
         
             oldImp1 = tanImp;
-            newImp1 = rvn * c.tanDen;
+            newImp1 = rvn*c.tanDen;
             tanImp += newImp1;
 
             rvn = _Math.dotVectors( this.tmp, c.bin ) + _Math.dotVectors( this.tmpav2, c.binT2 ) - _Math.dotVectors( this.tmpav1, c.binT1 );
@@ -5503,6 +5478,8 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             c.tanImp = tanImp;
             c.binImp = binImp;
 
+            if(c.last)break;
+            c = c.next;
         }
 
         this.lv1.copy( this.tmplv1 );
@@ -5514,13 +5491,11 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
     postSolve: function(){
 
-        var i = this.num, c, p;
-
-        while( i-- ){
-
+        var c = this.cs, p;
+        var i = this.num;
+        while(i--){
+        //for(var i=0;i<this.num;i++){
             p = this.ps[i];
-            c = this.cs[i];
-
             p.normal.copy( c.nor );
             p.tangent.copy( c.tan );
             p.binormal.copy( c.bin );
@@ -5531,7 +5506,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
             p.normalDenominator = c.norDen;
             p.tangentDenominator = c.tanDen;
             p.binormalDenominator = c.binDen;
-
+            c=c.next;
         }
     }
 
@@ -5539,9 +5514,7 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
 /**
 * A contact is a pair of shapes whose axis-aligned bounding boxes are overlapping.
-*
 * @author saharan
-* @author lo-th
 */
 
 function Contact(){
@@ -5554,6 +5527,10 @@ function Contact(){
     this.body1 = null;
     // The second rigid body.
     this.body2 = null;
+    // The previous contact in the world.
+    this.prev = null;
+    // The next contact in the world.
+    this.next = null;
     // Internal
     this.persisting = false;
     // Whether both the rigid bodies are sleeping or not.
@@ -5588,193 +5565,220 @@ function Contact(){
 
     this.points = this.manifold.points;
     this.constraint = new ContactConstraint( this.manifold );
-
+    
 }
 
 Object.assign( Contact.prototype, {
 
     Contact: true,
 
-    mixRestitution: function ( a, b ) {
+    mixRestitution: function ( restitution1, restitution2 ) {
 
-        return _Math.sqrt( a * b );
+        return _Math.sqrt(restitution1*restitution2);
+
+    },
+    mixFriction: function ( friction1, friction2 ) {
+
+        return _Math.sqrt(friction1*friction2);
 
     },
 
-    mixFriction: function ( a, b ) {
-
-        return _Math.sqrt( a * b );
-
-    },
-
-    // Update the contact manifold.
+    /**
+    * Update the contact manifold.
+    */
     updateManifold: function () {
 
-        
-
-        var i, j, b, p, num, numBuffers, distance1, distance2, index, minDistance, tmp;
-
-        this.constraint.restitution = this.mixRestitution( this.shape1.restitution, this.shape2.restitution );
-        this.constraint.friction = this.mixFriction( this.shape1.friction, this.shape2.friction );
-
-        numBuffers = this.manifold.numPoints;
-        
-        i = numBuffers;
-
-        while( i-- ){
-
-            b = this.buffer[i];
-            p = this.points[i];
-            b.lp1.copy( p.localPoint1 );
-            b.lp2.copy( p.localPoint2 );
-            b.impulse = p.normalImpulse;
-
+        this.constraint.restitution =this.mixRestitution(this.shape1.restitution,this.shape2.restitution);
+        this.constraint.friction=this.mixFriction(this.shape1.friction,this.shape2.friction);
+        var numBuffers=this.manifold.numPoints;
+        var i = numBuffers;
+        while(i--){
+        //for(var i=0;i<numBuffers;i++){
+            var b = this.buffer[i];
+            var p = this.points[i];
+            b.lp1X=p.localPoint1.x;
+            b.lp1Y=p.localPoint1.y;
+            b.lp1Z=p.localPoint1.z;
+            b.lp2X=p.localPoint2.x;
+            b.lp2Y=p.localPoint2.y;
+            b.lp2Z=p.localPoint2.z;
+            b.impulse=p.normalImpulse;
         }
-
-        this.manifold.numPoints = 0;
-        this.detector.detectCollision( this.shape1, this.shape2, this.manifold );
-
-        
-
-        num = this.manifold.numPoints;
-        if( num === 0 ){
+        this.manifold.numPoints=0;
+        this.detector.detectCollision(this.shape1,this.shape2,this.manifold);
+        var num=this.manifold.numPoints;
+        if(num==0){
             this.touching = false;
             this.close = false;
+            this.dist = _Math.INF;
             return;
         }
 
-        
         if( this.touching || this.dist < 0.001 ) this.close = true;
-        this.touching = true;
-        
+        this.touching=true;
         i = num;
-
-        while( i-- ){
-
-            p = this.points[i];
-
-            index = -1;
-            minDistance = 0.0004;
-
-            j = numBuffers;
-
-            while( j-- ){
-
-                b = this.buffer[j];
-
-                distance1 = _Math.distanceVector( b.lp1, p.localPoint1 );
-                distance2 = _Math.distanceVector( b.lp2, p.localPoint2 );
-
-                if( distance1 < distance2 ){
-                    
-                    if( distance1 < minDistance ){
-                        minDistance = distance1;
-                        index = j;
+        while(i--){
+        //for(i=0; i<num; i++){
+            p=this.points[i];
+            var lp1x=p.localPoint1.x;
+            var lp1y=p.localPoint1.y;
+            var lp1z=p.localPoint1.z;
+            var lp2x=p.localPoint2.x;
+            var lp2y=p.localPoint2.y;
+            var lp2z=p.localPoint2.z;
+            var index=-1;
+            var minDistance=0.0004;
+            var j = numBuffers;
+            while(j--){
+            //for(var j=0;j<numBuffers;j++){
+                b=this.buffer[j];
+                var dx=b.lp1X-lp1x;
+                var dy=b.lp1Y-lp1y;
+                var dz=b.lp1Z-lp1z;
+                var distance1=dx*dx+dy*dy+dz*dz;
+                dx=b.lp2X-lp2x;
+                dy=b.lp2Y-lp2y;
+                dz=b.lp2Z-lp2z;
+                var distance2=dx*dx+dy*dy+dz*dz;
+                if(distance1<distance2){
+                    if(distance1<minDistance){
+                        minDistance=distance1;
+                        index=j;
                     }
-
                 }else{
-
-                    if(distance2 < minDistance){
-                        minDistance = distance2;
-                        index = j;
+                    if(distance2<minDistance){
+                        minDistance=distance2;
+                        index=j;
                     }
-
                 }
 
                 if( minDistance < this.dist ) this.dist = minDistance;
 
             }
-
-            if( index !== -1 ){
-
-                tmp = this.buffer[ index ];
-                this.buffer[ index ] = this.buffer[ --numBuffers ];
-                this.buffer[ numBuffers ] = tmp;
-                p.normalImpulse = tmp.impulse;
-                p.warmStarted = true;
-
+            if(index!=-1){
+                var tmp=this.buffer[index];
+                this.buffer[index]=this.buffer[--numBuffers];
+                this.buffer[numBuffers]=tmp;
+                p.normalImpulse=tmp.impulse;
+                p.warmStarted=true;
             }else{
-
-                p.normalImpulse = 0;
-                p.warmStarted = false;
-
+                p.normalImpulse=0;
+                p.warmStarted=false;
             }
         }
-
     },
+    /**
+    * Attach the contact to the shapes.
+    * @param   shape1
+    * @param   shape2
+    */
+    attach:function(shape1,shape2){
+        this.shape1=shape1;
+        this.shape2=shape2;
+        this.body1=shape1.parent;
+        this.body2=shape2.parent;
 
-    // Attach the contact to the shapes.
-    attach:function( shape1, shape2 ){
+        this.manifold.body1=this.body1;
+        this.manifold.body2=this.body2;
+        this.constraint.body1=this.body1;
+        this.constraint.body2=this.body2;
+        this.constraint.attach();
 
-        this.shape1 = shape1;
-        this.shape2 = shape2;
-        this.body1 = shape1.parent;
-        this.body2 = shape2.parent;
+        this.s1Link.shape=shape2;
+        this.s1Link.body=this.body2;
+        this.s2Link.shape=shape1;
+        this.s2Link.body=this.body1;
 
-        this.manifold.body1 = this.body1;
-        this.manifold.body2 = this.body2;
-        //this.constraint.body1 = this.body1;
-        //this.constraint.body2 = this.body2;
-        this.constraint.attach( shape1, shape2 );
+        if(shape1.contactLink!=null)(this.s1Link.next=shape1.contactLink).prev=this.s1Link;
+        else this.s1Link.next=null;
+        shape1.contactLink=this.s1Link;
+        shape1.numContacts++;
 
-        this.s1Link.shape = shape2;
-        this.s1Link.body = this.body2;
-        this.s2Link.shape = shape1;
-        this.s2Link.body = this.body1;
+        if(shape2.contactLink!=null)(this.s2Link.next=shape2.contactLink).prev=this.s2Link;
+        else this.s2Link.next=null;
+        shape2.contactLink=this.s2Link;
+        shape2.numContacts++;
 
-        this.shape1.contactLink.push( this.s1Link );
-        this.shape2.contactLink.push( this.s2Link );
+        this.b1Link.shape=shape2;
+        this.b1Link.body=this.body2;
+        this.b2Link.shape=shape1;
+        this.b2Link.body=this.body1;
 
-        this.b1Link.shape = shape2;
-        this.b1Link.body = this.body2;
-        this.b2Link.shape = shape1;
-        this.b2Link.body = this.body1;
+        if(this.body1.contactLink!=null)(this.b1Link.next=this.body1.contactLink).prev=this.b1Link;
+        else this.b1Link.next=null;
+        this.body1.contactLink=this.b1Link;
+        this.body1.numContacts++;
 
-        this.body1.contactLink.push( this.b1Link );
-        this.body2.contactLink.push( this.b2Link );
+        if(this.body2.contactLink!=null)(this.b2Link.next=this.body2.contactLink).prev=this.b2Link;
+        else this.b2Link.next=null;
+        this.body2.contactLink=this.b2Link;
+        this.body2.numContacts++;
 
-        this.persisting = true;
-        this.sleeping = this.body1.sleeping && this.body2.sleeping;
-        this.manifold.numPoints = 0;
+        this.prev=null;
+        this.next=null;
 
+        this.persisting=true;
+        this.sleeping=this.body1.sleeping&&this.body2.sleeping;
+        this.manifold.numPoints=0;
     },
-
-    // Detach the contact from the shapes.
+    /**
+    * Detach the contact from the shapes.
+    */
     detach:function(){
+        var prev=this.s1Link.prev;
+        var next=this.s1Link.next;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
+        if(this.shape1.contactLink==this.s1Link)this.shape1.contactLink=next;
+        this.s1Link.prev=null;
+        this.s1Link.next=null;
+        this.s1Link.shape=null;
+        this.s1Link.body=null;
+        this.shape1.numContacts--;
 
-        this.shape1.contactLink.splice( this.shape1.contactLink.indexOf( this.s1Link ), 1 );
-        this.shape2.contactLink.splice( this.shape2.contactLink.indexOf( this.s2Link ), 1 );
+        prev=this.s2Link.prev;
+        next=this.s2Link.next;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
+        if(this.shape2.contactLink==this.s2Link)this.shape2.contactLink=next;
+        this.s2Link.prev=null;
+        this.s2Link.next=null;
+        this.s2Link.shape=null;
+        this.s2Link.body=null;
+        this.shape2.numContacts--;
 
-        this.body1.contactLink.splice( this.body1.contactLink.indexOf( this.b1Link ), 1 );
-        this.body2.contactLink.splice( this.body2.contactLink.indexOf( this.b2Link ), 1 );
+        prev=this.b1Link.prev;
+        next=this.b1Link.next;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
+        if(this.body1.contactLink==this.b1Link)this.body1.contactLink=next;
+        this.b1Link.prev=null;
+        this.b1Link.next=null;
+        this.b1Link.shape=null;
+        this.b1Link.body=null;
+        this.body1.numContacts--;
 
-        this.s1Link.shape = null;
-        this.s1Link.body = null;
-        this.s2Link.shape = null;
-        this.s2Link.body = null;
-        this.b1Link.shape = null;
-        this.b1Link.body = null;
-        this.b2Link.shape = null;
-        this.b2Link.body = null;
+        prev=this.b2Link.prev;
+        next=this.b2Link.next;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
+        if(this.body2.contactLink==this.b2Link)this.body2.contactLink=next;
+        this.b2Link.prev=null;
+        this.b2Link.next=null;
+        this.b2Link.shape=null;
+        this.b2Link.body=null;
+        this.body2.numContacts--;
 
-        this.manifold.body1 = null;
-        this.manifold.body2 = null;
-        //this.constraint.body1 = null;
-        //this.constraint.body2 = null;
+        this.manifold.body1=null;
+        this.manifold.body2=null;
+        this.constraint.body1=null;
+        this.constraint.body2=null;
         this.constraint.detach();
 
-        this.shape1 = null;
-        this.shape2 = null;
-        this.body1 = null;
-        this.body2 = null;
-        this.detector = null;
-        this.constraint = null;
-
-        this.persisting = false;
-        this.sleeping = false;
-        this.touching = false;
-        this.close = false;
-        
+        this.shape1=null;
+        this.shape2=null;
+        this.body1=null;
+        this.body2=null;
     }
 
 } );
@@ -5784,27 +5788,27 @@ Object.assign( Contact.prototype, {
 * Rigid body has the shape of a single or multiple collision processing,
 * I can set the parameters individually.
 * @author saharan
+* @author lo-th
 */
 
-function RigidBody ( Position, Rotation ) {
+function RigidBody ( Position, Rotation, scale, invScale ) {
 
     this.position = Position || new Vec3();
     this.orientation = Rotation || new Quat();
 
-    this.scale = 1;
-    this.invScale = 1;
+    this.scale = scale || 1;
+    this.invScale = invScale || 1;
 
     // possible link to three Mesh;
     this.mesh = null;
 
     this.id = NaN;
-    this.name = '';
-
+    this.name = "";
     // The maximum number of shapes that can be added to a one rigid.
     //this.MAX_SHAPES = 64;//64;
 
-    //this.prev = null;
-    //this.next = null;
+    this.prev = null;
+    this.next = null;
 
     // I represent the kind of rigid body.
     // Please do not change from the outside this variable.
@@ -5814,15 +5818,13 @@ function RigidBody ( Position, Rotation ) {
 
     this.massInfo = new MassInfo();
 
-
     this.newPosition = new Vec3();
-    this.newOrientation = new Quat();
     this.controlPos = false;
+    this.newOrientation = new Quat();
+    this.newRotation = new Vec3();
+    this.currentRotation = new Vec3();
     this.controlRot = false;
-
-    this.tmpPos = new Vec3();
-    this.tmpQuat = new Quat();
-
+    this.controlRotInTime = false;
 
     this.quaternion = new Quat();
     this.pos = new Vec3();
@@ -5840,15 +5842,18 @@ function RigidBody ( Position, Rotation ) {
 
     // It is a world that rigid body has been added.
     this.parent = null;
-
-    // An array of contact that are included in the rigid body.
-    this.contactLink = [];
+    this.contactLink = null;
+    this.numContacts = 0;
 
     // An array of shapes that are included in the rigid body.
-    this.shapes = [];
+    this.shapes = null;
+    // The number of shapes that are included in the rigid body.
+    this.numShapes = 0;
 
     // It is the link array of joint that is connected to the rigid body.
-    this.jointLink = [];
+    this.jointLink = null;
+    // The number of joints that are connected to the rigid body.
+    this.numJoints = 0;
 
     // It is the world coordinate of the center of gravity in the sleep just before.
     this.sleepPosition = new Vec3();
@@ -5860,6 +5865,7 @@ function RigidBody ( Position, Rotation ) {
     this.isDynamic = false;
 
     this.isKinematic = false;
+
     // It is a rotation matrix representing the orientation.
     this.rotation = new Mat33();
 
@@ -5868,10 +5874,9 @@ function RigidBody ( Position, Rotation ) {
     //--------------------------------------------
 
     // This is the weight.
-    this.mass = 0;
+    this.mass = NaN;
     // It is the reciprocal of the mass.
-    this.inverseMass = 0;
-
+    this.inverseMass = NaN;
     // It is the inverse of the inertia tensor in the world system.
     this.inverseInertia = new Mat33();
     // It is the inertia tensor in the initial state.
@@ -5895,14 +5900,6 @@ function RigidBody ( Position, Rotation ) {
 
 Object.assign( RigidBody.prototype, {
 
-    RigidBody: true,
-
-    setId: function ( n ) { 
-
-        this.id = i; 
-
-    },
-
     setParent: function ( world ) {
 
         this.parent = world;
@@ -5916,45 +5913,43 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-    * I'll add a shape to rigid body.
-    * If you add a shape, please call the setupMass method to step up to the start of the next.
-    * @param   shape shape to Add
-    */
-    addShape:function( shape ){
+     * I'll add a shape to rigid body.
+     * If you add a shape, please call the setupMass method to step up to the start of the next.
+     * @param   shape shape to Add
+     */
+    addShape:function(shape){
 
-        if(shape.parent) printError("RigidBody", "It is not possible that you add to the multi-rigid body the shape of one");
+        if(shape.parent){
+			printError("RigidBody", "It is not possible that you add a shape which already has an associated body.");
+		}
 
-        //if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
-        //this.shapes = shape;
-
+        if(this.shapes!=null)( this.shapes.prev = shape ).next = this.shapes;
+        this.shapes = shape;
         shape.parent = this;
-        shape.contactLink = [];
-        if( this.parent ) this.parent.addShape( shape );
-
-        this.shapes.push( shape );
+        if(this.parent) this.parent.addShape( shape );
+        this.numShapes++;
 
     },
     /**
-    * I will delete the shape from the rigid body.
-    * If you delete a shape, please call the setupMass method to step up to the start of the next.
-    * @param   shape shape to Delete
-    */
-    removeShape:function( shape ){
+     * I will delete the shape from the rigid body.
+     * If you delete a shape, please call the setupMass method to step up to the start of the next.
+     * @param shape {Shape} to delete
+     * @return void
+     */
+    removeShape:function(shape){
 
-        this.shapes.splice( this.shapes.indexOf( shape ), 1 );
-
-        //var remove = shape;
-        if(shape.parent !== this) return;
-        //var prev=remove.prev;
-        //var next=remove.next;
-        //if(prev!=null) prev.next=next;
-        //if(next!=null) next.prev=prev;
-        //if(this.shapes==remove)this.shapes=next;
-        //remove.prev=null;
-        //remove.next=null;
-        shape.parent = null;
-        if( this.parent ) this.parent.removeShape( shape );
-        //this.numShapes--;
+        var remove = shape;
+        if(remove.parent!=this)return;
+        var prev=remove.prev;
+        var next=remove.next;
+        if(prev!=null) prev.next=next;
+        if(next!=null) next.prev=prev;
+        if(this.shapes==remove)this.shapes=next;
+        remove.prev=null;
+        remove.next=null;
+        remove.parent=null;
+        if(this.parent)this.parent.removeShape(remove);
+        this.numShapes--;
 
     },
 
@@ -5966,7 +5961,6 @@ Object.assign( RigidBody.prototype, {
 
     dispose: function () {
 
-        if( this.mesh ) this.mesh = null;
         this.parent.removeRigidBody( this );
 
     },
@@ -5978,19 +5972,19 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-    * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
-    * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
-    * If the parameter adjustPosition is set to true, the shapes' relative positions and
-    * the rigid body's position will be adjusted to the center of gravity.
-    * @param   type
-    * @param   adjustPosition
-    */
-
+     * Calulates mass datas(center of gravity, mass, moment inertia, etc...).
+     * If the parameter type is set to BODY_STATIC, the rigid body will be fixed to the space.
+     * If the parameter adjustPosition is set to true, the shapes' relative positions and
+     * the rigid body's position will be adjusted to the center of gravity.
+     * @param type
+     * @param adjustPosition
+     * @return void
+     */
     setupMass: function ( type, AdjustPosition ) {
 
         var adjustPosition = ( AdjustPosition !== undefined ) ? AdjustPosition : true;
 
-        this.type = type || BODY_DYNAMIC;
+        this.type = type || BODY_STATIC;
         this.isDynamic = this.type === BODY_DYNAMIC;
         this.isStatic = this.type === BODY_STATIC;
 
@@ -6001,14 +5995,11 @@ Object.assign( RigidBody.prototype, {
         var tmpM = new Mat33();
         var tmpV = new Vec3();
 
-        var i = this.shapes.length, shape;
+        for( var shape = this.shapes; shape !== null; shape = shape.next ){
 
-        while(i--){
-
-            shape = this.shapes[i];
             shape.calculateMassInfo( this.massInfo );
             var shapeMass = this.massInfo.mass;
-            tmpV.addScaledVector( shape.relativePosition, shapeMass );
+            tmpV.addScaledVector(shape.relativePosition, shapeMass);
             this.mass += shapeMass;
             this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
             this.localInertia.add( tmpM );
@@ -6023,9 +6014,8 @@ Object.assign( RigidBody.prototype, {
 
         if( adjustPosition ){
             this.position.add( tmpV );
-            i = this.shapes.length;
-            while(i--){
-                this.shapes[i].relativePosition.subEqual( tmpV );
+            for( shape=this.shapes; shape !== null; shape = shape.next ){
+                shape.relativePosition.subEqual(tmpV);
             }
 
             // subtract offset inertia
@@ -6047,40 +6037,34 @@ Object.assign( RigidBody.prototype, {
 
     },
     /**
-    * Awake the rigid body.
-    */
+     * Awake the rigid body.
+     */
     awake:function(){
 
         if( !this.allowSleep || !this.sleeping ) return;
         this.sleeping = false;
         this.sleepTime = 0;
-
-        var i, js, cs;
-
         // awake connected constraints
-        i = this.contactLink.length;
-        while(i--){
-            cs = this.contactLink[i];
+        var cs = this.contactLink;
+        while(cs != null){
             cs.body.sleepTime = 0;
             cs.body.sleeping = false;
+            cs = cs.next;
         }
-
-        i = this.jointLink.length;
-        while(i--){
-            js = this.jointLink[i];
+        var js = this.jointLink;
+        while(js != null){
             js.body.sleepTime = 0;
             js.body.sleeping = false;
+            js = js.next;
         }
-
-        i = this.shapes.length;
-        while(i--){
-            this.shapes[i].updateProxy();
+        for(var shape = this.shapes; shape!=null; shape = shape.next){
+            shape.updateProxy();
         }
 
     },
     /**
-    * Sleep the rigid body.
-    */
+     * Sleep the rigid body.
+     */
     sleep:function(){
 
         if( !this.allowSleep || this.sleeping ) return;
@@ -6092,10 +6076,8 @@ Object.assign( RigidBody.prototype, {
 
         this.sleepTime = 0;
         this.sleeping = true;
-
-        var i = this.shapes.length;
-        while(i--){
-            this.shapes[i].updateProxy();
+        for( var shape = this.shapes; shape != null; shape = shape.next ) {
+            shape.updateProxy();
         }
     },
 
@@ -6106,52 +6088,42 @@ Object.assign( RigidBody.prototype, {
     },
 
     /**
-    * Get whether the rigid body has not any connection with others.
-    * @return {void}
-    */
+     * Get whether the rigid body has not any connection with others.
+     * @return {void}
+     */
     isLonely: function () {
-        return this.jointLink.length === 0 && this.contactLink.length === 0;
-        //return this.numJoints==0 && this.numContacts==0;
+        return this.numJoints==0 && this.numContacts==0;
     },
 
     /**
-    * The time integration of the motion of a rigid body, you can update the information such as the shape.
-    * This method is invoked automatically when calling the step of the World,
-    * There is no need to call from outside usually.
-    * @param  timeStep time
-    * @return {void}
-    */
+     * The time integration of the motion of a rigid body, you can update the information such as the shape.
+     * This method is invoked automatically when calling the step of the World,
+     * There is no need to call from outside usually.
+     * @param  timeStep time
+     * @return {void}
+     */
 
     updatePosition: function ( timeStep ) {
-
-        switch( this.type ){
-
+        switch(this.type){
             case BODY_STATIC:
-
                 this.linearVelocity.set(0,0,0);
                 this.angularVelocity.set(0,0,0);
 
                 // ONLY FOR TEST
-               if( this.controlPos ){
-                    this.tmpPos.sub( this.newPosition, this.position );
-                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
-                    //this.position.copy( this.newPosition );
-                    //this.tmpPos.sub( this.newPosition, this.position );
-                    //this.linearVelocity.scale(this.tmpPos, 1/timeStep)
-                    
+                if(this.controlPos){
+                    this.position.copy(this.newPosition);
                     this.controlPos = false;
-                    this.position.addScaledVector( this.linearVelocity, timeStep );
                 }
-                if( this.controlRot ){
-
-                    this.angularVelocity.copy( this.getAxis() );
-                    this.orientation.copy( this.newOrientation );
+                if(this.controlRot){
+                    this.orientation.copy(this.newOrientation);
                     this.controlRot = false;
-
-                    this.orientation.addTime( this.angularVelocity, timeStep );
-
                 }
-
+                /*this.linearVelocity.x=0;
+                this.linearVelocity.y=0;
+                this.linearVelocity.z=0;
+                this.angularVelocity.x=0;
+                this.angularVelocity.y=0;
+                this.angularVelocity.z=0;*/
             break;
             case BODY_DYNAMIC:
 
@@ -6162,14 +6134,13 @@ Object.assign( RigidBody.prototype, {
 
                 }
 
-                if( this.controlPos ){
+                if(this.controlPos){
 
-                    this.tmpPos.sub( this.newPosition, this.position );
-                    this.linearVelocity.scale( this.tmpPos, (1/timeStep) );
+                    this.linearVelocity.subVectors( this.newPosition, this.position ).multiplyScalar(1/timeStep);
                     this.controlPos = false;
 
                 }
-                if( this.controlRot ){
+                if(this.controlRot){
 
                     this.angularVelocity.copy( this.getAxis() );
                     this.orientation.copy( this.newOrientation );
@@ -6177,19 +6148,17 @@ Object.assign( RigidBody.prototype, {
 
                 }
 
-                this.position.addScaledVector( this.linearVelocity, timeStep );
-                this.orientation.addTime( this.angularVelocity, timeStep );
+                this.position.addScaledVector(this.linearVelocity, timeStep);
+                this.orientation.addTime(this.angularVelocity, timeStep);
 
                 this.updateMesh();
 
             break;
             default: printError("RigidBody", "Invalid type.");
-
         }
 
-
         this.syncShapes();
-        //this.updateMesh();
+        this.updateMesh();
 
     },
 
@@ -6210,51 +6179,42 @@ Object.assign( RigidBody.prototype, {
 
         this.rotation.setQuat( this.orientation );
         this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
+        
+        for(var shape = this.shapes; shape!=null; shape = shape.next){
 
-        var i = this.shapes.length, shape;
-
-        while(i--){
-
-            shape = this.shapes[i];
             shape.position.copy( shape.relativePosition ).applyMatrix3( this.rotation, true ).add( this.position );
             // add by QuaziKb
             shape.rotation.multiplyMatrices( this.rotation, shape.relativeRotation );
             shape.updateProxy();
-
         }
     },
+
 
     //---------------------------------------------
     // APPLY IMPULSE FORCE
     //---------------------------------------------
 
-    applyImpulse: function ( position, force ) {
-
-        this.linearVelocity.addScaledVector( force, this.inverseMass );
+    applyImpulse: function(position, force){
+        this.linearVelocity.addScaledVector(force, this.inverseMass);
         var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
         this.angularVelocity.add( rel );
-
     },
+
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
     //---------------------------------------------
 
-    setPosition: function ( pos ) {
-
+    setPosition: function(pos){
         this.newPosition.copy( pos ).multiplyScalar( this.invScale );
         this.controlPos = true;
         if( !this.isKinematic ) this.isKinematic = true;
-
     },
 
-    setQuaternion: function ( q ) {
-        //if(this.type == this.BODY_STATIC)this.orientation.init(q.w,q.x,q.y,q.z);
-
-        this.newOrientation.copy( q );
+    setQuaternion: function(q){
+        this.newOrientation.set(q.x, q.y, q.z, q.w);
         this.controlRot = true;
         if( !this.isKinematic ) this.isKinematic = true;
-
     },
 
     setRotation: function ( rot ) {
@@ -6316,28 +6276,23 @@ Object.assign( RigidBody.prototype, {
     connectMesh: function ( mesh ) {
 
         this.mesh = mesh;
-        //this.mesh.matrixAutoUpdate = false;
         this.updateMesh();
 
     },
 
-    updateMesh: function () {
+    updateMesh: function(){
 
         this.pos.scale( this.position, this.scale );
         this.quaternion.copy( this.orientation );
 
         if( this.mesh === null ) return;
 
-        this.mesh.position.copy( this.pos );
-        this.mesh.quaternion.copy( this.quaternion );
-
-        /*var s = this.mesh.scale;
-        this.mesh.matrix.compose( this.pos, this.quaternion, s );
-        this.mesh.matrixWorldNeedsUpdate = true;*/
+        this.mesh.position.copy( this.getPosition() );
+        this.mesh.quaternion.copy( this.getQuaternion() );
 
     },
 
-});
+} );
 
 /**
 * A pair of shapes that may collide.
@@ -6402,11 +6357,10 @@ Object.assign( BroadPhase.prototype, {
         var js;
         if(b1.numJoints<b2.numJoints) js = b1.jointLink;
         else js = b2.jointLink;
-        var i = js.length;
-        while(i--){
-           var joint = js[i].joint;
+        while(js!==null){
+           var joint = js.joint;
            if( !joint.allowCollision && ((joint.body1==b1 && joint.body2==b2) || (joint.body1==b2 && joint.body2==b1)) ){ return false; }
-           //js = js.next;
+           js = js.next;
         }
 
         return true;
@@ -6420,21 +6374,20 @@ Object.assign( BroadPhase.prototype, {
         this.pairs = [];
         this.numPairs = 0;
         this.numPairChecks = 0;
-
         this.collectPairs();
 
     },
 
     collectPairs: function () {
 
-        printError("BroadPhase", "Inheritance error.");
+        Error("BroadPhase", "Inheritance error.");
 
     },
 
     addPair: function ( s1, s2 ) {
 
         var pair = new Pair( s1, s2 );
-        this.pairs.push( pair );
+        this.pairs.push(pair);
         this.numPairs++;
 
     }
@@ -6506,11 +6459,14 @@ BasicProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 function BruteForceBroadPhase(){
 
     BroadPhase.call( this );
-
     this.types = BR_BRUTE_FORCE;
+    //this.numProxies=0;
+    ///this.maxProxies = 256;
     this.proxies = [];
+    //this.proxies.length = 256;
 
 }
+
 
 BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), {
 
@@ -6524,34 +6480,70 @@ BruteForceBroadPhase.prototype = Object.assign( Object.create( BroadPhase.protot
 
     addProxy: function ( proxy ) {
 
+        /*if(this.numProxies==this.maxProxies){
+            //this.maxProxies<<=1;
+            this.maxProxies*=2;
+            var newProxies=[];
+            newProxies.length = this.maxProxies;
+            var i = this.numProxies;
+            while(i--){
+            //for(var i=0, l=this.numProxies;i<l;i++){
+                newProxies[i]=this.proxies[i];
+            }
+            this.proxies=newProxies;
+        }*/
+        //this.proxies[this.numProxies++] = proxy;
         this.proxies.push( proxy );
+        //this.numProxies++;
 
     },
 
     removeProxy: function ( proxy ) {
 
         var n = this.proxies.indexOf( proxy );
-        if ( n > -1 )  this.proxies.splice( n, 1 );
+        if ( n > -1 ){
+            this.proxies.splice( n, 1 );
+            //this.numProxies--;
+        }
+
+        /*var i = this.numProxies;
+        while(i--){
+        //for(var i=0, l=this.numProxies;i<l;i++){
+            if(this.proxies[i] == proxy){
+                this.proxies[i] = this.proxies[--this.numProxies];
+                this.proxies[this.numProxies] = null;
+                return;
+            }
+        }*/
 
     },
 
     collectPairs: function () {
-        
+
         var i = 0, j, p1, p2;
 
         var px = this.proxies;
-        var l = px.length;
+        var l = px.length;//this.numProxies;
+        //var ar1 = [];
+        //var ar2 = [];
+
+        //for( i = px.length ; i-- ; ar1[ i ] = px[ i ] ){};
+        //for( i = px.length ; i-- ; ar2[ i ] = px[ i ] ){};
+
+        //var ar1 = JSON.parse(JSON.stringify(this.proxies))
+        //var ar2 = JSON.parse(JSON.stringify(this.proxies))
 
         this.numPairChecks = l*(l-1)>>1;
+        //this.numPairChecks=this.numProxies*(this.numProxies-1)*0.5;
 
         while( i < l ){
             p1 = px[i++];
             j = i + 1;
-            while( j < l ){ 
+            while( j < l ){
                 p2 = px[j++];
                 if ( p1.aabb.intersectTest( p2.aabb ) || !this.isAvailablePair( p1.shape, p2.shape ) ) continue;
-                this.addPair( p1.shape, p2.shape );        
-            }     
+                this.addPair( p1.shape, p2.shape );
+            }
         }
 
     }
@@ -6829,7 +6821,6 @@ SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
 /**
  * A broad-phase collision detection algorithm using sweep and prune.
- *
  * @author saharan
  * @author lo-th
  */
@@ -6841,14 +6832,12 @@ function SAPBroadPhase () {
 
     this.numElementsD = 0;
     this.numElementsS = 0;
-    
     // dynamic proxies
     this.axesD = [
        new SAPAxis(),
        new SAPAxis(),
        new SAPAxis()
     ];
-
     // static or sleeping proxies
     this.axesS = [
        new SAPAxis(),
@@ -7435,13 +7424,15 @@ DBVTProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
 /**
  * A broad-phase algorithm using dynamic bounding volume tree.
+ *
  * @author saharan
  * @author lo-th
  */
 
 function DBVTBroadPhase(){
 
-    BroadPhase.call( this);
+    BroadPhase.call( this );
+
     this.types = BR_BOUNDING_VOLUME_TREE;
 
     this.tree = new DBVT();
@@ -7457,7 +7448,7 @@ DBVTBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ),
 
     createProxy: function ( shape ) {
 
-        return new DBVTProxy(shape);
+        return new DBVTProxy( shape );
 
     },
 
@@ -7583,185 +7574,17 @@ Object.assign( CollisionDetector.prototype, {
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
-
-    // clip Vertices  8 x vertices x,y,z
-    this.cvs1 = new Float32Array( 24 );
-    this.cvs2 = new Float32Array( 24 );
-
-    this.qqq = new Float32Array( 12 );
+    this.clipVertices1 = new Float32Array( 24 ); // 8 vertices x,y,z
+    this.clipVertices2 = new Float32Array( 24 );
     this.used = new Float32Array( 8 );
-
-    this.v = [];
-    var i = 21;
-    while( i-- ){
-        this.v.push( new Vec3() );
-    } 
     
-    this.INF = _Math.INF;
-
-    this.n = new Vec3();
-    this.n1 = new Vec3();
-    this.n2 = new Vec3();
-    this.p = new Vec3();
-    this.p1 = new Vec3();
-    this.p2 = new Vec3();
-    this.d = new Vec3();
-
-    this.c = new Vec3();
-    this.s1 = new Vec3();
-    this.s2 = new Vec3();
-
-    this.d1 = new Vec3();
-    this.d2 = new Vec3();
-
-    this.tmp0 = new Vec3();
-    this.tmp1 = new Vec3();
-    this.tmp2 = new Vec3();
+    this.INF = 1/0;
 
 }
 
 BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
     constructor: BoxBoxCollisionDetector,
-
-    tryAxisOO: function ( f ) {
-
-        var v = this.v;
-        var mdot = _Math.dotVectors;
-        var len, len1, len2, dot1, dot2, dot3, right;
-
-        len = mdot( v[f[0]], this.d );
-
-        right = len > 0 ? true : false;
-        len = right ? len : -len;
-        
-        dot1 = mdot( v[f[0]], v[f[1]] );
-        dot2 = mdot( v[f[0]], v[f[2]] );
-        dot3 = mdot( v[f[0]], v[f[3]] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-
-        len1 = f[4];
-        len2 = dot1*f[5] + dot2*f[6] + dot3*f[7];
-        
-        return { o:len - len1 - len2, r: right };
-
-    },
-
-    tryAxisCompOO: function ( f ) {
-
-        var v = this.v;
-        var mdot = _Math.dotVectors;
-        var epsilon = _Math.EPZ;
-        var len, len1, len2, dot1, dot2, right;
-
-        len = v[f[0]].lengthSq();
-
-        if( len > epsilon ){
-
-            v[f[0]].multiplyScalar( 1 / _Math.sqrt( len ) );
-
-            len = mdot( v[f[0]], this.d );
-
-            right = len > 0 ? true : false;
-            len = right ? len : -len;
-
-            dot1 = mdot( v[f[0]], v[f[1]] );
-            dot2 = mdot( v[f[0]], v[f[2]] );
-            dot1 = dot1 < 0 ? -dot1 : dot1;
-            dot2 = dot2 < 0 ? -dot2 : dot2;
-
-            len1 = dot1*f[5] + dot2*f[6];
-
-            dot1 = mdot( v[f[0]], v[f[3]] );
-            dot2 = mdot( v[f[0]], v[f[4]] );
-            dot1 = dot1 < 0 ? -dot1 : dot1;
-            dot2 = dot2 < 0 ? -dot2 : dot2;
-
-            len2 = dot1*f[7] + dot2*f[8];
-
-            return { o: len - len1 - len2, r: right, inv:false };
-
-        } else {
-
-            return { o: 0, r: false, inv: true };
-
-        }
-
-    },
-
-    /*tryAxis: function ( n, a, b, c, d, axe1, axe2, axe3, axe4, rights, overlaps, rev ) {
-
-        var v = this.v;
-        var mdot = _Math.dotVectors;
-        var len, len1, len2, dot1, dot2, dot3, cross;
-
-        len = mdot( v[a], this.d );
-
-        rights[n] = len > 0 ? true : false;
-        len = rights[n] ? len : -len;
-        
-        dot1 = mdot( v[a], v[b] );
-        dot2 = mdot( v[a], v[c] );
-        dot3 = mdot( v[a], v[d] );
-        dot1 = dot1 < 0 ? -dot1 : dot1;
-        dot2 = dot2 < 0 ? -dot2 : dot2;
-        dot3 = dot3 < 0 ? -dot3 : dot3;
-
-        cross = dot1*axe2 + dot2*axe3 + dot3*axe4;
-
-        len1 = axe1;//rev ? cross : axe;
-        len2 = cross;//rev ? axe : cross;
-        
-        overlaps[n] = len - len1 - len2;
-
-    },
-
-    tryAxisComp: function ( n, a, b, c, d, e, axe1, axe2, axe3, axe4, rights, overlaps, invalid ) {
-
-        var v = this.v;
-        var mdot = _Math.dotVectors;
-        var epsilon = _Math.EPZ;
-        var len, len1, len2, dot1, dot2;
-
-        len = v[a].lengthSq();
-
-        if( len > epsilon ){
-
-            v[a].multiplyScalar( 1 / _Math.sqrt( len ) );
-
-            len = mdot( v[a], this.d );
-
-            rights[n] = len > 0 ? true : false;
-            len = rights[n] ? len : -len;
-
-            dot1 = mdot( v[a], v[b] );
-            dot2 = mdot( v[a], v[c] );
-            dot1 = dot1 < 0 ? -dot1 : dot1;
-            dot2 = dot2 < 0 ? -dot2 : dot2;
-
-            len1 = dot1*axe1 + dot2*axe2;
-
-            dot1 = mdot( v[a], v[d] );
-            dot2 = mdot( v[a], v[e] );
-            dot1 = dot1 < 0 ? -dot1 : dot1;
-            dot2 = dot2 < 0 ? -dot2 : dot2;
-
-            len2 = dot1*axe3 + dot2*axe4;
-
-            overlaps[n] = len - len1 - len2;
-            invalid[n] = false;
-
-        } else {
-
-            overlaps[n] = 0;
-            invalid[n] = true;
-            rights[n] = false;
-
-        }
-
-    },*/
 
     detectCollision: function ( shape1, shape2, manifold ) {
         // What you are doing 
@@ -7791,64 +7614,41 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // For potential collision points of all, to examine the distance between the surface A 
         // • If you were on the inside surface of A, and the collision point
 
-        var i, k;
-
-
-        var n = this.n;
-        var p = this.p;
-        var v = this.v;
-        var d = this.d;
-
-        var n1 = this.n1;
-        var n2 = this.n2;
-        var p1 = this.p1;
-        var p2 = this.p2;
-
-        var d1 = this.d1;
-        var d2 = this.d2;
-
-        var tmp0 = this.tmp0;
-        var tmp1 = this.tmp1;
-        var tmp2 = this.tmp2;
-
-        // center of current face
-        var c = this.c;
-        // face side
-        var s1 = this.s1;
-        var s2 = this.s2;
-
-        
-
         var b1;
         var b2;
-
         if(shape1.id<shape2.id){
-            b1=shape1;
-            b2=shape2;
+            b1=(shape1);
+            b2=(shape2);
         }else{
-            b1=shape2;
-            b2=shape1;
+            b1=(shape2);
+            b2=(shape1);
         }
-
         var V1 = b1.elements;
         var V2 = b2.elements;
 
         var D1 = b1.dimentions;
         var D2 = b2.dimentions;
 
-        var dot1, dot2;
-
-        //n.sub( b2.position, b1.position );
-
-        p1.copy( b1.position );
-        p2.copy( b2.position );
-
+        var p1=b1.position;
+        var p2=b2.position;
+        var p1x=p1.x;
+        var p1y=p1.y;
+        var p1z=p1.z;
+        var p2x=p2.x;
+        var p2y=p2.y;
+        var p2z=p2.z;
         // diff
-        d.sub( p2, p1 );
-
-        // mid distance
-        d1.set( b1.halfWidth, b1.halfHeight, b1.halfDepth );
-        d2.set( b2.halfWidth, b2.halfHeight, b2.halfDepth );
+        var dx=p2x-p1x;
+        var dy=p2y-p1y;
+        var dz=p2z-p1z;
+        // distance
+        var w1=b1.halfWidth;
+        var h1=b1.halfHeight;
+        var d1=b1.halfDepth;
+        var w2=b2.halfWidth;
+        var h2=b2.halfHeight;
+        var d2=b2.halfDepth;
+        // direction
 
         // ----------------------------
         // 15 separating axes
@@ -7856,721 +7656,1225 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
         // 7~f: edge
         // http://marupeke296.com/COL_3D_No13_OBBvsOBB.html
         // ----------------------------
-
-        v[0].set( D1[0], D1[1], D1[2] );
-        v[1].set( D1[3], D1[4], D1[5] );
-        v[2].set( D1[6], D1[7], D1[8] );
-        v[3].set( D1[9], D1[10], D1[11] );
-        v[4].set( D1[12], D1[13], D1[14] );
-        v[5].set( D1[15], D1[16], D1[17] );
-
-        v[6].set( D2[0], D2[1], D2[2] );
-        v[7].set( D2[3], D2[4], D2[5] );
-        v[8].set( D2[6], D2[7], D2[8] );
-        v[9].set( D2[9], D2[10], D2[11] );
-        v[10].set( D2[12], D2[13], D2[14] );
-        v[11].set( D2[15], D2[16], D2[17] );
-
-        v[12].crossVectors( v[0], v[6] );
-        v[13].crossVectors( v[0], v[7] );
-        v[14].crossVectors( v[0], v[8] );
-
-        v[15].crossVectors( v[1], v[6] );
-        v[16].crossVectors( v[1], v[7] );
-        v[17].crossVectors( v[1], v[8] );
-
-        v[18].crossVectors( v[2], v[6] );
-        v[19].crossVectors( v[2], v[7] );
-        v[20].crossVectors( v[2], v[8] );
-
-        // right or left flags
-        var rights = [];
-        // overlapping distances
-        var overlaps = [];
-        // invalid flags
-        var invalid = [];
-
-        var faces = [
-
-            [ 0, 6, 7, 8, d1.x, d2.x, d2.y, d2.z ],
-            [ 1, 6, 7, 8, d1.y, d2.x, d2.y, d2.z ],
-            [ 2, 6, 7, 8, d1.z, d2.x, d2.y, d2.z ],
-
-            [ 6, 0, 1, 2, d2.x, d1.x, d1.y, d1.z ],
-            [ 7, 0, 1, 2, d2.y, d1.x, d1.y, d1.z ],
-            [ 8, 0, 1, 2, d2.z, d1.x, d1.y, d1.z ],
-
-            [ 12, 1, 2, 7, 8, d1.y, d1.z, d2.y, d2.z ],
-            [ 13, 1, 2, 6, 8, d1.y, d1.z, d2.x, d2.z ],
-            [ 14, 1, 2, 6, 7, d1.y, d1.z, d2.x, d2.y ],
-
-            [ 15, 0, 2, 7, 8, d1.x, d1.z, d2.y, d2.z ],
-            [ 16, 0, 2, 6, 8, d1.x, d1.z, d2.x, d2.z ],
-            [ 17, 0, 2, 6, 7, d1.x, d1.z, d2.x, d2.y ],
-
-            [ 18, 0, 1, 7, 8, d1.x, d1.y, d2.y, d2.z ],
-            [ 19, 0, 1, 6, 8, d1.x, d1.y, d2.x, d2.z ],
-            [ 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y ],
-
-        ];
-
-        var mdot = _Math.dotVectors;
-
-        var no = false, over;
-
-        for( i = 0; i < 15; i++ ){
-
-            if( i < 6 ){
-
-                over = this.tryAxisOO( faces[i] );
-                if( over.o > 0 ) { no = true; break; }
-                else{ 
-                    overlaps[i] = over.o;
-                    rights[i] = over.r;
-                }
-
-            } else {
-
-                over = this.tryAxisCompOO( faces[i] );
-                if( !over.inv && over.o > 0 ) { no = true; break; }
-                else{ 
-                    overlaps[i] = over.o;
-                    rights[i] = over.r;
-                    invalid[i] = over.inv;
-                }
-
-            }
-        }
-
-        if( no ) return;
-
-        // try axis 1
-        /*this.tryAxis( 0, 0, 6, 7, 8, d1.x, d2.x, d2.y, d2.z, rights, overlaps );
-        if( overlaps[0] > 0 ) return;
-
-        // try axis 2
-        this.tryAxis( 1, 1, 6, 7, 8, d1.y, d2.x, d2.y, d2.z, rights, overlaps );
-        if( overlaps[1] > 0 ) return;
-
-        // try axis 3
-        this.tryAxis( 2, 2, 6, 7, 8, d1.z, d2.x, d2.y, d2.z, rights, overlaps );
-        if( overlaps[2] > 0 ) return;
-
-        // try axis 4
-        this.tryAxis( 3, 6, 0, 1, 2, d2.x, d1.x, d1.y, d1.z, rights, overlaps, true );
-        if( overlaps[3] > 0 ) return;
-
-        // try axis 5
-        this.tryAxis( 4, 7, 0, 1, 2, d2.y, d1.x, d1.y, d1.z, rights, overlaps, true );
-        if( overlaps[4] > 0 ) return;
-
-        // try axis 6
-        this.tryAxis( 5, 8, 0, 1, 2, d2.z, d1.x, d1.y, d1.z, rights, overlaps, true );
-        if( overlaps[5] > 0 ) return;
-
-        //
-
-        // try axis 7
-        this.tryAxisComp( 6, 12, 1, 2, 7, 8, d1.y, d1.z, d2.y, d2.z, rights, overlaps, invalid );
-        if( !invalid[6] && overlaps[6] > 0 ) return;
-
-        // try axis 8
-        this.tryAxisComp( 7, 13, 1, 2, 6, 8, d1.y, d1.z, d2.x, d2.z, rights, overlaps, invalid );
-        if( !invalid[7] && overlaps[7] > 0 ) return;
-
-        // try axis 9
-        this.tryAxisComp( 8, 14, 1, 2, 6, 7, d1.y, d1.z, d2.x, d2.y, rights, overlaps, invalid );
-        if( !invalid[8] && overlaps[8] > 0 ) return;
-
-        // try axis 10
-        this.tryAxisComp( 9, 15, 0, 2, 7, 8, d1.x, d1.z, d2.y, d2.z, rights, overlaps, invalid );
-        if( !invalid[9] && overlaps[9] > 0 ) return;
-
-        // try axis 11
-        this.tryAxisComp( 10, 16, 0, 2, 6, 8, d1.x, d1.z, d2.x, d2.z, rights, overlaps, invalid );
-        if( !invalid[10] && overlaps[10] > 0 ) return;
-
-        // try axis 12
-        this.tryAxisComp( 11, 17, 0, 2, 6, 7, d1.x, d1.z, d2.x, d2.y, rights, overlaps, invalid );
-        if( !invalid[11] && overlaps[11] > 0 ) return;
-
-        // try axis 13
-        this.tryAxisComp( 12, 18, 0, 1, 7, 8, d1.x, d1.y, d2.y, d2.z, rights, overlaps, invalid );
-        if( !invalid[12] && overlaps[12] > 0 ) return;
-
-        // try axis 14
-        this.tryAxisComp( 13, 19, 0, 1, 6, 8, d1.x, d1.y, d2.x, d2.z, rights, overlaps, invalid );
-        if( !invalid[13] && overlaps[13] > 0 ) return;
-
-        // try axis 15
-        this.tryAxisComp( 14, 20, 0, 1, 6, 7, d1.x, d1.y, d2.x, d2.y, rights, overlaps, invalid );
-        if( !invalid[14] && overlaps[14] > 0 ) return;
-*/
-        // boxes are overlapping
-        var depth=overlaps[0];
-        var depth2=overlaps[0];
-        var minIndex=0;
-        var right=rights[0];
         
-        if(overlaps[1]>depth2){
-            depth=overlaps[1];
-            depth2=overlaps[1];
+        var a1x=D1[0];
+        var a1y=D1[1];
+        var a1z=D1[2];
+        var a2x=D1[3];
+        var a2y=D1[4];
+        var a2z=D1[5];
+        var a3x=D1[6];
+        var a3y=D1[7];
+        var a3z=D1[8];
+        var d1x=D1[9];
+        var d1y=D1[10];
+        var d1z=D1[11];
+        var d2x=D1[12];
+        var d2y=D1[13];
+        var d2z=D1[14];
+        var d3x=D1[15];
+        var d3y=D1[16];
+        var d3z=D1[17];
+
+        var a4x=D2[0];
+        var a4y=D2[1];
+        var a4z=D2[2];
+        var a5x=D2[3];
+        var a5y=D2[4];
+        var a5z=D2[5];
+        var a6x=D2[6];
+        var a6y=D2[7];
+        var a6z=D2[8];
+        var d4x=D2[9];
+        var d4y=D2[10];
+        var d4z=D2[11];
+        var d5x=D2[12];
+        var d5y=D2[13];
+        var d5z=D2[14];
+        var d6x=D2[15];
+        var d6y=D2[16];
+        var d6z=D2[17];
+        
+        var a7x=a1y*a4z-a1z*a4y;
+        var a7y=a1z*a4x-a1x*a4z;
+        var a7z=a1x*a4y-a1y*a4x;
+        var a8x=a1y*a5z-a1z*a5y;
+        var a8y=a1z*a5x-a1x*a5z;
+        var a8z=a1x*a5y-a1y*a5x;
+        var a9x=a1y*a6z-a1z*a6y;
+        var a9y=a1z*a6x-a1x*a6z;
+        var a9z=a1x*a6y-a1y*a6x;
+        var aax=a2y*a4z-a2z*a4y;
+        var aay=a2z*a4x-a2x*a4z;
+        var aaz=a2x*a4y-a2y*a4x;
+        var abx=a2y*a5z-a2z*a5y;
+        var aby=a2z*a5x-a2x*a5z;
+        var abz=a2x*a5y-a2y*a5x;
+        var acx=a2y*a6z-a2z*a6y;
+        var acy=a2z*a6x-a2x*a6z;
+        var acz=a2x*a6y-a2y*a6x;
+        var adx=a3y*a4z-a3z*a4y;
+        var ady=a3z*a4x-a3x*a4z;
+        var adz=a3x*a4y-a3y*a4x;
+        var aex=a3y*a5z-a3z*a5y;
+        var aey=a3z*a5x-a3x*a5z;
+        var aez=a3x*a5y-a3y*a5x;
+        var afx=a3y*a6z-a3z*a6y;
+        var afy=a3z*a6x-a3x*a6z;
+        var afz=a3x*a6y-a3y*a6x;
+        // right or left flags
+        var right1;
+        var right2;
+        var right3;
+        var right4;
+        var right5;
+        var right6;
+        var right7;
+        var right8;
+        var right9;
+        var righta;
+        var rightb;
+        var rightc;
+        var rightd;
+        var righte;
+        var rightf;
+        // overlapping distances
+        var overlap1;
+        var overlap2;
+        var overlap3;
+        var overlap4;
+        var overlap5;
+        var overlap6;
+        var overlap7;
+        var overlap8;
+        var overlap9;
+        var overlapa;
+        var overlapb;
+        var overlapc;
+        var overlapd;
+        var overlape;
+        var overlapf;
+        // invalid flags
+        var invalid7=false;
+        var invalid8=false;
+        var invalid9=false;
+        var invalida=false;
+        var invalidb=false;
+        var invalidc=false;
+        var invalidd=false;
+        var invalide=false;
+        var invalidf=false;
+        // temporary variables
+        var len;
+        var len1;
+        var len2;
+        var dot1;
+        var dot2;
+        var dot3;
+        // try axis 1
+        len=a1x*dx+a1y*dy+a1z*dz;
+        right1=len>0;
+        if(!right1)len=-len;
+        len1=w1;
+        dot1=a1x*a4x+a1y*a4y+a1z*a4z;
+        dot2=a1x*a5x+a1y*a5y+a1z*a5z;
+        dot3=a1x*a6x+a1y*a6y+a1z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len2=dot1*w2+dot2*h2+dot3*d2;
+        overlap1=len-len1-len2;
+        if(overlap1>0)return;
+        // try axis 2
+        len=a2x*dx+a2y*dy+a2z*dz;
+        right2=len>0;
+        if(!right2)len=-len;
+        len1=h1;
+        dot1=a2x*a4x+a2y*a4y+a2z*a4z;
+        dot2=a2x*a5x+a2y*a5y+a2z*a5z;
+        dot3=a2x*a6x+a2y*a6y+a2z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len2=dot1*w2+dot2*h2+dot3*d2;
+        overlap2=len-len1-len2;
+        if(overlap2>0)return;
+        // try axis 3
+        len=a3x*dx+a3y*dy+a3z*dz;
+        right3=len>0;
+        if(!right3)len=-len;
+        len1=d1;
+        dot1=a3x*a4x+a3y*a4y+a3z*a4z;
+        dot2=a3x*a5x+a3y*a5y+a3z*a5z;
+        dot3=a3x*a6x+a3y*a6y+a3z*a6z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len2=dot1*w2+dot2*h2+dot3*d2;
+        overlap3=len-len1-len2;
+        if(overlap3>0)return;
+        // try axis 4
+        len=a4x*dx+a4y*dy+a4z*dz;
+        right4=len>0;
+        if(!right4)len=-len;
+        dot1=a4x*a1x+a4y*a1y+a4z*a1z;
+        dot2=a4x*a2x+a4y*a2y+a4z*a2z;
+        dot3=a4x*a3x+a4y*a3y+a4z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len1=dot1*w1+dot2*h1+dot3*d1;
+        len2=w2;
+        overlap4=(len-len1-len2)*1.0;
+        if(overlap4>0)return;
+        // try axis 5
+        len=a5x*dx+a5y*dy+a5z*dz;
+        right5=len>0;
+        if(!right5)len=-len;
+        dot1=a5x*a1x+a5y*a1y+a5z*a1z;
+        dot2=a5x*a2x+a5y*a2y+a5z*a2z;
+        dot3=a5x*a3x+a5y*a3y+a5z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len1=dot1*w1+dot2*h1+dot3*d1;
+        len2=h2;
+        overlap5=(len-len1-len2)*1.0;
+        if(overlap5>0)return;
+        // try axis 6
+        len=a6x*dx+a6y*dy+a6z*dz;
+        right6=len>0;
+        if(!right6)len=-len;
+        dot1=a6x*a1x+a6y*a1y+a6z*a1z;
+        dot2=a6x*a2x+a6y*a2y+a6z*a2z;
+        dot3=a6x*a3x+a6y*a3y+a6z*a3z;
+        if(dot1<0)dot1=-dot1;
+        if(dot2<0)dot2=-dot2;
+        if(dot3<0)dot3=-dot3;
+        len1=dot1*w1+dot2*h1+dot3*d1;
+        len2=d2;
+        overlap6=(len-len1-len2)*1.0;
+        if(overlap6>0)return;
+        // try axis 7
+        len=a7x*a7x+a7y*a7y+a7z*a7z;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            a7x*=len;
+            a7y*=len;
+            a7z*=len;
+            len=a7x*dx+a7y*dy+a7z*dz;
+            right7=len>0;
+            if(!right7)len=-len;
+            dot1=a7x*a2x+a7y*a2y+a7z*a2z;
+            dot2=a7x*a3x+a7y*a3y+a7z*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*h1+dot2*d1;
+            dot1=a7x*a5x+a7y*a5y+a7z*a5z;
+            dot2=a7x*a6x+a7y*a6y+a7z*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*h2+dot2*d2;
+            overlap7=len-len1-len2;
+            if(overlap7>0)return;
+        }else{
+            right7=false;
+            overlap7=0;
+            invalid7=true;
+        }
+        // try axis 8
+        len=a8x*a8x+a8y*a8y+a8z*a8z;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            a8x*=len;
+            a8y*=len;
+            a8z*=len;
+            len=a8x*dx+a8y*dy+a8z*dz;
+            right8=len>0;
+            if(!right8)len=-len;
+            dot1=a8x*a2x+a8y*a2y+a8z*a2z;
+            dot2=a8x*a3x+a8y*a3y+a8z*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*h1+dot2*d1;
+            dot1=a8x*a4x+a8y*a4y+a8z*a4z;
+            dot2=a8x*a6x+a8y*a6y+a8z*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*d2;
+            overlap8=len-len1-len2;
+            if(overlap8>0)return;
+        }else{
+            right8=false;
+            overlap8=0;
+            invalid8=true;
+        }
+        // try axis 9
+        len=a9x*a9x+a9y*a9y+a9z*a9z;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            a9x*=len;
+            a9y*=len;
+            a9z*=len;
+            len=a9x*dx+a9y*dy+a9z*dz;
+            right9=len>0;
+            if(!right9)len=-len;
+            dot1=a9x*a2x+a9y*a2y+a9z*a2z;
+            dot2=a9x*a3x+a9y*a3y+a9z*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*h1+dot2*d1;
+            dot1=a9x*a4x+a9y*a4y+a9z*a4z;
+            dot2=a9x*a5x+a9y*a5y+a9z*a5z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*h2;
+            overlap9=len-len1-len2;
+            if(overlap9>0)return;
+        }else{
+            right9=false;
+            overlap9=0;
+            invalid9=true;
+        }
+        // try axis 10
+        len=aax*aax+aay*aay+aaz*aaz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            aax*=len;
+            aay*=len;
+            aaz*=len;
+            len=aax*dx+aay*dy+aaz*dz;
+            righta=len>0;
+            if(!righta)len=-len;
+            dot1=aax*a1x+aay*a1y+aaz*a1z;
+            dot2=aax*a3x+aay*a3y+aaz*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*d1;
+            dot1=aax*a5x+aay*a5y+aaz*a5z;
+            dot2=aax*a6x+aay*a6y+aaz*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*h2+dot2*d2;
+            overlapa=len-len1-len2;
+            if(overlapa>0)return;
+        }else{
+            righta=false;
+            overlapa=0;
+            invalida=true;
+        }
+        // try axis 11
+        len=abx*abx+aby*aby+abz*abz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            abx*=len;
+            aby*=len;
+            abz*=len;
+            len=abx*dx+aby*dy+abz*dz;
+            rightb=len>0;
+            if(!rightb)len=-len;
+            dot1=abx*a1x+aby*a1y+abz*a1z;
+            dot2=abx*a3x+aby*a3y+abz*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*d1;
+            dot1=abx*a4x+aby*a4y+abz*a4z;
+            dot2=abx*a6x+aby*a6y+abz*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*d2;
+            overlapb=len-len1-len2;
+            if(overlapb>0)return;
+        }else{
+            rightb=false;
+            overlapb=0;
+            invalidb=true;
+        }
+        // try axis 12
+        len=acx*acx+acy*acy+acz*acz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            acx*=len;
+            acy*=len;
+            acz*=len;
+            len=acx*dx+acy*dy+acz*dz;
+            rightc=len>0;
+            if(!rightc)len=-len;
+            dot1=acx*a1x+acy*a1y+acz*a1z;
+            dot2=acx*a3x+acy*a3y+acz*a3z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*d1;
+            dot1=acx*a4x+acy*a4y+acz*a4z;
+            dot2=acx*a5x+acy*a5y+acz*a5z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*h2;
+            overlapc=len-len1-len2;
+            if(overlapc>0)return;
+        }else{
+            rightc=false;
+            overlapc=0;
+            invalidc=true;
+        }
+        // try axis 13
+        len=adx*adx+ady*ady+adz*adz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            adx*=len;
+            ady*=len;
+            adz*=len;
+            len=adx*dx+ady*dy+adz*dz;
+            rightd=len>0;
+            if(!rightd)len=-len;
+            dot1=adx*a1x+ady*a1y+adz*a1z;
+            dot2=adx*a2x+ady*a2y+adz*a2z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*h1;
+            dot1=adx*a5x+ady*a5y+adz*a5z;
+            dot2=adx*a6x+ady*a6y+adz*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*h2+dot2*d2;
+            overlapd=len-len1-len2;
+            if(overlapd>0)return;
+        }else{
+            rightd=false;
+            overlapd=0;
+            invalidd=true;
+        }
+        // try axis 14
+        len=aex*aex+aey*aey+aez*aez;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            aex*=len;
+            aey*=len;
+            aez*=len;
+            len=aex*dx+aey*dy+aez*dz;
+            righte=len>0;
+            if(!righte)len=-len;
+            dot1=aex*a1x+aey*a1y+aez*a1z;
+            dot2=aex*a2x+aey*a2y+aez*a2z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*h1;
+            dot1=aex*a4x+aey*a4y+aez*a4z;
+            dot2=aex*a6x+aey*a6y+aez*a6z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*d2;
+            overlape=len-len1-len2;
+            if(overlape>0)return;
+        }else{
+            righte=false;
+            overlape=0;
+            invalide=true;
+        }
+        // try axis 15
+        len=afx*afx+afy*afy+afz*afz;
+        if(len>1e-5){
+            len=1/_Math.sqrt(len);
+            afx*=len;
+            afy*=len;
+            afz*=len;
+            len=afx*dx+afy*dy+afz*dz;
+            rightf=len>0;
+            if(!rightf)len=-len;
+            dot1=afx*a1x+afy*a1y+afz*a1z;
+            dot2=afx*a2x+afy*a2y+afz*a2z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len1=dot1*w1+dot2*h1;
+            dot1=afx*a4x+afy*a4y+afz*a4z;
+            dot2=afx*a5x+afy*a5y+afz*a5z;
+            if(dot1<0)dot1=-dot1;
+            if(dot2<0)dot2=-dot2;
+            len2=dot1*w2+dot2*h2;
+            overlapf=len-len1-len2;
+            if(overlapf>0)return;
+        }else{
+            rightf=false;
+            overlapf=0;
+            invalidf=true;
+        }
+        // boxes are overlapping
+        var depth=overlap1;
+        var depth2=overlap1;
+        var minIndex=0;
+        var right=right1;
+        if(overlap2>depth2){
+            depth=overlap2;
+            depth2=overlap2;
             minIndex=1;
-            right=rights[1];
+            right=right2;
         }
-        if(overlaps[2]>depth2){
-            depth=overlaps[2];
-            depth2=overlaps[2];
+        if(overlap3>depth2){
+            depth=overlap3;
+            depth2=overlap3;
             minIndex=2;
-            right=rights[2];
+            right=right3;
         }
-        if(overlaps[3]>depth2){
-            depth=overlaps[3];
-            depth2=overlaps[3];
+        if(overlap4>depth2){
+            depth=overlap4;
+            depth2=overlap4;
             minIndex=3;
-            right=rights[3];
+            right=right4;
         }
-        if(overlaps[4]>depth2){
-            depth=overlaps[4];
-            depth2=overlaps[4];
+        if(overlap5>depth2){
+            depth=overlap5;
+            depth2=overlap5;
             minIndex=4;
-            right=rights[4];
+            right=right5;
         }
-        if(overlaps[5]>depth2){
-            depth=overlaps[5];
-            depth2=overlaps[5];
+        if(overlap6>depth2){
+            depth=overlap6;
+            depth2=overlap6;
             minIndex=5;
-            right=rights[5];
+            right=right6;
         }
-        if(overlaps[6]-0.01>depth2&&!invalid[6]){
-            depth=overlaps[6];
-            depth2=overlaps[6]-0.01;
+        if(overlap7-0.01>depth2&&!invalid7){
+            depth=overlap7;
+            depth2=overlap7-0.01;
             minIndex=6;
-            right=rights[6];
+            right=right7;
         }
-        if(overlaps[7]-0.01>depth2&&!invalid[7]){
-            depth=overlaps[7];
-            depth2=overlaps[7]-0.01;
+        if(overlap8-0.01>depth2&&!invalid8){
+            depth=overlap8;
+            depth2=overlap8-0.01;
             minIndex=7;
-            right=rights[7];
+            right=right8;
         }
-        if(overlaps[8]-0.01>depth2&&!invalid[8]){
-            depth=overlaps[8];
-            depth2=overlaps[8]-0.01;
+        if(overlap9-0.01>depth2&&!invalid9){
+            depth=overlap9;
+            depth2=overlap9-0.01;
             minIndex=8;
-            right=rights[8];
+            right=right9;
         }
-        if(overlaps[9]-0.01>depth2&&!invalid[9]){
-            depth=overlaps[9];
-            depth2=overlaps[9]-0.01;
+        if(overlapa-0.01>depth2&&!invalida){
+            depth=overlapa;
+            depth2=overlapa-0.01;
             minIndex=9;
-            right=rights[9];
+            right=righta;
         }
-        if(overlaps[10]-0.01>depth2&&!invalid[10]){
-            depth=overlaps[10];
-            depth2=overlaps[10]-0.01;
+        if(overlapb-0.01>depth2&&!invalidb){
+            depth=overlapb;
+            depth2=overlapb-0.01;
             minIndex=10;
-            right=rights[10];
+            right=rightb;
         }
-        if(overlaps[11]-0.01>depth2&&!invalid[11]){
-            depth=overlaps[11];
-            depth2=overlaps[11]-0.01;
+        if(overlapc-0.01>depth2&&!invalidc){
+            depth=overlapc;
+            depth2=overlapc-0.01;
             minIndex=11;
-            right=rights[11];
+            right=rightc;
         }
-        if(overlaps[12]-0.01>depth2&&!invalid[12]){
-            depth=overlaps[12];
-            depth2=overlaps[12]-0.01;
+        if(overlapd-0.01>depth2&&!invalidd){
+            depth=overlapd;
+            depth2=overlapd-0.01;
             minIndex=12;
-            right=rights[12];
+            right=rightd;
         }
-        if(overlaps[13]-0.01>depth2&&!invalid[13]){
-            depth=overlaps[13];
-            depth2=overlaps[13]-0.01;
+        if(overlape-0.01>depth2&&!invalide){
+            depth=overlape;
+            depth2=overlape-0.01;
             minIndex=13;
-            right=rights[13];
+            right=righte;
         }
-        if(overlaps[14]-0.01>depth2&&!invalid[14]){
-            depth=overlaps[14];
+        if(overlapf-0.01>depth2&&!invalidf){
+            depth=overlapf;
             minIndex=14;
-            right=rights[14];
+            right=rightf;
         }
-    
+        // normal
+        var nx=0;
+        var ny=0;
+        var nz=0;
+        // edge line or face side normal
+        var n1x=0;
+        var n1y=0;
+        var n1z=0;
+        var n2x=0;
+        var n2y=0;
+        var n2z=0;
+        // center of current face
+        var cx=0;
+        var cy=0;
+        var cz=0;
+        // face side
+        var s1x=0;
+        var s1y=0;
+        var s1z=0;
+        var s2x=0;
+        var s2y=0;
+        var s2z=0;
         // swap b1 b2
-        var swap = false;
+        var swap=false;
 
         //_______________________________________
 
-        switch ( minIndex ){
-            case 0:// b1.x * b2
-                n.copy( v[0] );
-                if( right ){
-                    c.add( p1, v[3] );
-                }else{
-                    c.sub( p1, v[3] );
-                    n.negate();
-                }
-                s1.copy( v[4] );
-                s2.copy( v[5] );
-                n1.copy( v[1] ).negate();
-                n2.copy( v[2] ).negate();
-            break;
-            case 1:// b1.y * b2
-                n.copy( v[1] );
-                if( right ){
-                    c.add( p1, v[4] );
-                }else{
-                    c.sub( p1, v[4] );
-                    n.negate();
-                }
-                s1.copy( v[3] );
-                s2.copy( v[5] );
-                n1.copy( v[0] ).negate();
-                n2.copy( v[2] ).negate();
-            break;
-            case 2:// b1.z * b2
-                n.copy( v[2] );
-                if( right ){
-                    c.add( p1, v[5] );
-                }else{
-                    c.sub( p1, v[5] );
-                    n.negate();
-                }
-                s1.copy( v[3] );
-                s2.copy( v[4] );
-                n1.copy( v[0] ).negate();
-                n2.copy( v[1] ).negate();
-            break;
-            case 3:// b2.x * b1
-                n.copy( v[6] );
-                if( !right ){
-                    c.add( p2, v[9] );
-                }else{
-                    c.sub( p2, v[9] );
-                    n.negate();
-                }
-                s1.copy( v[10] );
-                s2.copy( v[11] );
-                n1.copy( v[7] ).negate();
-                n2.copy( v[8] ).negate();
-                swap = true;
-            break;
-            case 4:// b2.y * b1
-                n.copy( v[7] );
-                if( !right ){
-                    c.add( p2, v[10] );
-                }else{
-                    c.sub( p2, v[10] );
-                    n.negate();
-                }
-                s1.copy( v[9] );
-                s2.copy( v[11] );
-                n1.copy( v[6] ).negate();
-                n2.copy( v[8] ).negate();
-                swap = true;
-            break;
-            case 5:// b2.z * b1
-                n.copy( v[8] );
-                if( !right ){
-                    c.add( p2, v[11] );
-                }else{
-                    c.sub( p2, v[11] );
-                    n.negate();
-                }
-                s1.copy( v[9] );
-                s2.copy( v[10] );
-                n1.copy( v[6] ).negate();
-                n2.copy( v[7] ).negate();
-                swap = true;
-            break;
-            case 6:// b1.x * b2.x
-                n.copy( v[12] );
-                n1.copy( v[0] );
-                n2.copy( v[6] );
-            break;
-            case 7:// b1.x * b2.y
-                n.copy( v[13] );
-                n1.copy( v[0] );
-                n2.copy( v[7] );
-            break;
-            case 8:// b1.x * b2.z
-                n.copy( v[14] );
-                n1.copy( v[0] );
-                n2.copy( v[8] );
-            break;
-            case 9:// b1.y * b2.x
-                n.copy( v[15] );
-                n1.copy( v[1] );
-                n2.copy( v[6] );
-            break;
-            case 10:// b1.y * b2.y
-                n.copy( v[16] );
-                n1.copy( v[1] );
-                n2.copy( v[7] );
-            break;
-            case 11:// b1.y * b2.z
-                n.copy( v[17] );
-                n1.copy( v[1] );
-                n2.copy( v[8] );
-            break;
-            case 12:// b1.z * b2.x
-                n.copy( v[18] );
-                n1.copy( v[2] );
-                n2.copy( v[6] );
-            break;
-            case 13:// b1.z * b2.y
-                n.copy( v[19] );
-                n1.copy( v[2] );
-                n2.copy( v[7] );
-            break;
-            case 14:// b1.z * b2.z
-                n.copy( v[20] );
-                n1.copy( v[2] );
-                n2.copy( v[8] );
-            break;
-
+        if(minIndex==0){// b1.x * b2
+            if(right){
+                cx=p1x+d1x; cy=p1y+d1y;  cz=p1z+d1z;
+                nx=a1x; ny=a1y; nz=a1z;
+            }else{
+                cx=p1x-d1x; cy=p1y-d1y; cz=p1z-d1z;
+                nx=-a1x; ny=-a1y; nz=-a1z;
+            }
+            s1x=d2x; s1y=d2y; s1z=d2z;
+            n1x=-a2x; n1y=-a2y; n1z=-a2z;
+            s2x=d3x; s2y=d3y; s2z=d3z;
+            n2x=-a3x; n2y=-a3y; n2z=-a3z;
+        }
+        else if(minIndex==1){// b1.y * b2
+            if(right){
+                cx=p1x+d2x; cy=p1y+d2y; cz=p1z+d2z;
+                nx=a2x; ny=a2y; nz=a2z;
+            }else{
+                cx=p1x-d2x; cy=p1y-d2y; cz=p1z-d2z;
+                nx=-a2x; ny=-a2y; nz=-a2z;
+            }
+            s1x=d1x; s1y=d1y; s1z=d1z;
+            n1x=-a1x; n1y=-a1y; n1z=-a1z;
+            s2x=d3x; s2y=d3y; s2z=d3z;
+            n2x=-a3x; n2y=-a3y; n2z=-a3z;
+        }
+        else if(minIndex==2){// b1.z * b2
+            if(right){
+                cx=p1x+d3x; cy=p1y+d3y; cz=p1z+d3z;
+                nx=a3x; ny=a3y; nz=a3z;
+            }else{
+                cx=p1x-d3x; cy=p1y-d3y; cz=p1z-d3z;
+                nx=-a3x; ny=-a3y; nz=-a3z;
+            }
+            s1x=d1x; s1y=d1y; s1z=d1z;
+            n1x=-a1x; n1y=-a1y; n1z=-a1z;
+            s2x=d2x; s2y=d2y; s2z=d2z;
+            n2x=-a2x; n2y=-a2y; n2z=-a2z;
+        }
+        else if(minIndex==3){// b2.x * b1
+            swap=true;
+            if(!right){
+                cx=p2x+d4x; cy=p2y+d4y; cz=p2z+d4z;
+                nx=a4x; ny=a4y; nz=a4z;
+            }else{
+                cx=p2x-d4x; cy=p2y-d4y; cz=p2z-d4z;
+                nx=-a4x; ny=-a4y; nz=-a4z;
+            }
+            s1x=d5x; s1y=d5y; s1z=d5z;
+            n1x=-a5x; n1y=-a5y; n1z=-a5z;
+            s2x=d6x; s2y=d6y; s2z=d6z;
+            n2x=-a6x; n2y=-a6y; n2z=-a6z;
+        }
+        else if(minIndex==4){// b2.y * b1
+            swap=true;
+            if(!right){
+                cx=p2x+d5x; cy=p2y+d5y; cz=p2z+d5z;
+                nx=a5x; ny=a5y; nz=a5z;
+            }else{
+                cx=p2x-d5x; cy=p2y-d5y; cz=p2z-d5z;
+                nx=-a5x; ny=-a5y; nz=-a5z;
+            }
+            s1x=d4x; s1y=d4y; s1z=d4z;
+            n1x=-a4x; n1y=-a4y; n1z=-a4z;
+            s2x=d6x; s2y=d6y; s2z=d6z;
+            n2x=-a6x; n2y=-a6y; n2z=-a6z;
+        }
+        else if(minIndex==5){// b2.z * b1
+            swap=true;
+            if(!right){
+                cx=p2x+d6x; cy=p2y+d6y; cz=p2z+d6z;
+                nx=a6x; ny=a6y; nz=a6z;
+            }else{
+                cx=p2x-d6x; cy=p2y-d6y; cz=p2z-d6z;
+                nx=-a6x; ny=-a6y; nz=-a6z;
+            }
+            s1x=d4x; s1y=d4y; s1z=d4z;
+            n1x=-a4x; n1y=-a4y; n1z=-a4z;
+            s2x=d5x; s2y=d5y; s2z=d5z;
+            n2x=-a5x; n2y=-a5y; n2z=-a5z;
+        }
+        else if(minIndex==6){// b1.x * b2.x
+            nx=a7x; ny=a7y; nz=a7z;
+            n1x=a1x; n1y=a1y; n1z=a1z;
+            n2x=a4x; n2y=a4y; n2z=a4z;
+        }
+        else if(minIndex==7){// b1.x * b2.y
+            nx=a8x; ny=a8y; nz=a8z;
+            n1x=a1x; n1y=a1y; n1z=a1z;
+            n2x=a5x; n2y=a5y; n2z=a5z;
+        }
+        else if(minIndex==8){// b1.x * b2.z
+            nx=a9x; ny=a9y; nz=a9z;
+            n1x=a1x; n1y=a1y; n1z=a1z;
+            n2x=a6x; n2y=a6y; n2z=a6z;
+        }
+        else if(minIndex==9){// b1.y * b2.x
+            nx=aax; ny=aay; nz=aaz;
+            n1x=a2x; n1y=a2y; n1z=a2z;
+            n2x=a4x; n2y=a4y; n2z=a4z;
+        }
+        else if(minIndex==10){// b1.y * b2.y
+            nx=abx; ny=aby; nz=abz;
+            n1x=a2x; n1y=a2y; n1z=a2z;
+            n2x=a5x; n2y=a5y; n2z=a5z;
+        }
+        else if(minIndex==11){// b1.y * b2.z
+            nx=acx; ny=acy; nz=acz;
+            n1x=a2x; n1y=a2y; n1z=a2z;
+            n2x=a6x; n2y=a6y; n2z=a6z;
+        }
+        else if(minIndex==12){// b1.z * b2.x
+            nx=adx;  ny=ady; nz=adz;
+            n1x=a3x; n1y=a3y; n1z=a3z;
+            n2x=a4x; n2y=a4y; n2z=a4z;
+        }
+        else if(minIndex==13){// b1.z * b2.y
+            nx=aex; ny=aey; nz=aez;
+            n1x=a3x; n1y=a3y; n1z=a3z;
+            n2x=a5x; n2y=a5y; n2z=a5z;
+        }
+        else if(minIndex==14){// b1.z * b2.z
+            nx=afx; ny=afy; nz=afz;
+            n1x=a3x; n1y=a3y; n1z=a3z;
+            n2x=a6x; n2y=a6y; n2z=a6z;
         }
 
         //__________________________________________
 
-        var distance, maxD1, maxD2, t;
-
         //var v;
-        if( minIndex > 5 ){
-
-            if( !right ) n.negate();
-               
-            tmp1.set( V1[0], V1[1], V1[2] );
-            maxD1 = mdot( n, tmp1 );
-
-            tmp2.set( V2[0], V2[1], V2[2] );
-            maxD2 = mdot( n, tmp2 );
-
-            for( i = 1; i < 8; i++ ){
-
-                k = i * 3;
-
-                tmp0.set( V1[k], V1[k+1], V1[k+2] );
-                distance = mdot( n, tmp0 );
-
-                if( distance > maxD1 ){
-
-                    maxD1 = distance;
-                    tmp1.copy( tmp0 );
-
-                }
-
-                tmp0.set( V2[k], V2[k+1], V2[k+2] );
-                distance = mdot( n, tmp0 );
-
-                if( distance > maxD2 ){
-
-                    maxD2 = distance;
-                    tmp2.copy( tmp0 );
-
-                }
-
+        if(minIndex>5){
+            if(!right){
+                nx=-nx; ny=-ny; nz=-nz;
             }
-
-            tmp0.sub( tmp2, tmp1 );
-            dot1 = mdot( n1, n2 );
-            t = ( tmp0.x*(n1.x-n2.x*dot1) + tmp0.y*(n1.y-n2.y*dot1) + tmp0.z*(n1.z-n2.z*dot1) ) / ( 1-dot1*dot1 );
-
-            //n.set( n.x, n.y, n.z );
-            p.set(
-                tmp1.x + n1.x*t + n.x*depth*0.5,
-                tmp1.y + n1.y*t + n.y*depth*0.5,
-                tmp1.z + n1.z*t + n.z*depth*0.5
-            );
-            manifold.addPointVec( p, n, depth, false );
+            var distance;
+            var maxDistance;
+            var vx;
+            var vy;
+            var vz;
+            var v1x;
+            var v1y;
+            var v1z;
+            var v2x;
+            var v2y;
+            var v2z;
+            //vertex1;
+            v1x=V1[0]; v1y=V1[1]; v1z=V1[2];
+            maxDistance=nx*v1x+ny*v1y+nz*v1z;
+            //vertex2;
+            vx=V1[3]; vy=V1[4]; vz=V1[5];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex3;
+            vx=V1[6]; vy=V1[7]; vz=V1[8];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex4;
+            vx=V1[9]; vy=V1[10]; vz=V1[11];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex5;
+            vx=V1[12]; vy=V1[13]; vz=V1[14];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex6;
+            vx=V1[15]; vy=V1[16]; vz=V1[17];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex7;
+            vx=V1[18]; vy=V1[19]; vz=V1[20];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex8;
+            vx=V1[21]; vy=V1[22]; vz=V1[23];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance>maxDistance){
+                maxDistance=distance;
+                v1x=vx; v1y=vy; v1z=vz;
+            }
+            //vertex1;
+            v2x=V2[0]; v2y=V2[1]; v2z=V2[2];
+            maxDistance=nx*v2x+ny*v2y+nz*v2z;
+            //vertex2;
+            vx=V2[3]; vy=V2[4]; vz=V2[5];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex3;
+            vx=V2[6]; vy=V2[7]; vz=V2[8];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex4;
+            vx=V2[9]; vy=V2[10]; vz=V2[11];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex5;
+            vx=V2[12]; vy=V2[13]; vz=V2[14];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex6;
+            vx=V2[15]; vy=V2[16]; vz=V2[17];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex7;
+            vx=V2[18]; vy=V2[19]; vz=V2[20];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            //vertex8;
+            vx=V2[21]; vy=V2[22]; vz=V2[23];
+            distance=nx*vx+ny*vy+nz*vz;
+            if(distance<maxDistance){
+                maxDistance=distance;
+                v2x=vx; v2y=vy; v2z=vz;
+            }
+            vx=v2x-v1x; vy=v2y-v1y; vz=v2z-v1z;
+            dot1=n1x*n2x+n1y*n2y+n1z*n2z;
+            var t=(vx*(n1x-n2x*dot1)+vy*(n1y-n2y*dot1)+vz*(n1z-n2z*dot1))/(1-dot1*dot1);
+            manifold.addPoint(v1x+n1x*t+nx*depth*0.5,v1y+n1y*t+ny*depth*0.5,v1z+n1z*t+nz*depth*0.5,nx,ny,nz,depth,false);
             return;
         }
-
         // now detect face-face collision...
         // target quad
-        var ar;
+        var q1x;
+        var q1y;
+        var q1z;
+        var q2x;
+        var q2y;
+        var q2z;
+        var q3x;
+        var q3y;
+        var q3z;
+        var q4x;
+        var q4y;
+        var q4z;
         // search support face and vertex
-        var minDot = 1;
-        var dot = 0;
-        var minDotId = 0;
+        var minDot=1;
+        var dot=0;
+        var minDotIndex=0;
+        if(swap){
+            dot=a1x*nx+a1y*ny+a1z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=0;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=1;
+            }
+            dot=a2x*nx+a2y*ny+a2z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=2;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=3;
+            }
+            dot=a3x*nx+a3y*ny+a3z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=4;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=5;
+            }
 
-        if( swap ){
-
-            dot = mdot( v[0], n );
-            if(dot<minDot){ minDot = dot; minDotId = 0; }
-            if(-dot<minDot){  minDot = -dot; minDotId = 1; }
-
-            dot = mdot( v[1], n ); 
-            if(dot<minDot){ minDot = dot;  minDotId = 2; }
-            if(-dot<minDot){ minDot = -dot; minDotId = 3; }
-
-            dot = mdot( v[2], n );
-            if(dot<minDot){ minDot = dot; minDotId = 4; }
-            if(-dot<minDot){ minDot = -dot; minDotId = 5; }
-
-            ar = V1;
+            if(minDotIndex==0){// x+ face
+                q1x=V1[0]; q1y=V1[1]; q1z=V1[2];//vertex1
+                q2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex3
+                q3x=V1[9]; q3y=V1[10]; q3z=V1[11];//vertex4
+                q4x=V1[3]; q4y=V1[4]; q4z=V1[5];//vertex2
+            }
+            else if(minDotIndex==1){// x- face
+                q1x=V1[15]; q1y=V1[16]; q1z=V1[17];//vertex6
+                q2x=V1[21]; q2y=V1[22]; q2z=V1[23];//vertex8
+                q3x=V1[18]; q3y=V1[19]; q3z=V1[20];//vertex7
+                q4x=V1[12]; q4y=V1[13]; q4z=V1[14];//vertex5
+            }
+            else if(minDotIndex==2){// y+ face
+                q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
+                q2x=V1[0]; q2y=V1[1]; q2z=V1[2];//vertex1
+                q3x=V1[3]; q3y=V1[4]; q3z=V1[5];//vertex2
+                q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
+            }
+            else if(minDotIndex==3){// y- face
+                q1x=V1[21]; q1y=V1[22]; q1z=V1[23];//vertex8
+                q2x=V1[9]; q2y=V1[10]; q2z=V1[11];//vertex4
+                q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
+                q4x=V1[18]; q4y=V1[19]; q4z=V1[20];//vertex7
+            }
+            else if(minDotIndex==4){// z+ face
+                q1x=V1[12]; q1y=V1[13]; q1z=V1[14];//vertex5
+                q2x=V1[18]; q2y=V1[19]; q2z=V1[20];//vertex7
+                q3x=V1[6]; q3y=V1[7]; q3z=V1[8];//vertex3
+                q4x=V1[0]; q4y=V1[1]; q4z=V1[2];//vertex1
+            }
+            else if(minDotIndex==5){// z- face
+                q1x=V1[3]; q1y=V1[4]; q1z=V1[5];//vertex2
+                //2x=V1[6]; q2y=V1[7]; q2z=V1[8];//vertex4 !!!
+                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+                q3x=V1[21]; q3y=V1[22]; q3z=V1[23];//vertex8
+                q4x=V1[15]; q4y=V1[16]; q4z=V1[17];//vertex6
+            }
 
         }else{
+            dot=a4x*nx+a4y*ny+a4z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=0;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=1;
+            }
+            dot=a5x*nx+a5y*ny+a5z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=2;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=3;
+            }
+            dot=a6x*nx+a6y*ny+a6z*nz;
+            if(dot<minDot){
+                minDot=dot;
+                minDotIndex=4;
+            }
+            if(-dot<minDot){
+                minDot=-dot;
+                minDotIndex=5;
+            }
 
-            dot = mdot( v[6], n );
-            if(dot<minDot){ minDot = dot; minDotId = 0; }
-            if(-dot<minDot){ minDot=-dot; minDotId = 1; }
+            //______________________________________________________
 
-            dot = mdot( v[7], n );
-            if(dot<minDot){ minDot=dot; minDotId = 2; }
-            if(-dot<minDot){ minDot=-dot; minDotId = 3; }
-
-            dot = mdot( v[8], n );
-            if(dot<minDot){ minDot=dot; minDotId = 4; }
-            if(-dot<minDot){ minDot=-dot; minDotId = 5; }
-
-            ar = V2;
+            if(minDotIndex==0){// x+ face
+                q1x=V2[0]; q1y=V2[1]; q1z=V2[2];//vertex1
+                q2x=V2[6]; q2y=V2[7]; q2z=V2[8];//vertex3
+                q3x=V2[9]; q3y=V2[10]; q3z=V2[11];//vertex4
+                q4x=V2[3]; q4y=V2[4]; q4z=V2[5];//vertex2
+            }
+            else if(minDotIndex==1){// x- face
+                q1x=V2[15]; q1y=V2[16]; q1z=V2[17];//vertex6
+                q2x=V2[21]; q2y=V2[22]; q2z=V2[23]; //vertex8
+                q3x=V2[18]; q3y=V2[19]; q3z=V2[20];//vertex7
+                q4x=V2[12]; q4y=V2[13]; q4z=V2[14];//vertex5
+            }
+            else if(minDotIndex==2){// y+ face
+                q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
+                q2x=V2[0]; q2y=V2[1]; q2z=V2[2];//vertex1
+                q3x=V2[3]; q3y=V2[4]; q3z=V2[5];//vertex2
+                q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
+            }
+            else if(minDotIndex==3){// y- face
+                q1x=V2[21]; q1y=V2[22]; q1z=V2[23];//vertex8
+                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+                q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
+                q4x=V2[18]; q4y=V2[19]; q4z=V2[20];//vertex7
+            }
+            else if(minDotIndex==4){// z+ face
+                q1x=V2[12]; q1y=V2[13]; q1z=V2[14];//vertex5
+                q2x=V2[18]; q2y=V2[19]; q2z=V2[20];//vertex7
+                q3x=V2[6]; q3y=V2[7]; q3z=V2[8];//vertex3
+                q4x=V2[0]; q4y=V2[1]; q4z=V2[2];//vertex1
+            }
+            else if(minDotIndex==5){// z- face
+                q1x=V2[3]; q1y=V2[4]; q1z=V2[5];//vertex2
+                q2x=V2[9]; q2y=V2[10]; q2z=V2[11];//vertex4
+                q3x=V2[21]; q3y=V2[22]; q3z=V2[23];//vertex8
+                q4x=V2[15]; q4y=V2[16]; q4z=V2[17];//vertex6
+            }
       
         }
-
-        switch ( minDotId ){
-
-            case 0: this.qqq.set( [ ar[0], ar[1], ar[2], ar[6], ar[7], ar[8], ar[9], ar[10], ar[11], ar[3], ar[4], ar[5] ] );           break; // x+ face  vertex 1 3 4 2
-            case 1: this.qqq.set( [ ar[15], ar[16], ar[17], ar[21], ar[22], ar[23], ar[18], ar[19], ar[20], ar[12], ar[13], ar[14] ] ); break; // x- face vertex 6 8 7 5
-            case 2: this.qqq.set( [ ar[12], ar[13], ar[14], ar[0], ar[1], ar[2], ar[3], ar[4], ar[5], ar[15], ar[16], ar[17] ] );       break; // y+ face vertex 5 1 2 6
-            case 3: this.qqq.set( [ ar[21], ar[22], ar[23], ar[9], ar[10], ar[11], ar[6], ar[7], ar[8], ar[18], ar[19], ar[20] ] );     break; // y- face vertex 8 4 3 7
-            case 4: this.qqq.set( [ ar[12], ar[13], ar[14], ar[18], ar[19], ar[20], ar[6], ar[7], ar[8], ar[0], ar[1], ar[2] ] );       break; // z+ face vertex 5 7 3 1
-            case 5: this.qqq.set( [ ar[3], ar[4], ar[5], ar[9], ar[10], ar[11], ar[21], ar[22], ar[23], ar[15], ar[16], ar[17] ] );     break; // z- face vertex 2 4 8 6
-            
-        }
-
-
         // clip vertices
-        var cvs1 = this.cvs1;
-        var cvs2 = this.cvs2;
-
         var numClipVertices;
         var numAddedClipVertices;
-        //var k;
-
-        cvs1.set( this.qqq );
+        var index;
+        var x1;
+        var y1;
+        var z1;
+        var x2;
+        var y2;
+        var z2;
+        this.clipVertices1[0]=q1x;
+        this.clipVertices1[1]=q1y;
+        this.clipVertices1[2]=q1z;
+        this.clipVertices1[3]=q2x;
+        this.clipVertices1[4]=q2y;
+        this.clipVertices1[5]=q2z;
+        this.clipVertices1[6]=q3x;
+        this.clipVertices1[7]=q3y;
+        this.clipVertices1[8]=q3z;
+        this.clipVertices1[9]=q4x;
+        this.clipVertices1[10]=q4y;
+        this.clipVertices1[11]=q4z;
         numAddedClipVertices=0;
-        tmp1.set( cvs1[9], cvs1[10], cvs1[11] );
-   
-        dot1=(tmp1.x-c.x-s1.x)*n1.x + (tmp1.y-c.y-s1.y)*n1.y + (tmp1.z-c.z-s1.z)*n1.z;
+        x1=this.clipVertices1[9];
+        y1=this.clipVertices1[10];
+        z1=this.clipVertices1[11];
+        dot1=(x1-cx-s1x)*n1x+(y1-cy-s1y)*n1y+(z1-cz-s1z)*n1z;
 
         //var i = 4;
         //while(i--){
         for(var i=0;i<4;i++){
-            k=i*3;
-            tmp2.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-            dot2=(tmp2.x-c.x-s1.x)*n1.x+(tmp2.y-c.y-s1.y)*n1.y+(tmp2.z-c.z-s1.z)*n1.z;
+            index=i*3;
+            x2=this.clipVertices1[index];
+            y2=this.clipVertices1[index+1];
+            z2=this.clipVertices1[index+2];
+            dot2=(x2-cx-s1x)*n1x+(y2-cy-s1y)*n1y+(z2-cz-s1z)*n1z;
             if(dot1>0){
                 if(dot2>0){
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    cvs2[k]=tmp2.x;
-                    cvs2[k+1]=tmp2.y;
-                    cvs2[k+2]=tmp2.z;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
                 }else{
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
                 }
             }else{
                 if(dot2>0){
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
-                    k=numAddedClipVertices*3;
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    cvs2[k]=tmp2.x;
-                    cvs2[k+1]=tmp2.y;
-                    cvs2[k+2]=tmp2.z;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
                 }
             }
-
-            tmp1.copy( tmp2 );
-            dot1 = dot2;
-        }
-
-        numClipVertices = numAddedClipVertices;
-        if( numClipVertices === 0 ) return;
-
-        numAddedClipVertices = 0;
-        k=(numClipVertices-1)*3;
-        tmp1.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
-        dot1=(tmp1.x-c.x-s2.x)*n2.x+(tmp1.y-c.y-s2.y)*n2.y+(tmp1.z-c.z-s2.z)*n2.z;
-
-        //i = numClipVertices;
-        //while(i--){
-        for(i=0;i<numClipVertices;i++){
-            k=i*3;
-            tmp2.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
-            dot2=(tmp2.x-c.x-s2.x)*n2.x+(tmp2.y-c.y-s2.y)*n2.y+(tmp2.z-c.z-s2.z)*n2.z;
-            if(dot1>0){
-                if(dot2>0){
-                    k=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    cvs1[k]=tmp2.x;
-                    cvs1[k+1]=tmp2.y;
-                    cvs1[k+2]=tmp2.z;
-                }else{
-                    k=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    t=dot1/(dot1-dot2);
-                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
-                }
-            }else{
-                if(dot2>0){
-                    k=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    t=dot1/(dot1-dot2);
-                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
-                    k=numAddedClipVertices*3;
-                    numAddedClipVertices++;
-                    cvs1[k]=tmp2.x;
-                    cvs1[k+1]=tmp2.y;
-                    cvs1[k+2]=tmp2.z;
-                }
-            }
-
-            tmp1.copy( tmp2 );
-            dot1 = dot2;
-
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
         }
 
         numClipVertices=numAddedClipVertices;
         if(numClipVertices==0)return;
         numAddedClipVertices=0;
-        k=(numClipVertices-1)*3;
-        tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-        dot1=(tmp1.x-c.x+s1.x)*-n1.x+(tmp1.y-c.y+s1.y)*-n1.y+(tmp1.z-c.z+s1.z)*-n1.z;
+        index=(numClipVertices-1)*3;
+        x1=this.clipVertices2[index];
+        y1=this.clipVertices2[index+1];
+        z1=this.clipVertices2[index+2];
+        dot1=(x1-cx-s2x)*n2x+(y1-cy-s2y)*n2y+(z1-cz-s2z)*n2z;
 
         //i = numClipVertices;
         //while(i--){
         for(i=0;i<numClipVertices;i++){
-            k=i*3;
-            tmp2.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-            dot2=(tmp2.x-c.x+s1.x)*-n1.x+(tmp2.y-c.y+s1.y)*-n1.y+(tmp2.z-c.z+s1.z)*-n1.z;
+            index=i*3;
+            x2=this.clipVertices2[index];
+            y2=this.clipVertices2[index+1];
+            z2=this.clipVertices2[index+2];
+            dot2=(x2-cx-s2x)*n2x+(y2-cy-s2y)*n2y+(z2-cz-s2z)*n2z;
             if(dot1>0){
                 if(dot2>0){
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    cvs2[k]=tmp2.x;
-                    cvs2[k+1]=tmp2.y;
-                    cvs2[k+2]=tmp2.z;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
                 }else{
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
                 }
             }else{
                 if(dot2>0){
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    cvs2[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs2[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs2[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
-                    k=numAddedClipVertices*3;
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    cvs2[k]=tmp2.x;
-                    cvs2[k+1]=tmp2.y;
-                    cvs2[k+2]=tmp2.z;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
                 }
             }
-
-            tmp1.copy( tmp2 );
-            dot1 = dot2;
-
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
         }
 
         numClipVertices=numAddedClipVertices;
         if(numClipVertices==0)return;
         numAddedClipVertices=0;
-        k=(numClipVertices-1)*3;
-        tmp1.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
-        dot1=(tmp1.x-c.x+s2.x)*-n2.x+(tmp1.y-c.y+s2.y)*-n2.y+(tmp1.z-c.z+s2.z)*-n2.z;
+        index=(numClipVertices-1)*3;
+        x1=this.clipVertices1[index];
+        y1=this.clipVertices1[index+1];
+        z1=this.clipVertices1[index+2];
+        dot1=(x1-cx+s1x)*-n1x+(y1-cy+s1y)*-n1y+(z1-cz+s1z)*-n1z;
 
         //i = numClipVertices;
         //while(i--){
         for(i=0;i<numClipVertices;i++){
-            k=i*3;
-            tmp2.set( cvs2[k], cvs2[k+1], cvs2[k+2] );
-            dot2=(tmp2.x-c.x+s2.x)*-n2.x+(tmp2.y-c.y+s2.y)*-n2.y+(tmp2.z-c.z+s2.z)*-n2.z;
+            index=i*3;
+            x2=this.clipVertices1[index];
+            y2=this.clipVertices1[index+1];
+            z2=this.clipVertices1[index+2];
+            dot2=(x2-cx+s1x)*-n1x+(y2-cy+s1y)*-n1y+(z2-cz+s1z)*-n1z;
             if(dot1>0){
                 if(dot2>0){
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    cvs1[k]=tmp2.x;
-                    cvs1[k+1]=tmp2.y;
-                    cvs1[k+2]=tmp2.z;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
                 }else{
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
                 }
             }else{
                 if(dot2>0){
-                    k=numAddedClipVertices*3;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
                     t=dot1/(dot1-dot2);
-                    cvs1[k]=tmp1.x+(tmp2.x-tmp1.x)*t;
-                    cvs1[k+1]=tmp1.y+(tmp2.y-tmp1.y)*t;
-                    cvs1[k+2]=tmp1.z+(tmp2.z-tmp1.z)*t;
-                    k=numAddedClipVertices*3;
+                    this.clipVertices2[index]=x1+(x2-x1)*t;
+                    this.clipVertices2[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices2[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
                     numAddedClipVertices++;
-                    cvs1[k]=tmp2.x;
-                    cvs1[k+1]=tmp2.y;
-                    cvs1[k+2]=tmp2.z;
+                    this.clipVertices2[index]=x2;
+                    this.clipVertices2[index+1]=y2;
+                    this.clipVertices2[index+2]=z2;
                 }
             }
-
-            tmp1.copy( tmp2 );
-            dot1 = dot2;
-
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
         }
 
-        numClipVertices = numAddedClipVertices;
+        numClipVertices=numAddedClipVertices;
+        if(numClipVertices==0)return;
+        numAddedClipVertices=0;
+        index=(numClipVertices-1)*3;
+        x1=this.clipVertices2[index];
+        y1=this.clipVertices2[index+1];
+        z1=this.clipVertices2[index+2];
+        dot1=(x1-cx+s2x)*-n2x+(y1-cy+s2y)*-n2y+(z1-cz+s2z)*-n2z;
+
+        //i = numClipVertices;
+        //while(i--){
+        for(i=0;i<numClipVertices;i++){
+            index=i*3;
+            x2=this.clipVertices2[index];
+            y2=this.clipVertices2[index+1];
+            z2=this.clipVertices2[index+2];
+            dot2=(x2-cx+s2x)*-n2x+(y2-cy+s2y)*-n2y+(z2-cz+s2z)*-n2z;
+            if(dot1>0){
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
+                }else{
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                }
+            }else{
+                if(dot2>0){
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    t=dot1/(dot1-dot2);
+                    this.clipVertices1[index]=x1+(x2-x1)*t;
+                    this.clipVertices1[index+1]=y1+(y2-y1)*t;
+                    this.clipVertices1[index+2]=z1+(z2-z1)*t;
+                    index=numAddedClipVertices*3;
+                    numAddedClipVertices++;
+                    this.clipVertices1[index]=x2;
+                    this.clipVertices1[index+1]=y2;
+                    this.clipVertices1[index+2]=z2;
+                }
+            }
+            x1=x2;
+            y1=y2;
+            z1=z2;
+            dot1=dot2;
+        }
+
+        numClipVertices=numAddedClipVertices;
         if(swap){
             var tb=b1;
             b1=b2;
             b2=tb;
         }
-        if(numClipVertices==0) return;
-
-        var flipped = b1!=shape1;
-
-        //n.set( n.x, n.y, n.z );
-
-        if( numClipVertices > 4 ){
-
-            tmp1.x = (this.qqq[0]+this.qqq[3]+this.qqq[6]+this.qqq[9])*0.25;
-            tmp1.y = (this.qqq[1]+this.qqq[4]+this.qqq[7]+this.qqq[10])*0.25;
-            tmp1.z = (this.qqq[2]+this.qqq[5]+this.qqq[8]+this.qqq[11])*0.25;
-            n1.x = this.qqq[0]-tmp1.x;
-            n1.y = this.qqq[1]-tmp1.y;
-            n1.z = this.qqq[2]-tmp1.z;
-            n2.x = this.qqq[3]-tmp1.x;
-            n2.y = this.qqq[4]-tmp1.y;
-            n2.z = this.qqq[5]-tmp1.z;
-
-            var id_1=0;
-            var id_2=0;
-            var id_3=0;
-            var id_4=0;
+        if(numClipVertices==0)return;
+        var flipped=b1!=shape1;
+        if(numClipVertices>4){
+            x1=(q1x+q2x+q3x+q4x)*0.25;
+            y1=(q1y+q2y+q3y+q4y)*0.25;
+            z1=(q1z+q2z+q3z+q4z)*0.25;
+            n1x=q1x-x1;
+            n1y=q1y-y1;
+            n1z=q1z-z1;
+            n2x=q2x-x1;
+            n2y=q2y-y1;
+            n2z=q2z-z1;
+            var index1=0;
+            var index2=0;
+            var index3=0;
+            var index4=0;
             var maxDot=-this.INF;
             minDot=this.INF;
 
@@ -8578,82 +8882,84 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             //while(i--){
             for(i=0;i<numClipVertices;i++){
                 this.used[i]=false;
-                k=i*3;
-                tmp1.x=cvs1[k];
-                tmp1.y=cvs1[k+1];
-                tmp1.z=cvs1[k+2];
-                dot=tmp1.x*n1.x+tmp1.y*n1.y+tmp1.z*n1.z;
+                index=i*3;
+                x1=this.clipVertices1[index];
+                y1=this.clipVertices1[index+1];
+                z1=this.clipVertices1[index+2];
+                dot=x1*n1x+y1*n1y+z1*n1z;
                 if(dot<minDot){
                     minDot=dot;
-                    id_1=i;
+                    index1=i;
                 }
                 if(dot>maxDot){
                     maxDot=dot;
-                    id_3=i;
+                    index3=i;
                 }
             }
 
-            this.used[id_1]=true;
-            this.used[id_3]=true;
+            this.used[index1]=true;
+            this.used[index3]=true;
             maxDot=-this.INF;
             minDot=this.INF;
 
-            for( i=0; i<numClipVertices; i++ ){
-
-                if( this.used[i] ) continue;
-                k=i*3;
-                tmp1.x=cvs1[k];
-                tmp1.y=cvs1[k+1];
-                tmp1.z=cvs1[k+2];
-                dot=tmp1.x*n2.x+tmp1.y*n2.y+tmp1.z*n2.z;
+            //i = numClipVertices;
+            //while(i--){
+            for(i=0;i<numClipVertices;i++){
+                if(this.used[i])continue;
+                index=i*3;
+                x1=this.clipVertices1[index];
+                y1=this.clipVertices1[index+1];
+                z1=this.clipVertices1[index+2];
+                dot=x1*n2x+y1*n2y+z1*n2z;
                 if(dot<minDot){
                     minDot=dot;
-                    id_2=i;
+                    index2=i;
                 }
                 if(dot>maxDot){
                     maxDot=dot;
-                    id_4=i;
+                    index4=i;
                 }
-
             }
 
-            k = id_1*3;
-            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-            p.copy( tmp1 );
-            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
-            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
+            index=index1*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
             
-            k = id_2*3;
-            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-            p.copy( tmp1 );
-            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
-            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
+            index=index2*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
             
-            k = id_3*3;
-            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-            p.copy( tmp1 );
-            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
-            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
+            index=index3*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
             
-            k = id_4*3;
-            tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-            p.copy( tmp1 );
-            dot = (tmp1.x-c.x)*n.x+(tmp1.y-c.y)*n.y+(tmp1.z-c.z)*n.z;
-            if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
+            index=index4*3;
+            x1=this.clipVertices1[index];
+            y1=this.clipVertices1[index+1];
+            z1=this.clipVertices1[index+2];
+            dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+            if(dot<0) manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
             
         }else{
-
-            for( i = 0; i < numClipVertices; i++ ){
-
-                k = i*3;
-                tmp1.set( cvs1[k], cvs1[k+1], cvs1[k+2] );
-                
-                p.copy( tmp1 );
-                dot = (tmp1.x-c.x)*n.x + (tmp1.y-c.y)*n.y + (tmp1.z-c.z)*n.z;
-                if( dot < 0 ) manifold.addPointVec( p, n, dot, flipped );
-
+            //i = numClipVertices;
+            //while(i--){
+            for(i=0;i<numClipVertices;i++){
+                index=i*3;
+                x1=this.clipVertices1[index];
+                y1=this.clipVertices1[index+1];
+                z1=this.clipVertices1[index+2];
+                dot=(x1-cx)*nx+(y1-cy)*ny+(z1-cz)*nz;
+                if(dot<0)manifold.addPoint(x1,y1,z1,nx,ny,nz,dot,flipped);
             }
-
         }
 
     }
@@ -9699,269 +10005,340 @@ function CylinderCylinderCollisionDetector() {
     
     CollisionDetector.call( this );
 
-    this.n = new Vec3();
-    this.n1 = new Vec3();
-    this.n2 = new Vec3();
-    this.p = new Vec3();
-    this.d = new Vec3();
-    this.d1 = new Vec3();
-    this.d2 = new Vec3();
-    this.p1 = new Vec3();
-    this.p2 = new Vec3();
-
-    this.cc1 = new Vec3();
-    this.cc2 = new Vec3();
-
-    this.tmp0 = new Vec3();
-    this.tmp1 = new Vec3();
-    this.tmp2 = new Vec3();
-    this.tmp3 = new Vec3();
-
-    this.rtt = new Mat33();
-
-    this.sep = 0;
-
-    this.v = [];
-    var i = 13;
-    while( i-- ){
-        this.v.push( new Vec3() );
-    } 
-
-
-
 }
 
 CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
 
     constructor: CylinderCylinderCollisionDetector,
 
-    crossX: function ( a, b, c ) {
 
-        return this.tmp3.crossVectors( a, b ).multiply( c ).addition();
+    getSep: function ( c1, c2, sep, pos, dep ) {
 
-    },
-
-
-    getSep: function ( c1, c2 ) {
-
-        var n = this.n;
-        var p = this.p;
-        var d = this.d;
-        var p1 = this.p1;
-        var p2 = this.p2;
-
-        var tmp0 = this.tmp0;
-        var tmp1 = this.tmp1;
-        var tmp2 = this.tmp2;
-
-        var v = this.v;
-
-        var b0, b1, b2, b3, sum, inv, separation;
+        var t1x;
+        var t1y;
+        var t1z;
+        var t2x;
+        var t2y;
+        var t2z;
+        var sup=new Vec3();
         var len;
-
-        if( d.lengthSq() === 0 ) d.y = 0.001;
-        n.copy( d ).negate();
-        
-        this.supportPoint( c1, n, tmp1, true );
-        this.supportPoint( c2, n, tmp2 );
-        tmp0.sub( tmp2, tmp1 );
-
-        if( _Math.dotVectors( tmp0, n ) <= 0 ) return false;
-
-        n.cross( tmp0, d );
-
-        if( n.lengthSq() == 0 ){
-            n.sub( tmp0, d ).normalize();
-            p.add( tmp1, tmp2 ).scaleEqual( 0.5 );
-            return true;
-        }
-
-        this.supportPoint( c1, n, v[4], true );
-        this.supportPoint( c2, n, v[5] );
-        v[6].sub( v[5], v[4] );
-
-        if( _Math.dotVectors( v[6], n ) <= 0 ) return false;
-
-        v[0].sub( tmp0, d.x );
-        v[1].sub( v[6], d.x );
-
-        n.crossVectors( v[0], v[1] );
-        
-        if( n.lengthSq() > 0 ){
-
-            v[0].copy( tmp0 );
-            tmp0.copy( v[6] );
-            v[6].copy( v[0] );
-            v[0].copy( tmp1 );
-            tmp1.copy( v[4] );
-            v[4].copy( v[0] );
-            v[0].copy( tmp2 );
-            tmp2.copy( v[5] );
-            v[5].copy( v[0] );
-
-            n.negate();
-
-        }
-
-        var iterations=0;
-
-        while(true){
-
-            if( ++iterations > 8 ) return false;
-            //if( ++iterations > 100 ) return false;
-            
-            this.supportPoint( c1, n, v[7], true );
-            this.supportPoint( c2, n, v[8] );
-            v[9].sub( v[8], v[7] );
-
-            if( _Math.dotVectors( v[9], n ) <= 0 ) return false;
-            
-            if( this.crossX( tmp0, v[9], d ) < 0 ){
-
-                v[6].copy( v[9] );
-                v[4].copy( v[7] );
-                v[5].copy( v[8] );
-                v[0].sub( tmp0, d );
-                v[1].sub( v[9], d );
-
-                n.crossVectors( v[0], v[1] );
-
-                continue;
-            }
-
-            if( this.crossX( v[9], v[6], d ) < 0 ){
-
-                tmp0.copy( v[9] );
-                tmp1.copy( v[7] );
-                tmp1.copy( v[8] );
-                v[0].sub( v[9], d );
-                v[1].sub( v[6], d );
-
-                n.crossVectors( v[0], v[1] );
-
-                continue;
-            }
-
-            var hit = false;
-
-            while( true ){
-
-                v[0].sub( v[6], tmp0 );
-                v[1].sub( v[9], tmp0 );
-
-                n.crossVectors( v[0], v[1] );
-
-                len = 1 / n.length();
-                n.x*=len;
-                n.y*=len;
-                n.z*=len;
-
-                if( _Math.dotVectors( n, tmp0 ) >= 0 && !hit ){
-
-                    b0 = this.crossX( tmp0, v[6], v[9] );
-                    b1 = this.crossX( v[9], v[6], d );
-                    b2 = this.crossX( d, tmp0, v[9] );
-                    b3 = this.crossX( v[6], tmp0, d );
-                    sum = b0+b1+b2+b3;
-                    if(sum<=0){
-                        b0 = 0;
-                        b1 = this.crossX( v[6], v[9], n );
-                        b2 = this.crossX( v[9], v[6], n );
-                        b3 = this.crossX( tmp0, v[6], n );
-                        sum = b1+b2+b3;
-                    }
-                    inv = 1/sum;
-                    v[2].set(
-                        ( p1.x*b0 + tmp1.x*b1 + v[4].x*b2 + v[7].x*b3 ) * inv,
-                        ( p1.y*b0 + tmp1.y*b1 + v[4].y*b2 + v[7].y*b3 ) * inv,
-                        ( p1.z*b0 + tmp1.z*b1 + v[4].z*b2 + v[7].z*b3 ) * inv
-                    );
-                    v[3].set(
-                        ( p2.x*b0 + tmp2.x*b1 + v[5].x*b2 + v[8].x*b3 ) * inv,
-                        ( p2.y*b0 + tmp2.y*b1 + v[5].y*b2 + v[8].y*b3 ) * inv,
-                        ( p2.z*b0 + tmp2.z*b1 + v[5].z*b2 + v[8].z*b3 ) * inv
-                    );
-                    hit = true;
-
-                }
-
-                this.supportPoint( c1, n, v[10], true);
-                this.supportPoint( c2, n, v[11] );
-                v[12].sub( v[11], v[10] );
-
-                separation = -_Math.dotVectors( v[12], n );
-
-                if( (v[12].x-v[9].x)*n.x + (v[12].y-v[9].y)*n.y + (v[12].z-v[9].z)*n.z <= 0.01 || separation >= 0 ){
-
-                    if( hit ){
-                        n.negate();
-                        p.add( v[2], v[3] ).scaleEqual( 0.5 );
-                        this.sep = separation;
-                        return true;
-                    }
-
-                    return false;
-
-                }
-
-                if( this.crossX( v[12], tmp0, d ) < 0 ){
-
-                    if( this.crossX( v[12], v[6], d ) < 0 ){
-
-                        tmp0.copy( v[12] );
-                        tmp1.copy( v[10] );
-                        tmp2.copy( v[11] );
-
-                    }else{
-
-                        v[9].copy( v[12] );
-                        v[7].copy( v[10] );
-                        v[8].copy( v[11] );
-
-                    }
-
-                }else{
-
-                    if( this.crossX( v[12], v[9], d ) < 0 ){
-
-                        v[6].copy( v[12] );
-                        v[4].copy( v[10] );
-                        v[5].copy( v[11] );
-
-                    }else{
-
-                        tmp0.copy( v[12] );
-                        tmp1.copy( v[10] );
-                        tmp2.copy( v[11] );
-
-                    }
-                }
-            }
-        }
-        
+        var p1x;
+        var p1y;
+        var p1z;
+        var p2x;
+        var p2y;
+        var p2z;
+        var v01x=c1.position.x;
+        var v01y=c1.position.y;
+        var v01z=c1.position.z;
+        var v02x=c2.position.x;
+        var v02y=c2.position.y;
+        var v02z=c2.position.z;
+        var v0x=v02x-v01x;
+        var v0y=v02y-v01y;
+        var v0z=v02z-v01z;
+        if(v0x*v0x+v0y*v0y+v0z*v0z==0)v0y=0.001;
+        var nx=-v0x;
+        var ny=-v0y;
+        var nz=-v0z;
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v11x=sup.x;
+        var v11y=sup.y;
+        var v11z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v12x=sup.x;
+        var v12y=sup.y;
+        var v12z=sup.z;
+        var v1x=v12x-v11x;
+        var v1y=v12y-v11y;
+        var v1z=v12z-v11z;
+        if(v1x*nx+v1y*ny+v1z*nz<=0){
         return false;
+        }
+        nx=v1y*v0z-v1z*v0y;
+        ny=v1z*v0x-v1x*v0z;
+        nz=v1x*v0y-v1y*v0x;
+        if(nx*nx+ny*ny+nz*nz==0){
+        sep.set( v1x-v0x, v1y-v0y, v1z-v0z ).normalize();
+        pos.set( (v11x+v12x)*0.5, (v11y+v12y)*0.5, (v11z+v12z)*0.5 );
+        return true;
+        }
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v21x=sup.x;
+        var v21y=sup.y;
+        var v21z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v22x=sup.x;
+        var v22y=sup.y;
+        var v22z=sup.z;
+        var v2x=v22x-v21x;
+        var v2y=v22y-v21y;
+        var v2z=v22z-v21z;
+        if(v2x*nx+v2y*ny+v2z*nz<=0){
+        return false;
+        }
+        t1x=v1x-v0x;
+        t1y=v1y-v0y;
+        t1z=v1z-v0z;
+        t2x=v2x-v0x;
+        t2y=v2y-v0y;
+        t2z=v2z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        if(nx*v0x+ny*v0y+nz*v0z>0){
+        t1x=v1x;
+        t1y=v1y;
+        t1z=v1z;
+        v1x=v2x;
+        v1y=v2y;
+        v1z=v2z;
+        v2x=t1x;
+        v2y=t1y;
+        v2z=t1z;
+        t1x=v11x;
+        t1y=v11y;
+        t1z=v11z;
+        v11x=v21x;
+        v11y=v21y;
+        v11z=v21z;
+        v21x=t1x;
+        v21y=t1y;
+        v21z=t1z;
+        t1x=v12x;
+        t1y=v12y;
+        t1z=v12z;
+        v12x=v22x;
+        v12y=v22y;
+        v12z=v22z;
+        v22x=t1x;
+        v22y=t1y;
+        v22z=t1z;
+        nx=-nx;
+        ny=-ny;
+        nz=-nz;
+        }
+        var iterations=0;
+        while(true){
+        if(++iterations>100){
+        return false;
+        }
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v31x=sup.x;
+        var v31y=sup.y;
+        var v31z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v32x=sup.x;
+        var v32y=sup.y;
+        var v32z=sup.z;
+        var v3x=v32x-v31x;
+        var v3y=v32y-v31y;
+        var v3z=v32z-v31z;
+        if(v3x*nx+v3y*ny+v3z*nz<=0){
+        return false;
+        }
+        if((v1y*v3z-v1z*v3y)*v0x+(v1z*v3x-v1x*v3z)*v0y+(v1x*v3y-v1y*v3x)*v0z<0){
+        v2x=v3x;
+        v2y=v3y;
+        v2z=v3z;
+        v21x=v31x;
+        v21y=v31y;
+        v21z=v31z;
+        v22x=v32x;
+        v22y=v32y;
+        v22z=v32z;
+        t1x=v1x-v0x;
+        t1y=v1y-v0y;
+        t1z=v1z-v0z;
+        t2x=v3x-v0x;
+        t2y=v3y-v0y;
+        t2z=v3z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        continue;
+        }
+        if((v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z<0){
+        v1x=v3x;
+        v1y=v3y;
+        v1z=v3z;
+        v11x=v31x;
+        v11y=v31y;
+        v11z=v31z;
+        v12x=v32x;
+        v12y=v32y;
+        v12z=v32z;
+        t1x=v3x-v0x;
+        t1y=v3y-v0y;
+        t1z=v3z-v0z;
+        t2x=v2x-v0x;
+        t2y=v2y-v0y;
+        t2z=v2z-v0z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        continue;
+        }
+        var hit=false;
+        while(true){
+        t1x=v2x-v1x;
+        t1y=v2y-v1y;
+        t1z=v2z-v1z;
+        t2x=v3x-v1x;
+        t2y=v3y-v1y;
+        t2z=v3z-v1z;
+        nx=t1y*t2z-t1z*t2y;
+        ny=t1z*t2x-t1x*t2z;
+        nz=t1x*t2y-t1y*t2x;
+        len=1/_Math.sqrt(nx*nx+ny*ny+nz*nz);
+        nx*=len;
+        ny*=len;
+        nz*=len;
+        if(nx*v1x+ny*v1y+nz*v1z>=0&&!hit){
+        var b0=(v1y*v2z-v1z*v2y)*v3x+(v1z*v2x-v1x*v2z)*v3y+(v1x*v2y-v1y*v2x)*v3z;
+        var b1=(v3y*v2z-v3z*v2y)*v0x+(v3z*v2x-v3x*v2z)*v0y+(v3x*v2y-v3y*v2x)*v0z;
+        var b2=(v0y*v1z-v0z*v1y)*v3x+(v0z*v1x-v0x*v1z)*v3y+(v0x*v1y-v0y*v1x)*v3z;
+        var b3=(v2y*v1z-v2z*v1y)*v0x+(v2z*v1x-v2x*v1z)*v0y+(v2x*v1y-v2y*v1x)*v0z;
+        var sum=b0+b1+b2+b3;
+        if(sum<=0){
+        b0=0;
+        b1=(v2y*v3z-v2z*v3y)*nx+(v2z*v3x-v2x*v3z)*ny+(v2x*v3y-v2y*v3x)*nz;
+        b2=(v3y*v2z-v3z*v2y)*nx+(v3z*v2x-v3x*v2z)*ny+(v3x*v2y-v3y*v2x)*nz;
+        b3=(v1y*v2z-v1z*v2y)*nx+(v1z*v2x-v1x*v2z)*ny+(v1x*v2y-v1y*v2x)*nz;
+        sum=b1+b2+b3;
+        }
+        var inv=1/sum;
+        p1x=(v01x*b0+v11x*b1+v21x*b2+v31x*b3)*inv;
+        p1y=(v01y*b0+v11y*b1+v21y*b2+v31y*b3)*inv;
+        p1z=(v01z*b0+v11z*b1+v21z*b2+v31z*b3)*inv;
+        p2x=(v02x*b0+v12x*b1+v22x*b2+v32x*b3)*inv;
+        p2y=(v02y*b0+v12y*b1+v22y*b2+v32y*b3)*inv;
+        p2z=(v02z*b0+v12z*b1+v22z*b2+v32z*b3)*inv;
+        hit=true;
+        }
+        this.supportPoint(c1,-nx,-ny,-nz,sup);
+        var v41x=sup.x;
+        var v41y=sup.y;
+        var v41z=sup.z;
+        this.supportPoint(c2,nx,ny,nz,sup);
+        var v42x=sup.x;
+        var v42y=sup.y;
+        var v42z=sup.z;
+        var v4x=v42x-v41x;
+        var v4y=v42y-v41y;
+        var v4z=v42z-v41z;
+        var separation=-(v4x*nx+v4y*ny+v4z*nz);
+        if((v4x-v3x)*nx+(v4y-v3y)*ny+(v4z-v3z)*nz<=0.01||separation>=0){
+        if(hit){
+        sep.set( -nx, -ny, -nz );
+        pos.set( (p1x+p2x)*0.5, (p1y+p2y)*0.5, (p1z+p2z)*0.5 );
+        dep.x=separation;
+        return true;
+        }
+        return false;
+        }
+        if(
+        (v4y*v1z-v4z*v1y)*v0x+
+        (v4z*v1x-v4x*v1z)*v0y+
+        (v4x*v1y-v4y*v1x)*v0z<0
+        ){
+        if(
+        (v4y*v2z-v4z*v2y)*v0x+
+        (v4z*v2x-v4x*v2z)*v0y+
+        (v4x*v2y-v4y*v2x)*v0z<0
+        ){
+        v1x=v4x;
+        v1y=v4y;
+        v1z=v4z;
+        v11x=v41x;
+        v11y=v41y;
+        v11z=v41z;
+        v12x=v42x;
+        v12y=v42y;
+        v12z=v42z;
+        }else{
+        v3x=v4x;
+        v3y=v4y;
+        v3z=v4z;
+        v31x=v41x;
+        v31y=v41y;
+        v31z=v41z;
+        v32x=v42x;
+        v32y=v42y;
+        v32z=v42z;
+        }
+        }else{
+        if(
+        (v4y*v3z-v4z*v3y)*v0x+
+        (v4z*v3x-v4x*v3z)*v0y+
+        (v4x*v3y-v4y*v3x)*v0z<0
+        ){
+        v2x=v4x;
+        v2y=v4y;
+        v2z=v4z;
+        v21x=v41x;
+        v21y=v41y;
+        v21z=v41z;
+        v22x=v42x;
+        v22y=v42y;
+        v22z=v42z;
+        }else{
+        v1x=v4x;
+        v1y=v4y;
+        v1z=v4z;
+        v11x=v41x;
+        v11y=v41y;
+        v11z=v41z;
+        v12x=v42x;
+        v12y=v42y;
+        v12z=v42z;
+        }
+        }
+        }
+        }
+        //return false;
     },
 
-    supportPoint: function ( c, n, out, revers ) {
-        
-        var ld = n.clone();
-        var o = new Vec3();
-        if( revers ) ld.negate();
+    supportPoint: function ( c, dx, dy, dz, out ) {
 
-        ld.applyMatrix3( c.rotation );
-
-        var len = ld.x*ld.x + ld.z*ld.z;
-     
-        if( len === 0 ){
-            o.set( c.radius, 0, 0 );
+        var rot=c.rotation.elements;
+        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
+        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
+        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var radx=ldx;
+        var radz=ldz;
+        var len=radx*radx+radz*radz;
+        var rad=c.radius;
+        var hh=c.halfHeight;
+        var ox;
+        var oy;
+        var oz;
+        if(len==0){
+        if(ldy<0){
+        ox=rad;
+        oy=-hh;
+        oz=0;
         }else{
-            len = c.radius/_Math.sqrt( len );
-            o.set( ld.x*len, 0, ld.z*len );
+        ox=rad;
+        oy=hh;
+        oz=0;
         }
-
-        o.y = ld.y < 0 ? -c.halfHeight : c.halfHeight;
-        ld.copy( o ).applyMatrix3( c.rotation, true ).addEqual( c.position );
-        out.copy( ld );
+        }else{
+        len=c.radius/_Math.sqrt(len);
+        if(ldy<0){
+        ox=radx*len;
+        oy=-hh;
+        oz=radz*len;
+        }else{
+        ox=radx*len;
+        oy=hh;
+        oz=radz*len;
+        }
+        }
+        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
+        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
+        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        out.set( ldx, ldy, ldz );
 
     },
 
@@ -9976,367 +10353,458 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
             c1=shape2;
             c2=shape1;
         }
-
-        var p = this.p;
-        var p1 = this.p1;
-        var p2 = this.p2;
-        var n = this.n;
-        var n1 = this.n1;
-        var n2 = this.n2;
-        var d1 = this.d1;
-        var d2 = this.d2;
-        var cc1 = this.cc1;
-        var cc2 = this.cc2;
-        var d = this.d;
-        var v = this.v;
-
-        var rtt = this.rtt;
-
-        p1.copy( c1.position );
-        p2.copy( c2.position );
-
-        n1.copy( c1.normalDirection );
-        n2.copy( c2.normalDirection );
-
-        d1.copy( c1.halfDirection );
-        d2.copy( c2.halfDirection );
-
-
-
-         // diff
-        d.sub( p2, p1 );
-
-
-        var h1 = c1.halfHeight;
-        var h2 = c2.halfHeight;
-        var r1 = c1.radius;
-        var r2 = c2.radius;
-
+        var p1=c1.position;
+        var p2=c2.position;
+        var p1x=p1.x;
+        var p1y=p1.y;
+        var p1z=p1.z;
+        var p2x=p2.x;
+        var p2y=p2.y;
+        var p2z=p2.z;
+        var h1=c1.halfHeight;
+        var h2=c2.halfHeight;
+        var n1=c1.normalDirection;
+        var n2=c2.normalDirection;
+        var d1=c1.halfDirection;
+        var d2=c2.halfDirection;
+        var r1=c1.radius;
+        var r2=c2.radius;
+        var n1x=n1.x;
+        var n1y=n1.y;
+        var n1z=n1.z;
+        var n2x=n2.x;
+        var n2y=n2.y;
+        var n2z=n2.z;
+        var d1x=d1.x;
+        var d1y=d1.y;
+        var d1z=d1.z;
+        var d2x=d2.x;
+        var d2y=d2.y;
+        var d2z=d2.z;
+        var dx=p1x-p2x;
+        var dy=p1y-p2y;
+        var dz=p1z-p2z;
         var len;
+        var c1x;
+        var c1y;
+        var c1z;
+        var c2x;
+        var c2y;
+        var c2z;
+        var tx;
+        var ty;
+        var tz;
+        var sx;
+        var sy;
+        var sz;
+        var ex;
+        var ey;
+        var ez;
         var depth1;
         var depth2;
         var dot;
         var t1;
         var t2;
-
-        if( !this.getSep( c1, c2 ) ) return;
-
-        var dot1 = _Math.dotVectors( n, n1 );
-        var dot2 = _Math.dotVectors( n, n2 );
-        var right1 = dot1>0;
-        var right2 = dot2>0;
-        if(!right1) dot1=-dot1;
-        if(!right2) dot2=-dot2;
+        var sep=new Vec3();
+        var pos=new Vec3();
+        var dep=new Vec3();
+        if(!this.getSep(c1,c2,sep,pos,dep))return;
+        var dot1=sep.x*n1x+sep.y*n1y+sep.z*n1z;
+        var dot2=sep.x*n2x+sep.y*n2y+sep.z*n2z;
+        var right1=dot1>0;
+        var right2=dot2>0;
+        if(!right1)dot1=-dot1;
+        if(!right2)dot2=-dot2;
         var state=0;
-        if( dot1 > 0.999 || dot2 > 0.999 ){
-            if( dot1 > dot2 ) state = 1;
-            else state = 2;
+        if(dot1>0.999||dot2>0.999){
+        if(dot1>dot2)state=1;
+        else state=2;
         }
-
-        var depth = this.sep;
-
-        var ms = 0.96;
-        var m0 = 1.5;
-        var m1 = 0.5;
-        var m2 = 0.866025403;
-
+        var nx;
+        var ny;
+        var nz;
+        var depth=dep.x;
+        var r00;
+        var r01;
+        var r02;
+        var r10;
+        var r11;
+        var r12;
+        var r20;
+        var r21;
+        var r22;
+        var px;
+        var py;
+        var pz;
         var pd;
         var a;
         var b;
         var e;
         var f;
-
-        switch( state ){
-            case 0:
-                manifold.addPointVec( p, n, depth, false );
-            break;
-            case 1:
-                n.copy( n1 );
-                if( right1 ){
-                    cc1.add( p1, d1 );
-                    //n.copy( n1 );
-                }else{
-                    cc1.sub( p1, d1 );
-                    n.negate();
-                }
-                dot = _Math.dotVectors( n, n2 );
-                if(dot<0) len=h2;
-                else len=-h2;
-
-                cc2.x = p2.x+len*n2.x;
-                cc2.y = p2.y+len*n2.y;
-                cc2.z = p2.z+len*n2.z;
-                v[0].copy( n );
-
-                if(dot2>=0.999999) v[0].x=-n.y;
-                
-                len = _Math.dotVectors( v[0], n2 );
-                d.copy( n2 ).scaleEqual( len ).subEqual( v[0] );
-                len = d.length();
-                if( len === 0 ) break;
-                len = r2/len;
-                d.scaleEqual( len );
-                v[0].add( cc2, d );
-
-                if(dot<-ms||dot>ms){
-                    rtt.set(
-                        n2.x*n2.x*m0-m1,
-                        n2.x*n2.y*m0-n2.z*m2,
-                        n2.x*n2.z*m0+n2.y*m2,
-                        n2.y*n2.x*m0+n2.z*m2,
-                        n2.y*n2.y*m0-m1,
-                        n2.y*n2.z*m0-n2.x*m2,
-                        n2.z*n2.x*m0-n2.y*m2,
-                        n2.z*n2.y*m0+n2.x*m2,
-                        n2.z*n2.z*m0-m1
-                    );
-
-                    v[3].copy( v[0] );
-                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
-                    v[0].set(
-                        v[3].x-pd*n.x-cc1.x,
-                        v[3].y-pd*n.y-cc1.y,
-                        v[3].z-pd*n.z-cc1.z
-                    );
-                    len = v[0].lengthSq();
-                    if( len > r1*r1 ){
-                        len = r1/_Math.sqrt(len);
-                        v[0].scaleEqual( len );
-                    }
-                    v[3].add( cc1, v[0] );
-                    manifold.addPointVec( v[3], n, pd, false );
-
-                    d.applyMatrix3( rtt );
-                    v[3].add( d, cc2 );
-
-                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
-                    if(pd<=0){
-                        v[0].set(
-                            v[3].x - pd*n.x - cc1.x,
-                            v[3].y - pd*n.y - cc1.y,
-                            v[3].z - pd*n.z - cc1.z
-                        );
-                        len = v[0].lengthSq();
-                        if( len > r1*r1 ){
-                            len = r1/_Math.sqrt(len);
-                            v[0].scaleEqual( len );
-                        }
-                        v[3].add( cc1, v[0] );
-                        manifold.addPointVec( v[3], n, pd, false );
-                    }
-
-                    d.applyMatrix3( rtt );
-                    v[3].add( d, cc2 );
-
-                    pd = v[5].sub( v[3], cc1 ).multiply( n ).addition();
-                    if( pd <= 0 ){
-                        v[0].set(
-                            v[3].x-pd*n.x-cc1.x,
-                            v[3].y-pd*n.y-cc1.y,
-                            v[3].z-pd*n.z-cc1.z
-                        );
-                        len = v[0].lengthSq();
-                        if( len > r1*r1 ){
-                            len = r1/_Math.sqrt(len);
-                            v[0].scaleEqual( len );
-                        }
-                        v[3].add( cc1, v[0] );
-                        manifold.addPointVec( v[3], n, pd, false );
-                    }
-                }else{
-
-                    v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc1 ).multiply( n ).addition();
-                    v[1].x-=depth1*n.x;
-                    v[1].y-=depth1*n.y;
-                    v[1].z-=depth1*n.z;
-
-                    if(dot>0) v[2].add( v[0], n2 ).scaleEqual( h2*2 );
-                    else v[2].sub( v[0], n2 ).scaleEqual( h2*2 );
-
-                    depth2 = v[5].sub( v[2], cc1 ).multiply( n ).addition();
-                    v[2].x-=depth2*n.x;
-                    v[2].y-=depth2*n.y;
-                    v[2].z-=depth2*n.z;
-
-                    d.sub( cc1, v[1] );
-                    v[0].sub( v[2], v[1] );
-
-                    a = d.lengthSq();
-                    b = _Math.dotVectors( d, v[0] );
-                    e = v[0].lengthSq();
-                    f = b*b-e*(a-r1*r1);
-                    if(f<0)break;
-                    f=_Math.sqrt(f);
-                    t1=(b+f)/e;
-                    t2=(b-f)/e;
-                    if(t2<t1){
-                        len=t1;
-                        t1=t2;
-                        t2=len;
-                    }
-                    if(t2>1) t2 = 1;
-                    if(t1<0) t1 = 0;
-                    v[0].x=v[1].x+(v[2].x-v[1].x)*t1;
-                    v[0].y=v[1].y+(v[2].y-v[1].y)*t1;
-                    v[0].z=v[1].z+(v[2].z-v[1].z)*t1;
-                    v[2].x=v[1].x+(v[2].x-v[1].x)*t2;
-                    v[2].y=v[1].y+(v[2].y-v[1].y)*t2;
-                    v[2].z=v[1].z+(v[2].z-v[1].z)*t2;
-                    v[1].x=v[0].x;
-                    v[1].y=v[0].y;
-                    v[1].z=v[0].z;
-                    len = depth1+(depth2-depth1)*t1;
-                    depth2 = depth1+(depth2-depth1)*t2;
-                    depth1 = len;
-                    if(depth1<0) manifold.addPointVec( v[1], n, pd, false );
-                    if(depth2<0) manifold.addPointVec( v[2], n, pd, false );
-                
-                }
-            break;
-            case 2:
-                n.copy( n2 );
-
-                if(right2){
-                    cc2.sub( p2, d2 );
-                    n.negate();
-                }else{
-                    cc2.add( p2, d2 );
-                    //n.copy( n2 );
-                }
-
-                dot = _Math.dotVectors( n, n1 );
-                if( dot<0 ) len = h1;
-                else len = -h1;
-                cc1.x = p1.x+len*n1.x;
-                cc1.y = p1.y+len*n1.y;
-                cc1.z = p1.z+len*n1.z;
-
-                v[0].copy( n );
-
-                if( dot1 >= 0.999999 ) v[0].x=-n.y;
-
-                len = _Math.dotVectors( v[0], n1 );
-                d.copy( n1 ).scaleEqual( len ).subEqual( v[0] );
-                len = d.length();
-                if( len === 0 ) break;
-                len = r1/len;
-                d.scaleEqual( len );
-                v[0].add( cc1, d );
-
-                if( dot < -ms || dot > ms ){
-
-                    rtt.set(
-                        n1.x*n1.x*m0-m1,
-                        n1.x*n1.y*m0-n1.z*m2,
-                        n1.x*n1.z*m0+n1.y*m2,
-                        n1.y*n1.x*m0+n1.z*m2,
-                        n1.y*n1.y*m0-m1,
-                        n1.y*n1.z*m0-n1.x*m2,
-                        n1.z*n1.x*m0-n1.y*m2,
-                        n1.z*n1.y*m0+n1.x*m2,
-                        n1.z*n1.z*m0-m1
-                    );
-
-                    v[3].copy( v[0] );
-
-                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
-                    v[0].set(
-                        v[3].x-pd*n.x-cc2.x,
-                        v[3].y-pd*n.y-cc2.y,
-                        v[3].z-pd*n.z-cc2.z
-                    );
-                    len = v[0].lengthSq();
-                    if( len > r2*r2 ){
-                        len = r2/_Math.sqrt(len);
-                        v[0].scaleEqual( len );
-                    }
-
-                    v[3].add( cc2, v[0] );
-                    manifold.addPointVec( v[3], n.negate(), pd, false );
-
-                    d.applyMatrix3( rtt );
-                    v[3].add( d, cc1 );
-
-                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
-                    if(pd<=0){
-                        v[0].set(
-                            v[3].x-pd*n.x-cc2.x,
-                            v[3].y-pd*n.y-cc2.y,
-                            v[3].z-pd*n.z-cc2.z
-                        );
-                        len = v[0].lengthSq();
-                        if(len > r2*r2 ){
-                            len = r2/_Math.sqrt(len);
-                            v[0].scaleEqual( len );
-                        }
-                        v[3].add( cc2, v[0] );
-                        manifold.addPointVec( v[3], n.negate(), pd, false );
-                    }
-
-                    d.applyMatrix3( rtt );
-                    v[3].add( d, cc1 );
-
-                    pd = v[5].sub( v[3], cc2 ).multiply( n ).addition();
-                    if(pd<=0){
-                        v[0].x=v[3].x-pd*n.x-cc2.x;
-                        v[0].y=v[3].y-pd*n.y-cc2.y;
-                        v[0].z=v[3].z-pd*n.z-cc2.z;
-                        len = v[0].lengthSq();
-                        if(len>r2*r2){
-                            len=r2/_Math.sqrt(len);
-                            v[0].x*=len;
-                            v[0].y*=len;
-                            v[0].z*=len;
-                        }
-                        v[3].add( cc2, v[0] );
-                        manifold.addPointVec( v[3], n.negate(), pd, false );
-                    }
-                }else{
-                    v[1].copy( v[0] );
-                    depth1 = v[5].sub( v[1], cc2 ).multiply( n ).addition();
-                    v[1].x-=depth1*n.x;
-                    v[1].y-=depth1*n.y;
-                    v[1].z-=depth1*n.z;
-                    if(dot>0) v[2].add( v[0], n1 ).scaleEqual( h1*2 );
-                    else v[2].sub( v[0], n1 ).scaleEqual( h1*2 );
-
-                    depth2 = v[5].sub( v[2], cc2 ).multiply( n ).addition();
-                    v[2].x-=depth2*n.x;
-                    v[2].y-=depth2*n.y;
-                    v[2].z-=depth2*n.z;
-                    d.sub( cc2, v[1] );
-                    v[0].sub( v[2], v[1] );
-                    a = d.lengthSq();
-                    b = _Math.dotVectors( d, v[0] );
-                    e = v[0].lengthSq();
-                    f = b*b - e*(a-r2*r2);
-                    if( f < 0 ) break;
-                    f = _Math.sqrt( f );
-                    t1 = (b+f)/e;
-                    t2 = (b-f)/e;
-                    if( t2 < t1 ){
-                        len = t1;
-                        t1 = t2;
-                        t2 = len;
-                    }
-                    if( t2 > 1 ) t2 = 1;
-                    if( t1 < 0 ) t1 = 0;
-
-                    v[4].sub( v[2], v[1] );
-
-                    v[0].copy( v[4] ).scaleEqual(t1).addEqual( v[1] );
-                    v[2].copy( v[4] ).scaleEqual(t2).addEqual( v[1] );
-                    v[1].copy( v[0] );
-              
-                    len = depth1+(depth2-depth1)*t1;
-                    depth2 = depth1+(depth2-depth1)*t2;
-                    depth1 = len;
-                    if( depth1 < 0 ) manifold.addPointVec( v[1], n.negate(), depth1, false );
-                    if( depth2 < 0 ) manifold.addPointVec( v[2], n.negate(), depth2, false );
-                
-                }
-            break;
+        nx=sep.x;
+        ny=sep.y;
+        nz=sep.z;
+        switch(state){
+        case 0:
+        manifold.addPoint(pos.x,pos.y,pos.z,nx,ny,nz,depth,false);
+        break;
+        case 1:
+        if(right1){
+        c1x=p1x+d1x;
+        c1y=p1y+d1y;
+        c1z=p1z+d1z;
+        nx=n1x;
+        ny=n1y;
+        nz=n1z;
+        }else{
+        c1x=p1x-d1x;
+        c1y=p1y-d1y;
+        c1z=p1z-d1z;
+        nx=-n1x;
+        ny=-n1y;
+        nz=-n1z;
+        }
+        dot=nx*n2x+ny*n2y+nz*n2z;
+        if(dot<0)len=h2;
+        else len=-h2;
+        c2x=p2x+len*n2x;
+        c2y=p2y+len*n2y;
+        c2z=p2z+len*n2z;
+        if(dot2>=0.999999){
+        tx=-ny;
+        ty=nz;
+        tz=nx;
+        }else{
+        tx=nx;
+        ty=ny;
+        tz=nz;
+        }
+        len=tx*n2x+ty*n2y+tz*n2z;
+        dx=len*n2x-tx;
+        dy=len*n2y-ty;
+        dz=len*n2z-tz;
+        len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(len==0)break;
+        len=r2/len;
+        dx*=len;
+        dy*=len;
+        dz*=len;
+        tx=c2x+dx;
+        ty=c2y+dy;
+        tz=c2z+dz;
+        if(dot<-0.96||dot>0.96){
+        r00=n2x*n2x*1.5-0.5;
+        r01=n2x*n2y*1.5-n2z*0.866025403;
+        r02=n2x*n2z*1.5+n2y*0.866025403;
+        r10=n2y*n2x*1.5+n2z*0.866025403;
+        r11=n2y*n2y*1.5-0.5;
+        r12=n2y*n2z*1.5-n2x*0.866025403;
+        r20=n2z*n2x*1.5-n2y*0.866025403;
+        r21=n2z*n2y*1.5+n2x*0.866025403;
+        r22=n2z*n2z*1.5-0.5;
+        px=tx;
+        py=ty;
+        pz=tz;
+        pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+        tx=px-pd*nx-c1x;
+        ty=py-pd*ny-c1y;
+        tz=pz-pd*nz-c1z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r1*r1){
+        len=r1/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c1x+tx;
+        py=c1y+ty;
+        pz=c1z+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c2x;
+        py=(dy=py)+c2y;
+        pz=(dz=pz)+c2z;
+        pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+        if(pd<=0){
+        tx=px-pd*nx-c1x;
+        ty=py-pd*ny-c1y;
+        tz=pz-pd*nz-c1z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r1*r1){
+        len=r1/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c1x+tx;
+        py=c1y+ty;
+        pz=c1z+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+        }
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c2x;
+        py=(dy=py)+c2y;
+        pz=(dz=pz)+c2z;
+        pd=nx*(px-c1x)+ny*(py-c1y)+nz*(pz-c1z);
+        if(pd<=0){
+        tx=px-pd*nx-c1x;
+        ty=py-pd*ny-c1y;
+        tz=pz-pd*nz-c1z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r1*r1){
+        len=r1/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c1x+tx;
+        py=c1y+ty;
+        pz=c1z+tz;
+        manifold.addPoint(px,py,pz,nx,ny,nz,pd,false);
+        }
+        }else{
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        depth1=nx*(sx-c1x)+ny*(sy-c1y)+nz*(sz-c1z);
+        sx-=depth1*nx;
+        sy-=depth1*ny;
+        sz-=depth1*nz;
+        if(dot>0){
+        ex=tx+n2x*h2*2;
+        ey=ty+n2y*h2*2;
+        ez=tz+n2z*h2*2;
+        }else{
+        ex=tx-n2x*h2*2;
+        ey=ty-n2y*h2*2;
+        ez=tz-n2z*h2*2;
+        }
+        depth2=nx*(ex-c1x)+ny*(ey-c1y)+nz*(ez-c1z);
+        ex-=depth2*nx;
+        ey-=depth2*ny;
+        ez-=depth2*nz;
+        dx=c1x-sx;
+        dy=c1y-sy;
+        dz=c1z-sz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        a=dx*dx+dy*dy+dz*dz;
+        b=dx*tx+dy*ty+dz*tz;
+        e=tx*tx+ty*ty+tz*tz;
+        f=b*b-e*(a-r1*r1);
+        if(f<0)break;
+        f=_Math.sqrt(f);
+        t1=(b+f)/e;
+        t2=(b-f)/e;
+        if(t2<t1){
+        len=t1;
+        t1=t2;
+        t2=len;
+        }
+        if(t2>1)t2=1;
+        if(t1<0)t1=0;
+        tx=sx+(ex-sx)*t1;
+        ty=sy+(ey-sy)*t1;
+        tz=sz+(ez-sz)*t1;
+        ex=sx+(ex-sx)*t2;
+        ey=sy+(ey-sy)*t2;
+        ez=sz+(ez-sz)*t2;
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        len=depth1+(depth2-depth1)*t1;
+        depth2=depth1+(depth2-depth1)*t2;
+        depth1=len;
+        if(depth1<0) manifold.addPoint(sx,sy,sz,nx,ny,nz,pd,false);
+        if(depth2<0) manifold.addPoint(ex,ey,ez,nx,ny,nz,pd,false);
+        
+        }
+        break;
+        case 2:
+        if(right2){
+        c2x=p2x-d2x;
+        c2y=p2y-d2y;
+        c2z=p2z-d2z;
+        nx=-n2x;
+        ny=-n2y;
+        nz=-n2z;
+        }else{
+        c2x=p2x+d2x;
+        c2y=p2y+d2y;
+        c2z=p2z+d2z;
+        nx=n2x;
+        ny=n2y;
+        nz=n2z;
+        }
+        dot=nx*n1x+ny*n1y+nz*n1z;
+        if(dot<0)len=h1;
+        else len=-h1;
+        c1x=p1x+len*n1x;
+        c1y=p1y+len*n1y;
+        c1z=p1z+len*n1z;
+        if(dot1>=0.999999){
+        tx=-ny;
+        ty=nz;
+        tz=nx;
+        }else{
+        tx=nx;
+        ty=ny;
+        tz=nz;
+        }
+        len=tx*n1x+ty*n1y+tz*n1z;
+        dx=len*n1x-tx;
+        dy=len*n1y-ty;
+        dz=len*n1z-tz;
+        len=_Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(len==0)break;
+        len=r1/len;
+        dx*=len;
+        dy*=len;
+        dz*=len;
+        tx=c1x+dx;
+        ty=c1y+dy;
+        tz=c1z+dz;
+        if(dot<-0.96||dot>0.96){
+        r00=n1x*n1x*1.5-0.5;
+        r01=n1x*n1y*1.5-n1z*0.866025403;
+        r02=n1x*n1z*1.5+n1y*0.866025403;
+        r10=n1y*n1x*1.5+n1z*0.866025403;
+        r11=n1y*n1y*1.5-0.5;
+        r12=n1y*n1z*1.5-n1x*0.866025403;
+        r20=n1z*n1x*1.5-n1y*0.866025403;
+        r21=n1z*n1y*1.5+n1x*0.866025403;
+        r22=n1z*n1z*1.5-0.5;
+        px=tx;
+        py=ty;
+        pz=tz;
+        pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+        tx=px-pd*nx-c2x;
+        ty=py-pd*ny-c2y;
+        tz=pz-pd*nz-c2z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r2*r2){
+        len=r2/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c2x+tx;
+        py=c2y+ty;
+        pz=c2z+tz;
+        manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c1x;
+        py=(dy=py)+c1y;
+        pz=(dz=pz)+c1z;
+        pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+        if(pd<=0){
+        tx=px-pd*nx-c2x;
+        ty=py-pd*ny-c2y;
+        tz=pz-pd*nz-c2z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r2*r2){
+        len=r2/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c2x+tx;
+        py=c2y+ty;
+        pz=c2z+tz;
+        manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+        }
+        px=dx*r00+dy*r01+dz*r02;
+        py=dx*r10+dy*r11+dz*r12;
+        pz=dx*r20+dy*r21+dz*r22;
+        px=(dx=px)+c1x;
+        py=(dy=py)+c1y;
+        pz=(dz=pz)+c1z;
+        pd=nx*(px-c2x)+ny*(py-c2y)+nz*(pz-c2z);
+        if(pd<=0){
+        tx=px-pd*nx-c2x;
+        ty=py-pd*ny-c2y;
+        tz=pz-pd*nz-c2z;
+        len=tx*tx+ty*ty+tz*tz;
+        if(len>r2*r2){
+        len=r2/_Math.sqrt(len);
+        tx*=len;
+        ty*=len;
+        tz*=len;
+        }
+        px=c2x+tx;
+        py=c2y+ty;
+        pz=c2z+tz;
+        manifold.addPoint(px,py,pz,-nx,-ny,-nz,pd,false);
+        }
+        }else{
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        depth1=nx*(sx-c2x)+ny*(sy-c2y)+nz*(sz-c2z);
+        sx-=depth1*nx;
+        sy-=depth1*ny;
+        sz-=depth1*nz;
+        if(dot>0){
+        ex=tx+n1x*h1*2;
+        ey=ty+n1y*h1*2;
+        ez=tz+n1z*h1*2;
+        }else{
+        ex=tx-n1x*h1*2;
+        ey=ty-n1y*h1*2;
+        ez=tz-n1z*h1*2;
+        }
+        depth2=nx*(ex-c2x)+ny*(ey-c2y)+nz*(ez-c2z);
+        ex-=depth2*nx;
+        ey-=depth2*ny;
+        ez-=depth2*nz;
+        dx=c2x-sx;
+        dy=c2y-sy;
+        dz=c2z-sz;
+        tx=ex-sx;
+        ty=ey-sy;
+        tz=ez-sz;
+        a=dx*dx+dy*dy+dz*dz;
+        b=dx*tx+dy*ty+dz*tz;
+        e=tx*tx+ty*ty+tz*tz;
+        f=b*b-e*(a-r2*r2);
+        if(f<0)break;
+        f=_Math.sqrt(f);
+        t1=(b+f)/e;
+        t2=(b-f)/e;
+        if(t2<t1){
+        len=t1;
+        t1=t2;
+        t2=len;
+        }
+        if(t2>1)t2=1;
+        if(t1<0)t1=0;
+        tx=sx+(ex-sx)*t1;
+        ty=sy+(ey-sy)*t1;
+        tz=sz+(ez-sz)*t1;
+        ex=sx+(ex-sx)*t2;
+        ey=sy+(ey-sy)*t2;
+        ez=sz+(ez-sz)*t2;
+        sx=tx;
+        sy=ty;
+        sz=tz;
+        len=depth1+(depth2-depth1)*t1;
+        depth2=depth1+(depth2-depth1)*t2;
+        depth1=len;
+        if(depth1<0){
+        manifold.addPoint(sx,sy,sz,-nx,-ny,-nz,depth1,false);
+        }
+        if(depth2<0){
+        manifold.addPoint(ex,ey,ez,-nx,-ny,-nz,depth2,false);
+        }
+        }
+        break;
         }
 
     }
@@ -10346,23 +10814,11 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
 /**
  * A collision detector which detects collisions between sphere and box.
  * @author saharan
- * @author lo-th
  */
-
 function SphereBoxCollisionDetector ( flip ) {
     
     CollisionDetector.call( this );
     this.flip = flip;
-
-    this.n = new Vec3();
-    this.p = new Vec3();
-
-    this.dix = new Vec3();
-    this.diy = new Vec3();
-    this.diz = new Vec3();
-
-    this.cc = new Vec3();
-    this.cc2 = new Vec3();
 
 }
 
@@ -10372,121 +10828,158 @@ SphereBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDe
 
     detectCollision: function ( shape1, shape2, manifold ) {
 
-        var s = this.flip ? shape2 : shape1;
-        var b = this.flip ? shape1 : shape2;
-
-        var n = this.n;
-        var p = this.p;
-        var cc = this.cc;
-        var cc2 = this.cc2;
+        var s;
+        var b;
+        if(this.flip){
+            s=(shape2);
+            b=(shape1);
+        }else{
+            s=(shape1);
+            b=(shape2);
+        }
 
         var D = b.dimentions;
-        var hw = b.halfWidth;
-        var hh = b.halfHeight;
-        var hd = b.halfDepth;
-        var rad = s.radius;
+
+        var ps=s.position;
+        var psx=ps.x;
+        var psy=ps.y;
+        var psz=ps.z;
+        var pb=b.position;
+        var pbx=pb.x;
+        var pby=pb.y;
+        var pbz=pb.z;
+        var rad=s.radius;
+
+        var hw=b.halfWidth;
+        var hh=b.halfHeight;
+        var hd=b.halfDepth;
+
+        var dx=psx-pbx;
+        var dy=psy-pby;
+        var dz=psz-pbz;
+        var sx=D[0]*dx+D[1]*dy+D[2]*dz;
+        var sy=D[3]*dx+D[4]*dy+D[5]*dz;
+        var sz=D[6]*dx+D[7]*dy+D[8]*dz;
+        var cx;
+        var cy;
+        var cz;
         var len;
-        var overlap = 0;
-
-        this.dix.set( D[0], D[1], D[2] );
-        this.diy.set( D[3], D[4], D[5] );
-        this.diz.set( D[6], D[7], D[8] );
-
-        n.sub( s.position, b.position );
-        
-        cc.set(
-            _Math.dotVectors( this.dix, n ),
-            _Math.dotVectors( this.diy, n ),
-            _Math.dotVectors( this.diz, n )
-        );        
-
-        if( cc.x > hw ) cc.x = hw;
-        else if( cc.x < -hw ) cc.x = -hw;
-        else overlap = 1;
-        
-        if( cc.y > hh ) cc.y = hh;
-        else if( cc.y < -hh ) cc.y = -hh;
-        else overlap |= 2;
-        
-        if( cc.z > hd ) cc.z = hd;
-        else if( cc.z < -hd ) cc.z = -hd;
-        else overlap |= 4;
-        
-        if( overlap === 7 ){
-
+        var invLen;
+        var overlap=0;
+        if(sx>hw){
+            sx=hw;
+        }else if(sx<-hw){
+            sx=-hw;
+        }else{
+            overlap=1;
+        }
+        if(sy>hh){
+            sy=hh;
+        }else if(sy<-hh){
+            sy=-hh;
+        }else{
+            overlap|=2;
+        }
+        if(sz>hd){
+            sz=hd;
+        }else if(sz<-hd){
+            sz=-hd;
+        }else{
+            overlap|=4;
+        }
+        if(overlap==7){
             // center of sphere is in the box
-            
-            n.set(
-                cc.x < 0 ? hw + cc.x : hw - cc.x,
-                cc.y < 0 ? hh + cc.y : hh - cc.y,
-                cc.z < 0 ? hd + cc.z : hd - cc.z
-            );
-            
-            if( n.x < n.y ){
-                if( n.x < n.z ){
-                    len = n.x - hw;
-                    if( cc.x < 0 ){
-                        cc.x = -hw;
-                        n.copy( this.dix );
-                    }else{
-                        cc.x = hw;
-                        n.subEqual( this.dix );
-                    }
+            if(sx<0){
+                dx=hw+sx;
+            }else{
+                dx=hw-sx;
+            }
+            if(sy<0){
+                dy=hh+sy;
+            }else{
+                dy=hh-sy;
+            }
+            if(sz<0){
+                dz=hd+sz;
+            }else{
+                dz=hd-sz;
+            }
+            if(dx<dy){
+                if(dx<dz){
+                    len=dx-hw;
+                if(sx<0){
+                    sx=-hw;
+                    dx=D[0];
+                    dy=D[1];
+                    dz=D[2];
                 }else{
-                    len = n.z - hd;
-                    if( cc.z < 0 ){
-                        cc.z = -hd;
-                        n.copy( this.diz );
-                    }else{
-                        cc.z = hd;
-                        n.subEqual( this.diz );
-                    }
+                    sx=hw;
+                    dx=-D[0];
+                    dy=-D[1];
+                    dz=-D[2];
                 }
             }else{
-                if( n.y < n.z ){
-                    len = n.y - hh;
-                    if( cc.y < 0 ){
-                        cc.y = -hh;
-                        n.copy( this.diy );
-                    }else{
-                        cc.y = hh;
-                        n.subEqual( this.diy );
-                    }
+                len=dz-hd;
+                if(sz<0){
+                    sz=-hd;
+                    dx=D[6];
+                    dy=D[7];
+                    dz=D[8];
                 }else{
-                    len = n.z - hd;
-                    if( cc.z < 0 ){
-                        cc.z = -hd;
-                        n.copy( this.diz );
-                    }else{
-                        cc.z = hd;
-                        n.subEqual( this.diz );
-                    }
+                    sz=hd;
+                    dx=-D[6];
+                    dy=-D[7];
+                    dz=-D[8];
                 }
             }
-
-            p.copy( s.position ).addScaledVector( n, rad );
-            manifold.addPointVec( p, n, len-rad, this.flip );
-
+            }else{
+                if(dy<dz){
+                    len=dy-hh;
+                    if(sy<0){
+                        sy=-hh;
+                        dx=D[3];
+                        dy=D[4];
+                        dz=D[5];
+                    }else{
+                        sy=hh;
+                        dx=-D[3];
+                        dy=-D[4];
+                        dz=-D[5];
+                    }
+                }else{
+                    len=dz-hd;
+                    if(sz<0){
+                        sz=-hd;
+                        dx=D[6];
+                        dy=D[7];
+                        dz=D[8];
+                    }else{
+                        sz=hd;
+                        dx=-D[6];
+                        dy=-D[7];
+                        dz=-D[8];
+                }
+            }
+        }
+        cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+        cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+        cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
+        manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
         }else{
-
-            cc2.set( 
-                cc.x*D[0]+cc.y*D[3]+cc.z*D[6],
-                cc.x*D[1]+cc.y*D[4]+cc.z*D[7],
-                cc.x*D[2]+cc.y*D[5]+cc.z*D[8]
-            ).addEqual( b.position );
-
-            n.sub( cc2, s.position );
-
-            len = n.lengthSq();
-
-            if( len > 0 && len < rad * rad ){
-
-                len = _Math.sqrt( len );
-                n.scaleEqual( 1/len );
-
-                p.copy( s.position ).addScaledVector( n, rad );
-                manifold.addPointVec( p, n, len-rad, this.flip );
-
+            cx=pbx+sx*D[0]+sy*D[3]+sz*D[6];
+            cy=pby+sx*D[1]+sy*D[4]+sz*D[7];
+            cz=pbz+sx*D[2]+sy*D[5]+sz*D[8];
+            dx=cx-ps.x;
+            dy=cy-ps.y;
+            dz=cz-ps.z;
+            len=dx*dx+dy*dy+dz*dz;
+            if(len>0&&len<rad*rad){
+                len=_Math.sqrt(len);
+                invLen=1/len;
+                dx*=invLen;
+                dy*=invLen;
+                dz*=invLen;
+                manifold.addPoint(psx+rad*dx,psy+rad*dy,psz+rad*dz,dx,dy,dz,len-rad,this.flip);
             }
         }
 
@@ -10499,12 +10992,6 @@ function SphereCylinderCollisionDetector ( flip ){
     CollisionDetector.call( this );
     this.flip = flip;
 
-    this.n = new Vec3();
-    this.p = new Vec3();
-
-    this.n2 = new Vec3();
-    this.cc = new Vec3();
-
 }
 
 SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( CollisionDetector.prototype ), {
@@ -10512,72 +10999,83 @@ SphereCylinderCollisionDetector.prototype = Object.assign( Object.create( Collis
     constructor: SphereCylinderCollisionDetector,
 
     detectCollision: function ( shape1, shape2, manifold ) {
-
-        var s = this.flip ? shape2 : shape1;
-        var c = this.flip ? shape1 : shape2;
-
-        var n = this.n;
-        var p = this.p;
-        var n2 = this.n2;
-        var cc = this.cc;
-
+        
+        var s;
+        var c;
+        if( this.flip ){
+            s = shape2;
+            c = shape1;
+        }else{
+            s = shape1;
+            c = shape2;
+        }
+        var ps = s.position;
+        var psx = ps.x;
+        var psy = ps.y;
+        var psz = ps.z;
+        var pc = c.position;
+        var pcx = pc.x;
+        var pcy = pc.y;
+        var pcz = pc.z;
+        var dirx = c.normalDirection.x;
+        var diry = c.normalDirection.y;
+        var dirz = c.normalDirection.z;
         var rads = s.radius;
         var radc = c.radius;
         var rad2 = rads + radc;
         var halfh = c.halfHeight;
-        var len;
-
-        n.sub( s.position, c.position );
-        var dot = _Math.dotVectors( n, c.normalDirection );
-
+        var dx = psx - pcx;
+        var dy = psy - pcy;
+        var dz = psz - pcz;
+        var dot = dx * dirx + dy * diry + dz * dirz;
         if ( dot < -halfh - rads || dot > halfh + rads ) return;
-
-        cc.copy( c.position ).addScaledVector( c.normalDirection, dot );
-        n2.sub( s.position, cc );
-        len = n2.lengthSq();
-
+        var cx = pcx + dot * dirx;
+        var cy = pcy + dot * diry;
+        var cz = pcz + dot * dirz;
+        var d2x = psx - cx;
+        var d2y = psy - cy;
+        var d2z = psz - cz;
+        var len = d2x * d2x + d2y * d2y + d2z * d2z;
         if ( len > rad2 * rad2 ) return;
-
         if ( len > radc * radc ) {
             len = radc / _Math.sqrt( len );
-            n2.scaleEqual( len );
+            d2x *= len;
+            d2y *= len;
+            d2z *= len;
         }
-
         if( dot < -halfh ) dot = -halfh;
         else if( dot > halfh ) dot = halfh;
-
-        //cc.addEqual( n2 );
-        cc.copy( c.position ).addScaledVector( c.normalDirection, dot ).addEqual( n2 );
-        n.sub( cc, s.position );
-        len = n.lengthSq();
-
+        cx = pcx + dot * dirx + d2x;
+        cy = pcy + dot * diry + d2y;
+        cz = pcz + dot * dirz + d2z;
+        dx = cx - psx;
+        dy = cy - psy;
+        dz = cz - psz;
+        len = dx * dx + dy * dy + dz * dz;
+        var invLen;
         if ( len > 0 && len < rads * rads ) {
-
-            len = _Math.sqrt( len );
-            n.scaleEqual( 1/len );
-
-            //n.normalize();
-            p.copy( s.position ).addScaledVector( n, rads );
-            manifold.addPointVec( p, n, len - rads, this.flip );
-
+            len = _Math.sqrt(len);
+            invLen = 1 / len;
+            dx *= invLen;
+            dy *= invLen;
+            dz *= invLen;
+            ///result.addContactInfo(psx+dx*rads,psy+dy*rads,psz+dz*rads,dx,dy,dz,len-rads,s,c,0,0,false);
+            manifold.addPoint( psx + dx * rads, psy + dy * rads, psz + dz * rads, dx, dy, dz, len - rads, this.flip );
         }
 
     }
+
 
 });
 
 /**
  * A collision detector which detects collisions between two spheres.
- * @author saharan 
- * @author lo-th
+ * @author saharan
  */
  
 function SphereSphereCollisionDetector (){
 
     CollisionDetector.call( this );
-
-    this.n = new Vec3();
-    this.p = new Vec3();
 
 }
 
@@ -10587,25 +11085,24 @@ SphereSphereCollisionDetector.prototype = Object.assign( Object.create( Collisio
 
     detectCollision: function ( shape1, shape2, manifold ) {
 
-        var n = this.n;
-        var p = this.p;
-
         var s1 = shape1;
         var s2 = shape2;
-
-        n.sub( s2.position, s1.position );
-        var rad = s1.radius + s2.radius;
-        var len = n.lengthSq();
-        
-        if( len > 0 && len < rad * rad ){
-
+        var p1 = s1.position;
+        var p2 = s2.position;
+        var dx = p2.x - p1.x;
+        var dy = p2.y - p1.y;
+        var dz = p2.z - p1.z;
+        var len = dx * dx + dy * dy + dz * dz;
+        var r1 = s1.radius;
+        var r2 = s2.radius;
+        var rad = r1 + r2;
+        if ( len > 0 && len < rad * rad ){
             len = _Math.sqrt( len );
-            n.scaleEqual( 1/len );
-
-            //n.normalize();
-            p.copy( s1.position ).addScaledVector( n, s1.radius );
-            manifold.addPointVec( p, n, len - rad, false );
-
+            var invLen = 1 / len;
+            dx *= invLen;
+            dy *= invLen;
+            dz *= invLen;
+            manifold.addPoint( p1.x + dx * r1, p1.y + dy * r1, p1.z + dz * r1, dx, dy, dz, len - rad, false );
         }
 
     }
@@ -10809,13 +11306,12 @@ BoxPlaneCollisionDetector.prototype = Object.assign( Object.create( CollisionDet
 
 });
 
-//import { TetraTetraCollisionDetector } from '../collision/narrowphase/TetraTetraCollisionDetector';
-
 //import { TetraShape } from '../collision/shape/TetraShape';
 
 /**
- * The class of physical computing world. 
+ * The class of physical computing world.
  * You must be added to the world physical all computing objects
+ *
  * @author saharan
  * @author lo-th
  */
@@ -10835,6 +11331,9 @@ function World ( o ) {
     this.timerate = this.timeStep * 1000;
     this.timer = null;
 
+    this.preLoop = null;//function(){};
+    this.postLoop = null;//function(){};
+
     // The number of iterations for constraint solvers.
     this.numIterations = o.iterations || 8;
 
@@ -10845,57 +11344,55 @@ function World ( o ) {
         case 3: this.broadPhase = new DBVTBroadPhase(); break;
     }
 
-    this.Btypes = ['None','BruteForce X','Sweep & Prune X', 'Bounding Volume Tree X' ];
+    this.Btypes = ['None','BruteForce','Sweep & Prune', 'Bounding Volume Tree' ];
     this.broadPhaseType = this.Btypes[ o.broadphase || 2 ];
 
-    // This is the detailed information of the performance. 
+    // This is the detailed information of the performance.
     this.performance = null;
     this.isStat = o.info === undefined ? false : o.info;
     if( this.isStat ) this.performance = new InfoDisplay( this );
 
-    // Whether the constraints randomizer is enabled or not.
+    /**
+     * Whether the constraints randomizer is enabled or not.
+     *
+     * @property enableRandomizer
+     * @type {Boolean}
+     */
     this.enableRandomizer = o.random !== undefined ? o.random : true;
 
-    
-
-
     // The rigid body list
-    this.rigidBodies = [];
+    this.rigidBodies=null;
     // number of rigid body
-    this.numRigidBodies = 0;
-
+    this.numRigidBodies=0;
     // The contact list
-    this.contacts = [];
+    this.contacts=null;
+    this.unusedContacts=null;
     // The number of contact
-    this.numContacts = 0;
-
-    
-    //  The joint list
-    this.joints = [];
-    // The number of joints.
-    this.numJoints = 0;
-
+    this.numContacts=0;
     // The number of contact points
-    this.numContactPoints = 0;
+    this.numContactPoints=0;
+    //  The joint list
+    this.joints=null;
+    // The number of joints.
+    this.numJoints=0;
     // The number of simulation islands.
-    this.numIslands = 0;
-    
-   
+    this.numIslands=0;
+
+
     // The gravity in the world.
-    this.gravity = new Vec3(0,-9.81,0);
+    this.gravity = new Vec3(0,-9.8,0);
     if( o.gravity !== undefined ) this.gravity.fromArray( o.gravity );
 
-    
 
-    var numShapeTypes = 6;//4;//3;
-    this.detectors = [];
-    //this.detectors.length = numShapeTypes;
+
+    var numShapeTypes = 5;//4;//3;
+    this.detectors=[];
+    this.detectors.length = numShapeTypes;
     var i = numShapeTypes;
     while(i--){
         this.detectors[i]=[];
-        //this.detectors[i].length = numShapeTypes;
+        this.detectors[i].length = numShapeTypes;
     }
-
 
     this.detectors[SHAPE_SPHERE][SHAPE_SPHERE] = new SphereSphereCollisionDetector();
     this.detectors[SHAPE_SPHERE][SHAPE_BOX] = new SphereBoxCollisionDetector(false);
@@ -10922,7 +11419,7 @@ function World ( o ) {
     // TETRA add
     //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
 
- 
+
     this.randX = 65535;
     this.randA = 98765;
     this.randB = 123456789;
@@ -10930,9 +11427,6 @@ function World ( o ) {
     this.islandRigidBodies = [];
     this.islandStack = [];
     this.islandConstraints = [];
-
-    this.preLoop = null;//function(){};
-    this.postLoop = null;//function(){};
 
 }
 
@@ -10959,16 +11453,19 @@ Object.assign( World.prototype, {
 
     },
 
-    //
+    setGravity: function ( ar ) {
 
-    getInfo: function(){
+        this.gravity.fromArray( ar );
+
+    },
+
+    getInfo: function () {
 
         return this.isStat ? this.performance.show() : '';
 
     },
 
-    // Reset world and any object from the world.
-	
+    // Reset the world and remove all rigid bodies, shapes, joints and any object from the world.
     clear:function(){
 
         this.stop();
@@ -10977,227 +11474,221 @@ Object.assign( World.prototype, {
 
         this.randX = 65535;
 
-        while( this.joints.length > 0 ) this.removeJoint( this.joints.pop(), true );
-        while( this.contacts.length > 0 ) this.removeContact( this.contacts.pop(), true );
-        while( this.rigidBodies.length > 0 ) this.removeRigidBody( this.rigidBodies.pop(), true );
-
-        this.numRigidBodies = 0;
-        this.numContacts = 0;
-        this.numJoints = 0;
-
-    },
-
-    patchId: function ( ar ) {
-
-        var i = ar.length;
-        while( i-- ) ar[i].setId( i );
-        
-    },
-
-    // --- RIGIDBODY
-
-    addRigidBody:function( rigidBody ){
-
-        if( rigidBody.parent ) printError("World", "It is not possible to be added to more than one world one of the rigid body");
-        
-
-        rigidBody.setParent( this );
-
-        var i = rigidBody.shapes.length;
-
-        while(i--){
-
-            this.addShape( rigidBody.shapes[i] );
-
+        while(this.joints!==null){
+            this.removeJoint( this.joints );
+        }
+        while(this.contacts!==null){
+            this.removeContact( this.contacts );
+        }
+        while(this.rigidBodies!==null){
+            this.removeRigidBody( this.rigidBodies );
         }
 
-        this.rigidBodies.push( rigidBody );
+    },
+    /**
+    * I'll add a rigid body to the world.
+    * Rigid body that has been added will be the operands of each step.
+    * @param  rigidBody  Rigid body that you want to add
+    */
+    addRigidBody:function( rigidBody ){
+
+        if(rigidBody.parent){
+            printError("World", "It is not possible to be added to more than one world one of the rigid body");
+        }
+
+        rigidBody.setParent( this );
+        //rigidBody.awake();
+
+        for(var shape = rigidBody.shapes; shape !== null; shape = shape.next){
+            this.addShape( shape );
+        }
+        if(this.rigidBodies!==null)(this.rigidBodies.prev=rigidBody).next=this.rigidBodies;
+        this.rigidBodies = rigidBody;
         this.numRigidBodies++;
 
     },
+    /**
+    * I will remove the rigid body from the world.
+    * Rigid body that has been deleted is excluded from the calculation on a step-by-step basis.
+    * @param  rigidBody  Rigid body to be removed
+    */
+    removeRigidBody:function( rigidBody ){
 
-    removeRigidBody: function ( body, all ) {
-
-        if( body.parent !== this ) return;
-
-        var i;
-
-        body.awake();
-
-        i = body.jointLink.length;
-        while( i-- ){
-	        this.removeJoint( body.jointLink[i] );
+        var remove=rigidBody;
+        if(remove.parent!==this)return;
+        remove.awake();
+        var js=remove.jointLink;
+        while(js!=null){
+	        var joint=js.joint;
+	        js=js.next;
+	        this.removeJoint(joint);
         }
-
-        i = body.shapes.length;
-        while( i-- ){
-            this.removeShape( body.shapes[i] );
+        for(var shape=rigidBody.shapes; shape!==null; shape=shape.next){
+            this.removeShape(shape);
         }
-
-        body.parent = null;
-
-        if( !all ){ 
-            this.rigidBodies.splice( body.id, 1 );
-            this.patchId( this.rigidBodies );
-            this.numRigidBodies--;
-        }
+        var prev=remove.prev;
+        var next=remove.next;
+        if(prev!==null) prev.next=next;
+        if(next!==null) next.prev=prev;
+        if(this.rigidBodies==remove) this.rigidBodies=next;
+        remove.prev=null;
+        remove.next=null;
+        remove.parent=null;
+        this.numRigidBodies--;
 
     },
 
     getByName: function( name ){
 
-        var i, body, joint;
-
-        i = this.rigidBodies.length;
-        while(i--){
-            body = this.rigidBodies[i];
+        var body = this.rigidBodies;
+        while( body !== null ){
             if( body.name === name ) return body;
+            body=body.next;
         }
 
-        i = this.joints.length;
-        while(i--){
-            joint = this.joints[i];
+        var joint = this.joints;
+        while( joint !== null ){
             if( joint.name === name ) return joint;
+            joint = joint.next;
         }
 
         return null;
 
     },
 
-    // --- SHAPE
-
-    // add a shape to the world..
-    // Add to the rigid world, and if you add a shape to a rigid body that has been added to the world, 
-    // Shape will be added to the world automatically, please do not call from outside this method.
- 
+    /**
+    * I'll add a shape to the world..
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world,
+    * Shape will be added to the world automatically, please do not call from outside this method.
+    * @param  shape  Shape you want to add
+    */
     addShape:function ( shape ){
 
         if(!shape.parent || !shape.parent.parent){
             printError("World", "It is not possible to be added alone to shape world");
         }
 
-        shape.proxy = this.broadPhase.createProxy( shape );
+        shape.proxy = this.broadPhase.createProxy(shape);
         shape.updateProxy();
-        this.broadPhase.addProxy( shape.proxy );
+        this.broadPhase.addProxy(shape.proxy);
 
     },
 
-    // remove the shape from the world.
-    // please do not call from outside this method.
-  
+    /**
+    * I will remove the shape from the world.
+    * Add to the rigid world, and if you add a shape to a rigid body that has been added to the world,
+    * Shape will be added to the world automatically, please do not call from outside this method.
+    * @param  shape  Shape you want to delete
+    */
     removeShape: function ( shape ){
 
-        this.broadPhase.removeProxy( shape.proxy );
+        this.broadPhase.removeProxy(shape.proxy);
         shape.proxy = null;
 
     },
 
-    // --- JOINT
-
+    /**
+    * I'll add a joint to the world.
+    * Joint that has been added will be the operands of each step.
+    * @param  shape Joint to be added
+    */
     addJoint: function ( joint ) {
 
-        if( joint.parent ) printError("World", "It is not possible to be added to more than one world one of the joint");
-        
-        joint.setParent( this );
-
-        joint.awake();
-        joint.attach( true );
-
-        this.joints.push( joint );
-        this.numJoints++;
-
-    },
-
-    // remove the joint from the world. 
-
-    removeJoint: function ( joint, all ) {
-
-        if( joint.parent !== this ) return;
-
-        joint.awake();
-        joint.detach( true );
-        joint.parent = null;
-
-        if( !all ){
-            this.joints.splice( joint.id, 1 );
-            this.patchId( this.joints );
-            this.numJoints--;
+        if(joint.parent){
+            printError("World", "It is not possible to be added to more than one world one of the joint");
         }
+        if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
+        this.joints=joint;
+        joint.setParent( this );
+        this.numJoints++;
+        joint.awake();
+        joint.attach();
 
     },
 
-    // --- CONTACT
+    /**
+    * I will remove the joint from the world.
+    * Joint that has been added will be the operands of each step.
+    * @param  shape Joint to be deleted
+    */
+    removeJoint: function ( joint ) {
+
+        var remove=joint;
+        var prev=remove.prev;
+        var next=remove.next;
+        if(prev!==null)prev.next=next;
+        if(next!==null)next.prev=prev;
+        if(this.joints==remove)this.joints=next;
+        remove.prev=null;
+        remove.next=null;
+        this.numJoints--;
+        remove.awake();
+        remove.detach();
+        remove.parent=null;
+
+    },
 
     addContact: function ( s1, s2 ) {
 
-        /*var newContact;
+        var newContact;
         if(this.unusedContacts!==null){
             newContact=this.unusedContacts;
             this.unusedContacts=this.unusedContacts.next;
         }else{
             newContact = new Contact();
-        }*/
-        var newContact = new Contact();
-        newContact.attach( s1, s2 );
+        }
+        newContact.attach(s1,s2);
         newContact.detector = this.detectors[s1.type][s2.type];
-        //if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
-        //this.contacts = newContact;
-        this.contacts.push( newContact );
-
-        this.numContacts++;// = this.contacts.length;
-
-        
+        if(this.contacts)(this.contacts.prev = newContact).next = this.contacts;
+        this.contacts = newContact;
+        this.numContacts++;
 
     },
 
-    removeContact: function ( contact, all ) {
+    removeContact: function ( contact ) {
 
-        if( all === undefined ) this.contacts.splice( this.contacts.indexOf( contact ), 1 );
-
+        var prev = contact.prev;
+        var next = contact.next;
+        if(next) next.prev = prev;
+        if(prev) prev.next = next;
+        if(this.contacts == contact) this.contacts = next;
+        contact.prev = null;
+        contact.next = null;
         contact.detach();
-        this.numContacts--;// = this.contacts.length;
+        contact.next = this.unusedContacts;
+        this.unusedContacts = contact;
+        this.numContacts--;
 
     },
 
     getContact: function ( b1, b2 ) {
 
-        var n1, n2, i;
-        var contact, ct = null;
         b1 = b1.constructor === RigidBody ? b1.name : b1;
         b2 = b2.constructor === RigidBody ? b2.name : b2;
-      
-        i = this.contacts.length;
-        while(i--){
-            contact = this.contacts[i];
+
+        var n1, n2;
+        var contact = this.contacts;
+        while(contact!==null){
             n1 = contact.body1.name;
             n2 = contact.body2.name;
-            if(( n1 === b1 && n2 === b2 ) || ( n2 === b1 && n1 === b2 )){
-                if( contact.touching ){ 
-                    ct = contact;
-                    break;
-                }
-            }
+            if((n1===b1 && n2===b2) || (n2===b1 && n1===b2)){ if(contact.touching) return contact; else return null;}
+            else contact = contact.next;
         }
-
-        return ct;
+        return null;
 
     },
 
     checkContact: function ( name1, name2 ) {
 
-        var n1, n2, contact, ct = false;
-        var i = this.contacts.length;
-        while(i--){
-            contact = this.contacts[i];
-            n1 = contact.body1.name;
-            n2 = contact.body2.name;
-            if(( n1 === name1 && n2 === name2 ) || ( n2 === name1 && n1 === name2 )){
-                ct = contact.touching;
-                break;
-            }
+        var n1, n2;
+        var contact = this.contacts;
+        while(contact!==null){
+            n1 = contact.body1.name || ' ';
+            n2 = contact.body2.name || ' ';
+            if((n1==name1 && n2==name2) || (n2==name1 && n1==name2)){ if(contact.touching) return true; else return false;}
+            else contact = contact.next;
         }
-
-        return ct;
+        //return false;
 
     },
 
@@ -11210,117 +11701,122 @@ Object.assign( World.prototype, {
 
     },
 
-
-    // --- WORLD STEP
-    //  I will proceed only time step seconds time of World.
-
+    /**
+    * I will proceed only time step seconds time of World.
+    */
     step: function () {
-
-        if( this.preLoop !== null ) this.preLoop();
 
         var stat = this.isStat;
 
         if( stat ) this.performance.setTime( 0 );
 
-        var body, base, contact, i, j, k, cs, js, next;
+        var body = this.rigidBodies;
 
-        i = this.rigidBodies.length;
+        while( body !== null ){
 
-        while( i-- ){
-
-            body = this.rigidBodies[i]; 
             body.addedToIsland = false;
+
             if( body.sleeping ) body.testWakeUp();
+
+            body = body.next;
 
         }
 
-        // --- UPDATE BROADPHASE CONTACT
-        
+
+
+        //------------------------------------------------------
+        //   UPDATE BROADPHASE CONTACT
+        //------------------------------------------------------
+
         if( stat ) this.performance.setTime( 1 );
 
         this.broadPhase.detectPairs();
 
-        var idtest, pair, s1, s2, link, s1L, s2L, exists, contact, b1, b2;
-
         var pairs = this.broadPhase.pairs;
 
-        i = pairs.length;//this.broadPhase.numPairs;
-
-        while( i-- ){
-
-            pair = pairs[i];
-            idtest = pair.shape1.id < pair.shape2.id ? true : false;
-
-            s1 = idtest ? pair.shape1 : pair.shape2;
-            s2 = idtest ? pair.shape2 : pair.shape1;
-
-            s1L = s1.contactLink.length;
-            s2L = s2.contactLink.length;
-
-            link = s1L < s2L ? s1.contactLink : s2.contactLink;
-
-            exists = false;
-            j = link.length;
-
-            while( j-- ){
-
-                contact = link[j].contact;
-                if( contact.shape1 === s1 && contact.shape2 === s2 ){
-                    // contact already exists
-                    contact.persisting = true;
-                    exists = true; 
-                    break;
-                }
-
+        var i = this.broadPhase.numPairs;
+        //do{
+        while(i--){
+        //for(var i=0, l=numPairs; i<l; i++){
+            var pair = pairs[i];
+            var s1;
+            var s2;
+            if(pair.shape1.id<pair.shape2.id){
+                s1 = pair.shape1;
+                s2 = pair.shape2;
+            }else{
+                s1 = pair.shape2;
+                s2 = pair.shape1;
             }
 
-            if( !exists ) this.addContact( s1, s2 );
-            
-        }
+            var link;
+            if( s1.numContacts < s2.numContacts ) link = s1.contactLink;
+            else link = s2.contactLink;
+
+            var exists = false;
+            while(link){
+                var contact = link.contact;
+                if( contact.shape1 == s1 && contact.shape2 == s2 ){
+                    contact.persisting = true;
+                    exists = true;// contact already exists
+                    break;
+                }
+                link = link.next;
+            }
+            if(!exists){
+                this.addContact( s1, s2 );
+            }
+        }// while(i-- >0);
 
         if( stat ) this.performance.calcBroadPhase();
 
-        // --- UPDATE NARROWPHASE CONTACT
+        //------------------------------------------------------
+        //   UPDATE NARROWPHASE CONTACT
+        //------------------------------------------------------
 
+        // update & narrow phase
         this.numContactPoints = 0;
-
-        i = this.contacts.length;
-
-        while( i-- ){
-
-            contact = this.contacts[i];
-
-            if( !contact.persisting ){
+        contact = this.contacts;
+        while( contact!==null ){
+            if(!contact.persisting){
                 if ( contact.shape1.aabb.intersectTest( contact.shape2.aabb ) ) {
-             
-                    this.removeContact( contact );
+                /*var aabb1=contact.shape1.aabb;
+                var aabb2=contact.shape2.aabb;
+                if(
+	                aabb1.minX>aabb2.maxX || aabb1.maxX<aabb2.minX ||
+	                aabb1.minY>aabb2.maxY || aabb1.maxY<aabb2.minY ||
+	                aabb1.minZ>aabb2.maxZ || aabb1.maxZ<aabb2.minZ
+                ){*/
+                    var next = contact.next;
+                    this.removeContact(contact);
+                    contact = next;
                     continue;
-
                 }
             }
-
-            b1 = contact.body1;
-            b2 = contact.body2;
+            var b1 = contact.body1;
+            var b2 = contact.body2;
 
             if( b1.isDynamic && !b1.sleeping || b2.isDynamic && !b2.sleeping ) contact.updateManifold();
-            
+
             this.numContactPoints += contact.manifold.numPoints;
             contact.persisting = false;
             contact.constraint.addedToIsland = false;
+            contact = contact.next;
 
         }
 
         if( stat ) this.performance.calcNarrowPhase();
 
-        // --- SOLVE ISLANDS
+        //------------------------------------------------------
+        //   SOLVE ISLANDS
+        //------------------------------------------------------
 
         var invTimeStep = 1 / this.timeStep;
-        var constraint, islandNumRigidBodies, islandNumConstraints, stackCount, gVel, swap, sleepTime;
+        var joint;
+        var constraint;
 
-        i = this.joints.length;
-
-        while( i-- ){
-            this.joints[i].addedToIsland = false;
+        for( joint = this.joints; joint !== null; joint = joint.next ){
+            joint.addedToIsland = false;
         }
 
 
@@ -11333,19 +11829,18 @@ Object.assign( World.prototype, {
 
         this.numIslands = 0;
 
-        // --- BUILD & SOLVE ISLANDS
+        // build and solve simulation islands
 
-        i = this.rigidBodies.length;
-
-        while( i-- ){
-
-            base = this.rigidBodies[i]; 
+        for( var base = this.rigidBodies; base !== null; base = base.next ){
 
             if( base.addedToIsland || base.isStatic || base.sleeping ) continue;// ignore
-            
+
             if( base.isLonely() ){// update single body
-                if( base.isDynamic && !base.isKinematic ){
+                if( base.isDynamic ){
                     base.linearVelocity.addScaledVector( this.gravity, this.timeStep );
+                    /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
+                    base.linearVelocity.y+=this.gravity.y*this.timeStep;
+                    base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
                 }
                 if( this.callSleep( base ) ) {
                     base.sleepTime += this.timeStep;
@@ -11359,135 +11854,116 @@ Object.assign( World.prototype, {
                 continue;
             }
 
-            islandNumRigidBodies = 0;
-            islandNumConstraints = 0;
-            stackCount = 1;
-
+            var islandNumRigidBodies = 0;
+            var islandNumConstraints = 0;
+            var stackCount = 1;
             // add rigid body to stack
             this.islandStack[0] = base;
             base.addedToIsland = true;
 
             // build an island
-
-            //while( stackCount > 0 ){
             do{
                 // get rigid body from stack
                 body = this.islandStack[--stackCount];
-                this.islandStack[ stackCount ] = null;
+                this.islandStack[stackCount] = null;
                 body.sleeping = false;
-
                 // add rigid body to the island
-                this.islandRigidBodies[ islandNumRigidBodies++ ] = body;
-                if( body.isStatic ) continue;
-                
+                this.islandRigidBodies[islandNumRigidBodies++] = body;
+                if(body.isStatic) continue;
+
                 // search connections
-                j = body.contactLink.length;
-
-                while(j--){
-
-                    cs = body.contactLink[j];
-                    contact = cs.contact;
+                for( var cs = body.contactLink; cs !== null; cs = cs.next ) {
+                    var contact = cs.contact;
                     constraint = contact.constraint;
                     if( constraint.addedToIsland || !contact.touching ) continue;// ignore
-                    
+
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
-                    next = cs.body;
+                    var next = cs.body;
 
-                    if( next.addedToIsland ) continue;
-                    
+                    if(next.addedToIsland) continue;
+
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
-
                 }
-
-                k = body.jointLink.length;
-                while(k--){
-
-                    js = body.jointLink[k];
+                for( var js = body.jointLink; js !== null; js = js.next ) {
                     constraint = js.joint;
 
-                    if( constraint.addedToIsland ) continue;// ignore
-                    
+                    if(constraint.addedToIsland) continue;// ignore
+
                     // add constraint to the island
                     this.islandConstraints[islandNumConstraints++] = constraint;
                     constraint.addedToIsland = true;
                     next = js.body;
-
                     if( next.addedToIsland || !next.isDynamic ) continue;
-                    
+
                     // add rigid body to stack
                     this.islandStack[stackCount++] = next;
                     next.addedToIsland = true;
-
                 }
-
             } while( stackCount != 0 );
 
-
-            // update gravity velocities
-
-            gVel = new Vec3().addScaledVector( this.gravity, this.timeStep );
-
-            j = islandNumRigidBodies;
-
-            while ( j-- ){
-
+            // update velocities
+            var gVel = new Vec3().addScaledVector( this.gravity, this.timeStep );
+            /*var gx=this.gravity.x*this.timeStep;
+            var gy=this.gravity.y*this.timeStep;
+            var gz=this.gravity.z*this.timeStep;*/
+            var j = islandNumRigidBodies;
+            while (j--){
+            //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
-                if( body.isDynamic && !body.isKinematic ) body.linearVelocity.addEqual( gVel );
-                
+                if(body.isDynamic){
+                    body.linearVelocity.addEqual(gVel);
+                    /*body.linearVelocity.x+=gx;
+                    body.linearVelocity.y+=gy;
+                    body.linearVelocity.z+=gz;*/
+                }
             }
 
             // randomizing order
-
-            if( this.enableRandomizer ){
-
+            if(this.enableRandomizer){
+                //for(var j=1, l=islandNumConstraints; j<l; j++){
                 j = islandNumConstraints;
-                while(j--){ 
-
-                    if( j > 0 ){   
-
-                        swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
+                while(j--){ if(j!==0){
+                        var swap = (this.randX=(this.randX*this.randA+this.randB&0x7fffffff))/2147483648.0*j|0;
                         constraint = this.islandConstraints[j];
                         this.islandConstraints[j] = this.islandConstraints[swap];
                         this.islandConstraints[swap] = constraint;
-
                     }
-
                 }
-
             }
 
             // solve contraints
 
             j = islandNumConstraints;
             while(j--){
+            //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].preSolve( this.timeStep, invTimeStep );// pre-solve
             }
-
-            k = this.numIterations;
+            var k = this.numIterations;
             while(k--){
+            //for(var k=0, l=this.numIterations; k<l; k++){
                 j = islandNumConstraints;
                 while(j--){
+                //for(j=0, m=islandNumConstraints; j<m; j++){
                     this.islandConstraints[j].solve();// main-solve
                 }
             }
-
             j = islandNumConstraints;
             while(j--){
+            //for(j=0, l=islandNumConstraints; j<l; j++){
                 this.islandConstraints[j].postSolve();// post-solve
                 this.islandConstraints[j] = null;// gc
             }
 
             // sleeping check
 
-            sleepTime = 10;
+            var sleepTime = 10;
             j = islandNumRigidBodies;
-
             while(j--){
-
+            //for(j=0, l=islandNumRigidBodies;j<l;j++){
                 body = this.islandRigidBodies[j];
                 if( this.callSleep( body ) ){
                     body.sleepTime += this.timeStep;
@@ -11498,35 +11974,29 @@ Object.assign( World.prototype, {
                     continue;
                 }
             }
-
             if(sleepTime > 0.5){
-
                 // sleep the island
                 j = islandNumRigidBodies;
                 while(j--){
-
+                //for(j=0, l=islandNumRigidBodies;j<l;j++){
                     this.islandRigidBodies[j].sleep();
                     this.islandRigidBodies[j] = null;// gc
-
                 }
-
             }else{
-
                 // update positions
                 j = islandNumRigidBodies;
                 while(j--){
-
+                //for(j=0, l=islandNumRigidBodies;j<l;j++){
                     this.islandRigidBodies[j].updatePosition( this.timeStep );
                     this.islandRigidBodies[j] = null;// gc
-
                 }
             }
-
             this.numIslands++;
-
         }
 
-        // --- END SIMULATION
+        //------------------------------------------------------
+        //   END SIMULATION
+        //------------------------------------------------------
 
         if( stat ) this.performance.calcEnd();
 
@@ -11534,12 +12004,16 @@ Object.assign( World.prototype, {
 
     },
 
-    /**
-    * add someting to world
-    */
+    // remove someting to world
 
+    remove: function( obj ){
+
+    },
+
+    // add someting to world
+    
     add: function( o ){
-        
+
         o = o || {};
 
         var type = o.type || "box";
@@ -11558,15 +12032,15 @@ Object.assign( World.prototype, {
         // body dynamic or static
         var move = o.move || false;
         var kinematic = o.kinematic || false;
-        
+
         // body position
         var p = o.pos || [0,0,0];
         p = p.map(function(x) { return x * invScale; });
 
-        // body size 
+        // body size
         var s = o.size === undefined ? [1,1,1] : o.size;
-        if(s.length == 1){ s[1] = s[0]; }
-        if(s.length == 2){ s[2] = s[0]; }
+        if( s.length === 1 ){ s[1] = s[0]; }
+        if( s.length === 2 ){ s[2] = s[0]; }
         s = s.map(function(x) { return x * invScale; });
 
         // body rotation in degree
@@ -11600,22 +12074,25 @@ Object.assign( World.prototype, {
             sc.relativePosition.set( o.massPos[0], o.massPos[1], o.massPos[2] );
         }
         if(o.massRot){
-            o.massRot = o.massRot.map(function(x) { return x * degtorad; });
-            sc.relativeRotation = _Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
+            o.massRot = o.massRot.map(function(x) { return x * _Math.degtorad; });
+            var q = new Quat().setFromEuler( o.massRot[0], o.massRot[1], o.massRot[2] );
+            sc.relativeRotation = new Mat33().setQuat( q );//_Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
         }
 
         var position = new Vec3( p[0], p[1], p[2] );
         var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
-        
+
         // rigidbody
         var body = new RigidBody( position, rotation, this.scale, this.invScale );
+        //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
 
         // shapes
         var shapes = [];
 
         var n;
-        for(var i=0; i<type.length; i++){
+        for( var i = 0; i< type.length; i++ ){
             n = i*3;
+            //n2 = i*4;
             switch(type[i]){
                 case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
                 case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
@@ -11623,39 +12100,42 @@ Object.assign( World.prototype, {
                 case "plane": shapes[i] = new Plane( sc ); break
             }
             body.addShape( shapes[i] );
-            if( i > 0 ){
+            if(i>0){
+                //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
                 if( p[n] ) shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
+
                 if( r[n] ) {
                     var q = new Quat().setFromEuler( r[n], r[n+1], r[n+2] );
-                    shapes[i].relativeRotation = new Mat33().setQuat(q);
+                    shapes[i].relativeRotation = new Mat33().setQuat( q );
                 }
             }
-        } 
+        }
 
         // body can sleep or not
         if( o.neverSleep || kinematic) body.allowSleep = false;
         else body.allowSleep = true;
 
         body.isKinematic = kinematic;
-        
+
         // body static or dynamic
         if( move ){
 
-            if( o.massPos || o.massRot ) body.setupMass( BODY_DYNAMIC, false );
+            if(o.massPos || o.massRot) body.setupMass( BODY_DYNAMIC, false );
             else body.setupMass( BODY_DYNAMIC, true );
 
-            
+            // body can sleep or not
+            //if( o.neverSleep ) body.allowSleep = false;
+            //else body.allowSleep = true;
 
         } else {
 
             body.setupMass( BODY_STATIC );
 
         }
-        
-        if( o.name !== undefined ) body.name = o.name;
-        //else if( o.move ) body.name = this.rigidBodies.length;
 
-        
+        if( o.name !== undefined ) body.name = o.name;
+        //else if( move ) body.name = this.numRigidBodies;
+
         // finaly add to physics world
         this.addRigidBody( body );
 
@@ -11667,10 +12147,12 @@ Object.assign( World.prototype, {
 
         return body;
 
+
     },
 
     initJoint: function( type, o ){
 
+        //var type = type;
         var invScale = this.invScale;
 
         var axe1 = o.axe1 || [1,0,0];
@@ -11678,8 +12160,8 @@ Object.assign( World.prototype, {
         var pos1 = o.pos1 || [0,0,0];
         var pos2 = o.pos2 || [0,0,0];
 
-        pos1 = pos1.map( function ( x ) { return x * invScale; } );
-        pos2 = pos2.map( function ( x ) { return x * invScale; } );
+        pos1 = pos1.map(function(x){ return x * invScale; });
+        pos2 = pos2.map(function(x){ return x * invScale; });
 
         var min, max;
         if( type === "jointDistance" ){
@@ -11728,21 +12210,21 @@ Object.assign( World.prototype, {
 
         var joint;
         switch( type ){
-            case "jointDistance": joint = new DistanceJoint(jc, min, max); 
-                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+            case "jointDistance": joint = new DistanceJoint(jc, min, max);
+                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );
+                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointHinge": case "joint": joint = new HingeJoint(jc, min, max);
-                if(spring !== null) joint.limitMotor.setSpring(spring[0], spring[1]);// soften the joint ex: 100, 0.2
-                if(motor !== null) joint.limitMotor.setMotor(motor[0], motor[1]);
+                if(spring !== null) joint.limitMotor.setSpring( spring[0], spring[1] );// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
             case "jointSlide": joint = new SliderJoint(jc, min, max); break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
-            case "jointWheel": joint = new WheelJoint(jc);  
-                if(limit !== null) joint.rotationalLimitMotor1.setLimit(limit[0], limit[1]);
-                if(spring !== null) joint.rotationalLimitMotor1.setSpring(spring[0], spring[1]);
-                if(motor !== null) joint.rotationalLimitMotor1.setMotor(motor[0], motor[1]);
+            case "jointWheel": joint = new WheelJoint(jc);
+                if(limit !== null) joint.rotationalLimitMotor1.setLimit( limit[0], limit[1] );
+                if(spring !== null) joint.rotationalLimitMotor1.setSpring( spring[0], spring[1] );
+                if(motor !== null) joint.rotationalLimitMotor1.setMotor( motor[0], motor[1] );
             break;
         }
 
@@ -11756,5 +12238,10 @@ Object.assign( World.prototype, {
 
 
 } );
+
+// test version
+
+//export { RigidBody } from './core/RigidBody_X.js';
+//export { World } from './core/World_X.js';
 
 export { _Math as Math, Vec3, Quat, Mat33, Shape, Box, Sphere, Cylinder, Plane, Particle, ShapeConfig, LimitMotor, HingeJoint, BallAndSocketJoint, DistanceJoint, PrismaticJoint, SliderJoint, WheelJoint, JointConfig, RigidBody, World, REVISION, BR_NULL, BR_BRUTE_FORCE, BR_SWEEP_AND_PRUNE, BR_BOUNDING_VOLUME_TREE, BODY_NULL, BODY_DYNAMIC, BODY_STATIC, BODY_KINEMATIC, BODY_GHOST, SHAPE_NULL, SHAPE_SPHERE, SHAPE_BOX, SHAPE_CYLINDER, SHAPE_PLANE, SHAPE_PARTICLE, SHAPE_TETRA, JOINT_NULL, JOINT_DISTANCE, JOINT_BALL_AND_SOCKET, JOINT_HINGE, JOINT_WHEEL, JOINT_SLIDER, JOINT_PRISMATIC, AABB_PROX, printError, InfoDisplay };

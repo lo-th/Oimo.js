@@ -1,4 +1,4 @@
-import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, BODY_DYNAMIC, BODY_STATIC } from '../constants';
+import { SHAPE_BOX, SHAPE_SPHERE, SHAPE_CYLINDER, SHAPE_PLANE, BODY_DYNAMIC, BODY_STATIC } from '../constants';
 import { InfoDisplay, printError } from './Utils';
 
 
@@ -12,6 +12,8 @@ import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/Cyli
 import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector';
 import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector';
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector';
+import { SpherePlaneCollisionDetector } from '../collision/narrowphase/SpherePlaneCollisionDetector_X';
+import { BoxPlaneCollisionDetector } from '../collision/narrowphase/BoxPlaneCollisionDetector_X';
 
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
@@ -22,6 +24,7 @@ import { ShapeConfig } from '../shape/ShapeConfig';
 import { Box } from '../shape/Box';
 import { Sphere } from '../shape/Sphere';
 import { Cylinder } from '../shape/Cylinder';
+import { Plane } from '../shape/Plane';
 //import { TetraShape } from '../collision/shape/TetraShape';
 
 import { Contact } from '../constraint/contact/Contact';
@@ -56,6 +59,12 @@ function World ( o ) {
 
     // The time between each step
     this.timeStep = o.timestep || 0.01666; // 1/60;
+    this.timerate = this.timeStep * 1000;
+    this.timer = null;
+
+    this.preLoop = null;//function(){};
+    this.postLoop = null;//function(){};
+
     // The number of iterations for constraint solvers.
     this.numIterations = o.iterations || 8;
 
@@ -130,6 +139,14 @@ function World ( o ) {
     this.detectors[SHAPE_CYLINDER][SHAPE_SPHERE] = new SphereCylinderCollisionDetector(true);
     this.detectors[SHAPE_SPHERE][SHAPE_CYLINDER] = new SphereCylinderCollisionDetector(false);
 
+    // PLANE add
+
+    this.detectors[SHAPE_PLANE][SHAPE_SPHERE] = new SpherePlaneCollisionDetector(true);
+    this.detectors[SHAPE_SPHERE][SHAPE_PLANE] = new SpherePlaneCollisionDetector(false);
+
+    this.detectors[SHAPE_PLANE][SHAPE_BOX] = new BoxPlaneCollisionDetector(true);
+    this.detectors[SHAPE_BOX][SHAPE_PLANE] = new BoxPlaneCollisionDetector(false);
+
     // TETRA add
     //this.detectors[SHAPE_TETRA][SHAPE_TETRA] = new TetraTetraCollisionDetector();
 
@@ -148,6 +165,25 @@ Object.assign( World.prototype, {
 
     World: true,
 
+    play: function(){
+ 
+        if( this.timer !== null ) return;
+
+        var _this = this;
+        this.timer = setInterval( function(){ _this.step(); } , this.timerate );
+        //this.timer = setInterval( this.loop.bind(this) , this.timerate );
+
+    },
+
+    stop: function(){
+
+        if( this.timer === null ) return;
+
+        clearInterval( this.timer );
+        this.timer = null;
+
+    },
+
     setGravity: function ( ar ) {
 
         this.gravity.fromArray( ar );
@@ -162,6 +198,10 @@ Object.assign( World.prototype, {
 
     // Reset the world and remove all rigid bodies, shapes, joints and any object from the world.
     clear:function(){
+
+        this.stop();
+        this.preLoop = null;
+        this.postLoop = null;
 
         this.randX = 65535;
 
@@ -187,7 +227,7 @@ Object.assign( World.prototype, {
             printError("World", "It is not possible to be added to more than one world one of the rigid body");
         }
 
-        rigidBody.parent = this;
+        rigidBody.setParent( this );
         //rigidBody.awake();
 
         for(var shape = rigidBody.shapes; shape !== null; shape = shape.next){
@@ -290,7 +330,7 @@ Object.assign( World.prototype, {
         }
         if(this.joints!=null)(this.joints.prev=joint).next=this.joints;
         this.joints=joint;
-        joint.parent=this;
+        joint.setParent( this );
         this.numJoints++;
         joint.awake();
         joint.attach();
@@ -352,14 +392,17 @@ Object.assign( World.prototype, {
 
     },
 
-    getContact: function ( name1, name2 ) {
+    getContact: function ( b1, b2 ) {
+
+        b1 = b1.constructor === RigidBody ? b1.name : b1;
+        b2 = b2.constructor === RigidBody ? b2.name : b2;
 
         var n1, n2;
         var contact = this.contacts;
         while(contact!==null){
-            n1 = contact.body1.name || ' ';
-            n2 = contact.body2.name || ' ';
-            if((n1==name1 && n2==name2) || (n2==name1 && n1==name2)){ if(contact.touching) return contact; else return null;}
+            n1 = contact.body1.name;
+            n2 = contact.body2.name;
+            if((n1===b1 && n2===b2) || (n2===b1 && n1===b2)){ if(contact.touching) return contact; else return null;}
             else contact = contact.next;
         }
         return null;
@@ -688,6 +731,8 @@ Object.assign( World.prototype, {
 
         if( stat ) this.performance.calcEnd();
 
+        if( this.postLoop !== null ) this.postLoop();
+
     },
 
     // remove someting to world
@@ -717,6 +762,7 @@ Object.assign( World.prototype, {
 
         // body dynamic or static
         var move = o.move || false;
+        var kinematic = o.kinematic || false;
 
         // body position
         var p = o.pos || [0,0,0];
@@ -782,6 +828,7 @@ Object.assign( World.prototype, {
                 case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
                 case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
                 case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
+                case "plane": shapes[i] = new Plane( sc ); break
             }
             body.addShape( shapes[i] );
             if(i>0){
@@ -795,6 +842,12 @@ Object.assign( World.prototype, {
             }
         }
 
+        // body can sleep or not
+        if( o.neverSleep || kinematic) body.allowSleep = false;
+        else body.allowSleep = true;
+
+        body.isKinematic = kinematic;
+
         // body static or dynamic
         if( move ){
 
@@ -802,8 +855,8 @@ Object.assign( World.prototype, {
             else body.setupMass( BODY_DYNAMIC, true );
 
             // body can sleep or not
-            if( o.neverSleep ) body.allowSleep = false;
-            else body.allowSleep = true;
+            //if( o.neverSleep ) body.allowSleep = false;
+            //else body.allowSleep = true;
 
         } else {
 
@@ -812,7 +865,7 @@ Object.assign( World.prototype, {
         }
 
         if( o.name !== undefined ) body.name = o.name;
-        else if( move ) body.name = this.numRigidBodies;
+        //else if( move ) body.name = this.numRigidBodies;
 
         // finaly add to physics world
         this.addRigidBody( body );
