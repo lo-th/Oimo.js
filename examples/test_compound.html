@@ -160,7 +160,7 @@
         var mesh, n, m;
         for(var i=0; i<types.length; i++){
             n = i*3;
-            m = new THREE.Matrix4().makeTranslation(positions[n+0], positions[n+1], positions[n+2]);
+            m = new THREE.Matrix4().makeTranslation( positions[n+0], positions[n+1], positions[n+2] );
             m.scale(new THREE.Vector3(sizes[n+0], sizes[n+1], sizes[n+2]));
             
             if(i==1 || i==2 || i==3 || i==4 || i==5 || i==6) g.merge(geoCyl, m);
@@ -187,7 +187,7 @@
 
         world = new OIMO.World( {info:true, worldscale:100} );
         initChairGeometry();
-        populate(1);
+        populate(2);
         //setInterval( updateOimoPhysics, 1000/60 );
     }
 
@@ -197,6 +197,8 @@
 
         if(n===1) type = 1
         else if(n===2) type = 2;
+
+        var pos = [];
         //else if(n===3) type = 3;
 
         // reset old
@@ -219,15 +221,16 @@
             var j;
 
             while (i--){
-                positions[1] = 300+(i*160);
-                positions[0] = 0;
-                positions[2] = 0;
+                pos[1] = 300+(i*160);
+                pos[0] = 0;
+                pos[2] = 0;
 
                 //b = new OIMO.Body({
                 bodys[i] = world.add({
                     type:types,
                     size:sizes,
-                    pos:positions,
+                    pos:pos,
+                    posShape:positions,
                     move:true, 
                     world:world, 
                     name:'box'+i, 
@@ -257,9 +260,9 @@
             
 
             while (i--){
-                positions[1] = 50;
-                positions[0] = -400+(50*l);
-                positions[2] = -400+(50*k);
+                pos[1] = 50;
+                pos[0] = -400+(50*l);
+                pos[2] = -400+(50*k);
 
                 l++;
                 if(l>16){k++; l=0}
@@ -268,7 +271,8 @@
                 bodys[i] = world.add({
                     type:types,
                     size:sizes,
-                    pos:positions,
+                    pos:pos,
+                    posShape:positions,
                     move:true, 
                     world:world, 
                     name:'box'+i, 

@@ -764,19 +764,35 @@ Object.assign( World.prototype, {
         var move = o.move || false;
         var kinematic = o.kinematic || false;
 
+        // POSITION
+
         // body position
         var p = o.pos || [0,0,0];
-        p = p.map(function(x) { return x * invScale; });
+        p = p.map( function(x) { return x * invScale; } );
 
-        // body size
-        var s = o.size === undefined ? [1,1,1] : o.size;
-        if( s.length === 1 ){ s[1] = s[0]; }
-        if( s.length === 2 ){ s[2] = s[0]; }
-        s = s.map(function(x) { return x * invScale; });
+        // shape position
+        var p2 = o.posShape || [0,0,0];
+        p2 = p2.map( function(x) { return x * invScale; } );
+
+        // ROTATION
 
         // body rotation in degree
         var r = o.rot || [0,0,0];
         r = r.map( function(x) { return x * _Math.degtorad; } );
+
+        // shape rotation in degree
+        var r2 = o.rotShape || [0,0,0];
+        r2 = r.map( function(x) { return x * _Math.degtorad; } );
+
+        // SIZE
+
+        // shape size
+        var s = o.size === undefined ? [1,1,1] : o.size;
+        if( s.length === 1 ){ s[1] = s[0]; }
+        if( s.length === 2 ){ s[2] = s[0]; }
+        s = s.map( function(x) { return x * invScale; } );
+
+        
 
         // body physics settings
         var sc = new ShapeConfig();
@@ -800,7 +816,7 @@ Object.assign( World.prototype, {
         }
 
 
-        if(o.massPos){
+       /* if(o.massPos){
             o.massPos = o.massPos.map(function(x) { return x * invScale; });
             sc.relativePosition.set( o.massPos[0], o.massPos[1], o.massPos[2] );
         }
@@ -808,38 +824,35 @@ Object.assign( World.prototype, {
             o.massRot = o.massRot.map(function(x) { return x * _Math.degtorad; });
             var q = new Quat().setFromEuler( o.massRot[0], o.massRot[1], o.massRot[2] );
             sc.relativeRotation = new Mat33().setQuat( q );//_Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
-        }
+        }*/
 
         var position = new Vec3( p[0], p[1], p[2] );
         var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
 
         // rigidbody
-        var body = new RigidBody( position, rotation, this.scale, this.invScale );
+        var body = new RigidBody( position, rotation );
         //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
 
-        // shapes
-        var shapes = [];
+        // SHAPES
 
-        var n;
-        for( var i = 0; i< type.length; i++ ){
-            n = i*3;
-            //n2 = i*4;
-            switch(type[i]){
-                case "sphere": shapes[i] = new Sphere(sc, s[n]); break;
-                case "cylinder": shapes[i] = new Cylinder(sc, s[n], s[n+1]); break;
-                case "box": shapes[i] = new Box(sc, s[n], s[n+1], s[n+2]); break;
-                case "plane": shapes[i] = new Plane( sc ); break
-            }
-            body.addShape( shapes[i] );
-            if(i>0){
-                //shapes[i].position.init(p[0]+p[n+0], p[1]+p[n+1], p[2]+p[n+2] );
-                if( p[n] ) shapes[i].relativePosition = new Vec3( p[n], p[n+1], p[n+2] );
+        var shape, n;
 
-                if( r[n] ) {
-                    var q = new Quat().setFromEuler( r[n], r[n+1], r[n+2] );
-                    shapes[i].relativeRotation = new Mat33().setQuat( q );
-                }
+        for( var i = 0; i < type.length; i++ ){
+
+            n = i * 3;
+
+            if( p2[n] !== undefined ) sc.relativePosition.set( p2[n], p2[n+1], p2[n+2] );
+            if( r2[n] !== undefined ) sc.relativeRotation.setQuat( new Quat().setFromEuler( r2[n], r2[n+1], r2[n+2] ) );
+            
+            switch( type[i] ){
+                case "sphere": shape = new Sphere( sc, s[n] ); break;
+                case "cylinder": shape = new Cylinder( sc, s[n], s[n+1] ); break;
+                case "box": shape = new Box( sc, s[n], s[n+1], s[n+2] ); break;
+                case "plane": shape = new Plane( sc ); break
             }
+
+            body.addShape( shape );
+            
         }
 
         // body can sleep or not

@@ -173,6 +173,31 @@
         capsuleGeometry.fromGeometry(g);
     }
 
+    /*function initCapsuleGeometry (radius, height, SRadius, SHeight) {
+        types = [ 'sphere', 'sphere','sphere'];
+        //types = [ 'sphere', 'cylinder','sphere'];
+        //sizes = [ radius,radius,radius, radius,height,radius, radius,radius,radius ];
+        sizes = [ radius,radius,radius, radius,radius,radius, radius,radius,radius ];
+        //positions = [ 0,0,0,   0,height*0.5,0, 0,height,0 ];
+        positions = [ 0,-height,0,   0,0,0, 0,height,0 ];
+        var sRadius = SRadius || 20;
+        var sHeight = SHeight || 10;
+        var o0 = Math.PI*2;
+        var o1 = Math.PI/2;
+        var g = new THREE.Geometry();
+        var m0 = new THREE.CylinderGeometry( radius, radius, height, sRadius, 1, true );
+        var m1 = new THREE.SphereGeometry( radius, sRadius, sHeight, 0, o0, 0, o1);
+        var m2 = new THREE.SphereGeometry( radius, sRadius, sHeight, 0, o0, o1, o1);
+        var mtx0 = new THREE.Matrix4().makeTranslation(0, 0 ,0 );
+        var mtx1 = new THREE.Matrix4().makeTranslation(0, height*0.5,0);
+        var mtx2 = new THREE.Matrix4().makeTranslation(0, -height*0.5,0);
+        g.merge( m0, mtx0);
+        g.merge( m1, mtx1);
+        g.merge( m2, mtx2);
+        capsuleGeometry = new THREE.BufferGeometry();
+        capsuleGeometry.fromGeometry( g );
+    }*/
+
     function clearMesh(){
         var i=meshs.length;
         while (i--) scene.remove(meshs[ i ]);
@@ -188,16 +213,18 @@
 
     function initOimoPhysics(){
 
-        world = new OIMO.World( {info:true, worldscale:100} );
+        world = new OIMO.World( {info:true, worldscale:100,  broadphase:1 } );
         //initChairGeometry();
         initCapsuleGeometry(10,22,20,10);
-        populate(1);
+        populate(2);
         //setInterval( updateOimoPhysics, 1000/60 );
     }
 
     function populate(n) {
 
         var max = document.getElementById("MaxNumber").value;
+
+        var pos = [];
 
         if(n===1) type = 1
         else if(n===2) type = 2;
@@ -224,17 +251,18 @@
             var j;
 
             while (i--){
-                positions[1] = 100 + Math.random()*1000;
-                positions[0] = -100 + Math.random()*200;
-                positions[2] = -100 + Math.random()*200;
+                pos[1] = 100 + Math.random()*1000;
+                pos[0] = -100 + Math.random()*200;
+                pos[2] = -100 + Math.random()*200;
 
                 bodys[i] = world.add({
                     type:types,
                     size:sizes,
-                    pos:positions,
+                    pos:pos,
+                    posShape:positions,
                     move:true, 
                     name:'box'+i, 
-                    config:[0.2, 0.4,0.1]
+                    //config:[0.2, 0.4,0.1]
                 });
 
                 j = Math.round(Math.random()*2);
@@ -258,9 +286,9 @@
             
 
             while (i--){
-                positions[1] = 50;
-                positions[0] = -400+(50*l);
-                positions[2] = -400+(50*k);
+                pos[1] = 50;
+                pos[0] = -400+(50*l);
+                pos[2] = -400+(50*k);
 
                 l++;
                 if(l>16){k++; l=0}
@@ -268,10 +296,11 @@
                 bodys[i] = world.add({
                     type:types,
                     size:sizes,
-                    pos:positions,
+                    pos:pos,
+                    posShape:positions,
                     move:true, 
                     name:'box'+i, 
-                    config:[0.2,0.4,0.1]
+                    //config:[0.2,0.4,0.1]
                 });
 
                 j = Math.round(Math.random()*2);

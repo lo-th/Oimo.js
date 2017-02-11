@@ -19,13 +19,13 @@ import { Contact } from '../constraint/contact/Contact';
 * @author lo-th
 */
 
-function RigidBody ( Position, Rotation, scale, invScale ) {
+function RigidBody ( Position, Rotation ) {
 
     this.position = Position || new Vec3();
     this.orientation = Rotation || new Quat();
 
-    this.scale = scale || 1;
-    this.invScale = invScale || 1;
+    this.scale = 1;
+    this.invScale = 1;
 
     // possible link to three Mesh;
     this.mesh = null;
@@ -102,9 +102,9 @@ function RigidBody ( Position, Rotation, scale, invScale ) {
     //--------------------------------------------
 
     // This is the weight.
-    this.mass = NaN;
+    this.mass = 0;
     // It is the reciprocal of the mass.
-    this.inverseMass = NaN;
+    this.inverseMass = 0;
     // It is the inverse of the inertia tensor in the world system.
     this.inverseInertia = new Mat33();
     // It is the inertia tensor in the initial state.
