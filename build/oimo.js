@@ -6225,7 +6225,7 @@
 
 	    setRotation: function ( rot ) {
 
-	        this.newOrientation = new Quat().setFromEuler( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.y * _Math.degtorad );//this.rotationVectToQuad( rot );
+	        this.newOrientation = new Quat().setFromEuler( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );//this.rotationVectToQuad( rot );
 	        this.controlRot = true;
 
 	    },
