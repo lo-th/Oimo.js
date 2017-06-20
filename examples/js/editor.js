@@ -31,6 +31,7 @@ var bigContent;
 var isMenu = false;
 var isWithCode = true;
 var isMidDown = false;
+var isPlaying = false;
 
 var octo, octoArm;
 
