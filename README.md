@@ -2,6 +2,14 @@
 Oimo.js is a lightweight 3d physics engine for JavaScript.<br>
 It's a full javascript conversion of <a href="https://github.com/saharan/OimoPhysics/">OimoPhysics</a><br>
 Originally created by <a href="http://el-ement.com/blog/">Saharan</a> for actionscript 3.0.
+<br>
+<a href="https://www.npmjs.com/package/oimo">
+  <img src="https://img.shields.io/npm/v/oimo.svg" alt="Version">
+</a>
+
+<a href="https://cdnjs.com/libraries/oimo">
+  <img src="https://img.shields.io/cdnjs/v/oimo.svg" alt="Version">
+</a>
 </p>
 
 ### Home ###
