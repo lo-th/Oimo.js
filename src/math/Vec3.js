@@ -106,15 +106,6 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    multiplyScalar: function( s ){
-
-        this.x *= s;
-        this.y *= s;
-        this.z *= s;
-        return this;
-
-    },
-
     /*scaleV: function( v ){
 
         this.x *= v.x;
