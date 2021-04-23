@@ -94,3 +94,7 @@ In basic demo with THREE, I scaled all by 100 so objects are between 10 to 1000 
 
 /!\ Shape name change in last version <br>
 SphereShape to Sphere, BoxShape to Box, CylinderShape to Cylinder <br>
+
+### UPDATE ###
+
+Is time to switch ES6 worker version with the last OimoPhysics 1.2.2 :)
