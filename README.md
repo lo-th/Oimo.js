@@ -69,13 +69,13 @@ var body = world.add({
     friction: 0.2,
     restitution: 0.2,
     belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-    collidesWith: 0xffffffff; // The bits of the collision groups with which the shape collides.
+    collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
 });
 
 var body = world.add({ 
     type:'jointHinge', // type of joint : jointDistance, jointHinge, jointPrisme, jointSlide, jointWheel
     body1: "b1", // name or id of attach rigidbody
-    body2: "b1", // name or id of attach rigidbody
+    body2: "b1" // name or id of attach rigidbody
 });
 
 
